@@ -12,7 +12,7 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero">
-        <div className="container hero-grid heor-grid--single">
+        <div className="container hero-grid hero-grid--single">
           <div className="hero-copy">
             <span className="eyebrow">Local First</span>
             <h1 className="hero-title">Buy, sell, hire, and move around Fort McMurray faster.</h1>
