@@ -172,7 +172,9 @@ export async function deleteListingAction(listingId: string) {
   if (error) {
     redirectWithMessage("/dashboard", "error", error.message);
   }
-
+  if (!data) {
+  redirectWithMessage("/dashboard", "error", "Listing was created, but no listing data was returned.");
+  }
   revalidatePath("/");
   revalidatePath("/browse");
   revalidatePath("/dashboard");
