@@ -1,7 +1,6 @@
-const appUrl = process.env.www.ismaconnect.ca?.trim() || "http://localhost:3000";
-const appUrl = process.env.ismaconnect.ca?.trim() || "http://localhost:3000";
-const supabaseUrl = process.env.https://ncznqqtsvianhtxwxjzx.supabase.co?.trim() || "";
-const supabaseAnonKey = process.env.sb_publishable_NEG7q8jit6mv8RDIfW8Vsw_ZVD4Ptl4?.trim() || "";
+const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || "";
 
 export function getBaseUrl() {
   return appUrl.replace(/\/$/, "");
@@ -23,4 +22,3 @@ export function getSupabaseEnv() {
     supabaseAnonKey
   };
 }
-
