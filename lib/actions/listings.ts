@@ -8,7 +8,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
 
-function redirectWithMessage(path: string, key: "error" | "success", message: string) {
+function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
@@ -18,7 +18,6 @@ async function generateUniqueSlug(title: string) {
   let candidate = baseSlug;
   let suffix = 2;
 
-  // Keep this simple and deterministic for the MVP.
   while (true) {
     const { data } = await supabase.from("listings").select("id").eq("slug", candidate).maybeSingle();
 
@@ -44,6 +43,7 @@ async function loadListingForMutation(listingId: string) {
 
 export async function createListingAction(formData: FormData) {
   const viewer = await requireViewer();
+
   const parsed = listingSchema.safeParse({
     category: formData.get("category"),
     title: formData.get("title"),
@@ -60,28 +60,34 @@ export async function createListingAction(formData: FormData) {
     redirectWithMessage("/dashboard/listings/new", "error", firstMessage(parsed.error));
   }
 
+  const dataInput = parsed.data;
   const supabase = await createServerSupabaseClient();
-  const slug = await generateUniqueSlug(parsed.data!.title);
+  const slug = await generateUniqueSlug(dataInput.title);
+
   const { data, error } = await supabase
     .from("listings")
     .insert({
       owner_id: viewer.user.id,
       slug,
-      category: parsed.data!.category,
-      title: parsed.data!.title,
-      description: parsed.data!.description,
-      price: parsed.data!.price,
-      location: parsed.data!.location,
-      contact_name: parsed.data!.contactName,
-      contact_email: parsed.data!.contactEmail,
-      contact_phone: parsed.data!.contactPhone,
-      image_url: parsed.data!.imageUrl
+      category: dataInput.category,
+      title: dataInput.title,
+      description: dataInput.description,
+      price: dataInput.price,
+      location: dataInput.location,
+      contact_name: dataInput.contactName,
+      contact_email: dataInput.contactEmail,
+      contact_phone: dataInput.contactPhone,
+      image_url: dataInput.imageUrl
     })
     .select("slug, category")
     .single();
 
   if (error || !data) {
-    redirectWithMessage("/dashboard/listings/new", "error", error?.message || "Could not create the listing.");
+    redirectWithMessage(
+      "/dashboard/listings/new",
+      "error",
+      error?.message || "Could not create the listing."
+    );
   }
 
   revalidatePath("/");
@@ -121,19 +127,21 @@ export async function updateListingAction(listingId: string, formData: FormData)
     );
   }
 
+  const dataInput = parsed.data;
   const supabase = await createServerSupabaseClient();
+
   const { error, data } = await supabase
     .from("listings")
     .update({
-      category: parsed.data.category,
-      title: parsed.data.title,
-      description: parsed.data.description,
-      price: parsed.data.price,
-      location: parsed.data.location,
-      contact_name: parsed.data.contactName,
-      contact_email: parsed.data.contactEmail,
-      contact_phone: parsed.data.contactPhone,
-      image_url: parsed.data.imageUrl
+      category: dataInput.category,
+      title: dataInput.title,
+      description: dataInput.description,
+      price: dataInput.price,
+      location: dataInput.location,
+      contact_name: dataInput.contactName,
+      contact_email: dataInput.contactEmail,
+      contact_phone: dataInput.contactPhone,
+      image_url: dataInput.imageUrl
     })
     .eq("id", listingId)
     .select("slug, category")
@@ -172,9 +180,7 @@ export async function deleteListingAction(listingId: string) {
   if (error) {
     redirectWithMessage("/dashboard", "error", error.message);
   }
-  if (!data) {
-  redirectWithMessage("/dashboard", "error", "Listing was created, but no listing data was returned.");
-  }
+
   revalidatePath("/");
   revalidatePath("/browse");
   revalidatePath("/dashboard");
@@ -204,11 +210,13 @@ export async function flagListingAction(listingId: string, formData: FormData) {
     redirectWithMessage(`/listings/${existing.slug}`, "error", firstMessage(parsed.error));
   }
 
+  const dataInput = parsed.data;
   const supabase = await createServerSupabaseClient();
+
   const { error } = await supabase.from("listing_flags").insert({
     listing_id: listingId,
     reporter_id: viewer.user.id,
-    reason: parsed.data.reason
+    reason: dataInput.reason
   });
 
   if (error) {
@@ -223,7 +231,11 @@ export async function flagListingAction(listingId: string, formData: FormData) {
   revalidatePath(`/listings/${existing.slug}`);
   revalidatePath("/admin/moderation");
 
-  redirectWithMessage(`/listings/${existing.slug}`, "success", "Thanks. The listing has been flagged for review.");
+  redirectWithMessage(
+    `/listings/${existing.slug}`,
+    "success",
+    "Thanks. The listing has been flagged for review."
+  );
 }
 
 export async function reviewFlaggedListingAction(
@@ -263,4 +275,3 @@ export async function reviewFlaggedListingAction(
     decision === "restore" ? "Listing restored to active." : "Listing removed from public view."
   );
 }
-
