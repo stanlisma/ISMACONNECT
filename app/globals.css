@@ -207,6 +207,15 @@ code {
   gap: 1.25rem;
 }
 
+.hero-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.hero-grid--single .hero-copy {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 .hero-grid {
   align-items: stretch;
 }
