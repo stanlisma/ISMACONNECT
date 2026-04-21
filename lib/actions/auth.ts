@@ -55,12 +55,12 @@ export async function signUpAction(formData: FormData) {
 
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
+    email: parsed.data!.email,
+    password: parsed.data!.password,
     options: {
       emailRedirectTo: `${getBaseUrl()}/auth/callback`,
       data: {
-        full_name: parsed.data.fullName
+        full_name: parsed.data!.fullName
       }
     }
   });
