@@ -207,11 +207,11 @@ code {
   gap: 1.25rem;
 }
 
-.hero-grid--single {
+.hero-grid.hero-grid--single {
   grid-template-columns: 1fr;
 }
 
-.hero-grid--single .hero-copy {
+.hero-grid.hero-grid--single .hero-copy {
   max-width: 900px;
   margin: 0 auto;
 }
