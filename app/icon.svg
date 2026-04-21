@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="ISMACONNECT">
+  <defs>
+    <linearGradient id="ismac-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d8bff" />
+      <stop offset="100%" stop-color="#0054b8" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#f5faff" />
+  <path d="M26 34h76v14H72v46h30v14H26V94h30V48H26z" fill="url(#ismac-gradient)" />
+</svg>
+

@@ -1,0 +1,55 @@
+import type { User } from "@supabase/supabase-js";
+
+export type AppRole = "user" | "admin";
+export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "buy-sell";
+export type ListingStatus = "active" | "flagged" | "removed";
+
+export interface Profile {
+  id: string;
+  email: string | null;
+  full_name: string;
+  phone: string | null;
+  role: AppRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Listing {
+  id: string;
+  owner_id: string;
+  title: string;
+  slug: string;
+  category: ListingCategory;
+  description: string;
+  price: number | null;
+  location: string;
+  contact_name: string;
+  contact_email: string | null;
+  contact_phone: string | null;
+  image_url: string | null;
+  is_featured: boolean;
+  featured_until: string | null;
+  stripe_checkout_session_id: string | null;
+  status: ListingStatus;
+  flag_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ListingFlag {
+  id: string;
+  listing_id: string;
+  reporter_id: string;
+  reason: string;
+  created_at: string;
+}
+
+export interface FlaggedListing extends Listing {
+  listing_flags: ListingFlag[];
+}
+
+export interface Viewer {
+  user: User;
+  profile: Profile;
+}
+
