@@ -61,21 +61,21 @@ export async function createListingAction(formData: FormData) {
   }
 
   const supabase = await createServerSupabaseClient();
-  const slug = await generateUniqueSlug(parsed.data.title);
+  const slug = await generateUniqueSlug(parsed.data!.title);
   const { data, error } = await supabase
     .from("listings")
     .insert({
       owner_id: viewer.user.id,
       slug,
-      category: parsed.data.category,
-      title: parsed.data.title,
-      description: parsed.data.description,
-      price: parsed.data.price,
-      location: parsed.data.location,
-      contact_name: parsed.data.contactName,
-      contact_email: parsed.data.contactEmail,
-      contact_phone: parsed.data.contactPhone,
-      image_url: parsed.data.imageUrl
+      category: parsed.data!.category,
+      title: parsed.data!.title,
+      description: parsed.data!.description,
+      price: parsed.data!.price,
+      location: parsed.data!.location,
+      contact_name: parsed.data!.contactName,
+      contact_email: parsed.data!.contactEmail,
+      contact_phone: parsed.data!.contactPhone,
+      image_url: parsed.data!.imageUrl
     })
     .select("slug, category")
     .single();
