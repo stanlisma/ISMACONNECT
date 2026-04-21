@@ -12,37 +12,39 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero">
-        <div className="container hero-grid hero-grid--single">
-          <div className="hero-copy">
-            <span className="eyebrow">Local First</span>
-            <h1 className="hero-title">Buy, sell, hire, and move around Fort McMurray faster.</h1>
-            <p className="hero-lead">{SITE_TAGLINE}</p>
+        <div className="hero-grid hero-grid--single">
+          <div className="hero-full">
+            <div className="hero-copy">
+              <span className="eyebrow">Local First</span>
+              <h1 className="hero-title">Buy, sell, hire, and move around Fort McMurray faster.</h1>
+              <p className="hero-lead">{SITE_TAGLINE}</p>
 
-            <form action="/browse" className="filters-grid surface" method="get">
-              <label className="field">
-                <span className="field-label">Search the marketplace</span>
-                <input
-                  className="input"
-                  name="q"
-                  placeholder="Rentals, camp rides, tools, cleaning, jobs..."
-                />
-              </label>
-              <div className="filter-actions">
-                <button className="button" type="submit">
-                  Explore listings
-                </button>
-                <Link className="button button-secondary" href="/auth/sign-up">
-                  Create account
-                </Link>
+              <form action="/browse" className="filters-grid surface" method="get">
+                <label className="field">
+                  <span className="field-label">Search the marketplace</span>
+                  <input
+                    className="input"
+                    name="q"
+                    placeholder="Rentals, camp rides, tools, cleaning, jobs..."
+                  />
+                </label>
+                <div className="filter-actions">
+                  <button className="button" type="submit">
+                    Explore listings
+                  </button>
+                  <Link className="button button-secondary" href="/auth/sign-up">
+                    Create account
+                  </Link>
+                </div>
+              </form>
+
+              <div className="pill-links">
+                {CATEGORIES.map((category) => (
+                  <Link className="pill-link" href={category.href} key={category.value}>
+                    {category.label}
+                  </Link>
+                ))}
               </div>
-            </form>
-
-            <div className="pill-links">
-              {CATEGORIES.map((category) => (
-                <Link className="pill-link" href={category.href} key={category.value}>
-                  {category.label}
-                </Link>
-              ))}
             </div>
           </div>
 
