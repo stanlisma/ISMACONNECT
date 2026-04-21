@@ -211,9 +211,16 @@ code {
   grid-template-columns: 1fr;
 }
 
-.hero-grid.hero-grid--single .hero-copy {
-  max-width: 900px;
+.hero-full {
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 32px;
+}
+
+.hero-grid--single .hero-copy {
+  width: 100%;
+  max-width: 1200px;
 }
 
 .hero-grid {
