@@ -219,8 +219,17 @@ code {
 }
 
 .hero-grid--single .hero-copy {
-  width: 100%;
-  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;  
+}
+
+.hero-grid--single .filters-grid {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.hero-grid--single .pill-links {
+  justify-content: center;
 }
 
 .hero-grid {
