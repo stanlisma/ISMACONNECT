@@ -40,15 +40,15 @@ export default async function EditListingPage({
         action={updateListingAction.bind(null, listing.id)}
         cancelHref="/dashboard"
         defaults={{
-          category: listing.category,
-          contactEmail: listing.contact_email,
-          contactName: listing.contact_name,
-          contactPhone: listing.contact_phone,
-          description: listing.description,
-          imageUrl: listing.image_url,
-          location: listing.location,
-          price: listing.price,
-          title: listing.title
+          category: listing.category ?? undefined,
+          contactEmail: listing.contact_email ?? undefined,
+          contactName: listing.contact_name ?? undefined,
+          contactPhone: listing.contact_phone ?? undefined,
+          description: listing.description ?? undefined,
+          imageUrl: listing.image_url ?? undefined,
+          location: listing.location ?? undefined,
+          price: listing.price ?? undefined,
+          title: listing.title ?? undefined
         }}
         pendingLabel="Saving changes..."
         submitLabel="Save changes"
