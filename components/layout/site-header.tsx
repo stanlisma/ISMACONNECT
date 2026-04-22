@@ -36,13 +36,6 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
           <Link className="main-nav-link" href="/categories/buy-sell">
             Buy & Sell
           </Link>
-
-          {/* ✅ NEW: Messages link */}
-          {viewer ? (
-            <Link className="main-nav-link" href="/messages">
-              Messages
-            </Link>
-          ) : null}
         </nav>
 
         <div className="header-actions">
