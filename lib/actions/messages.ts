@@ -39,11 +39,12 @@ export async function sendListingMessageAction(listingId: string, formData: Form
       {
         listing_id: listing.id,
         buyer_id: viewer.user.id,
-        seller_id: listing.owner_id
+        seller_id: listing.owner_id,
+        last_message_at: new Date().toISOString()
       },
       { onConflict: "listing_id,buyer_id,seller_id" }
     )
-    .select("id")
+    .select("id, buyer_id, seller_id")
     .single();
 
   if (conversationError || !conversation) {
@@ -59,6 +60,33 @@ export async function sendListingMessageAction(listingId: string, formData: Form
   if (messageError) {
     redirectWithMessage(`/listings/${listing.slug}`, "error", messageError.message);
   }
+
+  const isBuyer = viewer.user.id === conversation.buyer_id;
+  const unreadField = isBuyer ? "seller_unread_count" : "buyer_unread_count";
+
+  const { data: currentConversation } = await supabase
+    .from("conversations")
+    .select("buyer_unread_count, seller_unread_count")
+    .eq("id", conversation.id)
+    .single();
+
+  await supabase
+    .from("conversations")
+    .update({
+      [unreadField]: ((currentConversation as any)?.[unreadField] ?? 0) + 1,
+      last_message_at: new Date().toISOString()
+    })
+    .eq("id", conversation.id);
+
+  const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
+
+  await supabase.from("notifications").insert({
+    user_id: recipientId,
+    type: "message",
+    title: "New message",
+    body: `You have a new message about "${listing.title}"`,
+    link: `/messages/${conversation.id}`
+  });
 
   redirectWithMessage(`/messages/${conversation.id}`, "success", "Message sent.");
 }

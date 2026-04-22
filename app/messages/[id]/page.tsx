@@ -3,11 +3,16 @@ import { notFound } from "next/navigation";
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sendThreadMessageAction } from "@/lib/actions/thread-messages";
+import { FlashMessage } from "@/components/ui/flash-message";
+import { getSingleParam } from "@/lib/utils";
+import { RealtimeMessages } from "@/components/messages/realtime-messages";
 
 export default async function MessageThreadPage({
-  params
+  params,
+  searchParams
 }: {
   params: { id: string };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
@@ -26,6 +31,15 @@ export default async function MessageThreadPage({
     notFound();
   }
 
+  const isBuyer = conversation.buyer_id === viewer.user.id;
+
+  await supabase
+    .from("conversations")
+    .update({
+      [isBuyer ? "buyer_unread_count" : "seller_unread_count"]: 0
+    })
+    .eq("id", params.id);
+
   const { data: messages } = await supabase
     .from("messages")
     .select("id, body, created_at, sender_id")
@@ -37,21 +51,18 @@ export default async function MessageThreadPage({
   return (
     <section className="section">
       <div className="container">
+        <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
+        <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+
         <h1 className="section-title">{(conversation as any).listing?.title ?? "Conversation"}</h1>
 
-        <div className="stack-md" style={{ marginBottom: "1.5rem" }}>
-          {messages?.map((message) => (
-            <div key={message.id} className="surface">
-              <p>{message.body}</p>
-              <small>
-                {message.sender_id === viewer.user.id ? "You" : "Other user"} ·{" "}
-                {new Date(message.created_at).toLocaleString()}
-              </small>
-            </div>
-          ))}
-        </div>
+        <RealtimeMessages
+          conversationId={params.id}
+          initialMessages={messages ?? []}
+          viewerId={viewer.user.id}
+        />
 
-        <form action={action} className="form-grid">
+        <form action={action} className="form-grid" style={{ marginTop: "1.5rem" }}>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             <span className="field-label">Reply</span>
             <textarea className="input" name="body" rows={4} required />
