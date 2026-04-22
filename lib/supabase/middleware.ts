@@ -8,7 +8,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  let response = NextResponse.next({ request });
+  let response = NextResponse.next({
+    request
+  });
+
   const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -17,8 +20,10 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        response = NextResponse.next({
+          request
+        });
+
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });
