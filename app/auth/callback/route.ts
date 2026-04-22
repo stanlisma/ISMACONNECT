@@ -6,7 +6,6 @@ import { getSupabaseEnv } from "@/lib/env";
 
 export async function GET(request: Request) {
   const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
-
   const cookieStore = cookies();
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -22,12 +21,13 @@ export async function GET(request: Request) {
     }
   });
 
-  const { searchParams } = new URL(request.url);
-  const code = searchParams.get("code");
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const next = url.searchParams.get("next") || "/dashboard";
 
   if (code) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL("/dashboard", request.url));
+  return NextResponse.redirect(new URL(next, request.url));
 }
