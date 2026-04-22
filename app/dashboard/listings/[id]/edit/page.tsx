@@ -47,7 +47,7 @@ export default async function EditListingPage({
           description: listing.description ?? undefined,
           imageUrl: listing.image_url ?? undefined,
           location: listing.location ?? undefined,
-          price: listing.price ?? undefined,
+          price: listing.price != null ? String(listing.price) : undefined,
           title: listing.title ?? undefined
         }}
         pendingLabel="Saving changes..."
