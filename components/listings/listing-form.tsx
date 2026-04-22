@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 
 type ListingFormProps = {
@@ -16,12 +17,14 @@ type ListingFormProps = {
     imageUrl?: string;
   };
   submitLabel?: string;
+  cancelHref?: string;
 };
 
 export function ListingForm({
   action,
   defaults,
-  submitLabel = "Publish listing"
+  submitLabel = "Publish listing",
+  cancelHref
 }: ListingFormProps) {
   const [imageUrl, setImageUrl] = useState(defaults?.imageUrl ?? "");
   const [uploadError, setUploadError] = useState("");
@@ -116,6 +119,7 @@ export function ListingForm({
         <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
       </label>
 
+      {/* IMAGE UPLOAD */}
       <div className="field">
         <span className="field-label">Upload image</span>
         <input className="input" type="file" accept="image/*" onChange={handleFileChange} />
@@ -152,10 +156,24 @@ export function ListingForm({
         </div>
       ) : null}
 
-      <div style={{ gridColumn: "1 / -1" }}>
+      {/* BUTTONS */}
+      <div
+        style={{
+          gridColumn: "1 / -1",
+          display: "flex",
+          gap: "0.75rem",
+          alignItems: "center"
+        }}
+      >
         <button className="button" type="submit" disabled={isUploading}>
           {isUploading ? "Uploading..." : submitLabel}
         </button>
+
+        {cancelHref ? (
+          <Link href={cancelHref} className="button button-secondary">
+            Cancel
+          </Link>
+        ) : null}
       </div>
     </form>
   );

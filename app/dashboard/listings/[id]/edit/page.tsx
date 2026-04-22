@@ -30,7 +30,9 @@ export default async function EditListingPage({
         <div className="action-row" style={{ justifyContent: "space-between" }}>
           <div>
             <h2>Edit listing</h2>
-            <p className="section-copy">Update details, pricing, contact info, or imagery for this listing.</p>
+            <p className="section-copy">
+              Update details, pricing, contact info, or imagery for this listing.
+            </p>
           </div>
           <DeleteListingForm listingId={listing.id} />
         </div>
@@ -50,10 +52,8 @@ export default async function EditListingPage({
           price: listing.price != null ? String(listing.price) : undefined,
           title: listing.title ?? undefined
         }}
-        pendingLabel="Saving changes..."
         submitLabel="Save changes"
       />
     </>
   );
 }
-
