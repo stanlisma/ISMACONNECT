@@ -2,13 +2,18 @@ import Link from "next/link";
 
 import { signOutAction } from "@/lib/actions/auth";
 import type { Viewer } from "@/types/database";
-import { getViewer } from "@/lib/auth";
 
 interface SiteHeaderProps {
   viewer: Viewer | null;
+  unreadMessagesCount?: number;
+  unreadNotificationsCount?: number;
 }
 
-export function SiteHeader({ viewer }: SiteHeaderProps) {
+export function SiteHeader({
+  viewer,
+  unreadMessagesCount = 0,
+  unreadNotificationsCount = 0
+}: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="container header-row">
@@ -34,8 +39,19 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
             Services
           </Link>
           <Link className="main-nav-link" href="/categories/buy-sell">
-            Buy & Sell
+            Buy &amp; Sell
           </Link>
+
+          {viewer ? (
+            <>
+              <Link className="main-nav-link" href="/messages">
+                Messages {unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ""}
+              </Link>
+              <Link className="main-nav-link" href="/notifications">
+                Notifications {unreadNotificationsCount > 0 ? `(${unreadNotificationsCount})` : ""}
+              </Link>
+            </>
+          ) : null}
         </nav>
 
         <div className="header-actions">
@@ -47,9 +63,8 @@ export function SiteHeader({ viewer }: SiteHeaderProps) {
                 </Link>
               ) : null}
 
-              {/* ✅ Optional: Quick access to messages in actions */}
               <Link className="button button-secondary" href="/messages">
-                Messages
+                Messages {unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ""}
               </Link>
 
               <Link className="button button-secondary" href="/dashboard">

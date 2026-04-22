@@ -21,7 +21,7 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select("id, buyer_id, seller_id")
+    .select("id, buyer_id, seller_id, listing:listings(title)")
     .eq("id", conversationId)
     .single();
 
@@ -42,6 +42,32 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
   if (error) {
     redirectWithMessage(`/messages/${conversationId}`, "error", error.message);
   }
+
+  const isBuyer = viewer.user.id === conversation.buyer_id;
+  const unreadField = isBuyer ? "seller_unread_count" : "buyer_unread_count";
+  const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
+
+  const { data: currentConversation } = await supabase
+    .from("conversations")
+    .select("buyer_unread_count, seller_unread_count")
+    .eq("id", conversationId)
+    .single();
+
+  await supabase
+    .from("conversations")
+    .update({
+      [unreadField]: ((currentConversation as any)?.[unreadField] ?? 0) + 1,
+      last_message_at: new Date().toISOString()
+    })
+    .eq("id", conversationId);
+
+  await supabase.from("notifications").insert({
+    user_id: recipientId,
+    type: "message",
+    title: "New reply",
+    body: `You have a new reply in a conversation.`,
+    link: `/messages/${conversationId}`
+  });
 
   redirect(`/messages/${conversationId}`);
 }
