@@ -15,17 +15,25 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <span className="eyebrow">{isSignUp ? "Create Account" : "Welcome Back"}</span>
+        <span className="eyebrow">
+          {isSignUp ? "Create Account" : "Welcome Back"}
+        </span>
+
         <h1>{title}</h1>
         <p>{description}</p>
 
         <form action={action} className="form-grid">
-          {isSignUp ? (
+          {isSignUp && (
             <label className="field">
               <span className="field-label">Full name</span>
-              <input className="input" name="fullName" placeholder="Your full name" required />
+              <input
+                className="input"
+                name="fullName"
+                placeholder="Your full name"
+                required
+              />
             </label>
-          ) : null}
+          )}
 
           <label className="field">
             <span className="field-label">Email</span>
@@ -52,11 +60,23 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
             />
           </label>
 
-          <SubmitButton pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}>
+          <SubmitButton
+            pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
+          >
             {isSignUp ? "Create account" : "Sign in"}
           </SubmitButton>
         </form>
 
+        {/* 🔥 Forgot Password (only for sign-in) */}
+        {!isSignUp && (
+          <p style={{ marginTop: "0.75rem", textAlign: "center" }}>
+            <Link href="/auth/forgot-password">
+              Forgot your password?
+            </Link>
+          </p>
+        )}
+
+        {/* Footer */}
         <p className="auth-footer">
           {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
           <Link href={isSignUp ? "/auth/sign-in" : "/auth/sign-up"}>
@@ -67,4 +87,3 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
     </div>
   );
 }
-
