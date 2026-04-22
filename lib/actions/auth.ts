@@ -7,7 +7,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validation/auth";
 import { firstMessage } from "@/lib/utils";
 
-function redirectWithMessage(path: string, key: "error" | "success", message: string) {
+function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
