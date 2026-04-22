@@ -60,11 +60,21 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
             />
           </label>
 
-          <SubmitButton
-            pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
-          >
-            {isSignUp ? "Create account" : "Sign in"}
-          </SubmitButton>
+          {isSignUp ? (
+            <SubmitButton pendingLabel="Creating account...">
+               Create account
+            </SubmitButton>
+            ) : (
+              <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                <SubmitButton pendingLabel="Signing in...">
+                  Sign in
+                </SubmitButton>
+
+                <Link href="/auth/forgot-password" className="button button-secondary">
+                  Forgot password
+                </Link>
+              </div>
+            )}
         </form>
 
         {/* 🔥 Forgot Password (only for sign-in) */}
