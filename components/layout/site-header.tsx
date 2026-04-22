@@ -9,6 +9,32 @@ interface SiteHeaderProps {
   unreadNotificationsCount?: number;
 }
 
+function CountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: "1.25rem",
+        height: "1.25rem",
+        padding: "0 0.375rem",
+        borderRadius: "999px",
+        background: "#ef4444",
+        color: "white",
+        fontSize: "0.75rem",
+        fontWeight: 700,
+        lineHeight: 1,
+        marginLeft: "0.375rem"
+      }}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export function SiteHeader({
   viewer,
   unreadMessagesCount = 0,
@@ -45,10 +71,17 @@ export function SiteHeader({
           {viewer ? (
             <>
               <Link className="main-nav-link" href="/messages">
-                Messages {unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ""}
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                  Messages
+                  <CountBadge count={unreadMessagesCount} />
+                </span>
               </Link>
+
               <Link className="main-nav-link" href="/notifications">
-                Notifications {unreadNotificationsCount > 0 ? `(${unreadNotificationsCount})` : ""}
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                  Notifications
+                  <CountBadge count={unreadNotificationsCount} />
+                </span>
               </Link>
             </>
           ) : null}
@@ -64,7 +97,17 @@ export function SiteHeader({
               ) : null}
 
               <Link className="button button-secondary" href="/messages">
-                Messages {unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ""}
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                  Messages
+                  <CountBadge count={unreadMessagesCount} />
+                </span>
+              </Link>
+
+              <Link className="button button-secondary" href="/notifications">
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                  Alerts
+                  <CountBadge count={unreadNotificationsCount} />
+                </span>
               </Link>
 
               <Link className="button button-secondary" href="/dashboard">
