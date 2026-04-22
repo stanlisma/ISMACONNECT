@@ -14,6 +14,7 @@ export default async function NewListingPage({
   return (
     <>
       <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+      <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
 
       <div className="surface" style={{ marginBottom: "1rem" }}>
         <h2>Create a new listing</h2>
@@ -25,12 +26,12 @@ export default async function NewListingPage({
 
       <ListingForm
         action={createListingAction}
-        cancelHref="/dashboard"
         defaults={{
           contactEmail: viewer.profile.email ?? undefined,
           contactName: viewer.profile.full_name ?? undefined,
           contactPhone: viewer.profile.phone ?? undefined
         }}
+        submitLabel="Publish listing"
       />
     </>
   );
