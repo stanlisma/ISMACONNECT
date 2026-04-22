@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ContactSellerForm } from "@/components/messages/contact-seller-form";
 import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -121,6 +122,41 @@ export default async function ListingPage({
                 <span>Price: {formatCurrency(listing.price)}</span>
               </div>
             </div>
+
+            {viewer ? (
+              viewer.user.id !== listing.owner_id ? (
+                <div className="detail-card">
+                  <SectionHeading
+                    eyebrow="Contact Seller"
+                    title="Send a message"
+                    description="Ask if this listing is still available or request more details."
+                  />
+                  <ContactSellerForm listingId={listing.id} />
+                </div>
+              ) : (
+                <div className="detail-card">
+                  <SectionHeading
+                    eyebrow="Your Listing"
+                    title="You own this listing"
+                    description="Use your dashboard to edit details, upload images, or remove the post."
+                  />
+                  <Link href="/dashboard" className="button button-secondary">
+                    Go to dashboard
+                  </Link>
+                </div>
+              )
+            ) : (
+              <div className="detail-card">
+                <SectionHeading
+                  eyebrow="Contact Seller"
+                  title="Sign in to message"
+                  description="Create an account or sign in to contact the seller directly."
+                />
+                <Link href="/auth/sign-in" className="button">
+                  Sign in to message
+                </Link>
+              </div>
+            )}
           </div>
 
           <aside className="detail-side">
@@ -177,4 +213,3 @@ export default async function ListingPage({
     </section>
   );
 }
-

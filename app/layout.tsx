@@ -12,7 +12,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: {
-    default: `${SITE_NAME} | Fort McMurray marketplace`,
+    default: `${SITE_NAME} | Fort McMurray Marketplace`,
     template: `%s | ${SITE_NAME}`
   },
   description: SITE_DESCRIPTION,
