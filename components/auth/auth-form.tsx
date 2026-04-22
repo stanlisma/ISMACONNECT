@@ -69,11 +69,11 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
 
         {/* 🔥 Forgot Password (only for sign-in) */}
         {!isSignUp && (
-          <p style={{ marginTop: "0.75rem", textAlign: "center" }}>
-            <Link href="/auth/forgot-password">
+          <div style={{ marginTop: "0.75rem" }}>
+            <Link href="/auth/forgot-password" className="button">
               Forgot your password?
             </Link>
-          </p>
+          </div>
         )}
 
         {/* Footer */}
