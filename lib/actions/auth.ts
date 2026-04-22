@@ -89,3 +89,71 @@ export async function signOutAction() {
   redirect("/");
 }
 
+export async function forgotPasswordAction(formData: FormData) {
+  if (!isSupabaseConfigured()) {
+    redirectWithMessage(
+      "/auth/forgot-password",
+      "error",
+      "Add your Supabase keys before resetting a password."
+    );
+  }
+
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    redirectWithMessage("/auth/forgot-password", "error", "Email is required.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${getBaseUrl()}/auth/reset-password`
+  });
+
+  if (error) {
+    redirectWithMessage("/auth/forgot-password", "error", error.message);
+  }
+
+  redirectWithMessage(
+    "/auth/sign-in",
+    "success",
+    "Password reset link sent. Check your email."
+  );
+}
+
+export async function resetPasswordAction(formData: FormData) {
+  if (!isSupabaseConfigured()) {
+    redirectWithMessage(
+      "/auth/reset-password",
+      "error",
+      "Add your Supabase keys before resetting a password."
+    );
+  }
+
+  const password = String(formData.get("password") ?? "").trim();
+  const confirmPassword = String(formData.get("confirmPassword") ?? "").trim();
+
+  if (!password) {
+    redirectWithMessage("/auth/reset-password", "error", "Password is required.");
+  }
+
+  if (password.length < 6) {
+    redirectWithMessage(
+      "/auth/reset-password",
+      "error",
+      "Password must be at least 6 characters."
+    );
+  }
+
+  if (password !== confirmPassword) {
+    redirectWithMessage("/auth/reset-password", "error", "Passwords do not match.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    redirectWithMessage("/auth/reset-password", "error", error.message);
+  }
+
+  redirectWithMessage("/auth/sign-in", "success", "Password updated successfully. Please sign in.");
+}
