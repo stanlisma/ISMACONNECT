@@ -1,158 +1,162 @@
-import Link from "next/link";
+"use client";
 
-import { CATEGORIES, DEFAULT_LOCATION } from "@/lib/constants";
-import type { ListingCategory } from "@/types/database";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { useState, useTransition } from "react";
 
-interface ListingFormDefaults {
-  category?: ListingCategory;
-  title?: string;
-  description?: string;
-  price?: number | null;
-  location?: string | null;
-  contactName?: string | null;
-  contactEmail?: string | null;
-  contactPhone?: string | null;
-  imageUrl?: string | null;
-}
-
-interface ListingFormProps {
-  action: (formData: FormData) => Promise<void>;
-  cancelHref: string;
-  defaults?: ListingFormDefaults;
-  submitLabel: string;
-  pendingLabel: string;
-}
+type ListingFormProps = {
+  action: (formData: FormData) => void | Promise<void>;
+  defaults?: {
+    category?: string;
+    title?: string;
+    price?: string;
+    location?: string;
+    description?: string;
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    imageUrl?: string;
+  };
+  submitLabel?: string;
+};
 
 export function ListingForm({
   action,
-  cancelHref,
   defaults,
-  pendingLabel,
-  submitLabel
+  submitLabel = "Publish listing"
 }: ListingFormProps) {
+  const [imageUrl, setImageUrl] = useState(defaults?.imageUrl ?? "");
+  const [uploadError, setUploadError] = useState("");
+  const [isUploading, startUpload] = useTransition();
+
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError("");
+
+    startUpload(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Upload failed.");
+        }
+
+        setImageUrl(data.url);
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "Upload failed.");
+      }
+    });
+  }
+
   return (
     <form action={action} className="form-grid">
-      <div className="surface">
-        <div className="form-grid">
-          <label className="field">
-            <span className="field-label">Category</span>
-            <select className="select" defaultValue={defaults?.category ?? "rentals"} name="category">
-              {CATEGORIES.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </label>
+      <label className="field">
+        <span className="field-label">Category</span>
+        <select className="input" name="category" defaultValue={defaults?.category ?? "buy-sell"} required>
+          <option value="rentals">Rentals</option>
+          <option value="ride-share">Ride Share</option>
+          <option value="jobs">Jobs</option>
+          <option value="services">Services</option>
+          <option value="buy-sell">Buy &amp; Sell</option>
+        </select>
+      </label>
 
-          <label className="field">
-            <span className="field-label">Title</span>
-            <input
-              className="input"
-              defaultValue={defaults?.title ?? ""}
-              maxLength={120}
-              name="title"
-              placeholder="Bright room near downtown Fort McMurray"
-              required
-            />
-          </label>
+      <label className="field">
+        <span className="field-label">Title</span>
+        <input className="input" name="title" defaultValue={defaults?.title ?? ""} required />
+      </label>
 
-          <label className="field">
-            <span className="field-label">Price</span>
-            <input
-              className="input"
-              defaultValue={defaults?.price ?? ""}
-              min={0}
-              name="price"
-              placeholder="650"
-              step="0.01"
-              type="number"
-            />
-            <span className="field-hint">Leave blank if you prefer “Contact for price”.</span>
-          </label>
+      <label className="field">
+        <span className="field-label">Price</span>
+        <input className="input" name="price" defaultValue={defaults?.price ?? ""} />
+      </label>
 
-          <label className="field">
-            <span className="field-label">Location</span>
-            <input
-              className="input"
-              defaultValue={defaults?.location ?? DEFAULT_LOCATION}
-              maxLength={80}
-              name="location"
-              required
-            />
-          </label>
+      <label className="field">
+        <span className="field-label">Location</span>
+        <input className="input" name="location" defaultValue={defaults?.location ?? ""} />
+      </label>
 
-          <label className="field field-full">
-            <span className="field-label">Description</span>
-            <textarea
-              className="textarea"
-              defaultValue={defaults?.description ?? ""}
-              name="description"
-              placeholder="Share the key details people need before they contact you."
-              required
-              rows={8}
-            />
-          </label>
-        </div>
+      <label className="field" style={{ gridColumn: "1 / -1" }}>
+        <span className="field-label">Description</span>
+        <textarea
+          className="input"
+          name="description"
+          defaultValue={defaults?.description ?? ""}
+          rows={6}
+          required
+        />
+      </label>
+
+      <label className="field">
+        <span className="field-label">Contact name</span>
+        <input className="input" name="contactName" defaultValue={defaults?.contactName ?? ""} required />
+      </label>
+
+      <label className="field">
+        <span className="field-label">Contact email</span>
+        <input
+          className="input"
+          name="contactEmail"
+          type="email"
+          defaultValue={defaults?.contactEmail ?? ""}
+          required
+        />
+      </label>
+
+      <label className="field">
+        <span className="field-label">Contact phone</span>
+        <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
+      </label>
+
+      <div className="field">
+        <span className="field-label">Upload image</span>
+        <input className="input" type="file" accept="image/*" onChange={handleFileChange} />
+        {isUploading ? <p style={{ marginTop: "0.5rem" }}>Uploading image...</p> : null}
+        {uploadError ? <p style={{ marginTop: "0.5rem", color: "#b42318" }}>{uploadError}</p> : null}
       </div>
 
-      <div className="surface">
-        <div className="form-grid">
-          <label className="field">
-            <span className="field-label">Contact name</span>
-            <input
-              className="input"
-              defaultValue={defaults?.contactName ?? ""}
-              maxLength={80}
-              name="contactName"
-              required
-            />
-          </label>
+      <label className="field" style={{ gridColumn: "1 / -1" }}>
+        <span className="field-label">Image URL</span>
+        <input
+          className="input"
+          name="imageUrl"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="https://..."
+        />
+      </label>
 
-          <label className="field">
-            <span className="field-label">Contact email</span>
-            <input
-              className="input"
-              defaultValue={defaults?.contactEmail ?? ""}
-              name="contactEmail"
-              placeholder="seller@example.com"
-              type="email"
+      {imageUrl ? (
+        <div style={{ gridColumn: "1 / -1" }}>
+          <span className="field-label">Preview</span>
+          <div style={{ marginTop: "0.5rem" }}>
+            <img
+              src={imageUrl}
+              alt="Listing preview"
+              style={{
+                maxWidth: "320px",
+                width: "100%",
+                borderRadius: "16px",
+                border: "1px solid #d0d5dd"
+              }}
             />
-          </label>
-
-          <label className="field">
-            <span className="field-label">Contact phone</span>
-            <input
-              className="input"
-              defaultValue={defaults?.contactPhone ?? ""}
-              name="contactPhone"
-              placeholder="780-555-0123"
-              type="tel"
-            />
-          </label>
-
-          <label className="field">
-            <span className="field-label">Image URL</span>
-            <input
-              className="input"
-              defaultValue={defaults?.imageUrl ?? ""}
-              name="imageUrl"
-              placeholder="https://images.example.com/listing.jpg"
-              type="url"
-            />
-            <span className="field-hint">Optional for now. Stripe-ready featured listings can promote these later.</span>
-          </label>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      <div className="form-actions">
-        <SubmitButton pendingLabel={pendingLabel}>{submitLabel}</SubmitButton>
-        <Link className="button button-secondary" href={cancelHref}>
-          Cancel
-        </Link>
+      <div style={{ gridColumn: "1 / -1" }}>
+        <button className="button" type="submit" disabled={isUploading}>
+          {isUploading ? "Uploading..." : submitLabel}
+        </button>
       </div>
     </form>
   );
 }
-
