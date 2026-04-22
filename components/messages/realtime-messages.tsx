@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 type Message = {
@@ -23,6 +23,11 @@ const supabase = createClient(
 
 export function RealtimeMessages({ conversationId, initialMessages, viewerId }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => {
     const channel = supabase
@@ -51,22 +56,53 @@ export function RealtimeMessages({ conversationId, initialMessages, viewerId }: 
   }, [conversationId]);
 
   return (
-    <div className="stack-md" style={{ marginTop: "1.5rem" }}>
-      {messages.map((message) => (
-        <div
-          key={message.id}
-          className="surface"
-          style={{
-            background: message.sender_id === viewerId ? "#eff6ff" : undefined
-          }}
-        >
-          <p>{message.body}</p>
-          <small>
-            {message.sender_id === viewerId ? "You" : "Other user"} ·{" "}
-            {new Date(message.created_at).toLocaleString()}
-          </small>
-        </div>
-      ))}
+    <div
+      className="surface"
+      style={{
+        marginTop: "1.5rem",
+        padding: "1rem",
+        maxHeight: "560px",
+        overflowY: "auto"
+      }}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        {messages.map((message) => {
+          const isMine = message.sender_id === viewerId;
+
+          return (
+            <div
+              key={message.id}
+              style={{
+                display: "flex",
+                justifyContent: isMine ? "flex-end" : "flex-start"
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: "75%",
+                  background: isMine ? "#2563eb" : "#f3f4f6",
+                  color: isMine ? "white" : "#111827",
+                  borderRadius: "18px",
+                  padding: "0.75rem 1rem",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.08)"
+                }}
+              >
+                <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{message.body}</p>
+                <small
+                  style={{
+                    display: "block",
+                    marginTop: "0.5rem",
+                    opacity: 0.8
+                  }}
+                >
+                  {isMine ? "You" : "Seller"} · {new Date(message.created_at).toLocaleString()}
+                </small>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 }
