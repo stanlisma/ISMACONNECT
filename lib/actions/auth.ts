@@ -27,9 +27,9 @@ export async function signInAction(formData: FormData) {
 
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.signInWithPassword({
-  email: parsed.data!.email,
-  password: parsed.data!.password
- });
+    email: parsed.data!.email,
+    password: parsed.data!.password
+  });
 
   if (error) {
     redirectWithMessage("/auth/sign-in", "error", error.message);
@@ -54,7 +54,7 @@ export async function signUpAction(formData: FormData) {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email: parsed.data!.email,
     password: parsed.data!.password,
     options: {
@@ -69,14 +69,10 @@ export async function signUpAction(formData: FormData) {
     redirectWithMessage("/auth/sign-up", "error", error.message);
   }
 
-  if (data.session) {
-    redirect("/dashboard");
-  }
-
   redirectWithMessage(
     "/auth/sign-in",
     "success",
-    "Account created. Check your inbox if email confirmation is enabled."
+    "Account created. Check your email for the confirmation link."
   );
 }
 
