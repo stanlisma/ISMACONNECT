@@ -13,9 +13,12 @@ export default async function MessageThreadPage({
   params,
   searchParams
 }: {
-  params: { id: string };
-  searchParams?: Record<string, string | string[] | undefined>;
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const { id } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
 
@@ -31,7 +34,7 @@ export default async function MessageThreadPage({
       seller:profiles!conversations_seller_id_fkey(full_name),
       buyer:profiles!conversations_buyer_id_fkey(full_name)
     `)
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (!conversation) {
@@ -49,22 +52,22 @@ export default async function MessageThreadPage({
     .update({
       [isBuyer ? "buyer_unread_count" : "seller_unread_count"]: 0
     })
-    .eq("id", params.id);
+    .eq("id", id);
 
   await supabase
     .from("messages")
     .update({ seen_at: new Date().toISOString() })
-    .eq("conversation_id", params.id)
+    .eq("conversation_id", id)
     .neq("sender_id", viewer.user.id)
     .is("seen_at", null);
 
   const { data: messages } = await supabase
     .from("messages")
     .select("id, body, image_url, created_at, sender_id, seen_at")
-    .eq("conversation_id", params.id)
+    .eq("conversation_id", id)
     .order("created_at", { ascending: true });
 
-  const action = sendThreadMessageAction.bind(null, params.id);
+  const action = sendThreadMessageAction.bind(null, id);
 
   const sellerFullName =
     (conversation.seller as { full_name?: string | null } | null)?.full_name ??
@@ -87,8 +90,8 @@ export default async function MessageThreadPage({
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: "960px" }}>
-        <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
-        <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
         <div className="surface" style={{ marginBottom: "1rem" }}>
           <div
@@ -150,7 +153,7 @@ export default async function MessageThreadPage({
         </div>
 
         <RealtimeMessages
-          conversationId={params.id}
+          conversationId={id}
           initialMessages={messages ?? []}
           viewerId={viewer.user.id}
           buyerId={conversation.buyer_id}
@@ -163,7 +166,7 @@ export default async function MessageThreadPage({
         <form action={action} className="surface" style={{ marginTop: "1rem", padding: "1rem" }}>
           <label className="field" style={{ display: "block" }}>
             <span className="field-label">Reply</span>
-            <MessageComposer conversationId={params.id} />
+            <MessageComposer conversationId={id} />
           </label>
 
           <div style={{ marginTop: "1rem", display: "flex", justifyContent: "flex-end" }}>
