@@ -12,11 +12,7 @@ interface SiteHeaderProps {
 function CountBadge({ count }: { count: number }) {
   if (count <= 0) return null;
 
-  return (
-    <span className="header-count-badge">
-      {count > 99 ? "99+" : count}
-    </span>
-  );
+  return <span className="header-count-badge">{count > 99 ? "99+" : count}</span>;
 }
 
 export function SiteHeader({
@@ -26,7 +22,7 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   return (
     <header className="site-header">
-      <div className="container header-row">
+      <div className="container site-header-top">
         <Link className="brand" href="/">
           <span className="brand-mark">I</span>
           <span className="brand-copy">
@@ -35,28 +31,37 @@ export function SiteHeader({
           </span>
         </Link>
 
-        <nav className="nav-links" aria-label="Primary">
-          <Link className="main-nav-link" href="/browse">
-            Browse
-          </Link>
-          <Link className="main-nav-link" href="/categories/rentals">
-            Rentals
-          </Link>
-          <Link className="main-nav-link" href="/categories/jobs">
-            Jobs
-          </Link>
-          <Link className="main-nav-link" href="/categories/services">
-            Services
-          </Link>
-          <Link className="main-nav-link" href="/categories/buy-sell">
-            Buy &amp; Sell
-          </Link>
-        </nav>
+        <form action="/browse" method="get" className="header-search" role="search">
+          <input
+            className="header-search-input"
+            type="text"
+            name="q"
+            placeholder="What are you looking for?"
+          />
+
+          <select className="header-search-select" name="category" defaultValue="">
+            <option value="">All categories</option>
+            <option value="rentals">Rentals</option>
+            <option value="ride-share">Ride Share</option>
+            <option value="jobs">Jobs</option>
+            <option value="services">Services</option>
+            <option value="buy-sell">Buy &amp; Sell</option>
+          </select>
+
+          <button className="button header-search-button" type="submit">
+            Search
+          </button>
+        </form>
 
         <div className="header-actions">
           {viewer ? (
             <>
-              <Link className="header-icon-link" href="/messages" aria-label="Messages" title="Messages">
+              <Link
+                className="header-icon-link"
+                href="/messages"
+                aria-label="Messages"
+                title="Messages"
+              >
                 <span aria-hidden="true">💬</span>
                 <CountBadge count={unreadMessagesCount} />
               </Link>
@@ -82,7 +87,7 @@ export function SiteHeader({
               </Link>
 
               <Link className="button" href="/dashboard/listings/new">
-                Post listing
+                Post
               </Link>
 
               <form action={signOutAction}>
@@ -98,11 +103,31 @@ export function SiteHeader({
               </Link>
 
               <Link className="button" href="/auth/sign-up">
-                Post listing
+                Post
               </Link>
             </>
           )}
         </div>
+      </div>
+
+      <div className="container site-header-bottom">
+        <nav className="nav-links" aria-label="Primary">
+          <Link className="main-nav-link" href="/browse">
+            Browse
+          </Link>
+          <Link className="main-nav-link" href="/categories/rentals">
+            Rentals
+          </Link>
+          <Link className="main-nav-link" href="/categories/jobs">
+            Jobs
+          </Link>
+          <Link className="main-nav-link" href="/categories/services">
+            Services
+          </Link>
+          <Link className="main-nav-link" href="/categories/buy-sell">
+            Buy &amp; Sell
+          </Link>
+        </nav>
       </div>
     </header>
   );
