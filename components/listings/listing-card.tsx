@@ -1,13 +1,22 @@
 import Link from "next/link";
 
+import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getCategoryHref, getCategoryLabel, excerpt, formatCurrency, formatDate } from "@/lib/utils";
 import type { Listing } from "@/types/database";
 
 interface ListingCardProps {
   listing: Listing;
+  isSaved?: boolean;
+  canSave?: boolean;
+  pathToRevalidate?: string;
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({
+  listing,
+  isSaved = false,
+  canSave = false,
+  pathToRevalidate
+}: ListingCardProps) {
   return (
     <article className="listing-card">
       <Link href={`/listings/${listing.slug}`}>
@@ -23,11 +32,24 @@ export function ListingCard({ listing }: ListingCardProps) {
       </Link>
 
       <div className="listing-body">
-        <div className="badge-row">
-          <Link className="badge badge-soft" href={getCategoryHref(listing.category)}>
-            {getCategoryLabel(listing.category)}
-          </Link>
-          {listing.is_featured ? <span className="badge badge-featured">Featured</span> : null}
+        <div
+          className="badge-row"
+          style={{ justifyContent: "space-between", alignItems: "center" }}
+        >
+          <div className="badge-row">
+            <Link className="badge badge-soft" href={getCategoryHref(listing.category)}>
+              {getCategoryLabel(listing.category)}
+            </Link>
+            {listing.is_featured ? <span className="badge badge-featured">Featured</span> : null}
+          </div>
+
+          {canSave ? (
+            <SaveListingButton
+              listingId={listing.id}
+              isSaved={isSaved}
+              pathToRevalidate={pathToRevalidate}
+            />
+          ) : null}
         </div>
 
         <div className="listing-top">
@@ -47,4 +69,3 @@ export function ListingCard({ listing }: ListingCardProps) {
     </article>
   );
 }
-

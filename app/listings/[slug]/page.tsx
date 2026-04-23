@@ -9,8 +9,9 @@ import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP, SITE_NAME } from "@/lib/constants";
-import { getPublicListingBySlug, getRelatedListings } from "@/lib/data";
 import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
+import { SaveListingButton } from "@/components/listings/save-listing-button";
+import { getPublicListingBySlug, getRelatedListings, getSavedListingIds } from "@/lib/data";
 
 export async function generateMetadata({
   params
@@ -53,6 +54,8 @@ export default async function ListingPage({
   }
 
   const viewer = await getViewer();
+  const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
+  const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
   const category = CATEGORY_MAP[listing.category];
   const success = getSingleParam(resolvedSearchParams?.success);
@@ -97,7 +100,19 @@ export default async function ListingPage({
                   {listing.is_featured ? <span className="badge badge-featured">Featured</span> : null}
                 </div>
 
-                <h1 className="detail-title">{listing.title}</h1>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+                  <h1 className="detail-title" style={{ marginBottom: 0 }}>
+                    {listing.title}
+                  </h1>
+
+                  {viewer && viewer.user.id !== listing.owner_id ? (
+                    <SaveListingButton
+                      listingId={listing.id}
+                      isSaved={isSaved}
+                      pathToRevalidate={`/listings/${listing.slug}`}
+                    />
+                  ) : null}
+                </div>
                 <p className="detail-copy">{listing.description}</p>
               </div>
 

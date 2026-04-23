@@ -6,8 +6,9 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
+import { getViewer } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/constants";
-import { getPublicListings } from "@/lib/data";
+import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -22,11 +23,18 @@ export default async function BrowsePage({
 }) {
   const search = getSingleParam(searchParams?.q);
   const category = resolveCategory(getSingleParam(searchParams?.category));
+
   const { listings, isConfigured } = await getPublicListings({
     search,
     category,
     limit: 24
   });
+
+  const viewer = await getViewer();
+
+  const savedIds = viewer
+    ? await getSavedListingIds(viewer.user.id)
+    : new Set();
 
   return (
     <section className="section">
@@ -59,7 +67,13 @@ export default async function BrowsePage({
         ) : (
           <div className="listing-grid" style={{ marginTop: "1.25rem" }}>
             {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                isSaved={savedIds.has(listing.id)}
+                canSave={!!viewer}
+                pathToRevalidate="/browse"
+              />
             ))}
           </div>
         )}

@@ -712,3 +712,23 @@ code {
 .main-nav-link:hover {
   color: #243b7a;
 }
+
+.save-listing-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: #d9465f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.save-listing-button:hover {
+  background: #fff1f3;
+  border-color: #f2b8c2;
+  transform: translateY(-1px);
+}
