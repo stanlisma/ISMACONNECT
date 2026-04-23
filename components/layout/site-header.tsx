@@ -41,7 +41,7 @@ export function SiteHeader({
           />
 
           <select className="header-search-select" name="category" defaultValue="">
-            <option value="">All categories</option>
+            <option value="">All Categories</option>
             <option value="rentals">Rentals</option>
             <option value="ride-share">Ride Share</option>
             <option value="jobs">Jobs</option>
