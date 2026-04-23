@@ -56,53 +56,37 @@ export function SiteHeader({
         <div className="header-actions">
           {viewer ? (
             <>
-              <Link
-                className="header-icon-link"
-                href="/messages"
-                aria-label="Messages"
-                title="Messages"
-              >
-                <span aria-hidden="true">💬</span>
+              <Link className="header-utility-link" href="/messages">
+                Messages
                 <CountBadge count={unreadMessagesCount} />
               </Link>
 
-              <Link
-                className="header-icon-link"
-                href="/notifications"
-                aria-label="Notifications"
-                title="Notifications"
-              >
-                <span aria-hidden="true">🔔</span>
+              <Link className="header-utility-link" href="/notifications">
+                Notifications
                 <CountBadge count={unreadNotificationsCount} />
               </Link>
 
-              {viewer.profile.role === "admin" ? (
-                <Link className="button button-secondary" href="/admin/moderation">
-                  Moderation
-                </Link>
-              ) : null}
-
-              <Link className="button button-secondary" href="/dashboard">
+              <Link className="button button-secondary header-compact-button" href="/dashboard">
                 Dashboard
               </Link>
 
-              <Link className="button" href="/dashboard/listings/new">
+              <Link className="button header-compact-button" href="/dashboard/listings/new">
                 Post
               </Link>
 
               <form action={signOutAction}>
-                <button className="button button-ghost" type="submit">
+                <button className="button button-ghost header-compact-button" type="submit">
                   Sign Out
                 </button>
               </form>
             </>
           ) : (
             <>
-              <Link className="button button-secondary" href="/auth/sign-in">
+              <Link className="button button-secondary header-compact-button" href="/auth/sign-in">
                 Sign In
               </Link>
 
-              <Link className="button" href="/auth/sign-up">
+              <Link className="button header-compact-button" href="/auth/sign-up">
                 Post
               </Link>
             </>
