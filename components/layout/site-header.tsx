@@ -41,7 +41,7 @@ export function SiteHeader({
           />
 
           <select className="header-search-select" name="category" defaultValue="">
-            <option value="">All Categories</option>
+            <option value="">All categories</option>
             <option value="rentals">Rentals</option>
             <option value="ride-share">Ride Share</option>
             <option value="jobs">Jobs</option>
@@ -77,28 +77,9 @@ export function SiteHeader({
                 <CountBadge count={unreadNotificationsCount} />
               </Link>
 
-              <Link className="button button-secondary header-compact-button" href="/dashboard">
-                Dashboard
-              </Link>
-
-              <Link className="button button-ghost header-compact-button" href="/dashboard/saved">
-                Saved
-              </Link>
-
               <Link className="button header-compact-button" href="/dashboard/listings/new">
                 Post
               </Link>
-
-              <Link
-                className="button button-ghost header-compact-button" href="/settings">
-                Settings
-              </Link>
-
-              <form action={signOutAction}>
-                <button className="button button-ghost header-compact-button" type="submit">
-                  Sign Out
-                </button>
-              </form>
             </>
           ) : (
             <>
@@ -132,6 +113,18 @@ export function SiteHeader({
             Buy &amp; Sell
           </Link>
         </nav>
+
+        {viewer ? (
+          <div className="account-nav">
+            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/dashboard/saved">Saved</Link>
+            <Link href="/settings">Settings</Link>
+
+            <form action={signOutAction}>
+              <button type="submit">Sign Out</button>
+            </form>
+          </div>
+        ) : null}
       </div>
     </header>
   );
