@@ -89,8 +89,16 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
   });
 
   const recipientProfile = isBuyer
-    ? (conversation.seller as { email?: string | null; full_name?: string | null } | null)
-    : (conversation.buyer as { email?: string | null; full_name?: string | null } | null);
+    ? (conversation.seller as {
+        email?: string | null;
+        full_name?: string | null;
+        email_notifications?: boolean | null;
+      } | null)
+    : (conversation.buyer as {
+        email?: string | null;
+        full_name?: string | null;
+        email_notifications?: boolean | null;
+      } | null);
 
   const listingTitle =
     ((conversation.listing as { title?: string | null } | null)?.title ?? "your listing");
