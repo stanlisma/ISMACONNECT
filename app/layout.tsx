@@ -35,7 +35,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   if (viewer) {
     const supabase = await createServerSupabaseClient();
 
-    // 🔥 Get unread messages count
     const { data: conversations } = await supabase
       .from("conversations")
       .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
@@ -46,13 +45,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         if (convo.buyer_id === viewer.user.id) {
           return total + (convo.buyer_unread_count ?? 0);
         }
+
         if (convo.seller_id === viewer.user.id) {
           return total + (convo.seller_unread_count ?? 0);
         }
+
         return total;
       }, 0) ?? 0;
 
-    // 🔥 Get unread notifications count
     const { count } = await supabase
       .from("notifications")
       .select("*", { count: "exact", head: true })
