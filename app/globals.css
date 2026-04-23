@@ -636,26 +636,7 @@ code {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-.header-icon-link {
-  position: relative;
-  font-size: 1.2rem;
-  margin-right: 0.75rem;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
 
-.header-count-badge {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  background: #ef4444;
-  color: white;
-  font-size: 0.65rem;
-  border-radius: 999px;
-  padding: 2px 6px;
-  font-weight: 600;
-}
 .site-header {
   position: sticky;
   top: 0;
@@ -732,121 +713,124 @@ code {
   color: #243b7a;
 }
 
-@media (max-width: 1100px) {
-  .site-header-top {
-    grid-template-columns: 1fr;
-  }
+/* =========================
+   CLEAN HEADER SYSTEM
+========================= */
 
-  .header-search {
-    grid-template-columns: 1fr;
-  }
-
-  .header-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  background: rgba(245, 250, 255, 0.9);
+  border-bottom: 1px solid var(--line);
 }
 
-/* -----------------------------
-   HEADER REFINEMENT
------------------------------- */
-
+/* TOP ROW */
 .site-header-top {
   display: grid;
-  grid-template-columns: auto minmax(420px, 1fr) auto;
-  gap: 1.25rem;
+  grid-template-columns: auto minmax(500px, 1fr) auto;
   align-items: center;
-  padding: 0.9rem 0 0.75rem;
+  gap: 1.25rem;
+  padding: 0.9rem 0;
 }
 
-.site-header-bottom {
-  padding: 0.2rem 0 0.8rem;
-}
-
+/* SEARCH */
 .header-search {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 180px auto;
-  gap: 0.65rem;
+  grid-template-columns: 1fr 180px auto;
+  gap: 0.6rem;
   align-items: center;
 }
 
 .header-search-input,
 .header-search-select {
-  width: 100%;
-  min-height: 42px;
+  height: 46px;
   border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: #fcfeff;
+  border-radius: 14px;
   padding: 0 0.9rem;
-  font: inherit;
-  color: var(--text);
-}
-
-.header-search-input::placeholder {
-  color: var(--text-soft);
+  background: white;
 }
 
 .header-search-button {
-  min-height: 42px;
-  padding: 0 1rem;
-  white-space: nowrap;
+  height: 46px;
 }
 
+/* RIGHT SIDE */
 .header-actions {
-  justify-content: flex-end;
-  gap: 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.header-utility-link {
+/* ICON BUTTONS (IMPORTANT) */
+.header-icon-link {
   position: relative;
-  color: var(--text-soft);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0.25rem 0.1rem;
-  margin-right: 0.25rem;
-}
-
-.header-utility-link:hover {
-  color: var(--text);
-}
-
-.header-count-badge {
-  display: inline-flex;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  margin-left: 0.35rem;
-  border-radius: 999px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1;
-  padding: 0 5px;
-  vertical-align: middle;
+  transition: 0.2s ease;
 }
 
+.header-icon-link:hover {
+  background: var(--surface-muted);
+}
+
+.header-icon {
+  font-size: 1.4rem;
+}
+
+/* BADGE */
+.header-count-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+/* BUTTON ALIGNMENT */
 .header-compact-button {
-  min-height: 40px;
-  padding: 0.65rem 1rem;
+  height: 46px;
+  display: flex;
+  align-items: center;
+}
+
+/* NAV ROW */
+.site-header-bottom {
+  padding-bottom: 0.7rem;
 }
 
 .nav-links {
-  gap: 1.15rem;
+  display: flex;
+  gap: 1.2rem;
 }
 
 .main-nav-link {
+  font-size: 0.95rem;
   color: var(--text-soft);
-  font-size: 0.96rem;
 }
 
 .main-nav-link:hover {
   color: var(--text);
 }
 
-@media (max-width: 1180px) {
+/* MOBILE */
+@media (max-width: 1100px) {
   .site-header-top {
     grid-template-columns: 1fr;
   }
