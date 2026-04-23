@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Bell, MessageCircle } from "lucide-react";
 
 import { signOutAction } from "@/lib/actions/auth";
 import type { Viewer } from "@/types/database";
@@ -56,13 +57,23 @@ export function SiteHeader({
         <div className="header-actions">
           {viewer ? (
             <>
-              <Link className="header-utility-link" href="/messages">
-                Messages
+              <Link
+                className="header-icon-link"
+                href="/messages"
+                aria-label="Messages"
+                title="Messages"
+              >
+                <MessageCircle size={22} strokeWidth={2.1} />
                 <CountBadge count={unreadMessagesCount} />
               </Link>
 
-              <Link className="header-utility-link" href="/notifications">
-                Notifications
+              <Link
+                className="header-icon-link"
+                href="/notifications"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell size={22} strokeWidth={2.1} />
                 <CountBadge count={unreadNotificationsCount} />
               </Link>
 

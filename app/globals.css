@@ -713,134 +713,132 @@ code {
   color: #243b7a;
 }
 
-/* =========================
-   CLEAN HEADER SYSTEM
-========================= */
+import Link from "next/link";
+import { Bell, MessageCircle } from "lucide-react";
 
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  backdrop-filter: blur(12px);
-  background: rgba(245, 250, 255, 0.9);
-  border-bottom: 1px solid var(--line);
+import { signOutAction } from "@/lib/actions/auth";
+import type { Viewer } from "@/types/database";
+
+interface SiteHeaderProps {
+  viewer: Viewer | null;
+  unreadMessagesCount?: number;
+  unreadNotificationsCount?: number;
 }
 
-/* TOP ROW */
-.site-header-top {
-  display: grid;
-  grid-template-columns: auto minmax(500px, 1fr) auto;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 0.9rem 0;
+function CountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return <span className="header-count-badge">{count > 99 ? "99+" : count}</span>;
 }
 
-/* SEARCH */
-.header-search {
-  display: grid;
-  grid-template-columns: 1fr 180px auto;
-  gap: 0.6rem;
-  align-items: center;
-}
+export function SiteHeader({
+  viewer,
+  unreadMessagesCount = 0,
+  unreadNotificationsCount = 0
+}: SiteHeaderProps) {
+  return (
+    <header className="site-header">
+      <div className="container site-header-top">
+        <Link className="brand" href="/">
+          <span className="brand-mark">I</span>
+          <span className="brand-copy">
+            <strong>ISMACONNECT</strong>
+            <small>Fort McMurray Marketplace</small>
+          </span>
+        </Link>
 
-.header-search-input,
-.header-search-select {
-  height: 46px;
-  border: 1px solid var(--line-strong);
-  border-radius: 14px;
-  padding: 0 0.9rem;
-  background: white;
-}
+        <form action="/browse" method="get" className="header-search" role="search">
+          <input
+            className="header-search-input"
+            type="text"
+            name="q"
+            placeholder="What are you looking for?"
+          />
 
-.header-search-button {
-  height: 46px;
-}
+          <select className="header-search-select" name="category" defaultValue="">
+            <option value="">All categories</option>
+            <option value="rentals">Rentals</option>
+            <option value="ride-share">Ride Share</option>
+            <option value="jobs">Jobs</option>
+            <option value="services">Services</option>
+            <option value="buy-sell">Buy &amp; Sell</option>
+          </select>
 
-/* RIGHT SIDE */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
+          <button className="button header-search-button" type="submit">
+            Search
+          </button>
+        </form>
 
-/* ICON BUTTONS (IMPORTANT) */
-.header-icon-link {
-  position: relative;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s ease;
-}
+        <div className="header-actions">
+          {viewer ? (
+            <>
+              <Link
+                className="header-icon-link"
+                href="/messages"
+                aria-label="Messages"
+                title="Messages"
+              >
+                <MessageCircle size={22} strokeWidth={2.1} />
+                <CountBadge count={unreadMessagesCount} />
+              </Link>
 
-.header-icon-link:hover {
-  background: var(--surface-muted);
-}
+              <Link
+                className="header-icon-link"
+                href="/notifications"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell size={22} strokeWidth={2.1} />
+                <CountBadge count={unreadNotificationsCount} />
+              </Link>
 
-.header-icon {
-  font-size: 1.4rem;
-}
+              <Link className="button button-secondary header-compact-button" href="/dashboard">
+                Dashboard
+              </Link>
 
-/* BADGE */
-.header-count-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 18px;
-  height: 18px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border-radius: 999px;
-  background: #ef4444;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 5px;
-}
+              <Link className="button header-compact-button" href="/dashboard/listings/new">
+                Post
+              </Link>
 
-/* BUTTON ALIGNMENT */
-.header-compact-button {
-  height: 46px;
-  display: flex;
-  align-items: center;
-}
+              <form action={signOutAction}>
+                <button className="button button-ghost header-compact-button" type="submit">
+                  Sign Out
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link className="button button-secondary header-compact-button" href="/auth/sign-in">
+                Sign In
+              </Link>
 
-/* NAV ROW */
-.site-header-bottom {
-  padding-bottom: 0.7rem;
-}
+              <Link className="button header-compact-button" href="/auth/sign-up">
+                Post
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
 
-.nav-links {
-  display: flex;
-  gap: 1.2rem;
-}
-
-.main-nav-link {
-  font-size: 0.95rem;
-  color: var(--text-soft);
-}
-
-.main-nav-link:hover {
-  color: var(--text);
-}
-
-/* MOBILE */
-@media (max-width: 1100px) {
-  .site-header-top {
-    grid-template-columns: 1fr;
-  }
-
-  .header-search {
-    grid-template-columns: 1fr;
-  }
-
-  .header-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
+      <div className="container site-header-bottom">
+        <nav className="nav-links" aria-label="Primary">
+          <Link className="main-nav-link" href="/browse">
+            Browse
+          </Link>
+          <Link className="main-nav-link" href="/categories/rentals">
+            Rentals
+          </Link>
+          <Link className="main-nav-link" href="/categories/jobs">
+            Jobs
+          </Link>
+          <Link className="main-nav-link" href="/categories/services">
+            Services
+          </Link>
+          <Link className="main-nav-link" href="/categories/buy-sell">
+            Buy &amp; Sell
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
 }
