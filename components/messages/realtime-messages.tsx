@@ -21,6 +21,13 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+function formatTime(value: string) {
+  return new Date(value).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
 export function RealtimeMessages({ conversationId, initialMessages, viewerId }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -57,52 +64,56 @@ export function RealtimeMessages({ conversationId, initialMessages, viewerId }: 
 
   return (
     <div
-      className="surface"
       style={{
-        marginTop: "1.5rem",
-        padding: "1rem",
-        maxHeight: "560px",
-        overflowY: "auto"
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.75rem",
+        minHeight: "420px",
+        maxHeight: "60vh",
+        overflowY: "auto",
+        paddingRight: "0.25rem"
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {messages.map((message) => {
-          const isMine = message.sender_id === viewerId;
+      {messages.map((message) => {
+        const mine = message.sender_id === viewerId;
 
-          return (
+        return (
+          <div
+            key={message.id}
+            style={{
+              display: "flex",
+              justifyContent: mine ? "flex-end" : "flex-start"
+            }}
+          >
             <div
-              key={message.id}
               style={{
+                maxWidth: "75%",
                 display: "flex",
-                justifyContent: isMine ? "flex-end" : "flex-start"
+                flexDirection: "column",
+                alignItems: mine ? "flex-end" : "flex-start"
               }}
             >
               <div
                 style={{
-                  maxWidth: "75%",
-                  background: isMine ? "#2563eb" : "#f3f4f6",
-                  color: isMine ? "white" : "#111827",
-                  borderRadius: "18px",
-                  padding: "0.75rem 1rem",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.08)"
+                  padding: "0.8rem 1rem",
+                  borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                  background: mine ? "#3157d5" : "white",
+                  color: mine ? "white" : "#101828",
+                  boxShadow: "0 1px 3px rgba(16,24,40,0.08)",
+                  whiteSpace: "pre-wrap"
                 }}
               >
-                <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{message.body}</p>
-                <small
-                  style={{
-                    display: "block",
-                    marginTop: "0.5rem",
-                    opacity: 0.8
-                  }}
-                >
-                  {isMine ? "You" : "Seller"} · {new Date(message.created_at).toLocaleString()}
-                </small>
+                {message.body}
               </div>
+
+              <small style={{ marginTop: "0.35rem", color: "#667085" }}>
+                {mine ? "You" : "Seller"} · {formatTime(message.created_at)}
+              </small>
             </div>
-          );
-        })}
-        <div ref={bottomRef} />
-      </div>
+          </div>
+        );
+      })}
+      <div ref={bottomRef} />
     </div>
   );
 }
