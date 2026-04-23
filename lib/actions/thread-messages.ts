@@ -29,8 +29,8 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
       buyer_id,
       seller_id,
       listing:listings(title),
-      buyer:profiles!conversations_buyer_id_fkey(email, full_name),
-      seller:profiles!conversations_seller_id_fkey(email, full_name)
+      buyer:profiles!conversations_buyer_id_fkey(email, full_name, email_notifications),
+      seller:profiles!conversations_seller_id_fkey(email, full_name, email_notifications)
     `)
     .eq("id", conversationId)
     .single();
@@ -95,7 +95,7 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
   const listingTitle =
     ((conversation.listing as { title?: string | null } | null)?.title ?? "your listing");
 
-  if (recipientProfile?.email) {
+  if (recipientProfile?.email && recipientProfile.email_notifications !== false) {
     try {
       await sendNewMessageEmail({
         to: recipientProfile.email,

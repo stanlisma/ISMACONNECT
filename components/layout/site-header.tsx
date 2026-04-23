@@ -85,6 +85,11 @@ export function SiteHeader({
                 Post
               </Link>
 
+              <Link
+                className="button button-ghost header-compact-button" href="/settings">
+                Settings
+              </Link>
+
               <form action={signOutAction}>
                 <button className="button button-ghost header-compact-button" type="submit">
                   Sign Out

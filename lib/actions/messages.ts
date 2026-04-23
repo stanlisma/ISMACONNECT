@@ -35,11 +35,7 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     redirectWithMessage(`/listings/${listing.slug}`, "error", "You cannot message your own listing.");
   }
 
-  const { data: recipientProfile } = await supabase
-    .from("profiles")
-    .select("email, full_name")
-    .eq("id", listing.owner_id)
-    .single();
+  .select("email, full_name, email_notifications")
 
   const { data: senderProfile } = await supabase
     .from("profiles")
@@ -106,7 +102,7 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     link: `/messages/${conversation.id}`
   });
 
-  if (recipientProfile?.email) {
+  if (recipientProfile?.email && recipientProfile.email_notifications !== false) {
     try {
       await sendNewMessageEmail({
         to: recipientProfile.email,
