@@ -27,7 +27,7 @@ export default async function MessageThreadPage({
       seller_id,
       buyer_typing,
       seller_typing,
-      listing:listings(id, title, slug, owner_id),
+      listing:listings(id, title, slug, owner_id, contact_name),
       seller:profiles!conversations_seller_id_fkey(full_name),
       buyer:profiles!conversations_buyer_id_fkey(full_name)
     `)
@@ -66,12 +66,17 @@ export default async function MessageThreadPage({
 
   const action = sendThreadMessageAction.bind(null, params.id);
 
-  const otherUserFullName =
-    viewer.user.id === conversation.seller_id
-      ? (conversation.buyer as any)?.full_name ?? "User"
-      : (conversation.seller as any)?.full_name ?? "User";
+  const sellerFullName =
+    (conversation.seller as { full_name?: string | null } | null)?.full_name ??
+    (conversation.listing as { contact_name?: string | null } | null)?.contact_name ??
+    "User";
 
-  const otherUserFirstName = otherUserFullName.split(" ")[0] || "User";
+  const buyerFullName =
+    (conversation.buyer as { full_name?: string | null } | null)?.full_name ??
+    "User";
+
+  const otherUserFullName = viewer.user.id === conversation.seller_id ? buyerFullName : sellerFullName;
+  const otherUserFirstName = otherUserFullName.trim().split(" ")[0] || "User";
 
   return (
     <section className="section">
