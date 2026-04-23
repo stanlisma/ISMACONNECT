@@ -15,9 +15,10 @@ import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils
 export async function generateMetadata({
   params
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const listing = await getPublicListingBySlug(params.slug);
+  const { slug } = await params;
+  const listing = await getPublicListingBySlug(slug);
 
   if (!listing) {
     return {
@@ -39,10 +40,13 @@ export default async function ListingPage({
   params,
   searchParams
 }: {
-  params: { slug: string };
-  searchParams?: Record<string, string | string[] | undefined>;
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const listing = await getPublicListingBySlug(params.slug);
+  const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
+  const listing = await getPublicListingBySlug(slug);
 
   if (!listing) {
     notFound();
@@ -51,8 +55,8 @@ export default async function ListingPage({
   const viewer = await getViewer();
   const relatedListings = await getRelatedListings(listing);
   const category = CATEGORY_MAP[listing.category];
-  const success = getSingleParam(searchParams?.success);
-  const error = getSingleParam(searchParams?.error);
+  const success = getSingleParam(resolvedSearchParams?.success);
+  const error = getSingleParam(resolvedSearchParams?.error);
 
   const structuredData = {
     "@context": "https://schema.org",
