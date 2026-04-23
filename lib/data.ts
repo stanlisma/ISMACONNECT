@@ -151,3 +151,26 @@ export async function getFlaggedListings() {
 
   return (data || []) as FlaggedListing[];
 }
+
+export async function getSavedListingIds(userId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("saved_listings")
+    .select("listing_id")
+    .eq("user_id", userId);
+
+  return new Set((data || []).map((item) => item.listing_id));
+}
+
+export async function getSavedListings(userId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("saved_listings")
+    .select("listing:listings(*)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  return (data || [])
+    .map((row: any) => row.listing)
+    .filter(Boolean) as Listing[];
+}

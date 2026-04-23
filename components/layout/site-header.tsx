@@ -81,6 +81,10 @@ export function SiteHeader({
                 Dashboard
               </Link>
 
+              <Link className="button button-ghost header-compact-button" href="/dashboard/saved">
+                Saved
+              </Link>
+
               <Link className="button header-compact-button" href="/dashboard/listings/new">
                 Post
               </Link>
