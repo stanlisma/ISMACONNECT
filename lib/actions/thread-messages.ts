@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { sendNewMessageEmail } from "@/lib/email";
+import { getBaseUrl } from "@/lib/env";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -22,7 +24,14 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select("id, buyer_id, seller_id")
+    .select(`
+      id,
+      buyer_id,
+      seller_id,
+      listing:listings(title),
+      buyer:profiles!conversations_buyer_id_fkey(email, full_name),
+      seller:profiles!conversations_seller_id_fkey(email, full_name)
+    `)
     .eq("id", conversationId)
     .single();
 
@@ -33,6 +42,12 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
   if (conversation.buyer_id !== viewer.user.id && conversation.seller_id !== viewer.user.id) {
     redirectWithMessage("/messages", "error", "You do not have access to this conversation.");
   }
+
+  const { data: senderProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", viewer.user.id)
+    .single();
 
   const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
@@ -69,9 +84,38 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
     user_id: recipientId,
     type: "message",
     title: "New reply",
-    body: "You have a new message.",
+    body: "You have a new reply in a conversation.",
     link: `/messages/${conversationId}`
   });
+
+  const recipientProfile = isBuyer
+    ? (conversation.seller as { email?: string | null; full_name?: string | null } | null)
+    : (conversation.buyer as { email?: string | null; full_name?: string | null } | null);
+
+  const listingTitle =
+    ((conversation.listing as { title?: string | null } | null)?.title ?? "your listing");
+
+  if (recipientProfile?.email) {
+    try {
+      await sendNewMessageEmail({
+        to: recipientProfile.email,
+        recipientName: recipientProfile.full_name ?? null,
+        senderName:
+          senderProfile?.full_name ??
+          viewer.user.user_metadata?.full_name ??
+          "Someone",
+        listingTitle,
+        conversationUrl: `${getBaseUrl()}/messages/${conversationId}`,
+        messagePreview: body
+          ? body.length > 240
+            ? `${body.slice(0, 240)}…`
+            : body
+          : "Sent an image attachment."
+      });
+    } catch (error) {
+      console.error("Email notification failed:", error);
+    }
+  }
 
   redirect(`/messages/${conversationId}`);
 }
