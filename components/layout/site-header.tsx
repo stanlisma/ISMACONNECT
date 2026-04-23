@@ -13,23 +13,7 @@ function CountBadge({ count }: { count: number }) {
   if (count <= 0) return null;
 
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minWidth: "1.25rem",
-        height: "1.25rem",
-        padding: "0 0.375rem",
-        borderRadius: "999px",
-        background: "#ef4444",
-        color: "white",
-        fontSize: "0.75rem",
-        fontWeight: 700,
-        lineHeight: 1,
-        marginLeft: "0.375rem"
-      }}
-    >
+    <span className="header-count-badge">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -67,51 +51,38 @@ export function SiteHeader({
           <Link className="main-nav-link" href="/categories/buy-sell">
             Buy &amp; Sell
           </Link>
-
-          {viewer ? (
-            <>
-              <Link className="main-nav-link" href="/messages">
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                  Messages
-                  <CountBadge count={unreadMessagesCount} />
-                </span>
-              </Link>
-
-              <Link className="main-nav-link" href="/notifications">
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                  Notifications
-                  <CountBadge count={unreadNotificationsCount} />
-                </span>
-              </Link>
-            </>
-          ) : null}
         </nav>
 
         <div className="header-actions">
           {viewer ? (
             <>
+              <Link className="header-icon-link" href="/messages" aria-label="Messages" title="Messages">
+                <span aria-hidden="true">💬</span>
+                <CountBadge count={unreadMessagesCount} />
+              </Link>
+
+              <Link
+                className="header-icon-link"
+                href="/notifications"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <span aria-hidden="true">🔔</span>
+                <CountBadge count={unreadNotificationsCount} />
+              </Link>
+
               {viewer.profile.role === "admin" ? (
                 <Link className="button button-secondary" href="/admin/moderation">
                   Moderation
                 </Link>
               ) : null}
 
-              <Link className="button button-secondary" href="/messages">
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                  Messages
-                  <CountBadge count={unreadMessagesCount} />
-                </span>
-              </Link>
-
-              <Link className="button button-secondary" href="/notifications">
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                  Alerts
-                  <CountBadge count={unreadNotificationsCount} />
-                </span>
-              </Link>
-
               <Link className="button button-secondary" href="/dashboard">
                 Dashboard
+              </Link>
+
+              <Link className="button" href="/dashboard/listings/new">
+                Post listing
               </Link>
 
               <form action={signOutAction}>
@@ -123,10 +94,11 @@ export function SiteHeader({
           ) : (
             <>
               <Link className="button button-secondary" href="/auth/sign-in">
-                Register or Sign In
+                Sign In
               </Link>
+
               <Link className="button" href="/auth/sign-up">
-                Post a Listing
+                Post listing
               </Link>
             </>
           )}
