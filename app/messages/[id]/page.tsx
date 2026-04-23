@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { FlashMessage } from "@/components/ui/flash-message";
 import { RealtimeMessages } from "@/components/messages/realtime-messages";
+import { MessageComposer } from "@/components/messages/message-composer";
 import { sendThreadMessageAction } from "@/lib/actions/thread-messages";
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -19,16 +20,13 @@ export default async function MessageThreadPage({
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select(`
-      id,
-      buyer_id,
-      seller_id,
-      listing:listings(title, slug)
-    `)
+    .select("id, buyer_id, seller_id, buyer_typing, seller_typing, listing:listings(title)")
     .eq("id", params.id)
     .single();
 
-  if (!conversation) notFound();
+  if (!conversation) {
+    notFound();
+  }
 
   if (conversation.buyer_id !== viewer.user.id && conversation.seller_id !== viewer.user.id) {
     notFound();
@@ -43,9 +41,16 @@ export default async function MessageThreadPage({
     })
     .eq("id", params.id);
 
+  await supabase
+    .from("messages")
+    .update({ seen_at: new Date().toISOString() })
+    .eq("conversation_id", params.id)
+    .neq("sender_id", viewer.user.id)
+    .is("seen_at", null);
+
   const { data: messages } = await supabase
     .from("messages")
-    .select("id, body, created_at, sender_id")
+    .select("id, body, image_url, created_at, sender_id, seen_at")
     .eq("conversation_id", params.id)
     .order("created_at", { ascending: true });
 
@@ -57,59 +62,40 @@ export default async function MessageThreadPage({
         <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
         <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
 
-        <div className="surface" style={{ padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              padding: "1rem 1.25rem",
-              borderBottom: "1px solid #e5e7eb",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
-            <div>
-              <h1 style={{ margin: 0, fontSize: "1.25rem" }}>
-                {(conversation as any).listing?.title ?? "Conversation"}
-              </h1>
-              <p style={{ margin: "0.25rem 0 0", color: "#667085" }}>
-                Message about this listing
-              </p>
-            </div>
-          </div>
-
-          <div style={{ padding: "1rem", background: "#f8fafc" }}>
-            <RealtimeMessages
-              conversationId={params.id}
-              initialMessages={messages ?? []}
-              viewerId={viewer.user.id}
-            />
-          </div>
-
-          <form
-            action={action}
-            style={{
-              borderTop: "1px solid #e5e7eb",
-              padding: "1rem",
-              background: "white",
-              position: "sticky",
-              bottom: 0
-            }}
-          >
-            <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end" }}>
-              <textarea
-                className="input"
-                name="body"
-                rows={3}
-                required
-                placeholder="Write a message..."
-                style={{ flex: 1, resize: "vertical" }}
-              />
-              <button className="button" type="submit">
-                Send
-              </button>
-            </div>
-          </form>
+        <div className="surface" style={{ marginBottom: "1rem" }}>
+          <h1 className="section-title" style={{ marginBottom: "0.5rem" }}>
+            {(conversation as any).listing?.title ?? "Conversation"}
+          </h1>
+          <p className="section-copy">Chat directly about this listing.</p>
         </div>
+
+        <RealtimeMessages
+          conversationId={params.id}
+          initialMessages={messages ?? []}
+          viewerId={viewer.user.id}
+          buyerId={conversation.buyer_id}
+          sellerId={conversation.seller_id}
+          initialBuyerTyping={conversation.buyer_typing}
+          initialSellerTyping={conversation.seller_typing}
+        />
+
+        <form action={action} className="surface" style={{ marginTop: "1rem", padding: "1rem" }}>
+          <label className="field" style={{ display: "block" }}>
+            <span className="field-label">Reply</span>
+            <MessageComposer conversationId={params.id} />
+          </label>
+
+          <label className="field" style={{ display: "block", marginTop: "0.75rem" }}>
+            <span className="field-label">Image URL (optional)</span>
+            <input className="input" name="imageUrl" placeholder="https://..." />
+          </label>
+
+          <div style={{ marginTop: "1rem", display: "flex", justifyContent: "flex-end" }}>
+            <button className="button" type="submit">
+              Send reply
+            </button>
+          </div>
+        </form>
       </div>
     </section>
   );

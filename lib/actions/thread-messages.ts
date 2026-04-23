@@ -12,8 +12,9 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
 export async function sendThreadMessageAction(conversationId: string, formData: FormData) {
   const viewer = await requireViewer();
   const body = String(formData.get("body") ?? "").trim();
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null;
 
-  if (!body) {
+  if (!body && !imageUrl) {
     redirectWithMessage(`/messages/${conversationId}`, "error", "Message cannot be empty.");
   }
 
@@ -21,7 +22,7 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select("id, buyer_id, seller_id, listing:listings(title)")
+    .select("id, buyer_id, seller_id")
     .eq("id", conversationId)
     .single();
 
@@ -36,7 +37,8 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
   const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: viewer.user.id,
-    body
+    body: body || "",
+    image_url: imageUrl
   });
 
   if (error) {
@@ -45,6 +47,7 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
 
   const isBuyer = viewer.user.id === conversation.buyer_id;
   const unreadField = isBuyer ? "seller_unread_count" : "buyer_unread_count";
+  const typingField = isBuyer ? "buyer_typing" : "seller_typing";
   const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
 
   const { data: currentConversation } = await supabase
@@ -57,6 +60,7 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
     .from("conversations")
     .update({
       [unreadField]: ((currentConversation as any)?.[unreadField] ?? 0) + 1,
+      [typingField]: false,
       last_message_at: new Date().toISOString()
     })
     .eq("id", conversationId);
@@ -65,7 +69,7 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
     user_id: recipientId,
     type: "message",
     title: "New reply",
-    body: `You have a new reply in a conversation.`,
+    body: "You have a new message.",
     link: `/messages/${conversationId}`
   });
 
