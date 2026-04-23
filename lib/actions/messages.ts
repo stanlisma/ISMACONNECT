@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { sendNewMessageEmail } from "@/lib/email";
+import { getBaseUrl } from "@/lib/env";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -21,7 +23,7 @@ export async function sendListingMessageAction(listingId: string, formData: Form
 
   const { data: listing, error: listingError } = await supabase
     .from("listings")
-    .select("id, slug, owner_id, title")
+    .select("id, slug, owner_id, title, contact_name")
     .eq("id", listingId)
     .single();
 
@@ -32,6 +34,18 @@ export async function sendListingMessageAction(listingId: string, formData: Form
   if (listing.owner_id === viewer.user.id) {
     redirectWithMessage(`/listings/${listing.slug}`, "error", "You cannot message your own listing.");
   }
+
+  const { data: recipientProfile } = await supabase
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", listing.owner_id)
+    .single();
+
+  const { data: senderProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", viewer.user.id)
+    .single();
 
   const { data: conversation, error: conversationError } = await supabase
     .from("conversations")
@@ -48,7 +62,11 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     .single();
 
   if (conversationError || !conversation) {
-    redirectWithMessage(`/listings/${listing.slug}`, "error", conversationError?.message || "Could not start conversation.");
+    redirectWithMessage(
+      `/listings/${listing.slug}`,
+      "error",
+      conversationError?.message || "Could not start conversation."
+    );
   }
 
   const { error: messageError } = await supabase.from("messages").insert({
@@ -87,6 +105,24 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     body: `You have a new message about "${listing.title}"`,
     link: `/messages/${conversation.id}`
   });
+
+  if (recipientProfile?.email) {
+    try {
+      await sendNewMessageEmail({
+        to: recipientProfile.email,
+        recipientName: recipientProfile.full_name ?? listing.contact_name ?? null,
+        senderName:
+          senderProfile?.full_name ??
+          viewer.user.user_metadata?.full_name ??
+          "Someone",
+        listingTitle: listing.title,
+        conversationUrl: `${getBaseUrl()}/messages/${conversation.id}`,
+        messagePreview: body.length > 240 ? `${body.slice(0, 240)}…` : body
+      });
+    } catch (error) {
+      console.error("Email notification failed:", error);
+    }
+  }
 
   redirectWithMessage(`/messages/${conversation.id}`, "success", "Message sent.");
 }
