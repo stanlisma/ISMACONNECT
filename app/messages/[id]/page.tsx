@@ -27,7 +27,7 @@ export default async function MessageThreadPage({
       seller_id,
       buyer_typing,
       seller_typing,
-      listing:listings(id, title, slug, owner_id, contact_name),
+      listing:listings(id, title, slug, owner_id, contact_name, image_url),
       seller:profiles!conversations_seller_id_fkey(full_name),
       buyer:profiles!conversations_buyer_id_fkey(full_name)
     `)
@@ -78,6 +78,12 @@ export default async function MessageThreadPage({
   const otherUserFullName = viewer.user.id === conversation.seller_id ? buyerFullName : sellerFullName;
   const otherUserFirstName = otherUserFullName.trim().split(" ")[0] || "User";
 
+  const listing = conversation.listing as {
+    title?: string | null;
+    slug?: string | null;
+    image_url?: string | null;
+  } | null;
+
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: "960px" }}>
@@ -85,15 +91,62 @@ export default async function MessageThreadPage({
         <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
 
         <div className="surface" style={{ marginBottom: "1rem" }}>
-          <h1 className="section-title" style={{ marginBottom: "0.5rem" }}>
-            <Link
-              href={`/listings/${(conversation.listing as any)?.slug}`}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              {(conversation.listing as any)?.title ?? "Conversation"}
-            </Link>
-          </h1>
-          <p className="section-copy">Chat directly about this listing.</p>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "center"
+            }}
+          >
+            {listing?.image_url ? (
+              <Link href={`/listings/${listing.slug}`}>
+                <img
+                  src={listing.image_url}
+                  alt={listing.title ?? "Listing image"}
+                  style={{
+                    width: "88px",
+                    height: "88px",
+                    objectFit: "cover",
+                    borderRadius: "16px",
+                    border: "1px solid #d0d5dd",
+                    display: "block"
+                  }}
+                />
+              </Link>
+            ) : (
+              <div
+                style={{
+                  width: "88px",
+                  height: "88px",
+                  borderRadius: "16px",
+                  border: "1px solid #d0d5dd",
+                  background: "#f8fafc",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#667085",
+                  fontSize: "0.9rem",
+                  fontWeight: 600
+                }}
+              >
+                Listing
+              </div>
+            )}
+
+            <div>
+              <h1 className="section-title" style={{ marginBottom: "0.5rem" }}>
+                <Link
+                  href={`/listings/${listing?.slug}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  {listing?.title ?? "Conversation"}
+                </Link>
+              </h1>
+              <p className="section-copy" style={{ marginBottom: 0 }}>
+                Chat with {otherUserFirstName} about this listing.
+              </p>
+            </div>
+          </div>
         </div>
 
         <RealtimeMessages
