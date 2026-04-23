@@ -20,6 +20,7 @@ type Props = {
   sellerId: string;
   initialBuyerTyping?: boolean;
   initialSellerTyping?: boolean;
+  otherUserName: string;
 };
 
 const supabase = createClient(
@@ -41,7 +42,8 @@ export function RealtimeMessages({
   buyerId,
   sellerId,
   initialBuyerTyping = false,
-  initialSellerTyping = false
+  initialSellerTyping = false,
+  otherUserName
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [buyerTyping, setBuyerTyping] = useState(initialBuyerTyping);
@@ -166,7 +168,7 @@ export function RealtimeMessages({
               </div>
 
               <small style={{ marginTop: "0.35rem", color: "#667085" }}>
-                {mine ? "You" : "Other user"} · {formatTime(message.created_at)}
+                {mine ? "You" : otherUserName} · {formatTime(message.created_at)}
                 {mine && message.id === lastMine?.id ? ` · ${message.seen_at ? "Seen" : "Delivered"}` : ""}
               </small>
             </div>
@@ -175,7 +177,7 @@ export function RealtimeMessages({
       })}
 
       {otherTyping ? (
-        <div style={{ color: "#667085", fontSize: "0.9rem" }}>Typing…</div>
+        <div style={{ color: "#667085", fontSize: "0.9rem" }}>{otherUserName} is typing…</div>
       ) : null}
 
       <div ref={bottomRef} />

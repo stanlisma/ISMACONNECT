@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -20,7 +21,16 @@ export default async function MessageThreadPage({
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select("id, buyer_id, seller_id, buyer_typing, seller_typing, listing:listings(title)")
+    .select(`
+      id,
+      buyer_id,
+      seller_id,
+      buyer_typing,
+      seller_typing,
+      listing:listings(id, title, slug, owner_id),
+      seller:profiles!conversations_seller_id_fkey(full_name),
+      buyer:profiles!conversations_buyer_id_fkey(full_name)
+    `)
     .eq("id", params.id)
     .single();
 
@@ -56,6 +66,13 @@ export default async function MessageThreadPage({
 
   const action = sendThreadMessageAction.bind(null, params.id);
 
+  const otherUserFullName =
+    viewer.user.id === conversation.seller_id
+      ? (conversation.buyer as any)?.full_name ?? "User"
+      : (conversation.seller as any)?.full_name ?? "User";
+
+  const otherUserFirstName = otherUserFullName.split(" ")[0] || "User";
+
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: "960px" }}>
@@ -64,7 +81,12 @@ export default async function MessageThreadPage({
 
         <div className="surface" style={{ marginBottom: "1rem" }}>
           <h1 className="section-title" style={{ marginBottom: "0.5rem" }}>
-            {(conversation as any).listing?.title ?? "Conversation"}
+            <Link
+              href={`/listings/${(conversation.listing as any)?.slug}`}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              {(conversation.listing as any)?.title ?? "Conversation"}
+            </Link>
           </h1>
           <p className="section-copy">Chat directly about this listing.</p>
         </div>
@@ -77,17 +99,13 @@ export default async function MessageThreadPage({
           sellerId={conversation.seller_id}
           initialBuyerTyping={conversation.buyer_typing}
           initialSellerTyping={conversation.seller_typing}
+          otherUserName={otherUserFirstName}
         />
 
         <form action={action} className="surface" style={{ marginTop: "1rem", padding: "1rem" }}>
           <label className="field" style={{ display: "block" }}>
             <span className="field-label">Reply</span>
             <MessageComposer conversationId={params.id} />
-          </label>
-
-          <label className="field" style={{ display: "block", marginTop: "0.75rem" }}>
-            <span className="field-label">Image URL (optional)</span>
-            <input className="input" name="imageUrl" placeholder="https://..." />
           </label>
 
           <div style={{ marginTop: "1rem", display: "flex", justifyContent: "flex-end" }}>
