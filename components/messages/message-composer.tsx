@@ -76,7 +76,6 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
         {uploadError ? <p style={{ marginTop: "0.5rem", color: "#b42318" }}>{uploadError}</p> : null}
       </div>
 
-      <input type="hidden" name="conversationId" value={conversationId} />
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
       {imageUrl ? (

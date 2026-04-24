@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { FlashMessage } from "@/components/ui/flash-message";
-import { RealtimeMessages } from "@/components/messages/realtime-messages";
 import { MessageComposer } from "@/components/messages/message-composer";
+import { RealtimeMessages } from "@/components/messages/realtime-messages";
+import { FlashMessage } from "@/components/ui/flash-message";
 import { sendThreadMessageAction } from "@/lib/actions/thread-messages";
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -67,18 +67,17 @@ export default async function MessageThreadPage({
     .eq("conversation_id", id)
     .order("created_at", { ascending: true });
 
-  const action = sendThreadMessageAction.bind(null, id);
-
   const sellerFullName =
     (conversation.seller as { full_name?: string | null } | null)?.full_name ??
     (conversation.listing as { contact_name?: string | null } | null)?.contact_name ??
     "User";
 
   const buyerFullName =
-    (conversation.buyer as { full_name?: string | null } | null)?.full_name ??
-    "User";
+    (conversation.buyer as { full_name?: string | null } | null)?.full_name ?? "User";
 
-  const otherUserFullName = viewer.user.id === conversation.seller_id ? buyerFullName : sellerFullName;
+  const otherUserFullName =
+    viewer.user.id === conversation.seller_id ? buyerFullName : sellerFullName;
+
   const otherUserFirstName = otherUserFullName.trim().split(" ")[0] || "User";
 
   const listing = conversation.listing as {
@@ -94,13 +93,7 @@ export default async function MessageThreadPage({
         <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
         <div className="surface" style={{ marginBottom: "1rem" }}>
-          <div
-            style={{
-              display: "flex",
-              gap: "1rem",
-              alignItems: "center"
-            }}
-          >
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
             {listing?.image_url ? (
               <Link href={`/listings/${listing.slug}`}>
                 <img
@@ -163,7 +156,13 @@ export default async function MessageThreadPage({
           otherUserName={otherUserFirstName}
         />
 
-        <form action={action} className="surface" style={{ marginTop: "1rem", padding: "1rem" }}>
+        <form
+          action={sendThreadMessageAction}
+          className="surface"
+          style={{ marginTop: "1rem", padding: "1rem" }}
+        >
+          <input type="hidden" name="conversationId" value={id} />
+
           <label className="field" style={{ display: "block" }}>
             <span className="field-label">Reply</span>
             <MessageComposer conversationId={id} />

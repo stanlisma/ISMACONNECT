@@ -11,7 +11,8 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
-export async function sendThreadMessageAction(conversationId: string, formData: FormData) {
+export async function sendThreadMessageAction(formData: FormData) {
+  const conversationId = String(formData.get("conversationId") ?? "");
   const viewer = await requireViewer();
 
   const body = String(formData.get("body") ?? "").trim();
