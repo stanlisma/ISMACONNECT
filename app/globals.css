@@ -81,7 +81,7 @@ code {
 }
 
 .site-header {
-  position: static;
+  position: sticky;
   top: 0;
   z-index: 50;
   backdrop-filter: blur(18px);
@@ -802,5 +802,24 @@ code {
 
   .site-header-bottom {
     position: static;
+  }
+}
+
+/* MOBILE: only search bar sticks */
+@media (max-width: 760px) {
+  .site-header-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .header-search {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(245, 250, 255, 0.96);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
   }
 }
