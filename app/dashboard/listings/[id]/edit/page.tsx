@@ -12,11 +12,14 @@ export default async function EditListingPage({
   params,
   searchParams
 }: {
-  params: { id: string };
-  searchParams?: Record<string, string | string[] | undefined>;
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const { id } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
   const viewer = await requireViewer();
-  const listing = await getEditableListing(params.id);
+  const listing = await getEditableListing(id);
 
   if (!listing || (listing.owner_id !== viewer.user.id && viewer.profile.role !== "admin")) {
     notFound();
@@ -24,7 +27,7 @@ export default async function EditListingPage({
 
   return (
     <>
-      <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+      <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
       <div className="surface" style={{ marginBottom: "1rem" }}>
         <div className="action-row" style={{ justifyContent: "space-between" }}>
@@ -42,6 +45,7 @@ export default async function EditListingPage({
         action={updateListingAction.bind(null, listing.id)}
         defaults={{
           category: listing.category ?? undefined,
+          subcategory: listing.subcategory ?? undefined,
           contactEmail: listing.contact_email ?? undefined,
           contactName: listing.contact_name ?? undefined,
           contactPhone: listing.contact_phone ?? undefined,
