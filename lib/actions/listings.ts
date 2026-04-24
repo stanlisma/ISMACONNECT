@@ -54,7 +54,8 @@ export async function createListingAction(formData: FormData) {
     contactName: formData.get("contactName"),
     contactEmail: formData.get("contactEmail"),
     contactPhone: formData.get("contactPhone"),
-    imageUrl: formData.get("imageUrl")
+    image_url: imageUrls[0] || dataInput.imageUrl,
+    image_urls: imageUrls
   });
 
   if (!parsed.success) {
@@ -119,7 +120,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
     contactName: formData.get("contactName"),
     contactEmail: formData.get("contactEmail"),
     contactPhone: formData.get("contactPhone"),
-    imageUrl: formData.get("imageUrl")
+    image_url: imageUrls[0] || dataInput.imageUrl,
+    image_urls: imageUrls
   });
 
   if (!parsed.success) {

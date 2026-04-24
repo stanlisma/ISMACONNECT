@@ -117,14 +117,54 @@ export default async function ListingPage({
               </div>
 
               <div className="listing-media" style={{ marginTop: "1.25rem" }}>
-                {listing.image_url ? (
-                  <img alt={listing.title} src={listing.image_url} />
-                ) : (
-                  <div className="listing-placeholder">
-                    <span>{category.label}</span>
-                  </div>
-                )}
-              </div>
+              {listing.image_urls && listing.image_urls.length > 0 ? (
+                <div>
+                  {/* MAIN IMAGE */}
+                  <img
+                    src={listing.image_urls[0]}
+                    alt={listing.title}
+                    style={{
+                      width: "100%",
+                      borderRadius: "16px",
+                      objectFit: "cover"
+                    }}
+                  />
+
+                  {/* THUMBNAILS */}
+                  {listing.image_urls.length > 1 ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.5rem",
+                        marginTop: "0.5rem",
+                        overflowX: "auto"
+                      }}
+                    >
+                      {listing.image_urls.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt="Thumbnail"
+                          style={{
+                            width: "80px",
+                            height: "80px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            border: "1px solid #d0d5dd"
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : listing.image_url ? (
+                <img src={listing.image_url} alt={listing.title} />
+              ) : (
+                <div className="listing-placeholder">
+                  <span>{category.label}</span>
+                </div>
+              )}
+            </div>
             </div>
 
             <div className="detail-card">

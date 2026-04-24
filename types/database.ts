@@ -26,7 +26,13 @@ export interface Listing {
   contact_name: string;
   contact_email: string | null;
   contact_phone: string | null;
+
+  // ✅ MAIN IMAGE (cover)
   image_url: string | null;
+
+  // ✅ NEW: MULTIPLE IMAGES
+  image_urls: string[] | null;
+
   is_featured: boolean;
   featured_until: string | null;
   stripe_checkout_session_id: string | null;
