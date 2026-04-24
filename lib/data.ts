@@ -5,6 +5,7 @@ import type { FlaggedListing, Listing, ListingCategory } from "@/types/database"
 
 interface ListingFilters {
   category?: ListingCategory;
+  subcategory?: string | null;
   search?: string;
   limit?: number;
 }
@@ -19,6 +20,7 @@ export async function getHomepageData() {
   }
 
   const supabase = createPublicSupabaseClient();
+
   const [featuredResponse, latestResponse] = await Promise.all([
     supabase
       .from("listings")
@@ -27,6 +29,7 @@ export async function getHomepageData() {
       .eq("is_featured", true)
       .order("created_at", { ascending: false })
       .limit(3),
+
     supabase
       .from("listings")
       .select("*")
@@ -55,6 +58,7 @@ export async function getPublicListings(filters: ListingFilters) {
   }
 
   const supabase = createPublicSupabaseClient();
+
   let query = supabase
     .from("listings")
     .select("*")
@@ -64,6 +68,10 @@ export async function getPublicListings(filters: ListingFilters) {
 
   if (filters.category) {
     query = query.eq("category", filters.category);
+  }
+
+  if (filters.subcategory) {
+    query = query.eq("subcategory", filters.subcategory);
   }
 
   if (filters.search?.trim()) {
@@ -91,6 +99,7 @@ export async function getPublicListingBySlug(slug: string) {
   }
 
   const supabase = createPublicSupabaseClient();
+
   const { data } = await supabase
     .from("listings")
     .select("*")
@@ -107,6 +116,7 @@ export async function getRelatedListings(listing: Listing) {
   }
 
   const supabase = createPublicSupabaseClient();
+
   const { data } = await supabase
     .from("listings")
     .select("*")
@@ -121,6 +131,7 @@ export async function getRelatedListings(listing: Listing) {
 
 export async function getUserListings(userId: string) {
   const supabase = await createServerSupabaseClient();
+
   const { data } = await supabase
     .from("listings")
     .select("*")
@@ -132,6 +143,7 @@ export async function getUserListings(userId: string) {
 
 export async function getEditableListing(listingId: string) {
   const supabase = await createServerSupabaseClient();
+
   const { data } = await supabase
     .from("listings")
     .select("*")
@@ -143,6 +155,7 @@ export async function getEditableListing(listingId: string) {
 
 export async function getFlaggedListings() {
   const supabase = await createServerSupabaseClient();
+
   const { data } = await supabase
     .from("listings")
     .select("*, listing_flags(*)")
@@ -154,6 +167,7 @@ export async function getFlaggedListings() {
 
 export async function getSavedListingIds(userId: string) {
   const supabase = await createServerSupabaseClient();
+
   const { data } = await supabase
     .from("saved_listings")
     .select("listing_id")
@@ -164,6 +178,7 @@ export async function getSavedListingIds(userId: string) {
 
 export async function getSavedListings(userId: string) {
   const supabase = await createServerSupabaseClient();
+
   const { data } = await supabase
     .from("saved_listings")
     .select("listing:listings(*)")

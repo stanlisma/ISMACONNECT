@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getCategoryHref, getCategoryLabel, excerpt, formatCurrency, formatDate } from "@/lib/utils";
+import { getSubcategoryLabel } from "@/lib/subcategories";
 import type { Listing } from "@/types/database";
 
 interface ListingCardProps {
@@ -40,7 +41,16 @@ export function ListingCard({
             <Link className="badge badge-soft" href={getCategoryHref(listing.category)}>
               {getCategoryLabel(listing.category)}
             </Link>
-            {listing.is_featured ? <span className="badge badge-featured">Featured</span> : null}
+
+            {listing.subcategory ? (
+              <span className="badge badge-subcategory">
+                {getSubcategoryLabel(listing.category, listing.subcategory)}
+              </span>
+            ) : null}
+
+            {listing.is_featured ? (
+              <span className="badge badge-featured">Featured</span>
+            ) : null}
           </div>
 
           {canSave ? (
