@@ -11,7 +11,24 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
-export async function sendThreadMessageAction(conversationId: string, formData: FormData) {
+export async function sendThreadMessageAction(
+  conversationIdOrFormData: string | FormData,
+  maybeFormData?: FormData
+) {
+  const formData =
+    conversationIdOrFormData instanceof FormData
+      ? conversationIdOrFormData
+      : maybeFormData;
+
+  const conversationId =
+    typeof conversationIdOrFormData === "string"
+      ? conversationIdOrFormData
+      : String(formData?.get("conversationId") ?? "");
+
+  if (!formData || !conversationId) {
+    redirectWithMessage("/messages", "error", "Conversation not found.");
+  }
+
   const viewer = await requireViewer();
   const body = String(formData.get("body") ?? "").trim();
   const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null;
