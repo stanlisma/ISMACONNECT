@@ -24,19 +24,12 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
 
   const { data: conversation } = await supabase
     .from("conversations")
-    .select(`
-      id,
-      buyer_id,
-      seller_id,
-      listing:listings(title),
-      buyer:profiles!conversations_buyer_id_fkey(email, full_name, email_notifications),
-      seller:profiles!conversations_seller_id_fkey(email, full_name, email_notifications)
-    `)
+    .select("id, buyer_id, seller_id")
     .eq("id", conversationId)
-    .single();
+    .maybeSingle();
 
   if (!conversation) {
-    redirectWithMessage("/messages", "error", "Conversation not found.");
+    redirect("/messages?error=Conversation not found");
   }
 
   if (conversation.buyer_id !== viewer.user.id && conversation.seller_id !== viewer.user.id) {
