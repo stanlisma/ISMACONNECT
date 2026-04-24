@@ -25,7 +25,7 @@ export const listingSchema = z
     description: z
       .string()
       .trim()
-      .min(10, "Description must be at least 30 characters.")
+      .min(10, "Description must be at least 10 characters.")
       .max(3000, "Description must be 3000 characters or less."),
 
     price: z
