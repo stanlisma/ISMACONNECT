@@ -40,7 +40,6 @@ export default async function EditListingPage({
 
       <ListingForm
         action={updateListingAction.bind(null, listing.id)}
-        cancelHref="/dashboard"
         defaults={{
           category: listing.category ?? undefined,
           contactEmail: listing.contact_email ?? undefined,
