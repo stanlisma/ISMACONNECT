@@ -12,58 +12,49 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
 }
 
 export async function sendThreadMessageAction(formData: FormData) {
-  const conversationId = String(formData.get("conversationId") ?? "");
+  const conversationId = String(formData.get("conversationId") ?? "").trim();
+
+  if (!conversationId) {
+    redirectWithMessage("/messages", "error", "Conversation ID missing.");
+  }
+
   const viewer = await requireViewer();
+  const supabase = await createServerSupabaseClient();
 
   const body = String(formData.get("body") ?? "").trim();
   const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null;
-
-  if (!conversationId) {
-    redirectWithMessage("/messages", "error", "Conversation not found.");
-  }
 
   if (!body && !imageUrl) {
     redirectWithMessage(`/messages/${conversationId}`, "error", "Message cannot be empty.");
   }
 
-  const supabase = await createServerSupabaseClient();
-
-  const { data: conversation } = await supabase
+  const { data: conversation, error: conversationError } = await supabase
     .from("conversations")
-    .select(`
-      id,
-      buyer_id,
-      seller_id,
-      listing:listings(title),
-      buyer:profiles!conversations_buyer_id_fkey(email, full_name, email_notifications),
-      seller:profiles!conversations_seller_id_fkey(email, full_name, email_notifications)
-    `)
+    .select("id, buyer_id, seller_id, listing_id, buyer_unread_count, seller_unread_count")
     .eq("id", conversationId)
     .maybeSingle();
 
-  if (!conversation) {
-    redirectWithMessage("/messages", "error", "Conversation not found.");
+  if (conversationError || !conversation) {
+    redirectWithMessage(
+      `/messages/${conversationId}`,
+      "error",
+      conversationError?.message || "Conversation not found or access denied."
+    );
   }
 
   if (conversation.buyer_id !== viewer.user.id && conversation.seller_id !== viewer.user.id) {
     redirectWithMessage("/messages", "error", "You do not have access to this conversation.");
   }
 
-  const { data: senderProfile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", viewer.user.id)
-    .single();
-
   const { error: messageError } = await supabase.from("messages").insert({
-    conversation_id: conversationId,
+    conversation_id: conversation.id,
     sender_id: viewer.user.id,
     body: body || "",
     image_url: imageUrl
   });
 
   if (messageError) {
-    redirectWithMessage(`/messages/${conversationId}`, "error", messageError.message);
+    redirectWithMessage(`/messages/${conversation.id}`, "error", messageError.message);
   }
 
   const isBuyer = viewer.user.id === conversation.buyer_id;
@@ -71,55 +62,49 @@ export async function sendThreadMessageAction(formData: FormData) {
   const typingField = isBuyer ? "buyer_typing" : "seller_typing";
   const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
 
-  const { data: currentConversation } = await supabase
-    .from("conversations")
-    .select("buyer_unread_count, seller_unread_count")
-    .eq("id", conversationId)
-    .single();
-
   await supabase
     .from("conversations")
     .update({
-      [unreadField]: ((currentConversation as any)?.[unreadField] ?? 0) + 1,
+      [unreadField]: ((conversation as any)[unreadField] ?? 0) + 1,
       [typingField]: false,
       last_message_at: new Date().toISOString()
     })
-    .eq("id", conversationId);
+    .eq("id", conversation.id);
 
   await supabase.from("notifications").insert({
     user_id: recipientId,
     type: "message",
     title: "New reply",
     body: "You have a new reply in a conversation.",
-    link: `/messages/${conversationId}`
+    link: `/messages/${conversation.id}`
   });
 
-  const recipientProfile = isBuyer
-    ? (conversation.seller as {
-        email?: string | null;
-        full_name?: string | null;
-        email_notifications?: boolean | null;
-      } | null)
-    : (conversation.buyer as {
-        email?: string | null;
-        full_name?: string | null;
-        email_notifications?: boolean | null;
-      } | null);
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("title")
+    .eq("id", conversation.listing_id)
+    .maybeSingle();
 
-  const listingTitle =
-    ((conversation.listing as { title?: string | null } | null)?.title ?? "your listing");
+  const { data: recipientProfile } = await supabase
+    .from("profiles")
+    .select("email, full_name, email_notifications")
+    .eq("id", recipientId)
+    .maybeSingle();
+
+  const { data: senderProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", viewer.user.id)
+    .maybeSingle();
 
   if (recipientProfile?.email && recipientProfile.email_notifications !== false) {
     try {
       await sendNewMessageEmail({
         to: recipientProfile.email,
         recipientName: recipientProfile.full_name ?? null,
-        senderName:
-          senderProfile?.full_name ??
-          viewer.user.user_metadata?.full_name ??
-          "Someone",
-        listingTitle,
-        conversationUrl: `${getBaseUrl()}/messages/${conversationId}`,
+        senderName: senderProfile?.full_name ?? viewer.user.user_metadata?.full_name ?? "Someone",
+        listingTitle: listing?.title ?? "your listing",
+        conversationUrl: `${getBaseUrl()}/messages/${conversation.id}`,
         messagePreview: body
           ? body.length > 240
             ? `${body.slice(0, 240)}…`
@@ -131,5 +116,5 @@ export async function sendThreadMessageAction(formData: FormData) {
     }
   }
 
-  redirect(`/messages/${conversationId}`);
+  redirect(`/messages/${conversation.id}`);
 }
