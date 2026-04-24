@@ -22,7 +22,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
-  const category = resolveCategory(params.category);
+  const { category: categoryParam } = await params;
+  const category = resolveCategory(categoryParam);
 
   if (!category) {
     return {
