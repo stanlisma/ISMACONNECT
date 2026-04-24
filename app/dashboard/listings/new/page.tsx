@@ -15,6 +15,7 @@ export default async function NewListingPage({
     <>
       <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
       <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
+      <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error"/>
 
       <div className="surface" style={{ marginBottom: "1rem" }}>
         <h2>Create a new listing</h2>
