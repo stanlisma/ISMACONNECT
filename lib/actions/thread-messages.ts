@@ -3,35 +3,23 @@
 import { redirect } from "next/navigation";
 
 import { requireViewer } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sendNewMessageEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/env";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
-export async function sendThreadMessageAction(
-  conversationIdOrFormData: string | FormData,
-  maybeFormData?: FormData
-) {
-  const formData =
-    conversationIdOrFormData instanceof FormData
-      ? conversationIdOrFormData
-      : maybeFormData;
-
-  const conversationId =
-    typeof conversationIdOrFormData === "string"
-      ? conversationIdOrFormData
-      : String(formData?.get("conversationId") ?? "");
-
-  if (!formData || !conversationId) {
-    redirectWithMessage("/messages", "error", "Conversation not found.");
-  }
-
+export async function sendThreadMessageAction(conversationId: string, formData: FormData) {
   const viewer = await requireViewer();
+
   const body = String(formData.get("body") ?? "").trim();
   const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null;
+
+  if (!conversationId) {
+    redirectWithMessage("/messages", "error", "Conversation not found.");
+  }
 
   if (!body && !imageUrl) {
     redirectWithMessage(`/messages/${conversationId}`, "error", "Message cannot be empty.");
@@ -66,15 +54,15 @@ export async function sendThreadMessageAction(
     .eq("id", viewer.user.id)
     .single();
 
-  const { error } = await supabase.from("messages").insert({
+  const { error: messageError } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: viewer.user.id,
     body: body || "",
     image_url: imageUrl
   });
 
-  if (error) {
-    redirectWithMessage(`/messages/${conversationId}`, "error", error.message);
+  if (messageError) {
+    redirectWithMessage(`/messages/${conversationId}`, "error", messageError.message);
   }
 
   const isBuyer = viewer.user.id === conversation.buyer_id;
