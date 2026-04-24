@@ -70,6 +70,7 @@ export async function createListingAction(formData: FormData) {
       owner_id: viewer.user.id,
       slug,
       category: dataInput.category,
+      subcategory: dataInput.subcategory,
       title: dataInput.title,
       description: dataInput.description,
       price: dataInput.price,
@@ -109,6 +110,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
 
   const parsed = listingSchema.safeParse({
     category: formData.get("category"),
+    subcategory: formData.get("subcategory"),
     title: formData.get("title"),
     description: formData.get("description"),
     price: formData.get("price"),
@@ -134,6 +136,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
     .from("listings")
     .update({
       category: dataInput.category,
+      subcategory: dataInput.subcategory,
       title: dataInput.title,
       description: dataInput.description,
       price: dataInput.price,

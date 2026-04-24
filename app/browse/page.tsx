@@ -23,10 +23,12 @@ export default async function BrowsePage({
 }) {
   const search = getSingleParam(searchParams?.q);
   const category = resolveCategory(getSingleParam(searchParams?.category));
+  const subcategory = getSingleParam(searchParams?.subcategory);
 
   const { listings, isConfigured } = await getPublicListings({
     search,
     category,
+    subcategory,
     limit: 24
   });
 
@@ -45,7 +47,12 @@ export default async function BrowsePage({
           description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
         />
 
-        <BrowseFilters actionPath="/browse" category={category} search={search} />
+        <BrowseFilters
+          actionPath="/browse"
+          category={category}
+          subcategory={subcategory}
+          search={search}
+        />
 
         <div className="pill-links">
           {CATEGORIES.map((item) => (

@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
+
+import { getSubcategories } from "@/lib/subcategories";
 
 type ListingFormProps = {
   action: (formData: FormData) => void | Promise<void>;
   defaults?: {
     category?: string;
+    subcategory?: string;
     title?: string;
     price?: string;
     location?: string;
@@ -17,18 +19,20 @@ type ListingFormProps = {
     imageUrl?: string;
   };
   submitLabel?: string;
-  cancelHref?: string;
 };
 
 export function ListingForm({
   action,
   defaults,
-  submitLabel = "Publish listing",
-  cancelHref
+  submitLabel = "Publish listing"
 }: ListingFormProps) {
+  const [category, setCategory] = useState(defaults?.category ?? "buy-sell");
+  const [subcategory, setSubcategory] = useState(defaults?.subcategory ?? "");
   const [imageUrl, setImageUrl] = useState(defaults?.imageUrl ?? "");
   const [uploadError, setUploadError] = useState("");
   const [isUploading, startUpload] = useTransition();
+
+  const subcategories = useMemo(() => getSubcategories(category), [category]);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -63,12 +67,38 @@ export function ListingForm({
     <form action={action} className="form-grid">
       <label className="field">
         <span className="field-label">Category</span>
-        <select className="input" name="category" defaultValue={defaults?.category ?? "buy-sell"} required>
+        <select
+          className="input"
+          name="category"
+          value={category}
+          onChange={(event) => {
+            setCategory(event.target.value);
+            setSubcategory("");
+          }}
+          required
+        >
           <option value="rentals">Rentals</option>
           <option value="ride-share">Ride Share</option>
           <option value="jobs">Jobs</option>
           <option value="services">Services</option>
           <option value="buy-sell">Buy &amp; Sell</option>
+        </select>
+      </label>
+
+      <label className="field">
+        <span className="field-label">Sub-category</span>
+        <select
+          className="input"
+          name="subcategory"
+          value={subcategory}
+          onChange={(event) => setSubcategory(event.target.value)}
+        >
+          <option value="">Select a sub-category</option>
+          {subcategories.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
         </select>
       </label>
 
@@ -119,7 +149,6 @@ export function ListingForm({
         <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
       </label>
 
-      {/* IMAGE UPLOAD */}
       <div className="field">
         <span className="field-label">Upload image</span>
         <input className="input" type="file" accept="image/*" onChange={handleFileChange} />
@@ -156,24 +185,10 @@ export function ListingForm({
         </div>
       ) : null}
 
-      {/* BUTTONS */}
-      <div
-        style={{
-          gridColumn: "1 / -1",
-          display: "flex",
-          gap: "0.75rem",
-          alignItems: "center"
-        }}
-      >
+      <div style={{ gridColumn: "1 / -1" }}>
         <button className="button" type="submit" disabled={isUploading}>
           {isUploading ? "Uploading..." : submitLabel}
         </button>
-
-        {cancelHref ? (
-          <Link href={cancelHref} className="button button-secondary">
-            Cancel
-          </Link>
-        ) : null}
       </div>
     </form>
   );
