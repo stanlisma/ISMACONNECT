@@ -805,21 +805,26 @@ code {
   }
 }
 
-/* MOBILE: only search bar sticks */
+/* MOBILE: keep only search bar floating */
 @media (max-width: 760px) {
-  .site-header-top {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
+  .site-header {
+    position: static;
   }
 
   .header-search {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
-    background: rgba(245, 250, 255, 0.96);
-    backdrop-filter: blur(10px);
-    padding: 0.5rem 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: rgba(245, 250, 255, 0.98);
+    backdrop-filter: blur(12px);
+    padding: 0.65rem 1rem;
     border-bottom: 1px solid var(--line);
+    box-shadow: 0 4px 14px rgba(15, 54, 91, 0.08);
+  }
+
+  main {
+    padding-top: 82px;
   }
 }
