@@ -775,23 +775,27 @@ code {
   border: 1px solid #c7d7fe;
   font-weight: 600;
 }
-/* MOBILE HEADER - Kijiji-style */
+/* MOBILE HEADER - Kijiji-style, only top section sticky */
 @media (max-width: 760px) {
   .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background: #ffffff;
-    border-bottom: 1px solid rgba(168, 200, 242, 0.55);
-    box-shadow: 0 4px 14px rgba(15, 54, 91, 0.08);
+    position: static;
+    background: transparent;
+    border-bottom: 0;
+    box-shadow: none;
   }
 
   .site-header-top {
+    position: sticky;
+    top: 0;
+    z-index: 999;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 0.75rem;
     align-items: center;
-    padding: 0.85rem 1rem 0.6rem;
+    padding: 0.85rem 1rem 0.75rem;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(168, 200, 242, 0.55);
+    box-shadow: 0 4px 14px rgba(15, 54, 91, 0.08);
   }
 
   .brand {
@@ -811,6 +815,32 @@ code {
 
   .brand-copy small {
     font-size: 0.72rem;
+  }
+
+  .header-search {
+    grid-column: 1 / -1;
+    display: block;
+    position: static;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .header-search-input {
+    width: 100%;
+    height: 48px;
+    border-radius: 999px;
+    border: 1px solid #d6d9e0;
+    background: #ffffff;
+    padding: 0 1.1rem;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .header-search-select,
+  .header-search-button {
+    display: none;
   }
 
   .header-actions {
@@ -835,34 +865,12 @@ code {
     font-size: 0.9rem;
   }
 
-  .header-search {
-    grid-column: 1 / -1;
-    position: sticky;
-    top: 64px; /* adjust if needed */
-    z-index: 998;
-    padding: 0.5rem 0;
-    background: #ffffff;
-  }
-
-  .header-search-input {
-    width: 100%;
-    height: 48px;
-    border-radius: 999px;
-    border: 1px solid #d6d9e0;
-    background: #ffffff;
-    padding: 0 1.1rem;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-
-  .header-search-select,
-  .header-search-button {
-    display: none;
-  }
-
   .site-header-bottom {
+    position: static;
     display: block;
-    padding: 0 1rem 0.85rem;
+    padding: 0.75rem 1rem 0.85rem;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(168, 200, 242, 0.55);
   }
 
   .nav-links {
@@ -887,10 +895,6 @@ code {
     font-size: 0.86rem;
     font-weight: 700;
     text-decoration: none;
-  }
-
-  .main-nav-link:hover {
-    background: #e6ecfb;
   }
 
   .account-nav {
