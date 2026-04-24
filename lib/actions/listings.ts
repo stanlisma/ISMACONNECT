@@ -12,6 +12,21 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
+function parseImageUrls(formData: FormData) {
+  const raw = formData.get("imageUrls");
+
+  if (!raw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(String(raw));
+    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 async function generateUniqueSlug(title: string) {
   const supabase = await createServerSupabaseClient();
   const baseSlug = slugify(title) || "listing";
@@ -19,7 +34,11 @@ async function generateUniqueSlug(title: string) {
   let suffix = 2;
 
   while (true) {
-    const { data } = await supabase.from("listings").select("id").eq("slug", candidate).maybeSingle();
+    const { data } = await supabase
+      .from("listings")
+      .select("id")
+      .eq("slug", candidate)
+      .maybeSingle();
 
     if (!data) {
       return candidate;
@@ -32,6 +51,7 @@ async function generateUniqueSlug(title: string) {
 
 async function loadListingForMutation(listingId: string) {
   const supabase = await createServerSupabaseClient();
+
   const { data } = await supabase
     .from("listings")
     .select("id, owner_id, slug, category, status")
@@ -54,8 +74,7 @@ export async function createListingAction(formData: FormData) {
     contactName: formData.get("contactName"),
     contactEmail: formData.get("contactEmail"),
     contactPhone: formData.get("contactPhone"),
-    image_url: imageUrls[0] || dataInput.imageUrl,
-    image_urls: imageUrls
+    imageUrl: formData.get("imageUrl")
   });
 
   if (!parsed.success) {
@@ -63,6 +82,8 @@ export async function createListingAction(formData: FormData) {
   }
 
   const dataInput = parsed.data;
+  const imageUrls = parseImageUrls(formData);
+
   const supabase = await createServerSupabaseClient();
   const slug = await generateUniqueSlug(dataInput.title);
 
@@ -80,7 +101,8 @@ export async function createListingAction(formData: FormData) {
       contact_name: dataInput.contactName,
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
-      image_url: dataInput.imageUrl
+      image_url: imageUrls[0] || dataInput.imageUrl,
+      image_urls: imageUrls
     })
     .select("slug, category")
     .single();
@@ -120,8 +142,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
     contactName: formData.get("contactName"),
     contactEmail: formData.get("contactEmail"),
     contactPhone: formData.get("contactPhone"),
-    image_url: imageUrls[0] || dataInput.imageUrl,
-    image_urls: imageUrls
+    imageUrl: formData.get("imageUrl")
   });
 
   if (!parsed.success) {
@@ -133,6 +154,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
   }
 
   const dataInput = parsed.data;
+  const imageUrls = parseImageUrls(formData);
+
   const supabase = await createServerSupabaseClient();
 
   const { error, data } = await supabase
@@ -147,7 +170,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
       contact_name: dataInput.contactName,
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
-      image_url: dataInput.imageUrl
+      image_url: imageUrls[0] || dataInput.imageUrl,
+      image_urls: imageUrls
     })
     .eq("id", listingId)
     .select("slug, category")
@@ -257,6 +281,7 @@ export async function reviewFlaggedListingAction(
 
   const supabase = await createServerSupabaseClient();
   const nextStatus = decision === "restore" ? "active" : "removed";
+
   const updates =
     decision === "restore"
       ? { status: nextStatus }
