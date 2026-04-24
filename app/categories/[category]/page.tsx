@@ -20,7 +20,7 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params
 }: {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const category = resolveCategory(params.category);
 
@@ -43,7 +43,8 @@ export default async function CategoryPage({
   params: { category: string };
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const category = resolveCategory(params.category);
+  const { category: categoryParam } = await params;
+  const category = resolveCategory(categoryParam);
 
   if (!category) {
     notFound();
