@@ -38,7 +38,6 @@ export async function sendThreadMessageAction(conversationId: string, formData: 
   if (!conversation) {
     redirectWithMessage("/messages", "error", "Conversation not found.");
   }
-  }
 
   if (conversation.buyer_id !== viewer.user.id && conversation.seller_id !== viewer.user.id) {
     redirectWithMessage("/messages", "error", "You do not have access to this conversation.");
