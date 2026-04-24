@@ -34,6 +34,7 @@ export interface Listing {
   flag_count: number;
   created_at: string;
   updated_at: string;
+  subcategory: string | null;
 }
 
 export interface ListingFlag {
