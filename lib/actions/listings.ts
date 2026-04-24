@@ -46,6 +46,7 @@ export async function createListingAction(formData: FormData) {
 
   const parsed = listingSchema.safeParse({
     category: formData.get("category"),
+    subcategory: formData.get("subcategory"),
     title: formData.get("title"),
     description: formData.get("description"),
     price: formData.get("price"),
