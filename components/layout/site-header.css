@@ -115,12 +115,21 @@
 
 .plain-link,
 .main-nav a,
-.account-nav a {
+.account-nav a,
+.account-nav button.plain-link {
   color: #0a2540;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.account-nav button.plain-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .header-bottom {
