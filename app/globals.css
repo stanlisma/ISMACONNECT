@@ -915,3 +915,41 @@ code {
     padding-top: 0;
   }
 }
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.image-modal-img {
+  max-width: 92%;
+  max-height: 84%;
+  border-radius: 14px;
+}
+
+.image-modal .nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  color: white;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 3rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.image-modal .prev {
+  left: 1rem;
+}
+
+.image-modal .next {
+  right: 1rem;
+}
