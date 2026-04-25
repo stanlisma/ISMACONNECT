@@ -107,15 +107,16 @@ export async function getPublicListingBySlug(slug: string) {
     .eq("status", "active")
     .single();
 
-  if (!data) return null;
+  if (!data) {
+    return null;
+  }
 
-  // ✅ ADD THIS BELOW (do NOT replace query)
   await supabase
     .from("listings")
-    .update({ views: (data.views || 0) + 1 })
+    .update({ views: ((data as any).views || 0) + 1 })
     .eq("id", data.id);
 
-  return data;
+  return (data as Listing | null) || null;
 }
 
 export async function getRelatedListings(listing: Listing) {
@@ -196,4 +197,17 @@ export async function getSavedListings(userId: string) {
   return (data || [])
     .map((row: any) => row.listing)
     .filter(Boolean) as Listing[];
+}
+
+export async function getConversationForListing(listingId: string, userId: string) {
+  const supabase = await createServerSupabaseClient();
+
+  const { data } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("listing_id", listingId)
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+    .maybeSingle();
+
+  return data as { id: string } | null;
 }
