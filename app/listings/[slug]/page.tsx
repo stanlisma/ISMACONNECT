@@ -11,7 +11,12 @@ import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP, SITE_NAME } from "@/lib/constants";
-import { getPublicListingBySlug, getRelatedListings, getSavedListingIds } from "@/lib/data";
+import {
+  getConversationForListing,
+  getPublicListingBySlug,
+  getRelatedListings,
+  getSavedListingIds
+} from "@/lib/data";
 import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -59,6 +64,11 @@ export default async function ListingPage({
   const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
   const category = CATEGORY_MAP[listing.category as keyof typeof CATEGORY_MAP];
+
+  const existingConversation =
+    viewer && viewer.user.id !== listing.owner_id
+      ? await getConversationForListing(listing.id, viewer.user.id)
+      : null;
 
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
@@ -162,14 +172,28 @@ export default async function ListingPage({
 
             {viewer ? (
               viewer.user.id !== listing.owner_id ? (
-                <div className="detail-card">
-                  <SectionHeading
-                    eyebrow="Contact Seller"
-                    title="Send a message"
-                    description="Ask if this listing is still available or request more details."
-                  />
-                  <ContactSellerForm listingId={listing.id} />
-                </div>
+                existingConversation ? (
+                  <div className="detail-card">
+                    <SectionHeading
+                      eyebrow="Conversation"
+                      title="Continue your chat"
+                      description="You already contacted this seller about this listing."
+                    />
+
+                    <Link href={`/messages/${existingConversation.id}`} className="button">
+                      💬 Open Conversation
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="detail-card">
+                    <SectionHeading
+                      eyebrow="Contact Seller"
+                      title="Send a message"
+                      description="Ask if this listing is still available or request more details."
+                    />
+                    <ContactSellerForm listingId={listing.id} />
+                  </div>
+                )
               ) : (
                 <div className="detail-card">
                   <SectionHeading
@@ -207,7 +231,7 @@ export default async function ListingPage({
                   <p className="unlock-text">🔥 This listing is getting attention</p>
 
                   <p style={{ fontSize: "0.85rem", color: "#667085" }}>
-                    👀 {listing.views ?? 0} people viewed this listing
+                    👀 {(listing as any).views ?? 0} people viewed this listing
                   </p>
 
                   <Link href="/auth/sign-in" className="button unlock-button">
