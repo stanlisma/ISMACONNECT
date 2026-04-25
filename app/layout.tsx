@@ -10,22 +10,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 import "./globals.css";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()),
-  title: {
-    default: `${SITE_NAME} | Fort McMurray Marketplace`,
-    template: `%s | ${SITE_NAME}`
-  },
-  description: SITE_DESCRIPTION,
-  openGraph: {
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
-    siteName: SITE_NAME,
-    locale: "en_CA",
-    type: "website"
-  }
-};
-
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const viewer = await getViewer();
 
@@ -78,3 +62,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     </html>
   );
 }
+
+export const metadata = {
+  title: "ISMACONNECT",
+  description: "Connecting People. Opportunities. Community.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/favicon.ico",
+    shortcut: "/icons/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  themeColor: "#1E6BFF",
+};
