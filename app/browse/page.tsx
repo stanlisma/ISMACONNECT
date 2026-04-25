@@ -13,11 +13,12 @@ import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Browse Listings",
-  description: "Browse jobs, rentals, services, ride shares, and buy & sell listings in Fort McMurray."
+  description:
+    "Browse jobs, rentals, services, ride shares, and buy & sell listings in Fort McMurray.",
 };
 
 export default async function BrowsePage({
-  searchParams
+  searchParams,
 }: {
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
@@ -29,21 +30,23 @@ export default async function BrowsePage({
     search,
     category,
     subcategory,
-    limit: 24
+    limit: 24,
   });
 
   const viewer = await getViewer();
 
-  const savedIds = viewer
-    ? await getSavedListingIds(viewer.user.id)
-    : new Set();
+  const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
 
   return (
     <section className="section">
       <div className="container">
         <SectionHeading
-          eyebrow="Browse"
-          title="Search every local listing"
+          eyebrow={category ? "Category" : "Browse"}
+          title={
+            category
+              ? `${CATEGORIES.find((item) => item.value === category)?.label} Listings`
+              : "Search every local listing"
+          }
           description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
         />
 
@@ -55,8 +58,16 @@ export default async function BrowsePage({
         />
 
         <div className="pill-links">
+          <Link className="pill-link" href="/browse">
+            All listings
+          </Link>
+
           {CATEGORIES.map((item) => (
-            <Link className="pill-link" href={item.href} key={item.value}>
+            <Link
+              className="pill-link"
+              href={`/browse?category=${item.value}`}
+              key={item.value}
+            >
               {item.label}
             </Link>
           ))}
