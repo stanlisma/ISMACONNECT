@@ -69,17 +69,17 @@ export function SiteHeader({
                   )}
                 </Link>
 
-                <Link href="/listings/new" className="post-btn">
+                <Link href="/dashboard/listings/new" className="post-">
                   Post
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" className="plain-link">
+                <Link href="/auth/sign-in" className="plain-link">
                   Login
                 </Link>
 
-                <Link href="/register" className="post-btn">
+                <Link href="//auth/sign-up" className="post-btn">
                   Sign Up
                 </Link>
               </>
@@ -90,20 +90,20 @@ export function SiteHeader({
         <div className="header-bottom">
           <nav className="main-nav" aria-label="Marketplace navigation">
             <Link href="/browse">Browse</Link>
-            <Link href="/rentals">Rentals</Link>
-            <Link href="/ride-share">Ride Share</Link>
-            <Link href="/jobs">Jobs</Link>
-            <Link href="/services">Services</Link>
-            <Link href="/buy-sell">Buy & Sell</Link>
+            <Link href="/browse?category=rentals">Rentals</Link>
+            <Link href="/browse?category=ride-share">Ride Share</Link>
+            <Link href="/browse?category=jobs">Jobs</Link>
+            <Link href="/browse?category=services">Services</Link>
+            <Link href="/browse?category=buy-sell">Buy & Sell</Link>
             <Link href="/categories">Categories</Link>
           </nav>
 
           {viewer && (
             <nav className="account-nav" aria-label="Account navigation">
               <Link href="/dashboard">Dashboard</Link>
-              <Link href="/saved">Saved</Link>
+              <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
-              <Link href="/logout">Sign Out</Link>
+              <Link href="/auth/sign-in">Sign Out</Link>
             </nav>
           )}
         </div>
