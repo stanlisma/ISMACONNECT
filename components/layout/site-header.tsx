@@ -103,7 +103,7 @@ export function SiteHeader({
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
-              <Link href="/auth/sign-in">Sign Out</Link>
+              <Link href="/auth/sign-out">Sign Out</Link>
             </nav>
           )}
         </div>
