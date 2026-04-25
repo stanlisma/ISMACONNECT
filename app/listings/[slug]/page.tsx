@@ -59,6 +59,7 @@ export default async function ListingPage({
   const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
   const category = CATEGORY_MAP[listing.category];
+
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
 
@@ -184,55 +185,59 @@ export default async function ListingPage({
             ) : (
               <div className="detail-card">
                 <SectionHeading
-                  eyebrow="Contact Seller"
-                  title="Sign in to message"
-                  description="Create an account or sign in to contact the seller directly."
+                  eyebrow="Contact"
+                  title="Unlock seller details 🔓"
+                  description="Join ISMACONNECT to instantly message sellers and get faster responses."
                 />
-                <Link href="/auth/sign-in" className="button">
-                  Sign in to message
-                </Link>
+
+                <div className="meta-list blurred-contact-preview">
+                  <span>
+                    👤{" "}
+                    {listing.contact_name
+                      ? `${listing.contact_name.split(" ")[0]} ******`
+                      : "Seller ******"}
+                  </span>
+                  {listing.contact_email ? <span>📧 ********@*****.com</span> : null}
+                  {listing.contact_phone ? (
+                    <span>📞 ***-***-{listing.contact_phone.slice(-4)}</span>
+                  ) : null}
+                </div>
+
+                <div className="unlock-box">
+                  <p className="unlock-text">🔥 This listing is getting attention</p>
+
+                  <p style={{ fontSize: "0.85rem", color: "#667085" }}>
+                    👀 18 people viewed this listing today
+                  </p>
+
+                  <Link href="/auth/sign-in" className="button unlock-button">
+                    Unlock Contact Info
+                  </Link>
+
+                  <p className="unlock-sub">Takes less than 10 seconds • No spam</p>
+                </div>
               </div>
             )}
           </div>
 
           <aside className="detail-side">
-            <div className="detail-card">
-              {viewer ? (
-                <>
-                  <SectionHeading
-                    eyebrow="Contact"
-                    title={listing.contact_name}
-                    description="Reach out directly using the seller's preferred contact details."
-                  />
+            {viewer ? (
+              <div className="detail-card">
+                <SectionHeading
+                  eyebrow="Contact"
+                  title={listing.contact_name}
+                  description="Reach out directly using the seller's preferred contact details."
+                />
 
-                  <div className="meta-list">
-                    {listing.contact_email ? <span>Email: {listing.contact_email}</span> : null}
-                    {listing.contact_phone ? <span>Phone: {listing.contact_phone}</span> : null}
-                    {!listing.contact_email && !listing.contact_phone ? (
-                      <span>Contact details available after seller update.</span>
-                    ) : null}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <SectionHeading
-                    eyebrow="Contact"
-                    title="Sign in to view contact details"
-                    description="Seller contact details are protected until you sign in."
-                  />
-
-                  <div className="meta-list blurred-contact-preview">
-                    <span>Name: {listing.contact_name ? `${listing.contact_name.split(" ")[0]} ******` : "Seller ******"}</span>
-                    {listing.contact_email ? <span>Email: ********@*****.com</span> : null}
-                    {listing.contact_phone ? <span>Phone: ***-***-{listing.contact_phone.slice(-4)}</span> : null}
-                  </div>
-
-                  <Link href="/auth/sign-in" className="button" style={{ marginTop: "1rem" }}>
-                    Sign in to view contact
-                  </Link>
-                </>
-              )}
-            </div>
+                <div className="meta-list">
+                  {listing.contact_email ? <span>Email: {listing.contact_email}</span> : null}
+                  {listing.contact_phone ? <span>Phone: {listing.contact_phone}</span> : null}
+                  {!listing.contact_email && !listing.contact_phone ? (
+                    <span>Contact details available after seller update.</span>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
 
             {viewer && viewer.user.id !== listing.owner_id ? (
               <div className="detail-card">
@@ -260,6 +265,14 @@ export default async function ListingPage({
                 <ListingCard key={relatedListing.id} listing={relatedListing} />
               ))}
             </div>
+          </div>
+        ) : null}
+
+        {!viewer ? (
+          <div className="mobile-unlock-bar">
+            <Link href="/auth/sign-in" className="button">
+              🔓 Unlock Contact
+            </Link>
           </div>
         ) : null}
 
