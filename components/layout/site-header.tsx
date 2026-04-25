@@ -1,130 +1,102 @@
-import Link from "next/link";
-import { Bell, MessageCircle } from "lucide-react";
+"use client";
 
-import { signOutAction } from "@/lib/actions/auth";
-import type { Viewer } from "@/types/database";
+import Link from "next/link";
+import Image from "next/image";
+import InstallButton from "@/components/install-button";
+
+type Viewer = {
+  user: {
+    id: string;
+    email?: string;
+  };
+} | null;
 
 interface SiteHeaderProps {
-  viewer: Viewer | null;
-  unreadMessagesCount?: number;
-  unreadNotificationsCount?: number;
-}
-
-function CountBadge({ count }: { count: number }) {
-  if (count <= 0) return null;
-
-  return <span className="header-count-badge">{count > 99 ? "99+" : count}</span>;
+  viewer: Viewer;
+  unreadMessagesCount: number;
+  unreadNotificationsCount: number;
 }
 
 export function SiteHeader({
   viewer,
-  unreadMessagesCount = 0,
-  unreadNotificationsCount = 0
+  unreadMessagesCount,
+  unreadNotificationsCount,
 }: SiteHeaderProps) {
   return (
-    <header className="site-header">
-      <div className="container site-header-top">
-        <Link className="brand" href="/">
-          <span className="brand-mark">I</span>
-          <span className="brand-copy">
-            <strong>ISMACONNECT</strong>
-            <small>Fort McMurray Marketplace</small>
-          </span>
+    <header className="w-full border-b border-gray-200 bg-white">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        
+        {/* LEFT — LOGO */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo/logo-light.svg"
+            alt="ISMACONNECT"
+            width={160}
+            height={40}
+            priority
+          />
         </Link>
 
-        <form action="/browse" method="get" className="header-search" role="search">
-          <input
-            className="header-search-input"
-            type="text"
-            name="q"
-            placeholder="What are you looking for?"
-          />
+        {/* RIGHT — NAV */}
+        <div className="flex items-center gap-4">
 
-          <select className="header-search-select" name="category" defaultValue="">
-            <option value="">All categories</option>
-            <option value="rentals">Rentals</option>
-            <option value="ride-share">Ride Share</option>
-            <option value="jobs">Jobs</option>
-            <option value="services">Services</option>
-            <option value="buy-sell">Buy &amp; Sell</option>
-          </select>
+          {/* INSTALL BUTTON */}
+          <InstallButton />
 
-          <button className="button header-search-button" type="submit">
-            Search
-          </button>
-        </form>
-
-        <div className="header-actions">
           {viewer ? (
             <>
+              {/* MESSAGES */}
               <Link
-                className="header-icon-link"
                 href="/messages"
-                aria-label="Messages"
-                title="Messages"
+                className="relative text-sm font-medium text-gray-700 hover:text-blue-600"
               >
-                <MessageCircle size={22} strokeWidth={2.1} />
-                <CountBadge count={unreadMessagesCount} />
+                Messages
+                {unreadMessagesCount > 0 && (
+                  <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                    {unreadMessagesCount}
+                  </span>
+                )}
               </Link>
 
+              {/* NOTIFICATIONS */}
               <Link
-                className="header-icon-link"
                 href="/notifications"
-                aria-label="Notifications"
-                title="Notifications"
+                className="relative text-sm font-medium text-gray-700 hover:text-blue-600"
               >
-                <Bell size={22} strokeWidth={2.1} />
-                <CountBadge count={unreadNotificationsCount} />
+                Notifications
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                    {unreadNotificationsCount}
+                  </span>
+                )}
               </Link>
 
-              <Link className="button header-compact-button" href="/dashboard/listings/new">
-                Post
+              {/* PROFILE */}
+              <Link
+                href="/profile"
+                className="text-sm font-medium text-gray-700 hover:text-blue-600"
+              >
+                Profile
               </Link>
             </>
           ) : (
             <>
-              <Link className="button button-secondary header-compact-button" href="/auth/sign-in">
-                Sign In
+              <Link
+                href="/login"
+                className="text-sm font-medium text-gray-700 hover:text-blue-600"
+              >
+                Login
               </Link>
 
-              <Link className="button header-compact-button" href="/auth/sign-up">
-                Post
+              <Link
+                href="/register"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+              >
+                Sign Up
               </Link>
             </>
           )}
         </div>
-      </div>
-
-      <div className="container site-header-bottom">
-        <nav className="nav-links" aria-label="Primary">
-          <Link className="main-nav-link" href="/browse">
-            Browse
-          </Link>
-          <Link className="main-nav-link" href="/categories/rentals">
-            Rentals
-          </Link>
-          <Link className="main-nav-link" href="/categories/jobs">
-            Jobs
-          </Link>
-          <Link className="main-nav-link" href="/categories/services">
-            Services
-          </Link>
-          <Link className="main-nav-link" href="/categories/buy-sell">
-            Buy &amp; Sell
-          </Link>
-        </nav>
-
-        {viewer ? (
-          <div className="account-nav">
-            <Link href="/dashboard">Dashboard</Link>
-            <Link href="/dashboard/saved">Saved</Link>
-            <Link href="/settings">Settings</Link>
-
-            <form action={signOutAction}>
-              <button type="submit">Sign Out</button>
-            </form>
-          </div>
-        ) : null}
       </div>
     </header>
   );
