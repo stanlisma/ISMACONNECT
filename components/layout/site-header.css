@@ -152,18 +152,32 @@
   overflow-x: auto;
 }
 
-/* Category dropdowns */
+/* ========================= */
+/* ✅ DROPDOWN FIX (NO GAP) */
+/* ========================= */
+
 .nav-dropdown {
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding-bottom: 12px;
 }
 
+/* invisible hover bridge */
+.nav-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 12px;
+}
+
+/* dropdown */
 .nav-dropdown-menu {
   position: absolute;
-  top: 24px;
+  top: 100%;
   left: 0;
+  margin-top: 8px;
   display: none;
   min-width: 210px;
   padding: 10px;
@@ -174,12 +188,15 @@
   z-index: 9999;
 }
 
-.nav-dropdown:hover .nav-dropdown-menu {
+/* show dropdown */
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:has(.nav-dropdown-menu:hover) .nav-dropdown-menu {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+/* links */
 .nav-dropdown-menu a {
   display: block;
   width: 100%;
@@ -196,6 +213,10 @@
   background: #eff6ff;
   color: #1e6bff;
 }
+
+/* ========================= */
+/* RESPONSIVE */
+/* ========================= */
 
 @media (max-width: 900px) {
   .header-top {
@@ -244,9 +265,5 @@
   .main-nav {
     gap: 14px;
     overflow-x: auto;
-  }
-
-  .nav-dropdown-menu {
-    top: 24px;
   }
 }
