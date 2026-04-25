@@ -157,11 +157,12 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  padding-bottom: 12px;
 }
 
 .nav-dropdown-menu {
   position: absolute;
-  top: 28px;
+  top: 24px;
   left: 0;
   display: none;
   min-width: 190px;
