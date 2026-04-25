@@ -103,7 +103,19 @@ export function SiteHeader({
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
-              <Link href="/auth/sign-out">Sign Out</Link>
+              <button
+                className="plain-link"
+                onClick={async () => {
+                  const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
+                  const supabase = createBrowserSupabaseClient();
+
+                  await supabase.auth.signOut();
+
+                  window.location.href = "/";
+                }}
+              >
+                Sign Out
+              </button>
             </nav>
           )}
         </div>
