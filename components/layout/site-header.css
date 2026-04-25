@@ -152,7 +152,7 @@
   overflow-x: auto;
 }
 
-/* Individual category hover dropdowns */
+/* Category dropdowns */
 .nav-dropdown {
   position: relative;
   display: inline-flex;
@@ -165,7 +165,7 @@
   top: 24px;
   left: 0;
   display: none;
-  min-width: 190px;
+  min-width: 210px;
   padding: 10px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -181,7 +181,7 @@
 }
 
 .nav-dropdown-menu a {
-  padding: 7px 9px;
+  padding: 8px 10px;
   border-radius: 8px;
   color: #334155;
   font-size: 13px;
@@ -244,6 +244,6 @@
   }
 
   .nav-dropdown-menu {
-    top: 26px;
+    top: 24px;
   }
 }

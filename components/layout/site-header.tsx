@@ -15,20 +15,12 @@ interface SiteHeaderProps {
   viewer: Viewer;
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
-  categories: Record<string, string[]>;
-}
-
-function formatLabel(value: string) {
-  return value
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function SiteHeader({
   viewer,
   unreadMessagesCount,
   unreadNotificationsCount,
-  categories,
 }: SiteHeaderProps) {
   return (
     <header className="site-header">
@@ -43,12 +35,11 @@ export function SiteHeader({
 
             <select name="category" defaultValue="">
               <option value="">All categories</option>
-
-              {Object.keys(categories).map((category) => (
-                <option key={category} value={category}>
-                  {formatLabel(category)}
-                </option>
-              ))}
+              <option value="rentals">Rentals</option>
+              <option value="ride-share">Ride Share</option>
+              <option value="jobs">Jobs</option>
+              <option value="services">Services</option>
+              <option value="buy-sell">Buy & Sell</option>
             </select>
 
             <button type="submit">Search</button>
@@ -99,26 +90,83 @@ export function SiteHeader({
           <nav className="main-nav" aria-label="Marketplace navigation">
             <Link href="/browse">Browse</Link>
 
-            {Object.entries(categories).map(([category, subcategories]) => (
-              <div className="nav-dropdown" key={category}>
-                <Link href={`/browse?category=${category}`}>
-                  {formatLabel(category)}
+            <div className="nav-dropdown">
+              <Link href="/browse?category=rentals">Rentals</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=rentals&subcategory=apartments">
+                  Apartments
                 </Link>
-
-                {subcategories.length > 0 && (
-                  <div className="nav-dropdown-menu">
-                    {subcategories.map((subcategory) => (
-                      <Link
-                        key={subcategory}
-                        href={`/browse?category=${category}&subcategory=${subcategory}`}
-                      >
-                        {formatLabel(subcategory)}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <Link href="/browse?category=rentals&subcategory=rooms">
+                  Rooms
+                </Link>
+                <Link href="/browse?category=rentals&subcategory=storage">
+                  Storage
+                </Link>
               </div>
-            ))}
+            </div>
+
+            <div className="nav-dropdown">
+              <Link href="/browse?category=ride-share">Ride Share</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=ride-share&subcategory=camp-rides">
+                  Camp Rides
+                </Link>
+                <Link href="/browse?category=ride-share&subcategory=airport">
+                  Airport
+                </Link>
+                <Link href="/browse?category=ride-share&subcategory=daily-commute">
+                  Daily Commute
+                </Link>
+              </div>
+            </div>
+
+            <div className="nav-dropdown">
+              <Link href="/browse?category=jobs">Jobs</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=jobs&subcategory=full-time">
+                  Full Time
+                </Link>
+                <Link href="/browse?category=jobs&subcategory=part-time">
+                  Part Time
+                </Link>
+                <Link href="/browse?category=jobs&subcategory=contract">
+                  Contract
+                </Link>
+              </div>
+            </div>
+
+            <div className="nav-dropdown">
+              <Link href="/browse?category=services">Services</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=services&subcategory=cleaning">
+                  Cleaning
+                </Link>
+                <Link href="/browse?category=services&subcategory=moving">
+                  Moving
+                </Link>
+                <Link href="/browse?category=services&subcategory=repairs">
+                  Repairs
+                </Link>
+              </div>
+            </div>
+
+            <div className="nav-dropdown">
+              <Link href="/browse?category=buy-sell">Buy & Sell</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=buy-sell&subcategory=furniture">
+                  Furniture
+                </Link>
+                <Link href="/browse?category=buy-sell&subcategory=electronics">
+                  Electronics
+                </Link>
+                <Link href="/browse?category=buy-sell&subcategory=tools-equipment">
+                  Tools & Equipment
+                </Link>
+                <Link href="/browse?category=buy-sell&subcategory=clothing">
+                  Clothing
+                </Link>
+              </div>
+            </div>
           </nav>
 
           {viewer && (
