@@ -1081,3 +1081,24 @@ code {
   pointer-events: none;
   opacity: 0.75;
 }
+
+@media (max-width: 760px) {
+  .mobile-unlock-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    z-index: 999;
+  }
+
+  .mobile-unlock-bar .button {
+    width: 100%;
+  }
+
+  .detail-main {
+    padding-bottom: 80px;
+  }
+}
