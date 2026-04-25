@@ -58,7 +58,7 @@ export default async function ListingPage({
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
-  const category = CATEGORY_MAP[listing.category];
+  const category = CATEGORY_MAP[listing.category as keyof typeof CATEGORY_MAP];
 
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
