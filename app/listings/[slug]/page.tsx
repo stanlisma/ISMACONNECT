@@ -5,13 +5,14 @@ import { notFound } from "next/navigation";
 import { ContactSellerForm } from "@/components/messages/contact-seller-form";
 import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
+import { ListingImageGallery } from "@/components/listings/listing-image-gallery";
+import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP, SITE_NAME } from "@/lib/constants";
-import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
-import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getPublicListingBySlug, getRelatedListings, getSavedListingIds } from "@/lib/data";
+import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
 export async function generateMetadata({
   params
@@ -61,6 +62,13 @@ export default async function ListingPage({
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
 
+  const images =
+    listing.image_urls && listing.image_urls.length > 0
+      ? listing.image_urls
+      : listing.image_url
+        ? [listing.image_url]
+        : [];
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ClassifiedAd",
@@ -97,10 +105,20 @@ export default async function ListingPage({
                   <Link className="badge badge-soft" href={category.href}>
                     {category.label}
                   </Link>
-                  {listing.is_featured ? <span className="badge badge-featured">Featured</span> : null}
+
+                  {listing.is_featured ? (
+                    <span className="badge badge-featured">Featured</span>
+                  ) : null}
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "1rem"
+                  }}
+                >
                   <h1 className="detail-title" style={{ marginBottom: 0 }}>
                     {listing.title}
                   </h1>
@@ -113,58 +131,17 @@ export default async function ListingPage({
                     />
                   ) : null}
                 </div>
+
                 <p className="detail-copy">{listing.description}</p>
               </div>
 
               <div className="listing-media" style={{ marginTop: "1.25rem" }}>
-              {listing.image_urls && listing.image_urls.length > 0 ? (
-                <div>
-                  {/* MAIN IMAGE */}
-                  <img
-                    src={listing.image_urls[0]}
-                    alt={listing.title}
-                    style={{
-                      width: "100%",
-                      borderRadius: "16px",
-                      objectFit: "cover"
-                    }}
-                  />
-
-                  {/* THUMBNAILS */}
-                  {listing.image_urls.length > 1 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        marginTop: "0.5rem",
-                        overflowX: "auto"
-                      }}
-                    >
-                      {listing.image_urls.map((url, index) => (
-                        <img
-                          key={index}
-                          src={url}
-                          alt="Thumbnail"
-                          style={{
-                            width: "80px",
-                            height: "80px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                            border: "1px solid #d0d5dd"
-                          }}
-                        />
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ) : listing.image_url ? (
-                <img src={listing.image_url} alt={listing.title} />
-              ) : (
-                <div className="listing-placeholder">
-                  <span>{category.label}</span>
-                </div>
-              )}
-            </div>
+                <ListingImageGallery
+                  title={listing.title}
+                  categoryLabel={category.label}
+                  images={images}
+                />
+              </div>
             </div>
 
             <div className="detail-card">
@@ -255,6 +232,7 @@ export default async function ListingPage({
               title={`Other ${category.label.toLowerCase()} listings`}
               description="Keep browsing similar opportunities in the marketplace."
             />
+
             <div className="listing-grid">
               {relatedListings.map((relatedListing) => (
                 <ListingCard key={relatedListing.id} listing={relatedListing} />
