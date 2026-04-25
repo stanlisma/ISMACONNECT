@@ -20,11 +20,13 @@ export const metadata: Metadata = {
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const search = getSingleParam(searchParams?.q);
-  const category = resolveCategory(getSingleParam(searchParams?.category));
-  const subcategory = getSingleParam(searchParams?.subcategory);
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
+  const search = getSingleParam(resolvedSearchParams?.q);
+  const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
+  const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
 
   const { listings, isConfigured } = await getPublicListings({
     search,
@@ -37,16 +39,16 @@ export default async function BrowsePage({
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
 
+  const categoryLabel = category
+    ? CATEGORIES.find((item) => item.value === category)?.label
+    : null;
+
   return (
     <section className="section">
       <div className="container">
         <SectionHeading
           eyebrow={category ? "Category" : "Browse"}
-          title={
-            category
-              ? `${CATEGORIES.find((item) => item.value === category)?.label} Listings`
-              : "Search every local listing"
-          }
+          title={categoryLabel ? `${categoryLabel} Listings` : "Search every local listing"}
           description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
         />
 
