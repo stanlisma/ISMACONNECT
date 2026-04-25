@@ -197,19 +197,35 @@ export default async function ListingPage({
 
           <aside className="detail-side">
             <div className="detail-card">
-              <SectionHeading
-                eyebrow="Contact"
-                title={listing.contact_name}
-                description="Reach out directly using the seller's preferred contact details."
-              />
+              {viewer ? (
+                <>
+                  <SectionHeading
+                    eyebrow="Contact"
+                    title={listing.contact_name}
+                    description="Reach out directly using the seller's preferred contact details."
+                  />
 
-              <div className="meta-list">
-                {listing.contact_email ? <span>Email: {listing.contact_email}</span> : null}
-                {listing.contact_phone ? <span>Phone: {listing.contact_phone}</span> : null}
-                {!listing.contact_email && !listing.contact_phone ? (
-                  <span>Contact details available after seller update.</span>
-                ) : null}
-              </div>
+                  <div className="meta-list">
+                    {listing.contact_email ? <span>Email: {listing.contact_email}</span> : null}
+                    {listing.contact_phone ? <span>Phone: {listing.contact_phone}</span> : null}
+                    {!listing.contact_email && !listing.contact_phone ? (
+                      <span>Contact details available after seller update.</span>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <SectionHeading
+                    eyebrow="Contact"
+                    title="Sign in to view contact details"
+                    description="Create an account or sign in to contact the seller directly."
+                  />
+
+                  <Link href="/auth/sign-in" className="button">
+                    Sign in to view contact
+                  </Link>
+                </>
+              )}
             </div>
 
             {viewer && viewer.user.id !== listing.owner_id ? (
