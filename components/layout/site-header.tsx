@@ -69,7 +69,7 @@ export function SiteHeader({
                   )}
                 </Link>
 
-                <Link href="/dashboard/listings/new" className="post-">
+                <Link href="/dashboard/listings/new" className="post-btn">
                   Post
                 </Link>
               </>
@@ -79,7 +79,7 @@ export function SiteHeader({
                   Login
                 </Link>
 
-                <Link href="//auth/sign-up" className="post-btn">
+                <Link href="/auth/sign-up" className="post-btn">
                   Sign Up
                 </Link>
               </>
