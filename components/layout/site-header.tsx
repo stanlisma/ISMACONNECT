@@ -25,8 +25,10 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <div className="header-inner">
+
+        {/* TOP */}
         <div className="header-top">
-          <Link href="/" className="brand" aria-label="ISMACONNECT home">
+          <Link href="/" className="brand">
             <img src="/logo/logo-light.svg" alt="ISMACONNECT" />
           </Link>
 
@@ -50,127 +52,99 @@ export function SiteHeader({
 
             {viewer ? (
               <>
-                <Link href="/messages" className="icon-link" aria-label="Messages">
-                  💬
-                  {unreadMessagesCount > 0 && (
-                    <span className="badge">{unreadMessagesCount}</span>
-                  )}
-                </Link>
-
-                <Link
-                  href="/notifications"
-                  className="icon-link"
-                  aria-label="Notifications"
-                >
-                  🔔
-                  {unreadNotificationsCount > 0 && (
-                    <span className="badge">{unreadNotificationsCount}</span>
-                  )}
-                </Link>
-
+                <Link href="/messages" className="icon-link">💬</Link>
+                <Link href="/notifications" className="icon-link">🔔</Link>
                 <Link href="/dashboard/listings/new" className="post-btn">
                   Post
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/auth/sign-in" className="plain-link">
-                  Login
-                </Link>
-
-                <Link href="/auth/sign-up" className="post-btn">
-                  Sign Up
-                </Link>
+                <Link href="/auth/sign-in" className="plain-link">Login</Link>
+                <Link href="/auth/sign-up" className="post-btn">Sign Up</Link>
               </>
             )}
           </div>
         </div>
 
+        {/* BOTTOM */}
         <div className="header-bottom">
-          <nav className="main-nav" aria-label="Marketplace navigation">
+
+          <nav className="main-nav">
+
             <Link href="/browse">Browse</Link>
 
+            {/* RENTALS */}
             <div className="nav-dropdown">
               <Link href="/browse?category=rentals">Rentals</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/browse?category=rentals&subcategory=apartments">
-                  Apartments
-                </Link>
-                <Link href="/browse?category=rentals&subcategory=rooms">
-                  Rooms
-                </Link>
-                <Link href="/browse?category=rentals&subcategory=storage">
-                  Storage
-                </Link>
+                <Link href="/browse?category=rentals&subcategory=apartments">Apartments</Link>
+                <Link href="/browse?category=rentals&subcategory=rooms-for-rent">Rooms for Rent</Link>
+                <Link href="/browse?category=rentals&subcategory=short-term-rentals">Short-Term Rentals</Link>
+                <Link href="/browse?category=rentals&subcategory=basement-suites">Basement Suites</Link>
+                <Link href="/browse?category=rentals&subcategory=furnished-rentals">Furnished Rentals</Link>
+                <Link href="/browse?category=rentals&subcategory=storage-parking">Storage / Parking</Link>
               </div>
             </div>
 
+            {/* RIDE SHARE */}
             <div className="nav-dropdown">
               <Link href="/browse?category=ride-share">Ride Share</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/browse?category=ride-share&subcategory=camp-rides">
-                  Camp Rides
-                </Link>
-                <Link href="/browse?category=ride-share&subcategory=airport">
-                  Airport
-                </Link>
-                <Link href="/browse?category=ride-share&subcategory=daily-commute">
-                  Daily Commute
-                </Link>
+                <Link href="/browse?category=ride-share&subcategory=daily-commute">Daily Commute</Link>
+                <Link href="/browse?category=ride-share&subcategory=camp-rides">Camp Rides</Link>
+                <Link href="/browse?category=ride-share&subcategory=airport-rides">Airport Rides</Link>
+                <Link href="/browse?category=ride-share&subcategory=edmonton-calgary-trips">Edmonton / Calgary Trips</Link>
+                <Link href="/browse?category=ride-share&subcategory=one-time-rides">One-Time Rides</Link>
+                <Link href="/browse?category=ride-share&subcategory=drivers-available">Drivers Available</Link>
               </div>
             </div>
 
+            {/* JOBS */}
             <div className="nav-dropdown">
               <Link href="/browse?category=jobs">Jobs</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/browse?category=jobs&subcategory=full-time">
-                  Full Time
-                </Link>
-                <Link href="/browse?category=jobs&subcategory=part-time">
-                  Part Time
-                </Link>
-                <Link href="/browse?category=jobs&subcategory=contract">
-                  Contract
-                </Link>
+                <Link href="/browse?category=jobs&subcategory=full-time">Full-Time</Link>
+                <Link href="/browse?category=jobs&subcategory=part-time">Part-Time</Link>
+                <Link href="/browse?category=jobs&subcategory=contract">Contract</Link>
+                <Link href="/browse?category=jobs&subcategory=camp-jobs">Camp Jobs</Link>
+                <Link href="/browse?category=jobs&subcategory=skilled-trades">Skilled Trades</Link>
+                <Link href="/browse?category=jobs&subcategory=general-labour">General Labour</Link>
               </div>
             </div>
 
+            {/* SERVICES */}
             <div className="nav-dropdown">
               <Link href="/browse?category=services">Services</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/browse?category=services&subcategory=cleaning">
-                  Cleaning
-                </Link>
-                <Link href="/browse?category=services&subcategory=moving">
-                  Moving
-                </Link>
-                <Link href="/browse?category=services&subcategory=repairs">
-                  Repairs
-                </Link>
+                <Link href="/browse?category=services&subcategory=cleaning">Cleaning</Link>
+                <Link href="/browse?category=services&subcategory=moving">Moving</Link>
+                <Link href="/browse?category=services&subcategory=repairs-handyman">Repairs / Handyman</Link>
+                <Link href="/browse?category=services&subcategory=tutoring">Tutoring</Link>
+                <Link href="/browse?category=services&subcategory=beauty-personal-care">Beauty / Personal Care</Link>
+                <Link href="/browse?category=services&subcategory=senior-care">Senior Care</Link>
+                <Link href="/browse?category=services&subcategory=automotive-services">Automotive Services</Link>
               </div>
             </div>
 
+            {/* BUY & SELL */}
             <div className="nav-dropdown">
               <Link href="/browse?category=buy-sell">Buy & Sell</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/browse?category=buy-sell&subcategory=furniture">
-                  Furniture
-                </Link>
-                <Link href="/browse?category=buy-sell&subcategory=electronics">
-                  Electronics
-                </Link>
-                <Link href="/browse?category=buy-sell&subcategory=tools-equipment">
-                  Tools & Equipment
-                </Link>
-                <Link href="/browse?category=buy-sell&subcategory=clothing">
-                  Clothing
-                </Link>
+                <Link href="/browse?category=buy-sell&subcategory=furniture">Furniture</Link>
+                <Link href="/browse?category=buy-sell&subcategory=electronics">Electronics</Link>
+                <Link href="/browse?category=buy-sell&subcategory=tools-equipment">Tools & Equipment</Link>
+                <Link href="/browse?category=buy-sell&subcategory=appliances">Appliances</Link>
+                <Link href="/browse?category=buy-sell&subcategory=clothing">Clothing</Link>
+                <Link href="/browse?category=buy-sell&subcategory=baby-kids-items">Baby / Kids Items</Link>
+                <Link href="/browse?category=buy-sell&subcategory=vehicles-parts">Vehicles / Parts</Link>
               </div>
             </div>
+
           </nav>
 
           {viewer && (
-            <nav className="account-nav" aria-label="Account navigation">
+            <nav className="account-nav">
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
@@ -178,9 +152,7 @@ export function SiteHeader({
               <button
                 className="plain-link"
                 onClick={async () => {
-                  const { createBrowserSupabaseClient } = await import(
-                    "@/lib/supabase/client"
-                  );
+                  const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
                   const supabase = createBrowserSupabaseClient();
 
                   await supabase.auth.signOut();
@@ -191,6 +163,7 @@ export function SiteHeader({
               </button>
             </nav>
           )}
+
         </div>
       </div>
     </header>
