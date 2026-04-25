@@ -38,15 +38,8 @@ export default async function HomePage() {
             </button>
           </form>
 
-          {/* ✅ FIX HERE */}
-          {viewer ? (
-            <Link
-              href="/dashboard"
-              className="rounded-lg border border-slate-300 px-5 py-2 font-semibold text-slate-700"
-            >
-              Go to dashboard
-            </Link>
-          ) : (
+          {/* ✅ ONLY CHANGE — hide when logged in */}
+          {!viewer && (
             <Link
               href="/auth/sign-up"
               className="rounded-lg border border-slate-300 px-5 py-2 font-semibold text-slate-700"
