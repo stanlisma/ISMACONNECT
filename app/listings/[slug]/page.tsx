@@ -207,7 +207,7 @@ export default async function ListingPage({
                   <p className="unlock-text">🔥 This listing is getting attention</p>
 
                   <p style={{ fontSize: "0.85rem", color: "#667085" }}>
-                    👀 18 people viewed this listing today
+                    👀 {listing.views ?? 0} people viewed this listing
                   </p>
 
                   <Link href="/auth/sign-in" className="button unlock-button">
