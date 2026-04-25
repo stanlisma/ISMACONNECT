@@ -93,7 +93,6 @@ export function SiteHeader({
             <Link href="/categories/jobs">Jobs</Link>
             <Link href="/categories/services">Services</Link>
             <Link href="/categories/buy-sell">Buy & Sell</Link>
-            <Link href="/categories">Categories</Link>
           </nav>
 
           {viewer && (
