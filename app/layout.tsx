@@ -5,14 +5,12 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
-import { getCategoriesWithSubcategories } from "@/lib/get-categories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 import "./globals.css";
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const viewer = await getViewer();
-  const categories = await getCategoriesWithSubcategories();
 
   let unreadMessagesCount = 0;
   let unreadNotificationsCount = 0;
@@ -55,9 +53,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             viewer={viewer}
             unreadMessagesCount={unreadMessagesCount}
             unreadNotificationsCount={unreadNotificationsCount}
-            categories={categories}
           />
+
           <main>{children}</main>
+
           <SiteFooter />
         </div>
       </body>
