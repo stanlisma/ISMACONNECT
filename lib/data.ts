@@ -107,7 +107,15 @@ export async function getPublicListingBySlug(slug: string) {
     .eq("status", "active")
     .single();
 
-  return (data as Listing | null) || null;
+  if (!data) return null;
+
+  // ✅ ADD THIS BELOW (do NOT replace query)
+  await supabase
+    .from("listings")
+    .update({ views: (data.views || 0) + 1 })
+    .eq("id", data.id);
+
+  return data;
 }
 
 export async function getRelatedListings(listing: Listing) {
