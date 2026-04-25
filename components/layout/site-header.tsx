@@ -90,82 +90,79 @@ export function SiteHeader({
         <div className="header-bottom">
           <nav className="main-nav" aria-label="Marketplace navigation">
             <Link href="/browse">Browse</Link>
-            <Link href="/categories/rentals">Rentals</Link>
-            <Link href="/categories/ride-share">Ride Share</Link>
-            <Link href="/categories/jobs">Jobs</Link>
-            <Link href="/categories/services">Services</Link>
-            <Link href="/categories/buy-sell">Buy & Sell</Link>
 
-            <div className="categories-dropdown">
-              <Link href="/categories" className="categories-trigger">
-                Categories ▾
-              </Link>
+            <div className="nav-dropdown">
+              <Link href="/categories/rentals">Rentals</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=rentals&subcategory=apartments">
+                  Apartments
+                </Link>
+                <Link href="/browse?category=rentals&subcategory=rooms">
+                  Rooms
+                </Link>
+                <Link href="/browse?category=rentals&subcategory=storage">
+                  Storage
+                </Link>
+              </div>
+            </div>
 
-              <div className="dropdown-menu">
-                <div className="dropdown-column">
-                  <h4>Rentals</h4>
-                  <Link href="/browse?category=rentals&subcategory=apartments">
-                    Apartments
-                  </Link>
-                  <Link href="/browse?category=rentals&subcategory=rooms">
-                    Rooms
-                  </Link>
-                  <Link href="/browse?category=rentals&subcategory=storage">
-                    Storage
-                  </Link>
-                </div>
+            <div className="nav-dropdown">
+              <Link href="/categories/ride-share">Ride Share</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=ride-share&subcategory=camp-rides">
+                  Camp Rides
+                </Link>
+                <Link href="/browse?category=ride-share&subcategory=airport">
+                  Airport Pickup
+                </Link>
+                <Link href="/browse?category=ride-share&subcategory=daily-commute">
+                  Daily Commute
+                </Link>
+              </div>
+            </div>
 
-                <div className="dropdown-column">
-                  <h4>Ride Share</h4>
-                  <Link href="/browse?category=ride-share&subcategory=camp-rides">
-                    Camp Rides
-                  </Link>
-                  <Link href="/browse?category=ride-share&subcategory=airport">
-                    Airport Pickup
-                  </Link>
-                  <Link href="/browse?category=ride-share&subcategory=daily-commute">
-                    Daily Commute
-                  </Link>
-                </div>
+            <div className="nav-dropdown">
+              <Link href="/categories/jobs">Jobs</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=jobs&subcategory=full-time">
+                  Full-time
+                </Link>
+                <Link href="/browse?category=jobs&subcategory=part-time">
+                  Part-time
+                </Link>
+                <Link href="/browse?category=jobs&subcategory=contract">
+                  Contract
+                </Link>
+              </div>
+            </div>
 
-                <div className="dropdown-column">
-                  <h4>Jobs</h4>
-                  <Link href="/browse?category=jobs&subcategory=full-time">
-                    Full-time
-                  </Link>
-                  <Link href="/browse?category=jobs&subcategory=part-time">
-                    Part-time
-                  </Link>
-                  <Link href="/browse?category=jobs&subcategory=contract">
-                    Contract
-                  </Link>
-                </div>
+            <div className="nav-dropdown">
+              <Link href="/categories/services">Services</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=services&subcategory=cleaning">
+                  Cleaning
+                </Link>
+                <Link href="/browse?category=services&subcategory=moving">
+                  Moving
+                </Link>
+                <Link href="/browse?category=services&subcategory=repairs">
+                  Repairs
+                </Link>
+              </div>
+            </div>
 
-                <div className="dropdown-column">
-                  <h4>Services</h4>
-                  <Link href="/browse?category=services&subcategory=cleaning">
-                    Cleaning
-                  </Link>
-                  <Link href="/browse?category=services&subcategory=moving">
-                    Moving
-                  </Link>
-                  <Link href="/browse?category=services&subcategory=repairs">
-                    Repairs
-                  </Link>
-                </div>
-
-                <div className="dropdown-column">
-                  <h4>Buy & Sell</h4>
-                  <Link href="/browse?category=buy-sell&subcategory=furniture">
-                    Furniture
-                  </Link>
-                  <Link href="/browse?category=buy-sell&subcategory=electronics">
-                    Electronics
-                  </Link>
-                  <Link href="/browse?category=buy-sell&subcategory=tools">
-                    Tools
-                  </Link>
-                </div>
+            <div className="nav-dropdown">
+              <Link href="/categories/buy-sell">Buy & Sell</Link>
+              <div className="nav-dropdown-menu">
+                <Link href="/browse?category=buy-sell&subcategory=furniture">
+                  Furniture
+                </Link>
+                <Link href="/browse?category=buy-sell&subcategory=electronics">
+                  Electronics
+                </Link>
+                <Link href="/browse?category=buy-sell&subcategory=tools">
+                  Tools
+                </Link>
               </div>
             </div>
           </nav>
