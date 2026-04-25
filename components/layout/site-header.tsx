@@ -26,6 +26,7 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <div className="header-inner">
+        {/* TOP ROW */}
         <div className="header-top">
           <Link href="/" className="brand" aria-label="ISMACONNECT home">
             <img src="/logo/logo-light.svg" alt="ISMACONNECT" />
@@ -51,18 +52,14 @@ export function SiteHeader({
 
             {viewer ? (
               <>
-                <Link href="/messages" className="icon-link" aria-label="Messages">
+                <Link href="/messages" className="icon-link">
                   💬
                   {unreadMessagesCount > 0 && (
                     <span className="badge">{unreadMessagesCount}</span>
                   )}
                 </Link>
 
-                <Link
-                  href="/notifications"
-                  className="icon-link"
-                  aria-label="Notifications"
-                >
+                <Link href="/notifications" className="icon-link">
                   🔔
                   {unreadNotificationsCount > 0 && (
                     <span className="badge">{unreadNotificationsCount}</span>
@@ -87,29 +84,34 @@ export function SiteHeader({
           </div>
         </div>
 
+        {/* BOTTOM ROW */}
         <div className="header-bottom">
-          <nav className="main-nav" aria-label="Marketplace navigation">
+          <nav className="main-nav">
             <Link href="/browse">Browse</Link>
-            <Link href="/browse?category=rentals">Rentals</Link>
-            <Link href="/browse?category=ride-share">Ride Share</Link>
-            <Link href="/browse?category=jobs">Jobs</Link>
-            <Link href="/browse?category=services">Services</Link>
-            <Link href="/browse?category=buy-sell">Buy & Sell</Link>
+            <Link href="/categories/rentals">Rentals</Link>
+            <Link href="/categories/ride-share">Ride Share</Link>
+            <Link href="/categories/jobs">Jobs</Link>
+            <Link href="/categories/services">Services</Link>
+            <Link href="/categories/buy-sell">Buy & Sell</Link>
             <Link href="/categories">Categories</Link>
           </nav>
 
           {viewer && (
-            <nav className="account-nav" aria-label="Account navigation">
+            <nav className="account-nav">
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
+
               <button
                 className="plain-link"
                 onClick={async () => {
-                  const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
-                  const supabase = createBrowserSupabaseClient();
-
-                  await supabase.auth.signOut();
+                  try {
+                    const { createBrowserSupabaseClient } = await import(
+                      "@/lib/supabase/client"
+                    );
+                    const supabase = createBrowserSupabaseClient();
+                    await supabase.auth.signOut();
+                  } catch {}
 
                   window.location.href = "/";
                 }}
