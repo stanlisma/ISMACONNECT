@@ -6,25 +6,25 @@ export async function getCategoriesWithSubcategories() {
   const { data } = await supabase
     .from("listings")
     .select("category, subcategory")
+    .eq("status", "active")
     .not("subcategory", "is", null);
 
   const map: Record<string, Set<string>> = {};
 
   data?.forEach((item) => {
+    if (!item.category || !item.subcategory) return;
+
     if (!map[item.category]) {
       map[item.category] = new Set();
     }
 
-    if (item.subcategory) {
-      map[item.category].add(item.subcategory);
-    }
+    map[item.category].add(item.subcategory);
   });
 
-  // convert Set → Array
   const result: Record<string, string[]> = {};
 
   Object.keys(map).forEach((key) => {
-    result[key] = Array.from(map[key]);
+    result[key] = Array.from(map[key]).sort();
   });
 
   return result;
