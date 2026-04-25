@@ -29,7 +29,15 @@ export default function InstallButton() {
   return (
     <button
       onClick={handleInstall}
-      className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+      style={{
+        background: "#1E6BFF",
+        color: "#fff",
+        border: "none",
+        padding: "9px 14px",
+        borderRadius: "10px",
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
     >
       Install App
     </button>

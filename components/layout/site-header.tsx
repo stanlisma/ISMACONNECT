@@ -3,6 +3,8 @@
 import Link from "next/link";
 import InstallButton from "@/components/install-button";
 
+import "./site-header.css";
+
 type Viewer = {
   user: {
     id: string;
@@ -22,62 +24,88 @@ export function SiteHeader({
   unreadNotificationsCount,
 }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4">
-        
-        {/* FORCE HORIZONTAL LAYOUT */}
-        <div className="flex items-center justify-between h-16">
-
-          {/* LOGO */}
-          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-            <img
-              src="/logo/logo-light.svg"
-              alt="ISMACONNECT"
-              style={{
-                height: "32px",
-                width: "170px",
-                maxWidth: "170px",
-                objectFit: "contain",
-                display: "block",
-              }}
-            />
+    <header className="site-header">
+      <div className="header-inner">
+        <div className="header-top">
+          <Link href="/" className="brand" aria-label="ISMACONNECT home">
+            <img src="/logo/logo-light.svg" alt="ISMACONNECT" />
           </Link>
 
-          {/* RIGHT SIDE */}
-          <div className="flex items-center gap-6 text-sm font-medium text-gray-700">
+          <form action="/browse" className="header-search">
+            <input name="q" placeholder="What are you looking for?" />
 
+            <select name="category" defaultValue="">
+              <option value="">All categories</option>
+              <option value="rentals">Rentals</option>
+              <option value="ride-share">Ride Share</option>
+              <option value="jobs">Jobs</option>
+              <option value="services">Services</option>
+              <option value="buy-sell">Buy & Sell</option>
+            </select>
+
+            <button type="submit">Search</button>
+          </form>
+
+          <div className="header-actions">
             <InstallButton />
 
             {viewer ? (
               <>
-                <Link href="/messages" className="hover:text-blue-600">
-                  Messages
+                <Link href="/messages" className="icon-link" aria-label="Messages">
+                  💬
+                  {unreadMessagesCount > 0 && (
+                    <span className="badge">{unreadMessagesCount}</span>
+                  )}
                 </Link>
 
-                <Link href="/notifications" className="hover:text-blue-600">
-                  Notifications
+                <Link
+                  href="/notifications"
+                  className="icon-link"
+                  aria-label="Notifications"
+                >
+                  🔔
+                  {unreadNotificationsCount > 0 && (
+                    <span className="badge">{unreadNotificationsCount}</span>
+                  )}
                 </Link>
 
-                <Link href="/profile" className="hover:text-blue-600">
-                  Profile
+                <Link href="/listings/new" className="post-btn">
+                  Post
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" className="hover:text-blue-600">
+                <Link href="/login" className="plain-link">
                   Login
                 </Link>
 
-                <Link
-                  href="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
+                <Link href="/register" className="post-btn">
                   Sign Up
                 </Link>
               </>
             )}
           </div>
+        </div>
 
+        <div className="header-bottom">
+          <nav className="main-nav" aria-label="Marketplace navigation">
+            <Link href="/browse">Browse</Link>
+            <Link href="/rentals">Rentals</Link>
+            <Link href="/ride-share">Ride Share</Link>
+            <Link href="/jobs">Jobs</Link>
+            <Link href="/services">Services</Link>
+            <Link href="/buy-sell">Buy & Sell</Link>
+            <Link href="/categories">Categories</Link>
+          </nav>
+
+          {viewer && (
+            <nav className="account-nav" aria-label="Account navigation">
+              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/saved">Saved</Link>
+              <Link href="/settings">Settings</Link>
+              <Link href="/logout">Sign Out</Link>
+            </nav>
+          )}
         </div>
       </div>
     </header>
