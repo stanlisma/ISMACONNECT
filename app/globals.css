@@ -1074,3 +1074,10 @@ code {
 .dot.active {
   background: #15365b;
 }
+
+.blurred-contact-preview {
+  filter: blur(3px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.75;
+}

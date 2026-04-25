@@ -218,10 +218,16 @@ export default async function ListingPage({
                   <SectionHeading
                     eyebrow="Contact"
                     title="Sign in to view contact details"
-                    description="Create an account or sign in to contact the seller directly."
+                    description="Seller contact details are protected until you sign in."
                   />
 
-                  <Link href="/auth/sign-in" className="button">
+                  <div className="meta-list blurred-contact-preview">
+                    <span>Name: {listing.contact_name ? `${listing.contact_name.split(" ")[0]} ******` : "Seller ******"}</span>
+                    {listing.contact_email ? <span>Email: ********@*****.com</span> : null}
+                    {listing.contact_phone ? <span>Phone: ***-***-{listing.contact_phone.slice(-4)}</span> : null}
+                  </div>
+
+                  <Link href="/auth/sign-in" className="button" style={{ marginTop: "1rem" }}>
                     Sign in to view contact
                   </Link>
                 </>
