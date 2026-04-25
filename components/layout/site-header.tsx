@@ -26,7 +26,6 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <div className="header-inner">
-        {/* TOP ROW */}
         <div className="header-top">
           <Link href="/" className="brand" aria-label="ISMACONNECT home">
             <img src="/logo/logo-light.svg" alt="ISMACONNECT" />
@@ -52,14 +51,18 @@ export function SiteHeader({
 
             {viewer ? (
               <>
-                <Link href="/messages" className="icon-link">
+                <Link href="/messages" className="icon-link" aria-label="Messages">
                   💬
                   {unreadMessagesCount > 0 && (
                     <span className="badge">{unreadMessagesCount}</span>
                   )}
                 </Link>
 
-                <Link href="/notifications" className="icon-link">
+                <Link
+                  href="/notifications"
+                  className="icon-link"
+                  aria-label="Notifications"
+                >
                   🔔
                   {unreadNotificationsCount > 0 && (
                     <span className="badge">{unreadNotificationsCount}</span>
@@ -84,19 +87,91 @@ export function SiteHeader({
           </div>
         </div>
 
-        {/* BOTTOM ROW */}
         <div className="header-bottom">
-          <nav className="main-nav">
+          <nav className="main-nav" aria-label="Marketplace navigation">
             <Link href="/browse">Browse</Link>
             <Link href="/categories/rentals">Rentals</Link>
             <Link href="/categories/ride-share">Ride Share</Link>
             <Link href="/categories/jobs">Jobs</Link>
             <Link href="/categories/services">Services</Link>
             <Link href="/categories/buy-sell">Buy & Sell</Link>
+
+            <div className="categories-dropdown">
+              <Link href="/categories" className="categories-trigger">
+                Categories ▾
+              </Link>
+
+              <div className="dropdown-menu">
+                <div className="dropdown-column">
+                  <h4>Rentals</h4>
+                  <Link href="/browse?category=rentals&subcategory=apartments">
+                    Apartments
+                  </Link>
+                  <Link href="/browse?category=rentals&subcategory=rooms">
+                    Rooms
+                  </Link>
+                  <Link href="/browse?category=rentals&subcategory=storage">
+                    Storage
+                  </Link>
+                </div>
+
+                <div className="dropdown-column">
+                  <h4>Ride Share</h4>
+                  <Link href="/browse?category=ride-share&subcategory=camp-rides">
+                    Camp Rides
+                  </Link>
+                  <Link href="/browse?category=ride-share&subcategory=airport">
+                    Airport Pickup
+                  </Link>
+                  <Link href="/browse?category=ride-share&subcategory=daily-commute">
+                    Daily Commute
+                  </Link>
+                </div>
+
+                <div className="dropdown-column">
+                  <h4>Jobs</h4>
+                  <Link href="/browse?category=jobs&subcategory=full-time">
+                    Full-time
+                  </Link>
+                  <Link href="/browse?category=jobs&subcategory=part-time">
+                    Part-time
+                  </Link>
+                  <Link href="/browse?category=jobs&subcategory=contract">
+                    Contract
+                  </Link>
+                </div>
+
+                <div className="dropdown-column">
+                  <h4>Services</h4>
+                  <Link href="/browse?category=services&subcategory=cleaning">
+                    Cleaning
+                  </Link>
+                  <Link href="/browse?category=services&subcategory=moving">
+                    Moving
+                  </Link>
+                  <Link href="/browse?category=services&subcategory=repairs">
+                    Repairs
+                  </Link>
+                </div>
+
+                <div className="dropdown-column">
+                  <h4>Buy & Sell</h4>
+                  <Link href="/browse?category=buy-sell&subcategory=furniture">
+                    Furniture
+                  </Link>
+                  <Link href="/browse?category=buy-sell&subcategory=electronics">
+                    Electronics
+                  </Link>
+                  <Link href="/browse?category=buy-sell&subcategory=tools">
+                    Tools
+                  </Link>
+                </div>
+              </div>
+            </div>
           </nav>
 
           {viewer && (
-            <nav className="account-nav">
+            <nav className="account-nav" aria-label="Account navigation">
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
@@ -104,13 +179,12 @@ export function SiteHeader({
               <button
                 className="plain-link"
                 onClick={async () => {
-                  try {
-                    const { createBrowserSupabaseClient } = await import(
-                      "@/lib/supabase/client"
-                    );
-                    const supabase = createBrowserSupabaseClient();
-                    await supabase.auth.signOut();
-                  } catch {}
+                  const { createBrowserSupabaseClient } = await import(
+                    "@/lib/supabase/client"
+                  );
+                  const supabase = createBrowserSupabaseClient();
+
+                  await supabase.auth.signOut();
 
                   window.location.href = "/";
                 }}
