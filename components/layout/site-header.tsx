@@ -29,11 +29,17 @@ export function SiteHeader({
         <div className="flex items-center justify-between h-16">
 
           {/* LOGO */}
-          <Link href="/" className="flex items-center">
+          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
             <img
               src="/logo/logo-light.svg"
               alt="ISMACONNECT"
-              className="h-8 w-auto"
+              style={{
+                height: "32px",
+                width: "170px",
+                maxWidth: "170px",
+                objectFit: "contain",
+                display: "block",
+              }}
             />
           </Link>
 
