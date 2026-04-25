@@ -15,20 +15,26 @@ interface SiteHeaderProps {
   viewer: Viewer;
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
+  categories: Record<string, string[]>;
+}
+
+function formatLabel(value: string) {
+  return value
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function SiteHeader({
   viewer,
   unreadMessagesCount,
   unreadNotificationsCount,
+  categories,
 }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="header-inner">
-
-        {/* TOP */}
         <div className="header-top">
-          <Link href="/" className="brand">
+          <Link href="/" className="brand" aria-label="ISMACONNECT home">
             <img src="/logo/logo-light.svg" alt="ISMACONNECT" />
           </Link>
 
@@ -37,11 +43,12 @@ export function SiteHeader({
 
             <select name="category" defaultValue="">
               <option value="">All categories</option>
-              <option value="rentals">Rentals</option>
-              <option value="ride-share">Ride Share</option>
-              <option value="jobs">Jobs</option>
-              <option value="services">Services</option>
-              <option value="buy-sell">Buy & Sell</option>
+
+              {Object.keys(categories).map((category) => (
+                <option key={category} value={category}>
+                  {formatLabel(category)}
+                </option>
+              ))}
             </select>
 
             <button type="submit">Search</button>
@@ -52,8 +59,24 @@ export function SiteHeader({
 
             {viewer ? (
               <>
-                <Link href="/messages" className="icon-link">💬</Link>
-                <Link href="/notifications" className="icon-link">🔔</Link>
+                <Link href="/messages" className="icon-link" aria-label="Messages">
+                  💬
+                  {unreadMessagesCount > 0 && (
+                    <span className="badge">{unreadMessagesCount}</span>
+                  )}
+                </Link>
+
+                <Link
+                  href="/notifications"
+                  className="icon-link"
+                  aria-label="Notifications"
+                >
+                  🔔
+                  {unreadNotificationsCount > 0 && (
+                    <span className="badge">{unreadNotificationsCount}</span>
+                  )}
+                </Link>
+
                 <Link href="/dashboard/listings/new" className="post-btn">
                   Post
                 </Link>
@@ -63,6 +86,7 @@ export function SiteHeader({
                 <Link href="/auth/sign-in" className="plain-link">
                   Login
                 </Link>
+
                 <Link href="/auth/sign-up" className="post-btn">
                   Sign Up
                 </Link>
@@ -71,101 +95,34 @@ export function SiteHeader({
           </div>
         </div>
 
-        {/* BOTTOM NAV */}
         <div className="header-bottom">
-
-          <nav className="main-nav">
-
+          <nav className="main-nav" aria-label="Marketplace navigation">
             <Link href="/browse">Browse</Link>
 
-            {/* RENTALS */}
-            <div className="nav-dropdown">
-              <Link href="/browse?category=rentals">Rentals</Link>
-              <div className="nav-dropdown-menu">
-                <Link href="/browse?category=rentals&subcategory=apartments">
-                  Apartments
+            {Object.entries(categories).map(([category, subcategories]) => (
+              <div className="nav-dropdown" key={category}>
+                <Link href={`/browse?category=${category}`}>
+                  {formatLabel(category)}
                 </Link>
-                <Link href="/browse?category=rentals&subcategory=rooms">
-                  Rooms
-                </Link>
-                <Link href="/browse?category=rentals&subcategory=storage">
-                  Storage
-                </Link>
-              </div>
-            </div>
 
-            {/* RIDE SHARE */}
-            <div className="nav-dropdown">
-              <Link href="/browse?category=ride-share">Ride Share</Link>
-              <div className="nav-dropdown-menu">
-                <Link href="/browse?category=ride-share&subcategory=camp-rides">
-                  Camp Rides
-                </Link>
-                <Link href="/browse?category=ride-share&subcategory=airport">
-                  Airport
-                </Link>
-                <Link href="/browse?category=ride-share&subcategory=daily-commute">
-                  Daily Commute
-                </Link>
+                {subcategories.length > 0 && (
+                  <div className="nav-dropdown-menu">
+                    {subcategories.map((subcategory) => (
+                      <Link
+                        key={subcategory}
+                        href={`/browse?category=${category}&subcategory=${subcategory}`}
+                      >
+                        {formatLabel(subcategory)}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* JOBS */}
-            <div className="nav-dropdown">
-              <Link href="/browse?category=jobs">Jobs</Link>
-              <div className="nav-dropdown-menu">
-                <Link href="/browse?category=jobs&subcategory=full-time">
-                  Full Time
-                </Link>
-                <Link href="/browse?category=jobs&subcategory=part-time">
-                  Part Time
-                </Link>
-                <Link href="/browse?category=jobs&subcategory=contract">
-                  Contract
-                </Link>
-              </div>
-            </div>
-
-            {/* SERVICES */}
-            <div className="nav-dropdown">
-              <Link href="/browse?category=services">Services</Link>
-              <div className="nav-dropdown-menu">
-                <Link href="/browse?category=services&subcategory=cleaning">
-                  Cleaning
-                </Link>
-                <Link href="/browse?category=services&subcategory=moving">
-                  Moving
-                </Link>
-                <Link href="/browse?category=services&subcategory=repairs">
-                  Repairs
-                </Link>
-              </div>
-            </div>
-
-            {/* BUY & SELL (FIXED) */}
-            <div className="nav-dropdown">
-              <Link href="/browse?category=buy-sell">Buy & Sell</Link>
-              <div className="nav-dropdown-menu">
-                <Link href="/browse?category=buy-sell&subcategory=furniture">
-                  Furniture
-                </Link>
-                <Link href="/browse?category=buy-sell&subcategory=electronics">
-                  Electronics
-                </Link>
-                <Link href="/browse?category=buy-sell&subcategory=tools-equipment">
-                  Tools & Equipment
-                </Link>
-                <Link href="/browse?category=buy-sell&subcategory=clothing">
-                  Clothing
-                </Link>
-              </div>
-            </div>
-
+            ))}
           </nav>
 
-          {/* ACCOUNT NAV */}
           {viewer && (
-            <nav className="account-nav">
+            <nav className="account-nav" aria-label="Account navigation">
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
@@ -173,7 +130,9 @@ export function SiteHeader({
               <button
                 className="plain-link"
                 onClick={async () => {
-                  const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
+                  const { createBrowserSupabaseClient } = await import(
+                    "@/lib/supabase/client"
+                  );
                   const supabase = createBrowserSupabaseClient();
 
                   await supabase.auth.signOut();
@@ -184,7 +143,6 @@ export function SiteHeader({
               </button>
             </nav>
           )}
-
         </div>
       </div>
     </header>
