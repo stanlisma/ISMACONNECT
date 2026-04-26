@@ -79,6 +79,10 @@ export default async function CategoryPage({
 
         <BrowseFilters actionPath={categoryInfo.href} search={search} showCategorySelect={false} />
 
+        <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
+          {listings.length} results found
+        </p>
+
         <div className="pill-links">
           <Link className="pill-link" href="/browse">
             All listings

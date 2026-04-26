@@ -173,15 +173,15 @@ code {
   cursor: wait;
 }
 
-.button-secondary,
-.button-ghost {
-  box-shadow: none;
-}
-
 .button-secondary {
+  opacity: 0.7;
   background: var(--surface);
   border: 1px solid var(--line-strong);
   color: var(--text);
+}
+
+.button-ghost {
+  box-shadow: none;
 }
 
 .button-ghost {
