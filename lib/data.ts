@@ -49,7 +49,15 @@ export async function getHomepageData() {
   };
 }
 
-export async function getPublicListings(filters: ListingFilters) {
+export async function getPublicListings(filters: {
+  category?: ListingCategory;
+  subcategory?: string | null;
+  search?: string;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  sort?: string | null;
+  limit?: number;
+}) {
   if (!isSupabaseConfigured()) {
     return {
       isConfigured: false,
@@ -62,23 +70,47 @@ export async function getPublicListings(filters: ListingFilters) {
   let query = supabase
     .from("listings")
     .select("*")
-    .eq("status", "active")
-    .order("is_featured", { ascending: false })
-    .order("created_at", { ascending: false });
+    .eq("status", "active");
 
+  // CATEGORY
   if (filters.category) {
     query = query.eq("category", filters.category);
   }
 
+  // SUBCATEGORY
   if (filters.subcategory) {
     query = query.eq("subcategory", filters.subcategory);
   }
 
+  // SEARCH
   if (filters.search?.trim()) {
     query = query.textSearch("search_document", filters.search.trim(), {
       type: "websearch",
       config: "simple"
     });
+  }
+
+  // PRICE FILTER
+  if (filters.minPrice !== null && filters.minPrice !== undefined) {
+    query = query.gte("price", filters.minPrice);
+  }
+
+  if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
+    query = query.lte("price", filters.maxPrice);
+  }
+
+  // SORTING
+  switch (filters.sort) {
+    case "price_asc":
+      query = query.order("price", { ascending: true });
+      break;
+    case "price_desc":
+      query = query.order("price", { ascending: false });
+      break;
+    default:
+      query = query
+        .order("is_featured", { ascending: false })
+        .order("created_at", { ascending: false });
   }
 
   if (filters.limit) {

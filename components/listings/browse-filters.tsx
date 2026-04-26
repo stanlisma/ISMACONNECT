@@ -7,21 +7,13 @@ import { CATEGORIES } from "@/lib/constants";
 import { getSubcategories } from "@/lib/subcategories";
 import type { ListingCategory } from "@/types/database";
 
-interface BrowseFiltersProps {
-  actionPath: string;
-  search?: string;
-  category?: ListingCategory;
-  subcategory?: string | null;
-  showCategorySelect?: boolean;
-}
-
 export function BrowseFilters({
   actionPath,
   search,
   category,
   subcategory,
   showCategorySelect = true
-}: BrowseFiltersProps) {
+}: any) {
   const [selectedCategory, setSelectedCategory] = useState(category ?? "");
   const [selectedSubcategory, setSelectedSubcategory] = useState(subcategory ?? "");
 
@@ -32,70 +24,55 @@ export function BrowseFilters({
 
   return (
     <form action={actionPath} className="surface filters-grid" method="get">
+
       {/* SEARCH */}
-      <label className="field">
-        <span className="field-label">Search listings</span>
-        <input
-          className="input"
-          defaultValue={search}
-          name="q"
-          placeholder="Search by title, keywords, or neighbourhood"
-        />
-      </label>
+      <input name="q" defaultValue={search} placeholder="Search..." className="input" />
 
       {/* CATEGORY */}
-      {showCategorySelect ? (
-        <label className="field">
-          <span className="field-label">Category</span>
-          <select
-            className="select"
-            name="category"
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value);
-              setSelectedSubcategory(""); // reset subcategory when category changes
-            }}
-          >
-            <option value="">All categories</option>
-            {CATEGORIES.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+      {showCategorySelect && (
+        <select
+          name="category"
+          value={selectedCategory}
+          onChange={(e) => {
+            setSelectedCategory(e.target.value);
+            setSelectedSubcategory("");
+          }}
+        >
+          <option value="">All categories</option>
+          {CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+      )}
 
       {/* SUBCATEGORY */}
-      {subcategories.length > 0 ? (
-        <label className="field">
-          <span className="field-label">Sub-category</span>
-          <select
-            className="select"
-            name="subcategory"
-            value={selectedSubcategory}
-            onChange={(e) => setSelectedSubcategory(e.target.value)}
-          >
-            <option value="">All sub-categories</option>
-            {subcategories.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+      {subcategories.length > 0 && (
+        <select
+          name="subcategory"
+          value={selectedSubcategory}
+          onChange={(e) => setSelectedSubcategory(e.target.value)}
+        >
+          <option value="">All subcategories</option>
+          {subcategories.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+      )}
+
+      {/* PRICE */}
+      <input name="minPrice" type="number" placeholder="Min $" className="input" />
+      <input name="maxPrice" type="number" placeholder="Max $" className="input" />
+
+      {/* SORT */}
+      <select name="sort">
+        <option value="">Newest</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+      </select>
 
       {/* ACTIONS */}
-      <div className="filter-actions">
-        <button className="button" type="submit">
-          Apply filters
-        </button>
-
-        <Link className="button button-secondary" href={actionPath}>
-          Clear
-        </Link>
-      </div>
+      <button className="button">Apply</button>
+      <Link href={actionPath} className="button button-secondary">Clear</Link>
     </form>
   );
 }
