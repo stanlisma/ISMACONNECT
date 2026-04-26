@@ -54,8 +54,12 @@ export default async function CategoryPage({
   }
 
   const search = getSingleParam(resolvedSearchParams?.q);
-  const minPrice = Number(getSingleParam(resolvedSearchParams?.minPrice)) || null;
-  const maxPrice = Number(getSingleParam(resolvedSearchParams?.maxPrice)) || null;
+  const minPriceParam = getSingleParam(resolvedSearchParams?.minPrice);
+  const maxPriceParam = getSingleParam(resolvedSearchParams?.maxPrice);
+
+  const minPrice = minPriceParam ? Number(minPriceParam) : null;
+  const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
+  
   const sort = getSingleParam(resolvedSearchParams?.sort);
   const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
 
