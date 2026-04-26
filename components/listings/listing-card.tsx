@@ -23,10 +23,9 @@ function formatTimeAgo(dateString: string) {
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMinutes < 1) return "Just listed";
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMinutes < 60) return "New";
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
 
   return date.toLocaleDateString("en-CA", {
     month: "short",
@@ -58,8 +57,12 @@ export function ListingCard({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const rawViews = (listing as any).views;
-  const views =
-    typeof rawViews === "number" && rawViews > 0 ? rawViews : 0;
+  const parsedViews =
+    rawViews === null || rawViews === undefined || rawViews === ""
+      ? 0
+      : Number(rawViews);
+
+  const views = Number.isFinite(parsedViews) && parsedViews > 0 ? parsedViews : 0;
 
   const isNew = isNewListing(listing.created_at);
   const isPopular = views > 10;
@@ -218,7 +221,7 @@ export function ListingCard({
           {views > 0 ? (
             <>
               <span style={{ opacity: 0.5 }}>•</span>
-              <span>{views} views</span>
+              <span>{views > 0 ? `${views} views` : "New"}</span>
             </>
           ) : null}
         </div>
