@@ -1239,8 +1239,9 @@ code {
 }
 
 .listing-urgency-inline {
-  margin-left: 6px;
+  margin-left: 4px;
   font-size: 0.85rem;
+  vertical-align: middle;
 }
 
 .listing-card-clickable {

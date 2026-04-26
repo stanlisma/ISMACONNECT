@@ -7,6 +7,7 @@ import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryHref, getCategoryLabel } from "@/lib/utils";
 import type { Listing } from "@/types/database";
+import { useRouter } from "next/navigation";
 
 interface ListingCardProps {
   listing: Listing;
@@ -45,6 +46,7 @@ export function ListingCard({
   canSave = false,
   pathToRevalidate
 }: ListingCardProps) {
+  const router = useRouter();
   const images =
     listing.image_urls && listing.image_urls.length > 0
       ? listing.image_urls
@@ -85,7 +87,7 @@ export function ListingCard({
     <article
         className="listing-card listing-card-clickable"
         onClick={() => {
-          window.location.href = `/listings/${listing.slug}`;
+          router.push(`/listings/${listing.slug}`);
         }}
     >
       <div className="listing-media listing-media-gallery">
