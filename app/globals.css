@@ -1156,3 +1156,43 @@ code {
     width: 100%;
   }
 }
+
+.listing-card-badges {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  display: flex;
+  gap: 0.4rem;
+  z-index: 4;
+}
+
+.listing-card-badge {
+  border-radius: 999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(15, 54, 91, 0.12);
+}
+
+.listing-card-badge-new {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.listing-card-badge-featured {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.listing-card-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  color: #667085;
+  font-size: 0.82rem;
+}
+
+.listing-card-signals span {
+  white-space: nowrap;
+}

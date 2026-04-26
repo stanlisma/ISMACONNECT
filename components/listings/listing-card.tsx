@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getSubcategoryLabel } from "@/lib/subcategories";
-import { excerpt, formatCurrency, formatDate, getCategoryHref, getCategoryLabel } from "@/lib/utils";
+import { excerpt, formatCurrency, getCategoryHref, getCategoryLabel } from "@/lib/utils";
 import type { Listing } from "@/types/database";
 
 interface ListingCardProps {
@@ -13,6 +13,31 @@ interface ListingCardProps {
   isSaved?: boolean;
   canSave?: boolean;
   pathToRevalidate?: string;
+}
+
+function formatTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffHours < 24) return `${diffHours} hr ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+
+  return date.toLocaleDateString("en-CA", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+function isNewListing(dateString: string) {
+  const date = new Date(dateString);
+  const diffHours = (Date.now() - date.getTime()) / 36e5;
+  return diffHours <= 48;
 }
 
 export function ListingCard({
@@ -29,6 +54,8 @@ export function ListingCard({
         : [];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const isNew = isNewListing(listing.created_at);
+  const views = (listing as any).views ?? 0;
 
   function showPreviousImage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -47,7 +74,14 @@ export function ListingCard({
       <div className="listing-media listing-media-gallery">
         {images.length > 0 ? (
           <Link href={`/listings/${listing.slug}`} aria-label={`View ${listing.title}`}>
-            <img alt={listing.title} src={images[activeImageIndex]} />
+            <img alt={listing.title} src={images[activeImageIndex]} loading="lazy" />
+
+            <div className="listing-card-badges">
+              {isNew ? <span className="listing-card-badge listing-card-badge-new">New</span> : null}
+              {listing.is_featured ? (
+                <span className="listing-card-badge listing-card-badge-featured">Featured</span>
+              ) : null}
+            </div>
 
             {images.length > 1 ? (
               <>
@@ -99,8 +133,6 @@ export function ListingCard({
                 {getSubcategoryLabel(listing.category, listing.subcategory)}
               </span>
             ) : null}
-
-            {listing.is_featured ? <span className="badge badge-featured">Featured</span> : null}
           </div>
 
           {canSave ? (
@@ -121,9 +153,10 @@ export function ListingCard({
 
         <p className="listing-description">{excerpt(listing.description)}</p>
 
-        <div className="listing-meta">
-          <span>{listing.location}</span>
-          <span>{formatDate(listing.created_at)}</span>
+        <div className="listing-card-signals">
+          <span>📍 {listing.location}</span>
+          <span>🕒 {formatTimeAgo(listing.created_at)}</span>
+          <span>👀 {views}</span>
         </div>
       </div>
     </article>
