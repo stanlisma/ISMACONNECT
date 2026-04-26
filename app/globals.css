@@ -1175,8 +1175,8 @@ code {
 }
 
 .listing-card-badge-new {
-  background: #dcfce7;
-  color: #166534;
+  background: #16a34a;
+  color: white;
 }
 
 .listing-card-badge-featured {
@@ -1195,4 +1195,19 @@ code {
 
 .listing-card-signals span {
   white-space: nowrap;
+}
+
+.listing-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.listing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.listing-urgency {
+  font-size: 0.75rem;
+  color: #dc2626;
+  font-weight: 700;
 }
