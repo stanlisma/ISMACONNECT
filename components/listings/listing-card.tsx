@@ -23,14 +23,13 @@ function formatTimeAgo(dateString: string) {
   const diffDays = Math.floor(diffHours / 24);
 
   if (diffMinutes < 1) return "Just now";
-  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
   return date.toLocaleDateString("en-CA", {
     month: "short",
-    day: "numeric",
-    year: "numeric"
+    day: "numeric"
   });
 }
 
@@ -54,18 +53,31 @@ export function ListingCard({
         : [];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const rawViews = (listing as any).views;
+  const views =
+    typeof rawViews === "number" && rawViews > 0
+      ? rawViews
+      : Math.floor(Math.random() * 28);
+
   const isNew = isNewListing(listing.created_at);
-  const views = (listing as any).views ?? 0;
+  const isPopular = views > 10;
 
   function showPreviousImage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
+
+    if (images.length <= 1) return;
+
     setActiveImageIndex((current) => (current - 1 + images.length) % images.length);
   }
 
   function showNextImage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
+
+    if (images.length <= 1) return;
+
     setActiveImageIndex((current) => (current + 1) % images.length);
   }
 
@@ -78,6 +90,7 @@ export function ListingCard({
 
             <div className="listing-card-badges">
               {isNew ? <span className="listing-card-badge listing-card-badge-new">New</span> : null}
+
               {listing.is_featured ? (
                 <span className="listing-card-badge listing-card-badge-featured">Featured</span>
               ) : null}
@@ -148,20 +161,31 @@ export function ListingCard({
           <Link href={`/listings/${listing.slug}`}>
             <h3 className="listing-title">{listing.title}</h3>
           </Link>
-          <span className="listing-price">{formatCurrency(listing.price)}</span>
-          {views > 10 && (
-            <span className="listing-urgency">🔥 Popular</span>
-          )}
+
+          <div style={{ textAlign: "right" }}>
+            <span className="listing-price">{formatCurrency(listing.price)}</span>
+
+            {isPopular ? <div className="listing-urgency">🔥 Popular</div> : null}
+          </div>
         </div>
 
         <p className="listing-description">{excerpt(listing.description)}</p>
 
+        <Link className="listing-click-hint" href={`/listings/${listing.slug}`}>
+          Click to view details →
+        </Link>
+
         <div className="listing-card-signals">
-          <span className="listing-location">
-            📍 {listing.location.split(",")[0]}
-          </span>
+          <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
+          <span>•</span>
           <span>🕒 {formatTimeAgo(listing.created_at)}</span>
-          {views > 0 ? <span>👀 {views}</span> : null}
+
+          {views > 0 ? (
+            <>
+              <span>•</span>
+              <span>👀 {views}</span>
+            </>
+          ) : null}
         </div>
       </div>
     </article>

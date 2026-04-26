@@ -1202,12 +1202,38 @@ code {
 }
 
 .listing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
 }
 
 .listing-urgency {
   font-size: 0.75rem;
   color: #dc2626;
   font-weight: 700;
+}
+
+.listing-click-hint {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  font-weight: 600;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto auto;
+  gap: 0.6rem;
+  align-items: end;
+}
+
+@media (max-width: 760px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filters-grid input,
+.filters-grid select {
+  width: 100%;
 }
