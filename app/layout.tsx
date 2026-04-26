@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/components/layout/site-footer";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <MobileBottomNav />
         <div className="site-shell">
           <SiteHeader
             viewer={viewer}
