@@ -60,9 +60,10 @@ export default async function ListingPage({
     notFound();
   }
 
-  await incrementListingViews(listing.id);
-
   const viewer = await getViewer();
+
+  await incrementListingViews(listing.id, viewer?.user.id);
+
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
