@@ -15,7 +15,8 @@ import {
   getConversationForListing,
   getPublicListingBySlug,
   getRelatedListings,
-  getSavedListingIds
+  getSavedListingIds,
+  incrementListingViews
 } from "@/lib/data";
 import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
