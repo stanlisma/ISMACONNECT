@@ -53,9 +53,18 @@ export default async function CategoryPage({
 
   const search = getSingleParam(searchParams?.q);
   const categoryInfo = CATEGORY_MAP[category];
+  const minPrice = Number(getSingleParam(searchParams?.minPrice)) || null;
+  const maxPrice = Number(getSingleParam(searchParams?.maxPrice)) || null;
+  const sort = getSingleParam(searchParams?.sort);
+  const subcategory = getSingleParam(searchParams?.subcategory);
+
   const { listings, isConfigured } = await getPublicListings({
     category,
+    subcategory,
     search,
+    minPrice,
+    maxPrice,
+    sort,
     limit: 24
   });
 

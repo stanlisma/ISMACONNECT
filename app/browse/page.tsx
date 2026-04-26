@@ -28,10 +28,17 @@ export default async function BrowsePage({
   const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
   const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
 
+  const minPrice = Number(getSingleParam(resolvedSearchParams?.minPrice)) || null;
+  const maxPrice = Number(getSingleParam(resolvedSearchParams?.maxPrice)) || null;
+  const sort = getSingleParam(resolvedSearchParams?.sort);
+
   const { listings, isConfigured } = await getPublicListings({
     search,
     category,
     subcategory,
+    minPrice,
+    maxPrice,
+    sort,
     limit: 24,
   });
 
