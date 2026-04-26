@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryHref, getCategoryLabel } from "@/lib/utils";
 import type { Listing } from "@/types/database";
-import { useRouter } from "next/navigation";
 
 interface ListingCardProps {
   listing: Listing;
@@ -23,7 +23,7 @@ function formatTimeAgo(dateString: string) {
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 1) return "Just listed";
   if (diffMinutes < 60) return `${diffMinutes}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
@@ -47,6 +47,7 @@ export function ListingCard({
   pathToRevalidate
 }: ListingCardProps) {
   const router = useRouter();
+
   const images =
     listing.image_urls && listing.image_urls.length > 0
       ? listing.image_urls
@@ -58,12 +59,15 @@ export function ListingCard({
 
   const rawViews = (listing as any).views;
   const views =
-    typeof rawViews === "number" && rawViews > 0
-      ? rawViews
-      : Math.floor(Math.random() * 28);
+    typeof rawViews === "number" && rawViews > 0 ? rawViews : 0;
 
   const isNew = isNewListing(listing.created_at);
   const isPopular = views > 10;
+  const timeAgo = formatTimeAgo(listing.created_at);
+
+  function goToListing() {
+    router.push(`/listings/${listing.slug}`);
+  }
 
   function showPreviousImage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -84,17 +88,17 @@ export function ListingCard({
   }
 
   return (
-    <article
-        className="listing-card listing-card-clickable"
-        onClick={() => {
-          router.push(`/listings/${listing.slug}`);
-        }}
-    >
+    <article className="listing-card listing-card-clickable" onClick={goToListing}>
       <div className="listing-media listing-media-gallery">
         {images.length > 0 ? (
-          <Link href={`/listings/${listing.slug}`} aria-label={`View ${listing.title}`}>
+          <Link
+            href={`/listings/${listing.slug}`}
+            aria-label={`View ${listing.title}`}
+            onClick={(event) => event.stopPropagation()}
+          >
             <img alt={listing.title} src={images[activeImageIndex]} loading="lazy" />
 
+            {/* Desktop badges */}
             <div className="listing-card-badges">
               {isNew ? <span className="listing-card-badge listing-card-badge-new">New</span> : null}
 
@@ -102,6 +106,11 @@ export function ListingCard({
                 <span className="listing-card-badge listing-card-badge-featured">Featured</span>
               ) : null}
             </div>
+
+            {/* Mobile/PWA badge */}
+            <span className="mobile-marketplace-badge">
+              {isNew ? "Just listed" : timeAgo}
+            </span>
 
             {images.length > 1 ? (
               <>
@@ -128,9 +137,18 @@ export function ListingCard({
                 </span>
               </>
             ) : null}
+
+            {/* Mobile/PWA overlay */}
+            <div className="mobile-marketplace-overlay">
+              <span className="mobile-marketplace-price">{formatCurrency(listing.price)}</span>
+              <span className="mobile-marketplace-title">{listing.title}</span>
+            </div>
           </Link>
         ) : (
-          <Link href={`/listings/${listing.slug}`}>
+          <Link
+            href={`/listings/${listing.slug}`}
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="listing-placeholder">
               <span>{getCategoryLabel(listing.category)}</span>
             </div>
@@ -144,7 +162,11 @@ export function ListingCard({
           style={{ justifyContent: "space-between", alignItems: "center" }}
         >
           <div className="badge-row">
-            <Link className="badge badge-soft" href={getCategoryHref(listing.category)}>
+            <Link
+              className="badge badge-soft"
+              href={getCategoryHref(listing.category)}
+              onClick={(event) => event.stopPropagation()}
+            >
               {getCategoryLabel(listing.category)}
             </Link>
 
@@ -157,8 +179,8 @@ export function ListingCard({
 
           {canSave ? (
             <div
-                onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
               }}
             >
               <SaveListingButton
@@ -171,16 +193,18 @@ export function ListingCard({
         </div>
 
         <div className="listing-top">
-          <Link href={`/listings/${listing.slug}`}>
+          <Link
+            href={`/listings/${listing.slug}`}
+            onClick={(event) => event.stopPropagation()}
+          >
             <h3 className="listing-title">{listing.title}</h3>
           </Link>
 
           <div style={{ textAlign: "right" }}>
-            <span className="listing-price">{formatCurrency(listing.price)}</span>
-
-            {isPopular && (
-              <span className="listing-urgency-inline">🔥</span>
-            )}
+            <span className="listing-price">
+              {formatCurrency(listing.price)}
+              {isPopular ? <span className="listing-urgency-inline"> 🔥</span> : null}
+            </span>
           </div>
         </div>
 
@@ -188,8 +212,8 @@ export function ListingCard({
 
         <div className="listing-card-signals">
           <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
-          <span>•</span>
-          <span>{formatTimeAgo(listing.created_at)}</span>
+          <span style={{ opacity: 0.5 }}>•</span>
+          <span>{timeAgo}</span>
 
           {views > 0 ? (
             <>

@@ -1247,3 +1247,94 @@ code {
 .listing-card-clickable {
   cursor: pointer;
 }
+
+/* Mobile/PWA marketplace-style listing cards */
+.mobile-marketplace-badge,
+.mobile-marketplace-overlay {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .listing-card {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  .listing-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .listing-media {
+    border-radius: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .listing-media img {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .listing-body {
+    display: none;
+  }
+
+  .listing-card-badges {
+    display: none;
+  }
+
+  .mobile-marketplace-badge {
+    display: inline-flex;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #111827;
+    border-radius: 6px;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    z-index: 6;
+  }
+
+  .mobile-marketplace-overlay {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1.4rem 0.5rem 0.45rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.82), transparent);
+    color: #ffffff;
+    z-index: 5;
+  }
+
+  .mobile-marketplace-price {
+    font-size: 0.95rem;
+    font-weight: 800;
+    margin-right: 0.25rem;
+  }
+
+  .mobile-marketplace-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .listing-gallery-count {
+    right: 0.45rem;
+    bottom: 2.35rem;
+    z-index: 7;
+  }
+
+  .listing-gallery-arrow {
+    opacity: 0;
+  }
+}
