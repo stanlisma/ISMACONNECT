@@ -186,10 +186,6 @@ export function ListingCard({
 
         <p className="listing-description">{excerpt(listing.description)}</p>
 
-        <Link className="listing-click-hint" href={`/listings/${listing.slug}`}>
-          Click to view details →
-        </Link>
-
         <div className="listing-card-signals">
           <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
           <span>•</span>
@@ -197,8 +193,8 @@ export function ListingCard({
 
           {views > 0 ? (
             <>
-              <span>•</span>
-              <span>{views}</span>
+              <span style={{ opacity: 0.5 }}>•</span>
+              <span>{views} views</span>
             </>
           ) : null}
         </div>
