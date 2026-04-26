@@ -125,21 +125,30 @@ export async function getPublicListings(filters: {
   };
 }
 
-export async function incrementListingViews(listingId: string) {
+export async function incrementListingViews(listingId: string, userId?: string | null) {
   const supabase = await createServerSupabaseClient();
 
-  const { data: listing } = await supabase
-    .from("listings")
-    .select("views")
-    .eq("id", listingId)
-    .single();
+  const visitorKey = userId ? null : "guest";
 
-  if (!listing) return;
+  const { error } = await supabase.from("listing_views").insert({
+    listing_id: listingId,
+    viewer_id: userId ?? null,
+    visitor_key: visitorKey
+  });
 
-  await supabase
-    .from("listings")
-    .update({ views: (listing.views ?? 0) + 1 })
-    .eq("id", listingId);
+  if (error) {
+    // Duplicate view = already counted. Ignore it.
+    if (error.code === "23505") {
+      return;
+    }
+
+    console.error("View tracking failed:", error);
+    return;
+  }
+
+  await supabase.rpc("increment_listing_views", {
+    listing_id_input: listingId
+  });
 }
 
 export async function getPublicListingBySlug(slug: string) {
