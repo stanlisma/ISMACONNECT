@@ -125,6 +125,23 @@ export async function getPublicListings(filters: {
   };
 }
 
+export async function incrementListingViews(listingId: string) {
+  const supabase = await createServerSupabaseClient();
+
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("views")
+    .eq("id", listingId)
+    .single();
+
+  if (!listing) return;
+
+  await supabase
+    .from("listings")
+    .update({ views: (listing.views ?? 0) + 1 })
+    .eq("id", listingId);
+}
+
 export async function getPublicListingBySlug(slug: string) {
   if (!isSupabaseConfigured()) {
     return null;
@@ -142,11 +159,6 @@ export async function getPublicListingBySlug(slug: string) {
   if (!data) {
     return null;
   }
-
-  await supabase
-    .from("listings")
-    .update({ views: ((data as any).views || 0) + 1 })
-    .eq("id", data.id);
 
   return (data as Listing | null) || null;
 }

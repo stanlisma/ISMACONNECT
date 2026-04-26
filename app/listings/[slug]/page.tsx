@@ -59,6 +59,8 @@ export default async function ListingPage({
     notFound();
   }
 
+  await incrementListingViews(listing.id);
+
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const isSaved = viewer ? savedIds.has(listing.id) : false;
