@@ -82,7 +82,12 @@ export function ListingCard({
   }
 
   return (
-    <article className="listing-card">
+    <article
+        className="listing-card listing-card-clickable"
+        onClick={() => {
+          window.location.href = `/listings/${listing.slug}`;
+        }}
+    >
       <div className="listing-media listing-media-gallery">
         {images.length > 0 ? (
           <Link href={`/listings/${listing.slug}`} aria-label={`View ${listing.title}`}>
@@ -149,11 +154,17 @@ export function ListingCard({
           </div>
 
           {canSave ? (
-            <SaveListingButton
-              listingId={listing.id}
-              isSaved={isSaved}
-              pathToRevalidate={pathToRevalidate}
-            />
+            <div
+                onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <SaveListingButton
+                listingId={listing.id}
+                isSaved={isSaved}
+                pathToRevalidate={pathToRevalidate}
+              />
+            </div>
           ) : null}
         </div>
 
@@ -165,7 +176,9 @@ export function ListingCard({
           <div style={{ textAlign: "right" }}>
             <span className="listing-price">{formatCurrency(listing.price)}</span>
 
-            {isPopular ? <div className="listing-urgency">🔥 Popular</div> : null}
+            {isPopular && (
+              <span className="listing-urgency-inline">🔥</span>
+            )}
           </div>
         </div>
 
@@ -178,12 +191,12 @@ export function ListingCard({
         <div className="listing-card-signals">
           <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
           <span>•</span>
-          <span>🕒 {formatTimeAgo(listing.created_at)}</span>
+          <span>{formatTimeAgo(listing.created_at)}</span>
 
           {views > 0 ? (
             <>
               <span>•</span>
-              <span>👀 {views}</span>
+              <span>{views}</span>
             </>
           ) : null}
         </div>

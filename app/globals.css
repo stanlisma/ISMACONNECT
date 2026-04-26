@@ -1202,8 +1202,8 @@ code {
 }
 
 .listing-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+  transform: translateY(-6px);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.12);
 }
 
 .listing-urgency {
@@ -1213,9 +1213,9 @@ code {
 }
 
 .listing-click-hint {
-  font-size: 0.75rem;
-  color: #3b82f6;
-  font-weight: 600;
+  font-size: 0.72rem;
+  color: #98a2b3;
+  font-weight: 500;
   margin-top: 6px;
   display: inline-block;
 }
@@ -1236,4 +1236,13 @@ code {
 .filters-grid input,
 .filters-grid select {
   width: 100%;
+}
+
+.listing-urgency-inline {
+  margin-left: 6px;
+  font-size: 0.85rem;
+}
+
+.listing-card-clickable {
+  cursor: pointer;
 }
