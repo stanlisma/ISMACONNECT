@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ContactSellerForm } from "@/components/messages/contact-seller-form";
+import { ListingViewTracker } from "@/components/listings/listing-view-tracker";
 import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingImageGallery } from "@/components/listings/listing-image-gallery";
@@ -16,7 +17,6 @@ import {
   getPublicListingBySlug,
   getRelatedListings,
   getSavedListingIds,
-  incrementListingViews
 } from "@/lib/data";
 import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
@@ -61,8 +61,6 @@ export default async function ListingPage({
   }
 
   const viewer = await getViewer();
-
-  await incrementListingViews(listing.id, viewer?.user.id);
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const isSaved = viewer ? savedIds.has(listing.id) : false;
@@ -134,6 +132,8 @@ export default async function ListingPage({
                     gap: "1rem"
                   }}
                 >
+                  <ListingViewTracker listingId={listing.id} />
+
                   <h1 className="detail-title" style={{ marginBottom: 0 }}>
                     {listing.title}
                   </h1>
