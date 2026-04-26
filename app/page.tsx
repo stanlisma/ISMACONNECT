@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 
+import { ListingCard } from "@/components/listings/listing-card";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { SetupNotice } from "@/components/ui/setup-notice";
+import { getHomepageData } from "@/lib/data";
+
 export default async function HomePage() {
   const viewer = await getViewer();
+  const { latestListings, featuredListings, isConfigured } = await getHomepageData();
+  const homepageListings =
+    featuredListings.length > 0 ? featuredListings.concat(latestListings).slice(0, 8) : latestListings;
 
   return (
     <main style={pageStyle}>
@@ -43,6 +51,28 @@ export default async function HomePage() {
           <Link href="/browse?category=jobs" style={pillStyle}>Jobs</Link>
           <Link href="/browse?category=services" style={pillStyle}>Services</Link>
           <Link href="/browse?category=buy-sell" style={pillStyle}>Buy & Sell</Link>
+        </div>
+      </section>
+
+            <section className="section">
+        <div className="container">
+
+          <h2 style={{ marginBottom: "1rem" }}>
+            Latest Listings
+          </h2>
+
+          {!isConfigured ? (
+            <p>Setup required</p>
+          ) : latestListings.length > 0 ? (
+            <div className="listing-grid">
+              {latestListings.slice(0, 8).map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          ) : (
+            <p>No listings yet</p>
+          )}
+
         </div>
       </section>
 

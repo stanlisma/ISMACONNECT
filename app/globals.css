@@ -1510,3 +1510,144 @@ code {
   transform: scale(0.97);
   transition: 0.1s;
 }
+
+/* FINAL MOBILE HEADER OVERRIDE */
+@media (max-width: 760px) {
+  .site-header {
+    position: static !important;
+    top: auto !important;
+    background: rgba(245, 250, 255, 0.95) !important;
+    box-shadow: none !important;
+  }
+
+  .site-header-top {
+    position: static !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.75rem 1rem 0.45rem !important;
+  }
+
+  .site-header .header-search {
+    display: none !important;
+  }
+
+  .site-header .install-button,
+  .site-header .login-link {
+    display: none !important;
+  }
+
+  .site-header-bottom {
+    position: static !important;
+    padding: 0.25rem 1rem 0.65rem !important;
+  }
+
+  .site-header .nav-links {
+    display: flex !important;
+    gap: 0.85rem !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+
+  .site-header .nav-links::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .site-header .nav-links a {
+    flex: 0 0 auto !important;
+    font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header .header-actions .install-button,
+  .site-header .header-actions .login-link,
+  .site-header .header-actions a[href="/install"],
+  .site-header .header-actions a[href="/auth/sign-in"] {
+    display: none !important;
+  }
+
+  .site-header .header-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0b0b0b;
+    display: flex;
+    justify-content: space-around;
+    padding: 0.4rem 0 0.2rem;
+    z-index: 9999;
+  }
+
+  .mobile-nav a {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mobile-nav a.active {
+    color: #7c8cff;
+  }
+
+  .mobile-nav span {
+    font-size: 0.65rem;
+    margin-top: 2px;
+  }
+
+  .post-button {
+    color: white !important;
+    font-weight: bold;
+  }
+
+  /* prevent content being hidden */
+  body {
+    padding-bottom: 70px;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero-card {
+    padding: 2rem 1.25rem;
+    border-radius: 24px;
+  }
+
+  .hero-title,
+  .hero h1,
+  .hero-card h1 {
+    font-size: clamp(2.4rem, 11vw, 3.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-copy,
+  .hero p,
+  .hero-card p {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .hero-search,
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .hero-search .button,
+  .hero-actions .button {
+    width: 100%;
+  }
+}
