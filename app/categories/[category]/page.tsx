@@ -41,22 +41,25 @@ export default async function CategoryPage({
   params,
   searchParams
 }: {
-  params: { category: string };
-  searchParams?: Record<string, string | string[] | undefined>;
+  params: Promise<{ category: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { category: categoryParam } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
   const category = resolveCategory(categoryParam);
 
   if (!category) {
     notFound();
   }
 
-  const search = getSingleParam(searchParams?.q);
+  const search = getSingleParam(resolvedSearchParams?.q);
+  const minPrice = Number(getSingleParam(resolvedSearchParams?.minPrice)) || null;
+  const maxPrice = Number(getSingleParam(resolvedSearchParams?.maxPrice)) || null;
+  const sort = getSingleParam(resolvedSearchParams?.sort);
+  const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
+
   const categoryInfo = CATEGORY_MAP[category];
-  const minPrice = Number(getSingleParam(searchParams?.minPrice)) || null;
-  const maxPrice = Number(getSingleParam(searchParams?.maxPrice)) || null;
-  const sort = getSingleParam(searchParams?.sort);
-  const subcategory = getSingleParam(searchParams?.subcategory);
 
   const { listings, isConfigured } = await getPublicListings({
     category,
@@ -77,7 +80,16 @@ export default async function CategoryPage({
           description={categoryInfo.description}
         />
 
-        <BrowseFilters actionPath={categoryInfo.href} search={search} showCategorySelect={false} />
+        <BrowseFilters
+          actionPath={categoryInfo.href}
+          search={search}
+          category={category}
+          subcategory={subcategory}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort}
+          showCategorySelect={false}
+        />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
           {listings.length} results found
@@ -87,6 +99,7 @@ export default async function CategoryPage({
           <Link className="pill-link" href="/browse">
             All listings
           </Link>
+
           {CATEGORIES.map((item) => (
             <Link className="pill-link" href={item.href} key={item.value}>
               {item.label}
@@ -114,4 +127,3 @@ export default async function CategoryPage({
     </section>
   );
 }
-
