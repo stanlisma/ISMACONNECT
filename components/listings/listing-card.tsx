@@ -24,8 +24,8 @@ function formatTimeAgo(dateString: string) {
 
   if (diffMinutes < 1) return "Just now";
   if (diffMinutes < 60) return `${diffMinutes} min ago`;
-  if (diffHours < 24) return `${diffHours} hr ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
 
   return date.toLocaleDateString("en-CA", {
     month: "short",
@@ -149,14 +149,19 @@ export function ListingCard({
             <h3 className="listing-title">{listing.title}</h3>
           </Link>
           <span className="listing-price">{formatCurrency(listing.price)}</span>
+          {views > 10 && (
+            <span className="listing-urgency">🔥 Popular</span>
+          )}
         </div>
 
         <p className="listing-description">{excerpt(listing.description)}</p>
 
         <div className="listing-card-signals">
-          <span>📍 {listing.location}</span>
+          <span className="listing-location">
+            📍 {listing.location.split(",")[0]}
+          </span>
           <span>🕒 {formatTimeAgo(listing.created_at)}</span>
-          <span>👀 {views}</span>
+          {views > 0 ? <span>👀 {views}</span> : null}
         </div>
       </div>
     </article>
