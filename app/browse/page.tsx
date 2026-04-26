@@ -64,6 +64,9 @@ export default async function BrowsePage({
           category={category}
           subcategory={subcategory}
           search={search}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort}
         />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
