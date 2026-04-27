@@ -15,7 +15,11 @@ export function SignOutButton() {
   }
 
   return (
-    <button className="account-menu-item account-menu-signout" type="button" onClick={handleSignOut}>
+    <button
+      className="account-menu-item account-menu-signout"
+      type="button"
+      onClick={handleSignOut}
+    >
       🚪 Sign Out
     </button>
   );
