@@ -1789,3 +1789,9 @@ code {
     padding-bottom: 5.5rem !important;
   }
 }
+
+@media (max-width: 760px) {
+  .listing-media-gallery {
+    touch-action: pan-y;
+  }
+}

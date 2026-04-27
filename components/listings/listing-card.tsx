@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { getSubcategoryLabel } from "@/lib/subcategories";
@@ -55,6 +55,32 @@ export function ListingCard({
         : [];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+  function handleTouchStart(event: React.TouchEvent) {
+    touchStartX.current = event.touches[0].clientX;
+  }
+
+  function handleTouchMove(event: React.TouchEvent) {
+    touchEndX.current = event.touches[0].clientX;
+  }
+
+  function handleTouchEnd(event: React.TouchEvent) {
+    if (images.length <= 1) return;
+
+    const swipeDistance = touchStartX.current - touchEndX.current;
+
+    if (swipeDistance > 40) {
+      event.preventDefault();
+      setActiveImageIndex((current) => (current + 1) % images.length);
+    }
+
+    if (swipeDistance < -40) {
+      event.preventDefault();
+      setActiveImageIndex((current) => (current - 1 + images.length) % images.length);
+    }
+  }
 
   const rawViews = (listing as any).views;
   const parsedViews =
@@ -92,7 +118,12 @@ export function ListingCard({
 
   return (
     <article className="listing-card listing-card-clickable" onClick={goToListing}>
-      <div className="listing-media listing-media-gallery">
+      <div
+        className="listing-media listing-media-gallery"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {images.length > 0 ? (
           <Link
             href={`/listings/${listing.slug}`}
