@@ -1795,3 +1795,27 @@ code {
     touch-action: pan-y;
   }
 }
+
+.account-menu {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.account-menu-item {
+  display: block;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.account-menu-signout {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: #b42318;
+}
