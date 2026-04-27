@@ -1724,3 +1724,68 @@ code {
     overflow-x: auto;
   }
 }
+
+/* FINAL MOBILE PAGE FIX */
+@media (max-width: 760px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  main,
+  .section,
+  .container {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .section {
+    padding: 1.25rem 1rem 5.5rem !important;
+  }
+
+  .container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .section-heading,
+  .section-header {
+    max-width: 100%;
+  }
+
+  .section-heading h1,
+  .section-header h1,
+  h1 {
+    font-size: 2.15rem !important;
+    line-height: 1.1 !important;
+    margin-bottom: 1rem;
+  }
+
+  .section-heading p,
+  .section-header p,
+  .section p {
+    font-size: 1rem !important;
+    line-height: 1.45 !important;
+    max-width: 100%;
+  }
+
+  .empty-state,
+  .surface {
+    padding: 1rem !important;
+    border-radius: 18px !important;
+  }
+
+  .empty-state h2,
+  .empty-state h3,
+  h2 {
+    font-size: 1.45rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .empty-state p {
+    font-size: 0.95rem !important;
+  }
+
+  footer {
+    padding-bottom: 5.5rem !important;
+  }
+}
