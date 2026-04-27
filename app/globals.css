@@ -1669,3 +1669,58 @@ code {
     z-index: 9999;
   }
 }
+
+@media (max-width: 760px) {
+  .section {
+    padding-top: 1rem;
+  }
+
+  .section .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .section h1,
+  .section-heading h1,
+  .section-heading-title {
+    font-size: 2rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .section p,
+  .section-heading p,
+  .section-heading-description {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .empty-state,
+  .surface {
+    padding: 1rem !important;
+    border-radius: 18px;
+  }
+
+  .empty-state h2,
+  .empty-state h3 {
+    font-size: 1.35rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .empty-state p {
+    font-size: 0.95rem !important;
+  }
+
+  footer {
+    padding-bottom: 5rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    position: static !important;
+  }
+
+  .site-header-bottom {
+    overflow-x: auto;
+  }
+}
