@@ -20,7 +20,7 @@ export default async function AccountPage() {
               🏷️ My Listings
             </Link>
 
-            <Link href="/saved" className="account-menu-item">
+            <Link href="/dashboard/saved" className="account-menu-item">
               ❤️ Saved Listings
             </Link>
 
