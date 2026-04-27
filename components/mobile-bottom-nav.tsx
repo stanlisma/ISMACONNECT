@@ -30,7 +30,7 @@ export function MobileBottomNav() {
       <span>Listings</span>
     </Link>
 
-    <Link href="/saved" className={pathname === "/saved" ? "active" : ""}>
+    <Link href="/dashboard/saved" className={isActive("/dashboard/saved") ? "active" : ""}>
       ❤️
       <span>Saved</span>
     </Link>
