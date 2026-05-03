@@ -1,6 +1,8 @@
 "use client";
 
+import { Bell, MessageCircle, Plus, Search } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import InstallButton from "@/components/install-button";
 import "./site-header.css";
 
@@ -17,24 +19,41 @@ interface SiteHeaderProps {
   unreadNotificationsCount: number;
 }
 
+function formatBadgeCount(count: number) {
+  if (count > 99) {
+    return "99+";
+  }
+
+  return String(count);
+}
+
 export function SiteHeader({
   viewer,
   unreadMessagesCount,
   unreadNotificationsCount,
 }: SiteHeaderProps) {
+  const pathname = usePathname();
+  const usePageLevelBrowseSearch =
+    pathname === "/browse" || pathname.startsWith("/categories/");
+
   return (
     <header className="site-header">
       <div className="header-inner">
-
         <div className="header-top">
-          <Link href="/" className="brand">
+          <Link href="/" className="brand" aria-label="ISMACONNECT home">
             <img src="/logo/logo-light.svg" alt="ISMACONNECT" />
           </Link>
 
-          <form action="/browse" className="header-search">
-            <input name="q" placeholder="What are you looking for?" />
+          <form
+            action="/browse"
+            className={`header-search market-header-search${usePageLevelBrowseSearch ? " market-header-search-hidden-mobile" : ""}`}
+          >
+            <label className="header-search-field">
+              <Search aria-hidden="true" className="header-search-icon" strokeWidth={2.2} />
+              <input name="q" placeholder="Search Fort McMurray listings" aria-label="Search listings" />
+            </label>
 
-            <select name="category" defaultValue="">
+            <select name="category" defaultValue="" className="header-search-select" aria-label="Choose a category">
               <option value="">All categories</option>
               <option value="rentals">Rentals</option>
               <option value="ride-share">Ride Share</option>
@@ -43,37 +62,55 @@ export function SiteHeader({
               <option value="buy-sell">Buy & Sell</option>
             </select>
 
-            <button type="submit">Search</button>
+            <button type="submit" className="header-search-submit" aria-label="Search">
+              <Search aria-hidden="true" className="header-search-submit-icon" strokeWidth={2.4} />
+              <span>Search</span>
+            </button>
           </form>
 
-          <div className="header-actions">
+          <div className="header-actions market-header-actions">
             <InstallButton />
 
             {viewer ? (
               <>
-                <Link href="/messages" className="icon-link">💬</Link>
-                <Link href="/notifications" className="icon-link">🔔</Link>
-                <Link href="/dashboard/listings/new" className="post-btn">
-                  Post
+                <Link href="/messages" className="icon-link header-utility-link" aria-label="Messages">
+                  <MessageCircle aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
+                  {unreadMessagesCount > 0 ? (
+                    <span className="header-action-badge">{formatBadgeCount(unreadMessagesCount)}</span>
+                  ) : null}
+                </Link>
+
+                <Link href="/notifications" className="icon-link header-utility-link" aria-label="Notifications">
+                  <Bell aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
+                  {unreadNotificationsCount > 0 ? (
+                    <span className="header-action-badge">{formatBadgeCount(unreadNotificationsCount)}</span>
+                  ) : null}
+                </Link>
+
+                <Link href="/dashboard/listings/new" className="post-btn post-btn-market">
+                  <Plus aria-hidden="true" className="post-btn-icon" strokeWidth={2.6} />
+                  <span>Post</span>
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/auth/sign-in" className="plain-link">Login</Link>
-                <Link href="/auth/sign-up" className="post-btn">Sign Up</Link>
+                <Link href="/auth/sign-in" className="plain-link header-auth-link">Sign in</Link>
+                <Link href="/auth/sign-up" className="post-btn post-btn-market">Sign Up</Link>
               </>
             )}
           </div>
         </div>
 
-        <div className="header-bottom">
-          <nav className="main-nav">
+        <div
+          className={`header-bottom market-header-bottom${usePageLevelBrowseSearch ? " market-header-bottom-hidden-mobile" : ""}`}
+        >
+          <nav className="main-nav market-main-nav">
 
-            <Link href="/browse">Browse</Link>
+            <Link href="/browse" className="market-nav-link market-nav-link-all">Browse</Link>
 
             {/* RENTALS */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=rentals">Rentals</Link>
+              <Link href="/browse?category=rentals" className="market-nav-link">Rentals</Link>
               <div className="nav-dropdown-menu">
                 <a href="/browse?category=rentals&subcategory=apartments">Apartments</a>
                 <a href="/browse?category=rentals&subcategory=rooms-for-rent">Rooms for Rent</a>
@@ -86,7 +123,7 @@ export function SiteHeader({
 
             {/* RIDE SHARE */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=ride-share">Ride Share</Link>
+              <Link href="/browse?category=ride-share" className="market-nav-link">Ride Share</Link>
               <div className="nav-dropdown-menu">
                 <a href="/browse?category=ride-share&subcategory=daily-commute">Daily Commute</a>
                 <a href="/browse?category=ride-share&subcategory=camp-rides">Camp Rides</a>
@@ -99,7 +136,7 @@ export function SiteHeader({
 
             {/* JOBS */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=jobs">Jobs</Link>
+              <Link href="/browse?category=jobs" className="market-nav-link">Jobs</Link>
               <div className="nav-dropdown-menu">
                 <a href="/browse?category=jobs&subcategory=full-time">Full-Time</a>
                 <a href="/browse?category=jobs&subcategory=part-time">Part-Time</a>
@@ -112,7 +149,7 @@ export function SiteHeader({
 
             {/* SERVICES */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=services">Services</Link>
+              <Link href="/browse?category=services" className="market-nav-link">Services</Link>
               <div className="nav-dropdown-menu">
                 <a href="/browse?category=services&subcategory=cleaning">Cleaning</a>
                 <a href="/browse?category=services&subcategory=moving">Moving</a>
@@ -126,7 +163,7 @@ export function SiteHeader({
 
             {/* BUY & SELL */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=buy-sell">Buy & Sell</Link>
+              <Link href="/browse?category=buy-sell" className="market-nav-link">Buy & Sell</Link>
               <div className="nav-dropdown-menu">
                 <a href="/browse?category=buy-sell&subcategory=furniture">Furniture</a>
                 <a href="/browse?category=buy-sell&subcategory=electronics">Electronics</a>
