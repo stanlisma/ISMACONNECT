@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 
+import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
@@ -56,6 +57,17 @@ export default async function HomePage() {
 
             <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
+          <div className="home-mobile-browse-controls">
+            <BrowseFilters
+              actionPath="/browse"
+              category={undefined}
+              subcategory={undefined}
+              search={undefined}
+              minPrice={undefined}
+              maxPrice={undefined}
+              sort={undefined}
+            />
+          </div>
 
           <h2 style={{ marginBottom: "1rem" }}>
             Latest Listings
