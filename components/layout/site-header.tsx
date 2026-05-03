@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, MessageCircle, Plus, Search } from "lucide-react";
+import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import InstallButton from "@/components/install-button";
 import "./site-header.css";
@@ -68,7 +68,11 @@ export function SiteHeader({
 
             {viewer ? (
               <>
-                <Link href="/messages" className="icon-link header-utility-link" aria-label="Messages">
+                <Link
+                  href="/messages"
+                  className="icon-link header-utility-link header-messages-link"
+                  aria-label="Messages"
+                >
                   <MessageCircle aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
                   {unreadMessagesCount > 0 ? (
                     <span className="header-action-badge">{formatBadgeCount(unreadMessagesCount)}</span>
@@ -80,6 +84,10 @@ export function SiteHeader({
                   {unreadNotificationsCount > 0 ? (
                     <span className="header-action-badge">{formatBadgeCount(unreadNotificationsCount)}</span>
                   ) : null}
+                </Link>
+
+                <Link href="/account" className="icon-link header-utility-link header-account-link" aria-label="Account">
+                  <User aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
                 </Link>
 
                 <Link href="/dashboard/listings/new" className="post-btn post-btn-market">

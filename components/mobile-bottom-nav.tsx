@@ -1,6 +1,6 @@
 "use client";
 
-import { List, MessageCircle, PlusCircle, Search, User } from "lucide-react";
+import { Heart, List, MessageCircle, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -34,9 +34,9 @@ export function MobileBottomNav() {
         <span>Listings</span>
       </Link>
 
-      <Link href="/account" className={isActive("/account") ? "active" : ""}>
-        <User aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
-        <span>Account</span>
+      <Link href="/dashboard/saved" className={isActive("/dashboard/saved") ? "active" : ""}>
+        <Heart aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
+        <span>Favourites</span>
       </Link>
     </nav>
   );

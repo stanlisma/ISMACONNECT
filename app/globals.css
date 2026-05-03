@@ -769,6 +769,10 @@ code {
   transform: translateY(-1px);
 }
 
+.mobile-listing-save {
+  display: none;
+}
+
 .badge-subcategory {
   background: #eef4ff;
   color: #1d4ed8;
@@ -1289,6 +1293,23 @@ code {
 
   .listing-card-badges {
     display: none;
+  }
+
+  .mobile-listing-save {
+    display: block;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 8;
+  }
+
+  .mobile-listing-save .save-listing-button {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.96);
+    color: #d9465f;
+    box-shadow: 0 8px 18px rgba(15, 54, 91, 0.18);
   }
 
   .mobile-marketplace-badge {

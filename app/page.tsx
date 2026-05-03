@@ -5,11 +5,12 @@ import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
-import { getHomepageData } from "@/lib/data";
+import { getHomepageData, getSavedListingIds } from "@/lib/data";
 
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, featuredListings, isConfigured } = await getHomepageData();
+  const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const homepageListings =
     featuredListings.length > 0 ? featuredListings.concat(latestListings).slice(0, 8) : latestListings;
 
@@ -78,7 +79,13 @@ export default async function HomePage() {
           ) : latestListings.length > 0 ? (
             <div className="listing-grid listing-feed-grid">
               {latestListings.slice(0, 8).map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isSaved={savedIds.has(listing.id)}
+                  canSave
+                  pathToRevalidate="/"
+                />
               ))}
             </div>
           ) : (
