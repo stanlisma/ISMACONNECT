@@ -1,38 +1,250 @@
+import {
+  Bell,
+  ChevronRight,
+  Heart,
+  ListChecks,
+  Mail,
+  MessageCircle,
+  ShieldCheck,
+  UserCircle2
+} from "lucide-react";
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { requireViewer } from "@/lib/auth";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+function getInitials(name: string, email?: string) {
+  const source = name.trim() || email?.trim() || "IS";
+  const parts = source.split(/\s+/).filter(Boolean);
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
 
 export default async function AccountPage() {
   const viewer = await requireViewer();
+  const supabase = await createServerSupabaseClient();
+
+  const [listingsCountResult, favouritesCountResult, conversationsResult, notificationsResult, profileSettingsResult] =
+    await Promise.all([
+      supabase
+        .from("listings")
+        .select("*", { count: "exact", head: true })
+        .eq("owner_id", viewer.user.id),
+      supabase
+        .from("saved_listings")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", viewer.user.id),
+      supabase
+        .from("conversations")
+        .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
+        .or(`buyer_id.eq.${viewer.user.id},seller_id.eq.${viewer.user.id}`),
+      supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", viewer.user.id)
+        .eq("is_read", false),
+      supabase
+        .from("profiles")
+        .select("email_notifications")
+        .eq("id", viewer.user.id)
+        .single()
+    ]);
+
+  const conversations = (conversationsResult.data ?? []) as Array<{
+    buyer_id: string;
+    seller_id: string;
+    buyer_unread_count: number | null;
+    seller_unread_count: number | null;
+  }>;
+
+  const listingsCount = listingsCountResult.count ?? 0;
+  const favouritesCount = favouritesCountResult.count ?? 0;
+  const unreadMessagesCount = conversations.reduce((total, conversation) => {
+    if (conversation.buyer_id === viewer.user.id) {
+      return total + (conversation.buyer_unread_count ?? 0);
+    }
+
+    if (conversation.seller_id === viewer.user.id) {
+      return total + (conversation.seller_unread_count ?? 0);
+    }
+
+    return total;
+  }, 0);
+  const unreadNotificationsCount = notificationsResult.count ?? 0;
+
+  const fullName = viewer.profile.full_name || "ISMACONNECT Member";
+  const email = viewer.user.email || "No email available";
+  const initials = getInitials(fullName, viewer.user.email);
+  const emailNotificationsEnabled = profileSettingsResult.data?.email_notifications !== false;
 
   return (
-    <section className="section">
-      <div className="container" style={{ maxWidth: "720px" }}>
-        <div className="surface">
-          <h1 className="section-title">Account</h1>
-          <p className="section-copy">
-            Welcome, {viewer.profile.full_name || viewer.user.email}
-          </p>
+    <section className="section account-page">
+      <div className="container account-page-container">
+        <div className="account-shell">
+          <div className="account-profile-card">
+            <div className="account-profile-top">
+              <div className="account-avatar" aria-hidden="true">
+                {initials}
+              </div>
 
-          <div className="account-menu">
-            <Link href="/dashboard" className="account-menu-item">
-              🏷️ My Listings
-            </Link>
+              <div className="account-profile-copy">
+                <span className="account-eyebrow">
+                  {viewer.profile.role === "admin" ? "Admin Account" : "Member Account"}
+                </span>
+                <h1 className="section-title">Account</h1>
+                <p className="account-name">{fullName}</p>
+                <p className="section-copy account-email">{email}</p>
+              </div>
+            </div>
 
-            <Link href="/dashboard/saved" className="account-menu-item">
-              Favourites
-            </Link>
+            <div className="account-stats-grid">
+              <div className="account-stat-card">
+                <span className="account-stat-label">My Listings</span>
+                <strong>{listingsCount}</strong>
+              </div>
 
-            <Link href="/messages" className="account-menu-item">
-              💬 Messages
-            </Link>
+              <div className="account-stat-card">
+                <span className="account-stat-label">Favourites</span>
+                <strong>{favouritesCount}</strong>
+              </div>
 
-            <Link href="/settings" className="account-menu-item">
-              ✉️ Email Notifications
-            </Link>
+              <div className="account-stat-card">
+                <span className="account-stat-label">Unread</span>
+                <strong>{unreadMessagesCount + unreadNotificationsCount}</strong>
+              </div>
+            </div>
+          </div>
 
-            <SignOutButton />
+          <div className="surface account-section-card">
+            <div className="account-section-heading">
+              <span className="account-section-title">My Activity</span>
+            </div>
+
+            <div className="account-menu">
+              <Link href="/dashboard" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <ListChecks aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">My Listings</span>
+                  <span className="account-menu-description">Manage your active and past posts</span>
+                </span>
+                <span className="account-menu-meta">
+                  <span className="account-menu-count">{listingsCount}</span>
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/dashboard/saved" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <Heart aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Favourites</span>
+                  <span className="account-menu-description">Return to saved listings quickly</span>
+                </span>
+                <span className="account-menu-meta">
+                  <span className="account-menu-count">{favouritesCount}</span>
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/messages" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <MessageCircle aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Messages</span>
+                  <span className="account-menu-description">Chat with buyers, renters, and sellers</span>
+                </span>
+                <span className="account-menu-meta">
+                  {unreadMessagesCount > 0 ? (
+                    <span className="account-menu-badge">{unreadMessagesCount}</span>
+                  ) : null}
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/notifications" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <Bell aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Notifications</span>
+                  <span className="account-menu-description">Review updates and activity alerts</span>
+                </span>
+                <span className="account-menu-meta">
+                  {unreadNotificationsCount > 0 ? (
+                    <span className="account-menu-badge">{unreadNotificationsCount}</span>
+                  ) : null}
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="surface account-section-card">
+            <div className="account-section-heading">
+              <span className="account-section-title">Preferences</span>
+            </div>
+
+            <div className="account-menu">
+              <Link href="/settings" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <Mail aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Email Notifications</span>
+                  <span className="account-menu-description">
+                    {emailNotificationsEnabled ? "Enabled for new replies and updates" : "Currently paused"}
+                  </span>
+                </span>
+                <span className="account-menu-meta">
+                  <span
+                    className={`account-menu-pill ${
+                      emailNotificationsEnabled ? "is-success" : "is-muted"
+                    }`}
+                  >
+                    {emailNotificationsEnabled ? "On" : "Off"}
+                  </span>
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/settings" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Account Settings</span>
+                  <span className="account-menu-description">Manage preferences and account controls</span>
+                </span>
+                <span className="account-menu-meta">
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="account-signout-card">
+            <div className="account-signout-copy">
+              <span className="account-menu-icon account-menu-icon-danger">
+                <UserCircle2 aria-hidden="true" size={18} strokeWidth={2.2} />
+              </span>
+              <div>
+                <strong>Signed in on this device</strong>
+                <p className="section-copy">Use sign out when you are finished using your account.</p>
+              </div>
+            </div>
+
+            <SignOutButton className="account-signout-button">
+              Sign Out
+            </SignOutButton>
           </div>
         </div>
       </div>

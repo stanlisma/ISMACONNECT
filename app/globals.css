@@ -1833,28 +1833,343 @@ code {
   }
 }
 
+.account-page {
+  padding-bottom: 4rem;
+}
+
+.account-page-container {
+  max-width: 760px !important;
+}
+
+.account-shell {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.account-profile-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 111, 214, 0.12), transparent 36%),
+    linear-gradient(180deg, #ffffff, #f8fbff);
+  box-shadow: var(--shadow);
+}
+
+.account-profile-top {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.account-avatar {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 1.35rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  box-shadow: 0 16px 28px rgba(0, 84, 168, 0.24);
+}
+
+.account-profile-copy {
+  min-width: 0;
+}
+
+.account-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(0, 111, 214, 0.1);
+  color: var(--primary-dark);
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.account-profile-copy .section-title {
+  margin: 0.6rem 0 0.2rem;
+}
+
+.account-name {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.account-email {
+  margin-top: 0.15rem;
+  word-break: break-word;
+}
+
+.account-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.account-stat-card {
+  padding: 0.95rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(168, 200, 242, 0.6);
+}
+
+.account-stat-card strong {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--text);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.account-stat-label {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.account-section-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.account-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.account-section-title {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .account-menu {
   display: grid;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .account-menu-item {
-  display: block;
-  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1rem 1rem 0.95rem;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: white;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
   color: var(--text);
   font-weight: 700;
   text-decoration: none;
+  box-shadow: 0 12px 24px rgba(15, 54, 91, 0.06);
+}
+
+.account-menu-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff, #eef5ff);
+  border: 1px solid rgba(168, 200, 242, 0.55);
+  color: var(--primary-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.account-menu-icon-danger {
+  color: #b42318;
+  background: #fff4f2;
+  border-color: rgba(180, 35, 24, 0.14);
+}
+
+.account-menu-content {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.account-menu-label {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.account-menu-description {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.account-menu-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #8aa0c0;
+  flex-shrink: 0;
+}
+
+.account-menu-count,
+.account-menu-badge,
+.account-menu-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.65rem;
+  height: 1.65rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.account-menu-count {
+  background: #edf4ff;
+  color: var(--primary-dark);
+}
+
+.account-menu-badge {
+  background: #ffe4e8;
+  color: #c81e4a;
+}
+
+.account-menu-pill {
+  min-width: 2.2rem;
+}
+
+.account-menu-pill.is-success {
+  background: #e8fbf2;
+  color: #0a8b5d;
+}
+
+.account-menu-pill.is-muted {
+  background: #eef2f7;
+  color: #667085;
+}
+
+.account-signout-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(180, 35, 24, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffefe, #fff6f5);
+}
+
+.account-signout-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.account-signout-copy strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.account-signout-copy .section-copy {
+  margin: 0;
+}
+
+.account-signout-button {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid rgba(180, 35, 24, 0.16);
+  border-radius: 16px;
+  background: #ffffff;
+  color: #b42318;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: none;
 }
 
 .account-menu-signout {
   width: 100%;
-  text-align: left;
   cursor: pointer;
   color: #b42318;
+}
+
+.account-menu-item:hover,
+.account-signout-button:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+  .account-page {
+    padding-top: 0.85rem !important;
+    padding-bottom: 6rem !important;
+  }
+
+  .account-shell {
+    gap: 0.9rem;
+  }
+
+  .account-profile-card {
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .account-profile-top {
+    align-items: flex-start;
+  }
+
+  .account-avatar {
+    width: 3.65rem;
+    height: 3.65rem;
+    border-radius: 1.1rem;
+    font-size: 1.08rem;
+  }
+
+  .account-stats-grid {
+    gap: 0.55rem;
+  }
+
+  .account-stat-card {
+    padding: 0.8rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .account-stat-card strong {
+    font-size: 1.15rem;
+  }
+
+  .account-menu {
+    gap: 0.65rem;
+  }
+
+  .account-menu-item {
+    padding: 0.9rem 0.9rem 0.9rem 0.85rem;
+    border-radius: 16px;
+  }
+
+  .account-menu-icon {
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 13px;
+  }
+
+  .account-menu-label {
+    font-size: 0.96rem;
+  }
+
+  .account-menu-description {
+    font-size: 0.84rem;
+  }
 }
 
 /* REMOVE FIRST HERO SECTION ON MOBILE */
