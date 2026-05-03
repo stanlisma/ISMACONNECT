@@ -3,12 +3,14 @@ import Link from "next/link";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
+import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
+import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -48,6 +50,26 @@ export default async function BrowsePage({
   const viewer = await getViewer();
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
+  const savedSearch = viewer
+    ? await getSavedSearchByFilters(viewer.user.id, {
+        path: "/browse",
+        search,
+        category,
+        subcategory,
+        minPrice,
+        maxPrice,
+        sort
+      })
+    : null;
+  const returnTo = buildSavedSearchHref({
+    path: "/browse",
+    search,
+    category,
+    subcategory,
+    minPrice,
+    maxPrice,
+    sort
+  });
 
   const categoryLabel = category
     ? CATEGORIES.find((item) => item.value === category)?.label
@@ -70,6 +92,19 @@ export default async function BrowsePage({
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort}
+        />
+
+        <SaveSearchToggle
+          viewerId={viewer?.user.id}
+          actionPath="/browse"
+          returnTo={returnTo}
+          search={search}
+          category={category}
+          subcategory={subcategory}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort}
+          isSaved={Boolean(savedSearch)}
         />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>

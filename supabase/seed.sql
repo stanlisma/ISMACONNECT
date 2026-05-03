@@ -281,5 +281,52 @@ from public.listings
 where slug = 'advance-cash-rent-deposit-guarantee'
 on conflict (listing_id, reporter_id) do nothing;
 
-drop function if exists public.create_seed_user(uuid, text, text, text);
+insert into public.saved_searches (
+  user_id,
+  path,
+  search_query,
+  category,
+  subcategory,
+  min_price,
+  max_price,
+  sort,
+  signature,
+  last_checked_at
+)
+values
+  (
+    '22222222-2222-4222-8222-222222222222',
+    '/categories/rentals',
+    'room',
+    'rentals',
+    null,
+    null,
+    1300,
+    null,
+    '{"path":"/categories/rentals","search":"room","category":"rentals","subcategory":null,"minPrice":null,"maxPrice":1300,"sort":null}',
+    now() - interval '2 days'
+  ),
+  (
+    '33333333-3333-4333-8333-333333333333',
+    '/browse',
+    null,
+    'buy-sell',
+    'tools-equipment',
+    50,
+    500,
+    'price_asc',
+    '{"path":"/browse","search":null,"category":"buy-sell","subcategory":"tools-equipment","minPrice":50,"maxPrice":500,"sort":"price_asc"}',
+    now() - interval '1 day'
+  )
+on conflict (user_id, signature) do update
+set
+  path = excluded.path,
+  search_query = excluded.search_query,
+  category = excluded.category,
+  subcategory = excluded.subcategory,
+  min_price = excluded.min_price,
+  max_price = excluded.max_price,
+  sort = excluded.sort,
+  last_checked_at = excluded.last_checked_at;
 
+drop function if exists public.create_seed_user(uuid, text, text, text);

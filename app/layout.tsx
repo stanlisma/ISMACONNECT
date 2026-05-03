@@ -6,6 +6,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
+import { getSavedSearchAlertCount } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 import "./globals.css";
@@ -19,13 +20,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   if (viewer) {
     const supabase = await createServerSupabaseClient();
 
-    const { data: conversations } = await supabase
-      .from("conversations")
-      .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
-      .or(`buyer_id.eq.${viewer.user.id},seller_id.eq.${viewer.user.id}`);
+    const [conversationsResult, notificationsResult, unreadSavedSearchAlertsCount] = await Promise.all([
+      supabase
+        .from("conversations")
+        .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
+        .or(`buyer_id.eq.${viewer.user.id},seller_id.eq.${viewer.user.id}`),
+      supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", viewer.user.id)
+        .eq("is_read", false),
+      getSavedSearchAlertCount(viewer.user.id)
+    ]);
 
     unreadMessagesCount =
-      conversations?.reduce((total: number, convo: any) => {
+      conversationsResult.data?.reduce((total: number, convo: any) => {
         if (convo.buyer_id === viewer.user.id) {
           return total + (convo.buyer_unread_count ?? 0);
         }
@@ -37,13 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         return total;
       }, 0) ?? 0;
 
-    const { count } = await supabase
-      .from("notifications")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", viewer.user.id)
-      .eq("is_read", false);
-
-    unreadNotificationsCount = count ?? 0;
+    unreadNotificationsCount = (notificationsResult.count ?? 0) + unreadSavedSearchAlertsCount;
   }
 
   return (
