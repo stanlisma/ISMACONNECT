@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
+import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
+import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -67,6 +69,26 @@ export default async function CategoryPage({
   const categoryInfo = CATEGORY_MAP[category];
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
+  const savedSearch = viewer
+    ? await getSavedSearchByFilters(viewer.user.id, {
+        path: categoryInfo.href,
+        search,
+        category,
+        subcategory,
+        minPrice,
+        maxPrice,
+        sort
+      })
+    : null;
+  const returnTo = buildSavedSearchHref({
+    path: categoryInfo.href,
+    search,
+    category,
+    subcategory,
+    minPrice,
+    maxPrice,
+    sort
+  });
 
   const { listings, isConfigured } = await getPublicListings({
     category,
@@ -96,6 +118,19 @@ export default async function CategoryPage({
           maxPrice={maxPrice}
           sort={sort}
           showCategorySelect={false}
+        />
+
+        <SaveSearchToggle
+          viewerId={viewer?.user.id}
+          actionPath={categoryInfo.href}
+          returnTo={returnTo}
+          search={search}
+          category={category}
+          subcategory={subcategory}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort}
+          isSaved={Boolean(savedSearch)}
         />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>

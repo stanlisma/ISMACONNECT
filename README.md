@@ -9,6 +9,7 @@ Production-ready marketplace MVP for Fort McMurray built with the Next.js App Ro
 - Supabase Postgres schema with row-level security for profiles, listings, and listing flags
 - Public browse, search, category pages, and listing detail pages
 - Authenticated listing CRUD for marketplace members
+- Saved searches with in-app new-match alerts
 - Admin moderation flow for flagged listings
 - Seed data for local demo users and listings
 - SEO basics: metadata, `robots.ts`, `sitemap.ts`, category routes, listing slugs
@@ -45,6 +46,7 @@ lib/
   validation/
 supabase/
   migrations/202604210001_init.sql
+  migrations/202605030001_saved_searches.sql
   seed.sql
 types/
 ```
@@ -82,13 +84,14 @@ The Stripe variables are placeholders for future featured listings and are not r
 
 ### 4. Apply the database schema
 
-Run the SQL in `supabase/migrations/202604210001_init.sql` inside the Supabase SQL editor.
+Run the SQL in `supabase/migrations/202604210001_init.sql` and then `supabase/migrations/202605030001_saved_searches.sql` inside the Supabase SQL editor.
 
 This creates:
 
 - `profiles`
 - `listings`
 - `listing_flags`
+- `saved_searches`
 - RLS policies for public browsing, owner CRUD, and admin moderation
 - search and moderation triggers
 
@@ -103,6 +106,7 @@ It creates three local demo users:
 - `devin@ismaconnect.local` / `Password123!`
 
 The seed includes live listings across all five categories plus one flagged listing for the admin moderation queue.
+It also seeds a couple of saved-search examples so alerts can be tested right away.
 
 ### 6. Start the app
 
@@ -126,6 +130,8 @@ Open [http://localhost:3000](http://localhost:3000).
 - Create an account at `/auth/sign-up`
 - Publish new listings from `/dashboard/listings/new`
 - Edit or delete their own listings from `/dashboard`
+- Save searches from `/browse` and category pages
+- Review saved-search alerts from `/dashboard/searches`
 - Flag suspicious listings from listing detail pages
 
 ### Admin users
@@ -162,6 +168,10 @@ Stores the marketplace content and includes:
 
 Tracks user-submitted reports and automatically updates listing moderation state through triggers.
 
+### `saved_searches`
+
+Stores saved browse or category filters for signed-in users and powers in-app alerts when new matching listings appear.
+
 ## Stripe preparation
 
 The MVP intentionally does not process payments yet, but it is prepared for featured listings through these columns on `public.listings`:
@@ -175,7 +185,7 @@ That means the future Stripe work can focus on checkout, webhook handling, and e
 ## Suggested next steps
 
 - Add image uploads with Supabase Storage
-- Add pagination and saved searches
+- Add pagination
 - Add Stripe Checkout for featured listing upgrades
 - Add email notifications for listing replies and moderation actions
 - Add analytics and structured event tracking

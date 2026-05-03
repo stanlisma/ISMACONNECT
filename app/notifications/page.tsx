@@ -1,10 +1,16 @@
+import {
+  OpenSavedSearchForm
+} from "@/components/saved-searches/saved-search-forms";
 import { markNotificationReadAction } from "@/lib/actions/notifications";
 import { requireViewer } from "@/lib/auth";
+import { getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function NotificationsPage() {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
+  const savedSearches = await getSavedSearchesWithStats(viewer.user.id);
+  const savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
 
   const { data: notifications } = await supabase
     .from("notifications")
@@ -18,6 +24,35 @@ export default async function NotificationsPage() {
         <h1 className="section-title">Notifications</h1>
 
         <div className="stack-md">
+          {savedSearchAlerts.length ? (
+            <div className="surface">
+              <h2 style={{ marginBottom: "0.5rem" }}>Saved search alerts</h2>
+              <p className="section-copy" style={{ marginBottom: "1rem" }}>
+                New listings have matched the searches you asked ISMACONNECT to keep an eye on.
+              </p>
+
+              <div className="stack-md">
+                {savedSearchAlerts.map((savedSearch) => (
+                  <article key={savedSearch.id} className="saved-search-alert-item">
+                    <div>
+                      <h3>{savedSearch.label}</h3>
+                      <p className="saved-search-description">{savedSearch.description}</p>
+                    </div>
+
+                    <div className="saved-search-alert-actions">
+                      <span className="saved-search-alert-badge">{savedSearch.newMatchesCount} new</span>
+                      <OpenSavedSearchForm
+                        href={savedSearch.href}
+                        savedSearchId={savedSearch.id}
+                        hasAlerts
+                      />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {notifications?.length ? (
             notifications.map((notification) => {
               const action = markNotificationReadAction.bind(
@@ -50,7 +85,7 @@ export default async function NotificationsPage() {
             })
           ) : (
             <div className="surface">
-              <p>No notifications yet.</p>
+              <p>{savedSearchAlerts.length ? "No message or account notifications yet." : "No notifications yet."}</p>
             </div>
           )}
         </div>

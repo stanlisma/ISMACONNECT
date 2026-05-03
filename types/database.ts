@@ -10,6 +10,7 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   role: AppRole;
+  email_notifications?: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,8 +56,23 @@ export interface FlaggedListing extends Listing {
   listing_flags: ListingFlag[];
 }
 
+export interface SavedSearch {
+  id: string;
+  user_id: string;
+  path: string;
+  search_query: string | null;
+  category: ListingCategory | null;
+  subcategory: string | null;
+  min_price: number | null;
+  max_price: number | null;
+  sort: string | null;
+  signature: string;
+  last_checked_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Viewer {
   user: User;
   profile: Profile;
 }
-

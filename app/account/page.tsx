@@ -5,6 +5,7 @@ import {
   ListChecks,
   Mail,
   MessageCircle,
+  Search,
   ShieldCheck,
   UserCircle2
 } from "lucide-react";
@@ -12,6 +13,7 @@ import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { requireViewer } from "@/lib/auth";
+import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function getInitials(name: string, email?: string) {
@@ -29,7 +31,14 @@ export default async function AccountPage() {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
 
-  const [listingsCountResult, favouritesCountResult, conversationsResult, notificationsResult, profileSettingsResult] =
+  const [
+    listingsCountResult,
+    favouritesCountResult,
+    conversationsResult,
+    notificationsResult,
+    profileSettingsResult,
+    savedSearches
+  ] =
     await Promise.all([
       supabase
         .from("listings")
@@ -52,7 +61,8 @@ export default async function AccountPage() {
         .from("profiles")
         .select("email_notifications")
         .eq("id", viewer.user.id)
-        .single()
+        .single(),
+      getSavedSearchesWithStats(viewer.user.id)
     ]);
 
   const conversations = (conversationsResult.data ?? []) as Array<{
@@ -64,6 +74,8 @@ export default async function AccountPage() {
 
   const listingsCount = listingsCountResult.count ?? 0;
   const favouritesCount = favouritesCountResult.count ?? 0;
+  const savedSearchesCount = savedSearches.length;
+  const searchAlertsCount = countSavedSearchAlerts(savedSearches);
   const unreadMessagesCount = conversations.reduce((total, conversation) => {
     if (conversation.buyer_id === viewer.user.id) {
       return total + (conversation.buyer_unread_count ?? 0);
@@ -115,7 +127,7 @@ export default async function AccountPage() {
 
               <div className="account-stat-card">
                 <span className="account-stat-label">Unread</span>
-                <strong>{unreadMessagesCount + unreadNotificationsCount}</strong>
+                <strong>{unreadMessagesCount + unreadNotificationsCount + searchAlertsCount}</strong>
               </div>
             </div>
           </div>
@@ -150,6 +162,24 @@ export default async function AccountPage() {
                 </span>
                 <span className="account-menu-meta">
                   <span className="account-menu-count">{favouritesCount}</span>
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/dashboard/searches" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Saved Searches</span>
+                  <span className="account-menu-description">Track search alerts for new matching listings</span>
+                </span>
+                <span className="account-menu-meta">
+                  {searchAlertsCount > 0 ? (
+                    <span className="account-menu-badge">{searchAlertsCount}</span>
+                  ) : (
+                    <span className="account-menu-count">{savedSearchesCount}</span>
+                  )}
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
