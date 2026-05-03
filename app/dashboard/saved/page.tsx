@@ -7,8 +7,8 @@ export default async function SavedListingsPage() {
   const listings = await getSavedListings(viewer.user.id);
 
   return (
-    <section className="section listing-feed-section">
-      <div className="container listing-feed-container">
+    <div className="listing-feed-section">
+      <div className="listing-feed-container">
         <div className="surface" style={{ marginBottom: "1rem" }}>
           <h2>Favourites</h2>
           <p className="section-copy">
@@ -34,6 +34,6 @@ export default async function SavedListingsPage() {
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
