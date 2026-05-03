@@ -15,8 +15,9 @@ export const metadata: Metadata = {
 export default async function SignInPage({
   searchParams
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const viewer = await getViewer();
 
   if (viewer) {
@@ -26,8 +27,8 @@ export default async function SignInPage({
   return (
     <section className="section">
       <div className="container">
-        <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
-        <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
           action={signInAction}
           description="Sign in to publish listings, update your posts, and manage flags from your dashboard."
@@ -38,4 +39,3 @@ export default async function SignInPage({
     </section>
   );
 }
-

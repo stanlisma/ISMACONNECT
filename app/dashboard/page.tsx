@@ -11,8 +11,9 @@ import { formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/
 export default async function DashboardPage({
   searchParams
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const viewer = await requireViewer();
   const listings = await getUserListings(viewer.user.id);
 
@@ -22,8 +23,8 @@ export default async function DashboardPage({
 
   return (
     <>
-      <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
-      <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+      <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
+      <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
       <div className="stats-grid">
         <div className="stat-card">

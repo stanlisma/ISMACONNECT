@@ -15,8 +15,9 @@ export const metadata: Metadata = {
 export default async function SignUpPage({
   searchParams
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const viewer = await getViewer();
 
   if (viewer) {
@@ -26,7 +27,7 @@ export default async function SignUpPage({
   return (
     <section className="section">
       <div className="container">
-        <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
           action={signUpAction}
           description="Create an account to post listings, edit them later, and manage responses from buyers, renters, and applicants."
@@ -37,4 +38,3 @@ export default async function SignUpPage({
     </section>
   );
 }
-

@@ -9,14 +9,15 @@ import { excerpt, formatCurrency, formatDate, getCategoryLabel, getSingleParam }
 export default async function ModerationPage({
   searchParams
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const flaggedListings = await getFlaggedListings();
 
   return (
     <>
-      <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
-      <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
+      <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
+      <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
       {flaggedListings.length === 0 ? (
         <EmptyState
