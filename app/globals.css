@@ -1912,6 +1912,10 @@ code {
 
 /* FINAL MOBILE MARKETPLACE POLISH */
 @media (max-width: 760px) {
+  body {
+    padding-bottom: 84px;
+  }
+
   /* smaller mobile header */
   .site-header-top {
     padding: 0.5rem 0.75rem !important;
@@ -1968,10 +1972,94 @@ code {
 
   /* bottom nav polish */
   .mobile-nav {
-    padding: 0.3rem 0 0.1rem !important;
+    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 -12px 28px rgba(0, 84, 168, 0.28);
+    min-height: 84px;
+    padding: 0.6rem 0 0.45rem !important;
+  }
+
+  .mobile-nav a {
+    color: rgba(255, 255, 255, 0.82);
+    min-height: 68px;
+    font-size: 1.45rem;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .mobile-nav a.active,
+  .mobile-nav .post-button {
+    color: #ffffff !important;
+  }
+
+  .mobile-nav-icon {
+    width: 1.6rem;
+    height: 1.6rem;
   }
 
   .mobile-nav span {
-    font-size: 0.6rem !important;
+    font-size: 0.72rem !important;
+    font-weight: 700;
+  }
+}
+
+/* MOBILE BROWSE UX: sticky search + horizontal categories + floating filter */
+@media (max-width: 760px) {
+  /* 1. Sticky search/filter row */
+  .mobile-filter-row {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background: rgba(245, 250, 255, 0.96) !important;
+    backdrop-filter: blur(12px);
+    padding: 0.55rem 0.75rem !important;
+    margin: 0 -0.75rem 0.65rem !important;
+    box-shadow: 0 8px 18px rgba(15, 54, 91, 0.08);
+  }
+
+  .mobile-filter-search {
+    height: 44px !important;
+    border-radius: 999px !important;
+  }
+
+  .mobile-filter-button {
+    height: 44px !important;
+    border-radius: 999px !important;
+    box-shadow: 0 8px 18px rgba(47, 99, 214, 0.25);
+  }
+
+  /* 2. Category pills horizontal scroll */
+  .pill-links {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 0.55rem !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+    padding: 0.25rem 0 0.6rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  .pill-links::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .pill-link {
+    flex: 0 0 auto !important;
+  }
+
+  /* 3. Floating sort/filter button */
+  .floating-filter-button {
+    position: fixed;
+    right: 1rem;
+    bottom: 5.25rem;
+    z-index: 9998;
+    border-radius: 999px;
+    padding: 0.75rem 1rem;
+    background: #315bdc;
+    color: #fff;
+    font-weight: 800;
+    border: 0;
+    box-shadow: 0 10px 25px rgba(49, 91, 220, 0.35);
   }
 }

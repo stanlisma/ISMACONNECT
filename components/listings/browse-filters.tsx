@@ -16,6 +16,7 @@ export function BrowseFilters({
   sort,
   showCategorySelect = true
 }: any) {
+  const [searchText, setSearchText] = useState(search ?? "");
   const [selectedCategory, setSelectedCategory] = useState(category ?? "");
   const [selectedSubcategory, setSelectedSubcategory] = useState(subcategory ?? "");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -26,19 +27,28 @@ export function BrowseFilters({
     <>
       {/* MOBILE COMPACT SEARCH */}
       <form action={actionPath} className="mobile-filter-row" method="get">
+        {category ? <input name="category" type="hidden" value={category} /> : null}
+        {subcategory ? <input name="subcategory" type="hidden" value={subcategory} /> : null}
+        {minPrice ? <input name="minPrice" type="hidden" value={minPrice} /> : null}
+        {maxPrice ? <input name="maxPrice" type="hidden" value={maxPrice} /> : null}
+        {sort ? <input name="sort" type="hidden" value={sort} /> : null}
+
         <input
           className="input mobile-filter-search"
           name="q"
-          defaultValue={search ?? ""}
+          onChange={(e) => setSearchText(e.target.value)}
           placeholder="Search bikes, rentals, jobs..."
+          value={searchText}
         />
 
         <button
+          aria-expanded={isFilterOpen}
+          aria-haspopup="dialog"
           className="button mobile-filter-button"
           type="button"
           onClick={() => setIsFilterOpen(true)}
         >
-          ⚙️ Filter
+          Filter
         </button>
       </form>
 
@@ -46,7 +56,12 @@ export function BrowseFilters({
       <form action={actionPath} className="surface filters-grid desktop-filters" method="get">
         <label className="field filter-search">
           <span className="field-label">Search</span>
-          <input className="input" name="q" defaultValue={search ?? ""} placeholder="Search bikes, rentals, jobs..." />
+          <input
+            className="input"
+            name="q"
+            defaultValue={search ?? ""}
+            placeholder="Search bikes, rentals, jobs..."
+          />
         </label>
 
         {showCategorySelect ? (
@@ -92,12 +107,24 @@ export function BrowseFilters({
 
         <label className="field">
           <span className="field-label">Min price</span>
-          <input className="input" name="minPrice" type="number" defaultValue={minPrice ?? ""} placeholder="Min $" />
+          <input
+            className="input"
+            name="minPrice"
+            type="number"
+            defaultValue={minPrice ?? ""}
+            placeholder="Min $"
+          />
         </label>
 
         <label className="field">
           <span className="field-label">Max price</span>
-          <input className="input" name="maxPrice" type="number" defaultValue={maxPrice ?? ""} placeholder="Max $" />
+          <input
+            className="input"
+            name="maxPrice"
+            type="number"
+            defaultValue={maxPrice ?? ""}
+            placeholder="Max $"
+          />
         </label>
 
         <label className="field">
@@ -126,13 +153,13 @@ export function BrowseFilters({
           <div className="mobile-filter-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-filter-sheet-header">
               <h3>Filters</h3>
-              <button type="button" onClick={() => setIsFilterOpen(false)}>
-                ×
+              <button aria-label="Close filters" type="button" onClick={() => setIsFilterOpen(false)}>
+                X
               </button>
             </div>
 
             <form action={actionPath} method="get" className="mobile-filter-sheet-form">
-              <input type="hidden" name="q" value={search ?? ""} />
+              <input type="hidden" name="q" value={searchText} />
 
               {showCategorySelect ? (
                 <label className="field">
@@ -179,12 +206,24 @@ export function BrowseFilters({
 
               <label className="field">
                 <span className="field-label">Min price</span>
-                <input className="input" name="minPrice" type="number" defaultValue={minPrice ?? ""} placeholder="Min $" />
+                <input
+                  className="input"
+                  name="minPrice"
+                  type="number"
+                  defaultValue={minPrice ?? ""}
+                  placeholder="Min $"
+                />
               </label>
 
               <label className="field">
                 <span className="field-label">Max price</span>
-                <input className="input" name="maxPrice" type="number" defaultValue={maxPrice ?? ""} placeholder="Max $" />
+                <input
+                  className="input"
+                  name="maxPrice"
+                  type="number"
+                  defaultValue={maxPrice ?? ""}
+                  placeholder="Max $"
+                />
               </label>
 
               <label className="field">
