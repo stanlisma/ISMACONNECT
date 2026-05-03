@@ -55,20 +55,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-            <section className="section home-listings-section listing-feed-section">
-        <div className="container listing-feed-container">
-          <div className="home-mobile-browse-controls">
-            <BrowseFilters
-              actionPath="/browse"
-              category={undefined}
-              subcategory={undefined}
-              search={undefined}
-              minPrice={undefined}
-              maxPrice={undefined}
-              sort={undefined}
-            />
-          </div>
+      <div className="home-mobile-browse-controls">
+        <BrowseFilters
+          actionPath="/browse"
+          category={undefined}
+          subcategory={undefined}
+          search={undefined}
+          minPrice={undefined}
+          maxPrice={undefined}
+          sort={undefined}
+        />
+      </div>
 
+      <section className="section home-listings-section listing-feed-section">
+        <div className="container listing-feed-container">
           <h2 style={{ marginBottom: "1rem" }}>
             Latest Listings
           </h2>
