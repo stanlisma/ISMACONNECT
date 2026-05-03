@@ -1,10 +1,12 @@
 import { ListingCard } from "@/components/listings/listing-card";
 import { requireViewer } from "@/lib/auth";
 import { getSavedListings } from "@/lib/data";
+import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 export default async function SavedListingsPage() {
   const viewer = await requireViewer();
   const listings = await getSavedListings(viewer.user.id);
+  const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
 
   return (
     <section className="section listing-feed-section dashboard-saved-feed-page">
@@ -25,6 +27,7 @@ export default async function SavedListingsPage() {
                 isSaved
                 canSave
                 pathToRevalidate="/dashboard/saved"
+                trustSummary={trustMap.get(listing.owner_id)}
               />
             ))}
           </div>

@@ -558,6 +558,70 @@ code {
   color: var(--text-soft);
 }
 
+.trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.trust-badges.is-compact {
+  margin-top: 0.75rem;
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.9rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.trust-badge-verified {
+  background: #e6f4ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.trust-badge-top-rated {
+  background: #fff7e8;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.trust-badge-rating {
+  background: #f8fafc;
+  border-color: #dbe4f0;
+  color: #334155;
+}
+
+.seller-review-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.seller-review-note {
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  border: 1px solid #d8e3fa;
+  background: #f8fbff;
+}
+
+.seller-review-note strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.seller-review-note p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
 .dashboard-shell {
   padding: 1.75rem 0 3rem;
 }
@@ -1208,6 +1272,16 @@ code {
 .listing-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 16px 36px rgba(0,0,0,0.12);
+}
+
+.account-trust-summary {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.account-trust-summary .section-copy {
+  margin: 0;
 }
 
 .listing-urgency {

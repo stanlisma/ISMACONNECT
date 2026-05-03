@@ -12,6 +12,7 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
+import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -99,6 +100,7 @@ export default async function CategoryPage({
     sort,
     limit: 24
   });
+  const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
 
   return (
     <section className="section listing-feed-section">
@@ -167,6 +169,7 @@ export default async function CategoryPage({
                 isSaved={savedIds.has(listing.id)}
                 canSave
                 pathToRevalidate={categoryInfo.href}
+                trustSummary={trustMap.get(listing.owner_id)}
               />
             ))}
           </div>

@@ -12,9 +12,11 @@ import {
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { TrustBadges } from "@/components/trust/trust-badges";
 import { requireViewer } from "@/lib/auth";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getSellerTrustSummary } from "@/lib/trust";
 
 function getInitials(name: string, email?: string) {
   const source = name.trim() || email?.trim() || "IS";
@@ -37,7 +39,8 @@ export default async function AccountPage() {
     conversationsResult,
     notificationsResult,
     profileSettingsResult,
-    savedSearches
+    savedSearches,
+    trustSummary
   ] =
     await Promise.all([
       supabase
@@ -62,7 +65,8 @@ export default async function AccountPage() {
         .select("email_notifications")
         .eq("id", viewer.user.id)
         .single(),
-      getSavedSearchesWithStats(viewer.user.id)
+      getSavedSearchesWithStats(viewer.user.id),
+      getSellerTrustSummary(viewer.user.id)
     ]);
 
   const conversations = (conversationsResult.data ?? []) as Array<{
@@ -111,6 +115,19 @@ export default async function AccountPage() {
                 <h1 className="section-title">Account</h1>
                 <p className="account-name">{fullName}</p>
                 <p className="section-copy account-email">{email}</p>
+
+                <div className="account-trust-summary">
+                  <TrustBadges summary={trustSummary} />
+                  <p className="section-copy">
+                    {trustSummary?.review_count
+                      ? `${trustSummary.average_rating?.toFixed(1)} average rating from ${trustSummary.review_count} reviews.`
+                      : viewer.profile.verification_status === "pending"
+                        ? "Your verification request is pending review."
+                        : viewer.profile.verification_status === "verified"
+                          ? "Your listings show a verified seller badge."
+                          : "Request seller verification and collect ratings to build trust faster."}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -251,8 +268,8 @@ export default async function AccountPage() {
                   <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
                 <span className="account-menu-content">
-                  <span className="account-menu-label">Account Settings</span>
-                  <span className="account-menu-description">Manage preferences and account controls</span>
+                  <span className="account-menu-label">Trust & Settings</span>
+                  <span className="account-menu-description">Manage verification, badges, and account controls</span>
                 </span>
                 <span className="account-menu-meta">
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
