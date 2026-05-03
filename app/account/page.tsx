@@ -21,7 +21,7 @@ export default async function AccountPage() {
             </Link>
 
             <Link href="/dashboard/saved" className="account-menu-item">
-              ❤️ Saved Listings
+              Favourites
             </Link>
 
             <Link href="/messages" className="account-menu-item">

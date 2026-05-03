@@ -20,8 +20,8 @@ export function SaveListingButton({
       <button
         type="submit"
         className="save-listing-button"
-        aria-label={isSaved ? "Unsave listing" : "Save listing"}
-        title={isSaved ? "Unsave listing" : "Save listing"}
+        aria-label={isSaved ? "Remove from favourites" : "Add to favourites"}
+        title={isSaved ? "Remove from favourites" : "Add to favourites"}
       >
         <Heart
           size={20}
