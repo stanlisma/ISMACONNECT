@@ -134,6 +134,10 @@ header.site-header {
   box-shadow: 0 10px 22px rgba(15, 54, 91, 0.08);
 }
 
+.header-account-link {
+  display: none;
+}
+
 .header-action-badge {
   position: absolute;
   top: -5px;
@@ -392,6 +396,14 @@ header.site-header {
     width: 42px;
     height: 42px;
     border-radius: 14px;
+  }
+
+  .header-messages-link {
+    display: none;
+  }
+
+  .header-account-link {
+    display: inline-flex;
   }
 
   .site-header .header-top .market-header-actions .header-auth-link {

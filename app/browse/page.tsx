@@ -108,7 +108,7 @@ export default async function BrowsePage({
                 key={listing.id}
                 listing={listing}
                 isSaved={savedIds.has(listing.id)}
-                canSave={!!viewer}
+                canSave
                 pathToRevalidate="/browse"
               />
             ))}

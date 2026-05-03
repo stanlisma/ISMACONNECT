@@ -290,7 +290,13 @@ export default async function ListingPage({
 
             <div className="listing-grid">
               {relatedListings.map((relatedListing) => (
-                <ListingCard key={relatedListing.id} listing={relatedListing} />
+                <ListingCard
+                  key={relatedListing.id}
+                  listing={relatedListing}
+                  isSaved={savedIds.has(relatedListing.id)}
+                  canSave
+                  pathToRevalidate={`/listings/${listing.slug}`}
+                />
               ))}
             </div>
           </div>

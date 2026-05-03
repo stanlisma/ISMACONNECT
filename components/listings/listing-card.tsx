@@ -137,6 +137,21 @@ export function ListingCard({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {canSave ? (
+          <div
+            className="mobile-listing-save"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            <SaveListingButton
+              listingId={listing.id}
+              isSaved={isSaved}
+              pathToRevalidate={pathToRevalidate}
+            />
+          </div>
+        ) : null}
+
         {images.length > 0 ? (
           <Link
             href={`/listings/${listing.slug}`}

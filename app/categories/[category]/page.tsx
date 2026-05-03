@@ -7,8 +7,9 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
+import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
-import { getPublicListings } from "@/lib/data";
+import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -64,6 +65,8 @@ export default async function CategoryPage({
   const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
 
   const categoryInfo = CATEGORY_MAP[category];
+  const viewer = await getViewer();
+  const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
 
   const { listings, isConfigured } = await getPublicListings({
     category,
@@ -123,7 +126,13 @@ export default async function CategoryPage({
         ) : (
           <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
             {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                isSaved={savedIds.has(listing.id)}
+                canSave
+                pathToRevalidate={categoryInfo.href}
+              />
             ))}
           </div>
         )}
