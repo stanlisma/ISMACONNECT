@@ -1,8 +1,15 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-export function SignOutButton() {
+export function SignOutButton({
+  className,
+  children
+}: {
+  className?: string;
+  children?: ReactNode;
+}) {
   const router = useRouter();
 
   async function handleSignOut() {
@@ -16,11 +23,11 @@ export function SignOutButton() {
 
   return (
     <button
-      className="account-menu-item account-menu-signout"
+      className={className ?? "account-menu-item account-menu-signout"}
       type="button"
       onClick={handleSignOut}
     >
-      🚪 Sign Out
+      {children ?? "Sign Out"}
     </button>
   );
 }
