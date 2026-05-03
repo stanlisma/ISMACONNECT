@@ -10,7 +10,7 @@ export default async function SavedListingsPage() {
     <section className="section">
       <div className="container">
         <div className="surface" style={{ marginBottom: "1rem" }}>
-          <h2>Saved listings</h2>
+          <h2>Favourites</h2>
           <p className="section-copy">
             Listings you bookmarked to revisit later.
           </p>
@@ -30,7 +30,7 @@ export default async function SavedListingsPage() {
           </div>
         ) : (
           <div className="surface">
-            <p>You have not saved any listings yet.</p>
+            <p>You have not added any favourites yet.</p>
           </div>
         )}
       </div>

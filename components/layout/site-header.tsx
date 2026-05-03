@@ -173,7 +173,7 @@ export function SiteHeader({
           {viewer && (
             <nav className="account-nav">
               <Link href="/dashboard">My Listings</Link>
-              <Link href="/dashboard/saved">Saved</Link>
+              <Link href="/dashboard/saved">Favourites</Link>
               <Link href="/settings">Settings</Link>
 
               <button

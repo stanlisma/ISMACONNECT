@@ -5,15 +5,15 @@ export default function SavedPage() {
     <main className="mx-auto max-w-6xl px-4 py-10">
       <section className="rounded-3xl border border-blue-100 bg-white p-8 shadow-sm md:p-10">
         <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
-          SAVED
+          FAVOURITES
         </span>
 
         <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">
-          Saved Listings
+          Favourites
         </h1>
 
         <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-          Keep track of listings you want to revisit later. Your saved rentals, rides, jobs, services, and items will appear here.
+          Keep track of listings you want to revisit later. Your favourite rentals, rides, jobs, services, and items will appear here.
         </p>
 
         <Link
@@ -26,7 +26,7 @@ export default function SavedPage() {
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         <article className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">Save Favorites</h2>
+          <h2 className="text-lg font-bold text-slate-900">Keep Favourites</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Quickly return to listings you are interested in.
           </p>
