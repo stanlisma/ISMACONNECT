@@ -54,8 +54,8 @@ export default async function BrowsePage({
     : null;
 
   return (
-    <section className="section">
-      <div className="container">
+    <section className="section listing-feed-section">
+      <div className="container listing-feed-container">
         <SectionHeading
           eyebrow={category ? "Category" : "Browse"}
           title={categoryLabel ? `${categoryLabel} Listings` : "Search every local listing"}
@@ -102,7 +102,7 @@ export default async function BrowsePage({
             title="No listings match this search"
           />
         ) : (
-          <div className="listing-grid" style={{ marginTop: "1.25rem" }}>
+          <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
             {listings.map((listing) => (
               <ListingCard
                 key={listing.id}

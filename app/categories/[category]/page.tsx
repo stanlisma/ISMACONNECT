@@ -76,8 +76,8 @@ export default async function CategoryPage({
   });
 
   return (
-    <section className="section">
-      <div className="container">
+    <section className="section listing-feed-section">
+      <div className="container listing-feed-container">
         <SectionHeading
           eyebrow="Category"
           title={categoryInfo.label}
@@ -121,7 +121,7 @@ export default async function CategoryPage({
             title={`No ${categoryInfo.label.toLowerCase()} listings found`}
           />
         ) : (
-          <div className="listing-grid" style={{ marginTop: "1.25rem" }}>
+          <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
             {listings.map((listing) => (
               <ListingCard key={listing.id} listing={listing} />
             ))}

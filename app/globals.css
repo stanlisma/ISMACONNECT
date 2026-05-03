@@ -2003,6 +2003,26 @@ code {
   }
 }
 
+@media (max-width: 760px) {
+  .listing-feed-section {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .homepage-main {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .listing-feed-container {
+    width: 100% !important;
+  }
+
+  .listing-feed-grid {
+    gap: 0.5rem !important;
+  }
+}
+
 /* MOBILE BROWSE UX: sticky search + horizontal categories + floating filter */
 @media (max-width: 760px) {
   /* 1. Sticky search/filter row */
