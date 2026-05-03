@@ -59,7 +59,9 @@ export function ListingCard({
   const touchEndX = useRef(0);
 
   function handleTouchStart(event: React.TouchEvent) {
-    touchStartX.current = event.touches[0].clientX;
+    const touchX = event.touches[0].clientX;
+    touchStartX.current = touchX;
+    touchEndX.current = touchX;
   }
 
   function handleTouchMove(event: React.TouchEvent) {
@@ -69,7 +71,18 @@ export function ListingCard({
   function handleTouchEnd(event: React.TouchEvent) {
     if (images.length <= 1) return;
 
+    const target = event.target as HTMLElement;
+    if (target.closest("button")) {
+      return;
+    }
+
     const swipeDistance = touchStartX.current - touchEndX.current;
+
+    if (Math.abs(swipeDistance) <= 40) {
+      event.preventDefault();
+      router.push(`/listings/${listing.slug}`);
+      return;
+    }
 
     if (swipeDistance > 40) {
       event.preventDefault();
@@ -128,7 +141,6 @@ export function ListingCard({
           <Link
             href={`/listings/${listing.slug}`}
             aria-label={`View ${listing.title}`}
-            onClick={(event) => event.stopPropagation()}
           >
             <img alt={listing.title} src={images[activeImageIndex]} loading="lazy" />
 
@@ -179,10 +191,7 @@ export function ListingCard({
             </div>
           </Link>
         ) : (
-          <Link
-            href={`/listings/${listing.slug}`}
-            onClick={(event) => event.stopPropagation()}
-          >
+          <Link href={`/listings/${listing.slug}`}>
             <div className="listing-placeholder">
               <span>{getCategoryLabel(listing.category)}</span>
             </div>
@@ -227,10 +236,7 @@ export function ListingCard({
         </div>
 
         <div className="listing-top">
-          <Link
-            href={`/listings/${listing.slug}`}
-            onClick={(event) => event.stopPropagation()}
-          >
+          <Link href={`/listings/${listing.slug}`}>
             <h3 className="listing-title">{listing.title}</h3>
           </Link>
 
