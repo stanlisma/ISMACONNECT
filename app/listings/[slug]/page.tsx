@@ -288,7 +288,7 @@ export default async function ListingPage({
               description="Keep browsing similar opportunities in the marketplace."
             />
 
-            <div className="listing-grid">
+            <div className="listing-grid listing-feed-grid">
               {relatedListings.map((relatedListing) => (
                 <ListingCard
                   key={relatedListing.id}
