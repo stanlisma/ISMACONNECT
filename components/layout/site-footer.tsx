@@ -16,7 +16,7 @@ export function SiteFooter() {
           <div className="footer-links">
             <Link href="/browse">Browse listings</Link>
             <Link href="/auth/sign-up">Create an account</Link>
-            <Link href="/auth/sign-in">Seller dashboard</Link>
+            <Link href="/auth/sign-in">My Listings</Link>
           </div>
         </div>
 
@@ -34,4 +34,3 @@ export function SiteFooter() {
     </footer>
   );
 }
-

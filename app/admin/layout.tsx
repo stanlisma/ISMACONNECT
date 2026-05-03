@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               Flagged listings
             </Link>
             <Link className="button button-ghost" href="/dashboard">
-              Dashboard
+              My Listings
             </Link>
           </div>
         </div>
@@ -30,4 +30,3 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     </section>
   );
 }
-

@@ -172,7 +172,7 @@ export function SiteHeader({
 
           {viewer && (
             <nav className="account-nav">
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard">My Listings</Link>
               <Link href="/dashboard/saved">Saved</Link>
               <Link href="/settings">Settings</Link>
 

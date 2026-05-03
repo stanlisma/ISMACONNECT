@@ -203,10 +203,10 @@ export default async function ListingPage({
                   <SectionHeading
                     eyebrow="Your Listing"
                     title="You own this listing"
-                    description="Use your dashboard to edit details, upload images, or remove the post."
+                    description="Use My Listings to edit details, upload images, or remove the post."
                   />
                   <Link href="/dashboard" className="button button-secondary">
-                    Go to dashboard
+                    Go to My Listings
                   </Link>
                 </div>
               )

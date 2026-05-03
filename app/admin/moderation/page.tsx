@@ -22,7 +22,7 @@ export default async function ModerationPage({
       {flaggedListings.length === 0 ? (
         <EmptyState
           actionHref="/dashboard"
-          actionLabel="Back to dashboard"
+          actionLabel="Back to My Listings"
           description="New flags will appear here for review."
           title="No flagged listings right now"
         />
