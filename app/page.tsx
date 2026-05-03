@@ -13,7 +13,7 @@ export default async function HomePage() {
     featuredListings.length > 0 ? featuredListings.concat(latestListings).slice(0, 8) : latestListings;
 
   return (
-    <main style={pageStyle}>
+    <main className="homepage-main" style={pageStyle}>
       <section className="home-hero-section" style={heroCardStyle}>
         <span style={badgeStyle}>LOCAL FIRST</span>
 
@@ -54,8 +54,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-            <section className="section home-listings-section">
-        <div className="container">
+            <section className="section home-listings-section listing-feed-section">
+        <div className="container listing-feed-container">
 
           <h2 style={{ marginBottom: "1rem" }}>
             Latest Listings
@@ -64,7 +64,7 @@ export default async function HomePage() {
           {!isConfigured ? (
             <p>Setup required</p>
           ) : latestListings.length > 0 ? (
-            <div className="listing-grid">
+            <div className="listing-grid listing-feed-grid">
               {latestListings.slice(0, 8).map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
