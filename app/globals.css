@@ -1819,3 +1819,159 @@ code {
   cursor: pointer;
   color: #b42318;
 }
+
+/* REMOVE FIRST HERO SECTION ON MOBILE */
+@media (max-width: 760px) {
+  main > section:first-of-type {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  main > section:nth-of-type(2) {
+    padding-top: 0.75rem !important;
+  }
+
+  main > section:nth-of-type(2) .container {
+    padding-top: 0 !important;
+  }
+
+  main > section:nth-of-type(2) h2,
+  main > section:nth-of-type(2) h1 {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  main > section:nth-of-type(2) {
+    padding-top: 0.25rem !important;
+  }
+
+  main > section:nth-of-type(2) .container {
+    margin-top: 0 !important;
+  }
+
+  main > section:nth-of-type(2) h2 {
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header-top {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .logo-text {
+    font-size: 0.9rem !important;
+  }
+
+  .site-header-bottom {
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  .nav-links a {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.4rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  main {
+    padding-top: 0.25rem !important;
+  }
+
+  .section {
+    padding-top: 0.5rem !important;
+  }
+
+  .section h2 {
+    margin-top: 0.25rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .listing-grid {
+    gap: 0.6rem !important;
+  }
+
+  .listing-card {
+    border-radius: 14px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .mobile-nav {
+    padding: 0.3rem 0 0.1rem !important;
+  }
+
+  .mobile-nav span {
+    font-size: 0.6rem !important;
+  }
+}
+
+/* FINAL MOBILE MARKETPLACE POLISH */
+@media (max-width: 760px) {
+  /* smaller mobile header */
+  .site-header-top {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .logo-text {
+    font-size: 0.9rem !important;
+  }
+
+  .site-header-bottom {
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  .nav-links a {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.4rem !important;
+  }
+
+  /* reduce space above feed */
+  main {
+    padding-top: 0.25rem !important;
+  }
+
+  .section {
+    padding-top: 0.5rem !important;
+  }
+
+  .section h2 {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  main > section:nth-of-type(2) {
+    padding-top: 0.25rem !important;
+  }
+
+  main > section:nth-of-type(2) .container {
+    margin-top: 0 !important;
+  }
+
+  main > section:nth-of-type(2) h2 {
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* tighter listing cards */
+  .listing-grid {
+    gap: 0.6rem !important;
+  }
+
+  .listing-card {
+    border-radius: 14px !important;
+  }
+
+  /* bottom nav polish */
+  .mobile-nav {
+    padding: 0.3rem 0 0.1rem !important;
+  }
+
+  .mobile-nav span {
+    font-size: 0.6rem !important;
+  }
+}
