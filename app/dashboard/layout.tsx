@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <section className="dashboard-shell">
       <div className="container">
         <div className="dashboard-header">
-          <span className="eyebrow">Dashboard</span>
+          <span className="eyebrow">My Listings</span>
           <h1>Manage your marketplace presence</h1>
           <p className="section-copy">
             Signed in as <strong>{viewer.profile.full_name}</strong>. Create listings, edit existing posts,
@@ -36,4 +36,3 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     </section>
   );
 }
-
