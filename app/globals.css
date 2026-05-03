@@ -1396,9 +1396,18 @@ code {
   display: none;
 }
 
+.home-mobile-browse-controls {
+  display: none;
+}
+
 @media (max-width: 760px) {
   .desktop-filters {
     display: none;
+  }
+
+  .home-mobile-browse-controls {
+    display: block;
+    margin-bottom: 1rem;
   }
 
   .mobile-filter-row {

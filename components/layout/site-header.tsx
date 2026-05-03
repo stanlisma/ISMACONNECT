@@ -2,7 +2,6 @@
 
 import { Bell, MessageCircle, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import InstallButton from "@/components/install-button";
 import "./site-header.css";
 
@@ -32,10 +31,6 @@ export function SiteHeader({
   unreadMessagesCount,
   unreadNotificationsCount,
 }: SiteHeaderProps) {
-  const pathname = usePathname();
-  const usePageLevelBrowseSearch =
-    pathname === "/browse" || pathname.startsWith("/categories/");
-
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -46,7 +41,7 @@ export function SiteHeader({
 
           <form
             action="/browse"
-            className={`header-search market-header-search${usePageLevelBrowseSearch ? " market-header-search-hidden-mobile" : ""}`}
+            className="header-search market-header-search market-header-search-hidden-mobile"
           >
             <label className="header-search-field">
               <Search aria-hidden="true" className="header-search-icon" strokeWidth={2.2} />
@@ -101,9 +96,7 @@ export function SiteHeader({
           </div>
         </div>
 
-        <div
-          className={`header-bottom market-header-bottom${usePageLevelBrowseSearch ? " market-header-bottom-hidden-mobile" : ""}`}
-        >
+        <div className="header-bottom market-header-bottom market-header-bottom-hidden-mobile">
           <nav className="main-nav market-main-nav">
 
             <Link href="/browse" className="market-nav-link market-nav-link-all">Browse</Link>
