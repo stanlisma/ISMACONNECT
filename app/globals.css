@@ -2047,6 +2047,11 @@ code {
     overflow: visible !important;
   }
 
+  .dashboard-saved-feed-page {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
   .homepage-main {
     padding-left: 0 !important;
     padding-right: 0 !important;
