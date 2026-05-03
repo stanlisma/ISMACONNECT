@@ -9,7 +9,7 @@ import { getSingleParam } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Access your ISMACONNECT dashboard to manage listings."
+  description: "Sign in to browse Fort McMurray listings and manage your ISMACONNECT account."
 };
 
 export default async function SignInPage({
@@ -21,7 +21,7 @@ export default async function SignInPage({
   const viewer = await getViewer();
 
   if (viewer) {
-    redirect("/dashboard");
+    redirect("/browse");
   }
 
   return (
@@ -31,7 +31,7 @@ export default async function SignInPage({
         <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
           action={signInAction}
-          description="Sign in to publish listings, update your posts, and manage flags from your dashboard."
+          description="Sign in to browse local listings, publish your own posts, and manage your account."
           mode="sign-in"
           title="Sign in to ISMACONNECT"
         />

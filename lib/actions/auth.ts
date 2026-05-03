@@ -35,7 +35,7 @@ export async function signInAction(formData: FormData) {
     redirectWithMessage("/auth/sign-in", "error", error.message);
   }
 
-  redirect("/dashboard");
+  redirect("/browse");
 }
 
 export async function signUpAction(formData: FormData) {
