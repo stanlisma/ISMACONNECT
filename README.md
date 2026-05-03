@@ -10,6 +10,7 @@ Production-ready marketplace MVP for Fort McMurray built with the Next.js App Ro
 - Public browse, search, category pages, and listing detail pages
 - Authenticated listing CRUD for marketplace members
 - Saved searches with in-app new-match alerts
+- Seller ratings, verification requests, and trust badges
 - Admin moderation flow for flagged listings
 - Seed data for local demo users and listings
 - SEO basics: metadata, `robots.ts`, `sitemap.ts`, category routes, listing slugs
@@ -47,6 +48,7 @@ lib/
 supabase/
   migrations/202604210001_init.sql
   migrations/202605030001_saved_searches.sql
+  migrations/202605030002_trust_and_ratings.sql
   seed.sql
 types/
 ```
@@ -84,7 +86,7 @@ The Stripe variables are placeholders for future featured listings and are not r
 
 ### 4. Apply the database schema
 
-Run the SQL in `supabase/migrations/202604210001_init.sql` and then `supabase/migrations/202605030001_saved_searches.sql` inside the Supabase SQL editor.
+Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, and then `supabase/migrations/202605030002_trust_and_ratings.sql` inside the Supabase SQL editor.
 
 This creates:
 
@@ -92,6 +94,7 @@ This creates:
 - `listings`
 - `listing_flags`
 - `saved_searches`
+- `seller_reviews`
 - RLS policies for public browsing, owner CRUD, and admin moderation
 - search and moderation triggers
 
@@ -106,7 +109,7 @@ It creates three local demo users:
 - `devin@ismaconnect.local` / `Password123!`
 
 The seed includes live listings across all five categories plus one flagged listing for the admin moderation queue.
-It also seeds a couple of saved-search examples so alerts can be tested right away.
+It also seeds a couple of saved-search examples, verified sellers, a pending verification request, and seller ratings so trust badges can be tested right away.
 
 ### 6. Start the app
 
@@ -132,12 +135,15 @@ Open [http://localhost:3000](http://localhost:3000).
 - Edit or delete their own listings from `/dashboard`
 - Save searches from `/browse` and category pages
 - Review saved-search alerts from `/dashboard/searches`
+- Request seller verification from `/settings`
+- Rate sellers after contacting them through ISMACONNECT
 - Flag suspicious listings from listing detail pages
 
 ### Admin users
 
 - Sign in with an account whose `profiles.role` is `admin`
 - Review flagged listings at `/admin/moderation`
+- Approve or decline pending seller verification requests
 - Restore valid posts or remove them from public view
 
 If you want to promote an existing real user to admin instead of using the seed account, run:
@@ -171,6 +177,10 @@ Tracks user-submitted reports and automatically updates listing moderation state
 ### `saved_searches`
 
 Stores saved browse or category filters for signed-in users and powers in-app alerts when new matching listings appear.
+
+### `seller_reviews`
+
+Stores per-listing seller ratings submitted after contact, which power trust badges and rating summaries on listing cards and detail pages.
 
 ## Stripe preparation
 

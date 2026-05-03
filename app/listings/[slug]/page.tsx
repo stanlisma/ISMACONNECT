@@ -8,6 +8,8 @@ import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingImageGallery } from "@/components/listings/listing-image-gallery";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
+import { SellerReviewForm } from "@/components/trust/seller-review-form";
+import { TrustBadges } from "@/components/trust/trust-badges";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
@@ -18,6 +20,12 @@ import {
   getRelatedListings,
   getSavedListingIds,
 } from "@/lib/data";
+import {
+  canViewerRateSeller,
+  getSellerTrustSummary,
+  getSellerTrustSummaryMap,
+  getViewerSellerReview
+} from "@/lib/trust";
 import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -65,12 +73,22 @@ export default async function ListingPage({
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
+  const relatedTrustMap = await getSellerTrustSummaryMap(relatedListings.map((item) => item.owner_id));
+  const sellerTrustSummary = await getSellerTrustSummary(listing.owner_id);
   const category = CATEGORY_MAP[listing.category as keyof typeof CATEGORY_MAP];
 
   const existingConversation =
     viewer && viewer.user.id !== listing.owner_id
       ? await getConversationForListing(listing.id, viewer.user.id)
       : null;
+  const existingReview =
+    viewer && viewer.user.id !== listing.owner_id
+      ? await getViewerSellerReview(listing.id, viewer.user.id)
+      : null;
+  const canRateSeller =
+    viewer && viewer.user.id !== listing.owner_id
+      ? await canViewerRateSeller(listing.id, viewer.user.id, listing.owner_id)
+      : false;
 
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
@@ -246,9 +264,58 @@ export default async function ListingPage({
                 </div>
               </div>
             )}
+
+            {viewer && viewer.user.id !== listing.owner_id && (canRateSeller || existingReview) ? (
+              <div className="detail-card">
+                <SectionHeading
+                  eyebrow="Seller Rating"
+                  title="Rate this seller"
+                  description="Share a quick trust signal after messaging this seller through ISMACONNECT."
+                />
+                <SellerReviewForm
+                  listingId={listing.id}
+                  listingSlug={listing.slug}
+                  sellerId={listing.owner_id}
+                  existingReview={existingReview}
+                />
+              </div>
+            ) : null}
           </div>
 
           <aside className="detail-side">
+            <div className="detail-card">
+              <SectionHeading
+                eyebrow="Seller Trust"
+                title={listing.contact_name}
+                description="Verification and ratings help locals choose who to message first."
+              />
+
+              <TrustBadges summary={sellerTrustSummary} />
+
+              <div className="meta-list" style={{ marginTop: "1rem" }}>
+                <span>
+                  Rating:{" "}
+                  {sellerTrustSummary?.review_count
+                    ? `${sellerTrustSummary.average_rating?.toFixed(1)} from ${sellerTrustSummary.review_count} reviews`
+                    : "No ratings yet"}
+                </span>
+                <span>
+                  Verification:{" "}
+                  {sellerTrustSummary?.verification_status === "verified"
+                    ? "Verified seller"
+                    : sellerTrustSummary?.verification_status === "pending"
+                      ? "Verification pending"
+                      : "Not verified yet"}
+                </span>
+                <span>
+                  Member since:{" "}
+                  {sellerTrustSummary?.member_since
+                    ? formatDate(sellerTrustSummary.member_since)
+                    : "Recently joined"}
+                </span>
+              </div>
+            </div>
+
             {viewer ? (
               <div className="detail-card">
                 <SectionHeading
@@ -296,6 +363,7 @@ export default async function ListingPage({
                   isSaved={savedIds.has(relatedListing.id)}
                   canSave
                   pathToRevalidate={`/listings/${listing.slug}`}
+                  trustSummary={relatedTrustMap.get(relatedListing.owner_id)}
                 />
               ))}
             </div>

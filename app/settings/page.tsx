@@ -1,7 +1,10 @@
 import { FlashMessage } from "@/components/ui/flash-message";
+import { TrustBadges } from "@/components/trust/trust-badges";
 import { updateNotificationSettingsAction } from "@/lib/actions/settings";
+import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getSellerTrustSummary } from "@/lib/trust";
 import { getSingleParam } from "@/lib/utils";
 
 export default async function SettingsPage({
@@ -12,10 +15,11 @@ export default async function SettingsPage({
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const trustSummary = await getSellerTrustSummary(viewer.user.id);
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("email_notifications")
+    .select("email_notifications, verification_status, verification_requested_at, verified_at")
     .eq("id", viewer.user.id)
     .single();
 
@@ -57,6 +61,38 @@ export default async function SettingsPage({
               Save settings
             </button>
           </form>
+        </div>
+
+        <div className="surface" style={{ marginTop: "1rem" }}>
+          <h2 style={{ marginBottom: "0.6rem" }}>Trust & Verification</h2>
+          <p className="section-copy" style={{ marginBottom: "1rem" }}>
+            Verified sellers and strong ratings appear as trust badges across listing cards and detail pages.
+          </p>
+
+          <TrustBadges summary={trustSummary} />
+
+          <div className="meta-list" style={{ marginTop: "1rem" }}>
+            <span>Status: {profile?.verification_status ?? "unverified"}</span>
+            <span>
+              Ratings: {trustSummary?.review_count ? `${trustSummary.average_rating?.toFixed(1)} from ${trustSummary.review_count} reviews` : "No ratings yet"}
+            </span>
+          </div>
+
+          {profile?.verification_status === "verified" ? (
+            <p className="section-copy" style={{ marginTop: "1rem" }}>
+              Your seller verification is active and visible on your listings.
+            </p>
+          ) : profile?.verification_status === "pending" ? (
+            <p className="section-copy" style={{ marginTop: "1rem" }}>
+              Your verification request is pending admin review.
+            </p>
+          ) : (
+            <form action={requestSellerVerificationAction} style={{ marginTop: "1rem" }}>
+              <button className="button" type="submit">
+                Request seller verification
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </section>

@@ -6,6 +6,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
+import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -13,6 +14,8 @@ export default async function HomePage() {
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const homepageListings =
     featuredListings.length > 0 ? featuredListings.concat(latestListings).slice(0, 8) : latestListings;
+  const visibleListings = latestListings.slice(0, 8);
+  const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));
 
   return (
     <main className="homepage-main" style={pageStyle}>
@@ -78,13 +81,14 @@ export default async function HomePage() {
             <p>Setup required</p>
           ) : latestListings.length > 0 ? (
             <div className="listing-grid listing-feed-grid">
-              {latestListings.slice(0, 8).map((listing) => (
+              {visibleListings.map((listing) => (
                 <ListingCard
                   key={listing.id}
                   listing={listing}
                   isSaved={savedIds.has(listing.id)}
                   canSave
                   pathToRevalidate="/"
+                  trustSummary={trustMap.get(listing.owner_id)}
                 />
               ))}
             </div>

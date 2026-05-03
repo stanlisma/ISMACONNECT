@@ -11,6 +11,7 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
+import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { getSingleParam, resolveCategory } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default async function BrowsePage({
   const viewer = await getViewer();
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
+  const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
   const savedSearch = viewer
     ? await getSavedSearchByFilters(viewer.user.id, {
         path: "/browse",
@@ -145,6 +147,7 @@ export default async function BrowsePage({
                 isSaved={savedIds.has(listing.id)}
                 canSave
                 pathToRevalidate="/browse"
+                trustSummary={trustMap.get(listing.owner_id)}
               />
             ))}
           </div>

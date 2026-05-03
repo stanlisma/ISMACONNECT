@@ -3,6 +3,7 @@ import type { User } from "@supabase/supabase-js";
 export type AppRole = "user" | "admin";
 export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "buy-sell";
 export type ListingStatus = "active" | "flagged" | "removed";
+export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
 
 export interface Profile {
   id: string;
@@ -11,6 +12,9 @@ export interface Profile {
   phone: string | null;
   role: AppRole;
   email_notifications?: boolean | null;
+  verification_status?: ProfileVerificationStatus;
+  verification_requested_at?: string | null;
+  verified_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -70,6 +74,27 @@ export interface SavedSearch {
   last_checked_at: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface SellerReview {
+  id: string;
+  seller_id: string;
+  reviewer_id: string;
+  listing_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SellerTrustSummary {
+  seller_id: string;
+  verification_status: ProfileVerificationStatus;
+  verified_at: string | null;
+  average_rating: number | null;
+  review_count: number;
+  top_rated: boolean;
+  member_since: string;
 }
 
 export interface Viewer {

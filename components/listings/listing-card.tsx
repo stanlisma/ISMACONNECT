@@ -5,15 +5,17 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { SaveListingButton } from "@/components/listings/save-listing-button";
+import { TrustBadges } from "@/components/trust/trust-badges";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryHref, getCategoryLabel } from "@/lib/utils";
-import type { Listing } from "@/types/database";
+import type { Listing, SellerTrustSummary } from "@/types/database";
 
 interface ListingCardProps {
   listing: Listing;
   isSaved?: boolean;
   canSave?: boolean;
   pathToRevalidate?: string;
+  trustSummary?: SellerTrustSummary | null;
 }
 
 function formatTimeAgo(dateString: string) {
@@ -43,7 +45,8 @@ export function ListingCard({
   listing,
   isSaved = false,
   canSave = false,
-  pathToRevalidate
+  pathToRevalidate,
+  trustSummary
 }: ListingCardProps) {
   const router = useRouter();
 
@@ -264,6 +267,8 @@ export function ListingCard({
         </div>
 
         <p className="listing-description">{excerpt(listing.description)}</p>
+
+        <TrustBadges summary={trustSummary} compact />
 
         <div className="listing-card-signals">
           <span className="listing-location">📍 {listing.location.split(",")[0]}</span>

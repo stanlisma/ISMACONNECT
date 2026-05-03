@@ -329,4 +329,47 @@ set
   sort = excluded.sort,
   last_checked_at = excluded.last_checked_at;
 
+update public.profiles
+set
+  verification_status = 'verified',
+  verification_requested_at = null,
+  verified_at = now()
+where email in ('admin@ismaconnect.local', 'sarah@ismaconnect.local');
+
+update public.profiles
+set
+  verification_status = 'pending',
+  verification_requested_at = now() - interval '3 days',
+  verified_at = null
+where email = 'devin@ismaconnect.local';
+
+insert into public.seller_reviews (
+  seller_id,
+  reviewer_id,
+  listing_id,
+  rating,
+  comment
+)
+select
+  listings.owner_id,
+  review_seed.reviewer_id,
+  listings.id,
+  review_seed.rating,
+  review_seed.comment
+from (
+  values
+    ('11111111-1111-4111-8111-111111111111'::uuid, 'private-room-in-thickwood-with-parking', 5, 'Clear details, quick replies, and exactly as described.'),
+    ('11111111-1111-4111-8111-111111111111'::uuid, 'move-out-cleaning-and-same-day-touch-ups', 5, 'Professional communication and very reliable from start to finish.'),
+    ('33333333-3333-4333-8333-333333333333'::uuid, 'private-room-in-thickwood-with-parking', 4, 'Smooth local deal and accurate listing information.'),
+    ('22222222-2222-4222-8222-222222222222'::uuid, 'daily-morning-ride-from-timberlea-to-site-gate', 5, 'Showed up on time and made coordination easy.')
+) as review_seed(reviewer_id, listing_slug, rating, comment)
+join public.listings
+  on listings.slug = review_seed.listing_slug
+on conflict (reviewer_id, listing_id) do update
+set
+  seller_id = excluded.seller_id,
+  rating = excluded.rating,
+  comment = excluded.comment,
+  updated_at = now();
+
 drop function if exists public.create_seed_user(uuid, text, text, text);
