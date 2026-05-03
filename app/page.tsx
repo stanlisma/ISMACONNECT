@@ -14,7 +14,7 @@ export default async function HomePage() {
 
   return (
     <main style={pageStyle}>
-      <section style={heroCardStyle}>
+      <section className="home-hero-section" style={heroCardStyle}>
         <span style={badgeStyle}>LOCAL FIRST</span>
 
         <h1 style={titleStyle}>
@@ -54,7 +54,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-            <section className="section">
+            <section className="section home-listings-section">
         <div className="container">
 
           <h2 style={{ marginBottom: "1rem" }}>

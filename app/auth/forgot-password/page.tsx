@@ -10,16 +10,18 @@ export const metadata: Metadata = {
   description: "Request a password reset link for your ISMACONNECT account."
 };
 
-export default function ForgotPasswordPage({
+export default async function ForgotPasswordPage({
   searchParams
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: "640px" }}>
-        <FlashMessage message={getSingleParam(searchParams?.error)} tone="error" />
-        <FlashMessage message={getSingleParam(searchParams?.success)} tone="success" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
+        <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
 
         <div className="surface" style={{ padding: "2rem", borderRadius: "24px" }}>
           <p className="eyebrow">Account recovery</p>
