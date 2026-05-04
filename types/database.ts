@@ -16,6 +16,10 @@ export interface Profile {
   verification_status?: ProfileVerificationStatus;
   verification_requested_at?: string | null;
   verified_at?: string | null;
+  stripe_identity_verification_session_id?: string | null;
+  stripe_identity_session_status?: string | null;
+  stripe_identity_last_error_code?: string | null;
+  stripe_identity_last_error_reason?: string | null;
   created_at: string;
   updated_at: string;
 }

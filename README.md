@@ -10,7 +10,7 @@ Production-ready marketplace MVP for Fort McMurray built with the Next.js App Ro
 - Public browse, search, category pages, and listing detail pages
 - Authenticated listing CRUD for marketplace members
 - Saved searches with in-app new-match alerts
-- Seller ratings, verification requests, and trust badges
+- Seller ratings, Stripe Identity verification, and trust badges
 - Featured listings, urgent badges, and boost products with Stripe-ready checkout
 - Admin moderation flow for flagged listings
 - Seed data for local demo users and listings
@@ -54,6 +54,7 @@ supabase/
   migrations/202605030001_saved_searches.sql
   migrations/202605030002_trust_and_ratings.sql
   migrations/202605030003_featured_boosts.sql
+  migrations/202605030004_stripe_identity_verification.sql
   seed.sql
 types/
 ```
@@ -92,7 +93,7 @@ If Stripe is not configured, local development can still test the boost flow in 
 
 ### 4. Apply the database schema
 
-Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, and finally `supabase/migrations/202605030003_featured_boosts.sql` inside the Supabase SQL editor.
+Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, then `supabase/migrations/202605030003_featured_boosts.sql`, and finally `supabase/migrations/202605030004_stripe_identity_verification.sql` inside the Supabase SQL editor.
 
 This creates:
 
@@ -102,6 +103,7 @@ This creates:
 - `saved_searches`
 - `seller_reviews`
 - `listing_boost_orders`
+- Stripe Identity profile tracking fields
 - RLS policies for public browsing, owner CRUD, and admin moderation
 - search and moderation triggers
 
@@ -142,7 +144,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - Edit or delete their own listings from `/dashboard`
 - Save searches from `/browse` and category pages
 - Review saved-search alerts from `/dashboard/searches`
-- Request seller verification from `/settings`
+- Start Stripe ID verification from `/settings`
 - Rate sellers after contacting them through ISMACONNECT
 - Buy featured, urgent, and top-boost upgrades from `/dashboard/boosts`
 - Flag suspicious listings from listing detail pages
@@ -151,7 +153,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - Sign in with an account whose `profiles.role` is `admin`
 - Review flagged listings at `/admin/moderation`
-- Approve or decline pending seller verification requests
+- Approve or decline manual seller verification requests
 - Restore valid posts or remove them from public view
 
 If you want to promote an existing real user to admin instead of using the seed account, run:
@@ -194,6 +196,10 @@ Stores per-listing seller ratings submitted after contact, which power trust bad
 
 Stores paid or demo boost purchases, checkout state, activation windows, and Stripe session references for featured products.
 
+### `profiles` Stripe Identity fields
+
+Stores the latest Stripe Identity verification session ID, status, and failure details for seller badge automation.
+
 ## Stripe boost checkout
 
 ISMACONNECT now supports seller-facing boost products with a Stripe-hosted Checkout flow when these variables are set:
@@ -214,6 +220,20 @@ Listen for these events:
 - `checkout.session.async_payment_succeeded`
 - `checkout.session.async_payment_failed`
 - `checkout.session.expired`
+- `identity.verification_session.verified`
+- `identity.verification_session.requires_input`
+
+## Stripe Identity seller verification
+
+ISMACONNECT uses Stripe Identity's hosted redirect flow to verify seller IDs from `/settings`.
+
+The same Stripe webhook endpoint can handle both payments and identity events:
+
+```text
+https://your-domain.com/api/stripe/webhook
+```
+
+When a seller starts verification, the app creates a Stripe `VerificationSession`, redirects the seller to Stripe, and updates `profiles.verification_status` automatically from webhook results.
 
 The listing model uses these promotion columns:
 

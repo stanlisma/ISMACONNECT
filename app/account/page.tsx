@@ -122,11 +122,14 @@ export default async function AccountPage() {
                   <p className="section-copy">
                     {trustSummary?.review_count
                       ? `${trustSummary.average_rating?.toFixed(1)} average rating from ${trustSummary.review_count} reviews.`
-                      : viewer.profile.verification_status === "pending"
-                        ? "Your verification request is pending review."
+                      : viewer.profile.stripe_identity_session_status === "processing" ||
+                          viewer.profile.verification_status === "pending"
+                        ? "Stripe is processing your seller verification."
                         : viewer.profile.verification_status === "verified"
                           ? "Your listings show a verified seller badge."
-                          : "Request seller verification and collect ratings to build trust faster."}
+                          : viewer.profile.stripe_identity_session_status === "requires_input"
+                            ? "Stripe needs one more verification attempt before your badge can be approved."
+                            : "Start Stripe ID verification and collect ratings to build trust faster."}
                   </p>
                 </div>
               </div>
