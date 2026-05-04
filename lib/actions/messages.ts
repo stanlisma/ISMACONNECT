@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 
 import { requireViewer } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sendNewMessageEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/env";
+import { createNotificationAndPush } from "@/lib/push";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -36,10 +37,10 @@ export async function sendListingMessageAction(listingId: string, formData: Form
   }
 
   const { data: recipientProfile } = await supabase
-  .from("profiles")
-  .select("email, full_name, email_notifications")
-  .eq("id", listing.owner_id)
-  .single();
+    .from("profiles")
+    .select("email, full_name, email_notifications")
+    .eq("id", listing.owner_id)
+    .single();
 
   const { data: senderProfile } = await supabase
     .from("profiles")
@@ -81,6 +82,7 @@ export async function sendListingMessageAction(listingId: string, formData: Form
 
   const isBuyer = viewer.user.id === conversation.buyer_id;
   const unreadField = isBuyer ? "seller_unread_count" : "buyer_unread_count";
+  const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
 
   const { data: currentConversation } = await supabase
     .from("conversations")
@@ -96,15 +98,17 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     })
     .eq("id", conversation.id);
 
-  const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
-
-  await supabase.from("notifications").insert({
-    user_id: recipientId,
-    type: "message",
-    title: "New message",
-    body: `You have a new message about "${listing.title}"`,
-    link: `/messages/${conversation.id}`
-  });
+  try {
+    await createNotificationAndPush({
+      userId: recipientId,
+      type: "message",
+      title: "New message",
+      body: `You have a new message about "${listing.title}"`,
+      link: `/messages/${conversation.id}`
+    });
+  } catch (error) {
+    console.error("Message notification failed:", error);
+  }
 
   if (recipientProfile?.email && recipientProfile.email_notifications !== false) {
     try {
@@ -117,7 +121,7 @@ export async function sendListingMessageAction(listingId: string, formData: Form
           "Someone",
         listingTitle: listing.title,
         conversationUrl: `${getBaseUrl()}/messages/${conversation.id}`,
-        messagePreview: body.length > 240 ? `${body.slice(0, 240)}…` : body
+        messagePreview: body.length > 240 ? `${body.slice(0, 240)}...` : body
       });
     } catch (error) {
       console.error("Email notification failed:", error);

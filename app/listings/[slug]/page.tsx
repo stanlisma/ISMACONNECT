@@ -305,6 +305,12 @@ export default async function ListingPage({
                 description="Verification and ratings help locals choose who to message first."
               />
 
+              <div className="action-row" style={{ marginBottom: "1rem" }}>
+                <Link className="button button-secondary" href={`/sellers/${listing.owner_id}`}>
+                  View seller storefront
+                </Link>
+              </div>
+
               <TrustBadges summary={sellerTrustSummary} />
 
               <div className="meta-list" style={{ marginTop: "1rem" }}>

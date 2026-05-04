@@ -12,7 +12,7 @@ import { CATEGORIES } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
-import { getSingleParam, resolveCategory } from "@/lib/utils";
+import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Browse Listings",
@@ -33,12 +33,13 @@ export default async function BrowsePage({
 
   const minPriceParam = getSingleParam(resolvedSearchParams?.minPrice);
   const maxPriceParam = getSingleParam(resolvedSearchParams?.maxPrice);
+  const page = getPositiveIntParam(resolvedSearchParams?.page, 1);
 
   const minPrice = minPriceParam ? Number(minPriceParam) : null;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
   const sort = getSingleParam(resolvedSearchParams?.sort);
 
-  const { listings, isConfigured } = await getPublicListings({
+  const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
     search,
     category,
     subcategory,
@@ -46,6 +47,7 @@ export default async function BrowsePage({
     maxPrice,
     sort,
     limit: 24,
+    page
   });
 
   const viewer = await getViewer();
@@ -75,6 +77,31 @@ export default async function BrowsePage({
 
   const categoryLabel = category
     ? CATEGORIES.find((item) => item.value === category)?.label
+    : null;
+  const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
+  const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
+  const previousPageHref =
+    page > 1
+      ? buildPathWithQuery("/browse", {
+          q: search,
+          category,
+          subcategory,
+          minPrice,
+          maxPrice,
+          sort,
+          page: page - 1 > 1 ? page - 1 : undefined
+        })
+      : null;
+  const nextPageHref = hasMore
+    ? buildPathWithQuery("/browse", {
+        q: search,
+        category,
+        subcategory,
+        minPrice,
+        maxPrice,
+        sort,
+        page: page + 1
+      })
     : null;
 
   return (
@@ -110,7 +137,9 @@ export default async function BrowsePage({
         />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
-          {listings.length} results found
+          {totalCount > 0
+            ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
+            : "0 results found"}
         </p>
 
         <div className="pill-links">
@@ -139,18 +168,40 @@ export default async function BrowsePage({
             title="No listings match this search"
           />
         ) : (
-          <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
-            {listings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                isSaved={savedIds.has(listing.id)}
-                canSave
-                pathToRevalidate="/browse"
-                trustSummary={trustMap.get(listing.owner_id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
+              {listings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isSaved={savedIds.has(listing.id)}
+                  canSave
+                  pathToRevalidate="/browse"
+                  trustSummary={trustMap.get(listing.owner_id)}
+                />
+              ))}
+            </div>
+
+            {previousPageHref || nextPageHref ? (
+              <div className="action-row" style={{ marginTop: "1.25rem", justifyContent: "space-between" }}>
+                <div>
+                  {previousPageHref ? (
+                    <Link className="button button-secondary" href={previousPageHref}>
+                      Previous page
+                    </Link>
+                  ) : null}
+                </div>
+
+                <div>
+                  {nextPageHref ? (
+                    <Link className="button" href={nextPageHref}>
+                      Load more listings
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
     </section>

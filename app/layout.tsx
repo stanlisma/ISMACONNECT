@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { PwaShell } from "@/components/pwa/pwa-shell";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <PwaShell />
         <MobileBottomNav />
         <div className="site-shell">
           <SiteHeader
@@ -72,11 +74,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 export const metadata: Metadata = {
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/favicon.ico",
     shortcut: "/icons/favicon.ico",
     apple: "/icons/apple-touch-icon.png",
-  },
-  themeColor: "#1E6BFF",
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1E5FE0"
 };

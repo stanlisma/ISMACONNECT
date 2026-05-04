@@ -1,14 +1,50 @@
 import Link from "next/link";
 
 import { DeleteListingForm } from "@/components/listings/delete-listing-form";
-import { FlashMessage } from "@/components/ui/flash-message";
 import { EmptyState } from "@/components/ui/empty-state";
-import { requireViewer } from "@/lib/auth";
+import { FlashMessage } from "@/components/ui/flash-message";
 import { getListingBoostState } from "@/lib/boost-products";
+import { requireViewer } from "@/lib/auth";
 import { getPromotionChips } from "@/lib/boosts";
 import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { getUserListings } from "@/lib/data";
-import { formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/lib/utils";
+import {
+  formatCurrency,
+  formatDate,
+  getCategoryLabel,
+  getSingleParam,
+  resolveCategory
+} from "@/lib/utils";
+
+function matchesPromotionFilter(listing: any, promotionFilter: string) {
+  const state = getListingBoostState(listing);
+
+  switch (promotionFilter) {
+    case "featured":
+      return state.featuredActive;
+    case "boosted":
+      return state.boostedActive;
+    case "urgent":
+      return state.urgentActive;
+    case "promoted":
+      return state.featuredActive || state.boostedActive || state.urgentActive;
+    default:
+      return true;
+  }
+}
+
+function buildDashboardHref(params: Record<string, string | null | undefined>) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `/dashboard?${queryString}` : "/dashboard";
+}
 
 export default async function DashboardPage({
   searchParams
@@ -19,13 +55,41 @@ export default async function DashboardPage({
   const viewer = await requireViewer();
   const listings = await getUserListings(viewer.user.id);
 
+  const searchQuery = getSingleParam(resolvedSearchParams?.q)?.trim() ?? "";
+  const normalizedQuery = searchQuery.toLowerCase();
+  const statusFilter = getSingleParam(resolvedSearchParams?.status) ?? "all";
+  const promotionFilter = getSingleParam(resolvedSearchParams?.promotion) ?? "all";
+  const categoryFilter = resolveCategory(getSingleParam(resolvedSearchParams?.category)) ?? null;
+
   const activeCount = listings.filter((listing) => listing.status === "active").length;
   const flaggedCount = listings.filter((listing) => listing.status === "flagged").length;
-  const featuredCount = listings.filter((listing) => listing.is_featured).length;
   const boostedCount = listings.filter((listing) => {
     const state = getListingBoostState(listing);
     return state.featuredActive || state.urgentActive || state.boostedActive;
   }).length;
+
+  const filteredListings = listings.filter((listing) => {
+    if (statusFilter !== "all" && listing.status !== statusFilter) {
+      return false;
+    }
+
+    if (categoryFilter && listing.category !== categoryFilter) {
+      return false;
+    }
+
+    if (promotionFilter !== "all" && !matchesPromotionFilter(listing, promotionFilter)) {
+      return false;
+    }
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return [listing.title, listing.location, getCategoryLabel(listing.category)]
+      .join(" ")
+      .toLowerCase()
+      .includes(normalizedQuery);
+  });
 
   return (
     <>
@@ -33,6 +97,10 @@ export default async function DashboardPage({
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
       <div className="stats-grid">
+        <div className="stat-card">
+          <span>Total listings</span>
+          <strong>{listings.length}</strong>
+        </div>
         <div className="stat-card">
           <span>Active listings</span>
           <strong>{activeCount}</strong>
@@ -42,27 +110,160 @@ export default async function DashboardPage({
           <strong>{flaggedCount}</strong>
         </div>
         <div className="stat-card">
-          <span>Featured slots</span>
-          <strong>{featuredCount}</strong>
-        </div>
-        <div className="stat-card">
-          <span>Live boosts</span>
+          <span>Live promotions</span>
           <strong>{boostedCount}</strong>
         </div>
       </div>
 
-      {listings.length === 0 ? (
+      <div className="surface" style={{ marginTop: "1.25rem" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: "1rem"
+          }}
+        >
+          <div>
+            <h2 style={{ marginBottom: "0.5rem" }}>Listing controls</h2>
+            <p className="section-copy" style={{ marginBottom: 0 }}>
+              Filter your inventory fast, keep an eye on promotions, and jump back into the right listing.
+            </p>
+          </div>
+
+          <form action="/dashboard" method="get" style={{ display: "grid", gap: "0.75rem", width: "100%" }}>
+            <div className="dashboard-filters-grid">
+              <label className="field dashboard-filter-search" style={{ marginBottom: 0 }}>
+                <span className="field-label">Search</span>
+                <input
+                  className="input"
+                  type="search"
+                  name="q"
+                  defaultValue={searchQuery}
+                  placeholder="Search by title or location"
+                />
+              </label>
+
+              <label className="field" style={{ marginBottom: 0 }}>
+                <span className="field-label">Status</span>
+                <select className="select" name="status" defaultValue={statusFilter}>
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="flagged">Flagged</option>
+                  <option value="removed">Removed</option>
+                </select>
+              </label>
+
+              <label className="field" style={{ marginBottom: 0 }}>
+                <span className="field-label">Category</span>
+                <select className="select" name="category" defaultValue={categoryFilter ?? ""}>
+                  <option value="">All</option>
+                  <option value="rentals">Rentals</option>
+                  <option value="ride-share">Ride Share</option>
+                  <option value="jobs">Jobs</option>
+                  <option value="services">Services</option>
+                  <option value="buy-sell">Buy & Sell</option>
+                </select>
+              </label>
+
+              <label className="field" style={{ marginBottom: 0 }}>
+                <span className="field-label">Promotion</span>
+                <select className="select" name="promotion" defaultValue={promotionFilter}>
+                  <option value="all">All</option>
+                  <option value="promoted">Any active promo</option>
+                  <option value="featured">Featured</option>
+                  <option value="boosted">Boosted</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="dashboard-filter-actions">
+              <span className="section-copy" style={{ marginBottom: 0 }}>
+                Showing {filteredListings.length} of {listings.length} listings
+              </span>
+
+              <div style={{ display: "flex", gap: "0.75rem" }}>
+                <button className="button" type="submit">
+                  Apply filters
+                </button>
+                <Link className="button button-secondary" href="/dashboard">
+                  Clear
+                </Link>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="pill-row" style={{ marginTop: "1rem" }}>
+          <Link
+            className={`account-menu-pill ${statusFilter === "all" ? "is-active" : ""}`}
+            href={buildDashboardHref({
+              q: searchQuery || null,
+              category: categoryFilter,
+              promotion: promotionFilter !== "all" ? promotionFilter : null
+            })}
+          >
+            All
+          </Link>
+          <Link
+            className={`account-menu-pill ${statusFilter === "active" ? "is-active" : ""}`}
+            href={buildDashboardHref({
+              q: searchQuery || null,
+              status: "active",
+              category: categoryFilter,
+              promotion: promotionFilter !== "all" ? promotionFilter : null
+            })}
+          >
+            Active
+          </Link>
+          <Link
+            className={`account-menu-pill ${promotionFilter === "promoted" ? "is-active" : ""}`}
+            href={buildDashboardHref({
+              q: searchQuery || null,
+              status: statusFilter !== "all" ? statusFilter : null,
+              category: categoryFilter,
+              promotion: "promoted"
+            })}
+          >
+            Promoted
+          </Link>
+          <Link
+            className={`account-menu-pill ${statusFilter === "flagged" ? "is-active" : ""}`}
+            href={buildDashboardHref({
+              q: searchQuery || null,
+              status: "flagged",
+              category: categoryFilter,
+              promotion: promotionFilter !== "all" ? promotionFilter : null
+            })}
+          >
+            Flagged
+          </Link>
+        </div>
+      </div>
+
+      {filteredListings.length === 0 ? (
         <div style={{ marginTop: "1.25rem" }}>
-          <EmptyState
-            actionHref="/dashboard/listings/new"
-            actionLabel="Create your first listing"
-            description="Start with a rental, ride share, job, service, or buy & sell post."
-            title="You have not posted any listings yet"
-          />
+          {listings.length === 0 ? (
+            <EmptyState
+              actionHref="/dashboard/listings/new"
+              actionLabel="Create your first listing"
+              description="Start with a rental, ride share, job, service, or buy & sell post."
+              title="You have not posted any listings yet"
+            />
+          ) : (
+            <EmptyState
+              actionHref="/dashboard"
+              actionLabel="Clear filters"
+              description="Try adjusting your search, status, or promotion filters to find the listing you need."
+              title="No listings match those filters"
+            />
+          )}
         </div>
       ) : (
         <div className="dashboard-list" style={{ marginTop: "1.25rem" }}>
-          {listings.map((listing) => (
+          {filteredListings.map((listing) => (
             <div className="dashboard-listing" key={listing.id}>
               <div className="badge-row">
                 <span className="badge badge-soft">{getCategoryLabel(listing.category)}</span>
@@ -81,7 +282,7 @@ export default async function DashboardPage({
 
               <h3>{listing.title}</h3>
               <p>
-                {formatCurrency(listing.price)} • {listing.location} • Posted {formatDate(listing.created_at)}
+                {formatCurrency(listing.price)} · {listing.location} · Posted {formatDate(listing.created_at)}
               </p>
 
               {getPromotionChips(listing).length ? (

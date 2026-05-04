@@ -5,6 +5,9 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() || "";
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim() || "";
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim() || "";
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() || "";
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY?.trim() || "";
+const vapidSubject = process.env.VAPID_SUBJECT?.trim() || "";
 
 export function getBaseUrl() {
   return appUrl.replace(/\/$/, "");
@@ -75,4 +78,22 @@ export function getStripeWebhookSecret() {
 
 export function canUseDemoPayments() {
   return process.env.NODE_ENV !== "production" || getBaseUrl().includes("localhost");
+}
+
+export function isWebPushConfigured() {
+  return Boolean(vapidPublicKey && vapidPrivateKey && vapidSubject);
+}
+
+export function getWebPushEnv() {
+  if (!isWebPushConfigured()) {
+    throw new Error(
+      "Missing web push environment variables. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, and VAPID_SUBJECT."
+    );
+  }
+
+  return {
+    vapidPublicKey,
+    vapidPrivateKey,
+    vapidSubject
+  };
 }

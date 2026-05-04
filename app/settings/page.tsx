@@ -1,3 +1,4 @@
+import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import {
@@ -76,6 +77,10 @@ export default async function SettingsPage({
               Save settings
             </button>
           </form>
+
+          <div style={{ marginTop: "1.1rem" }}>
+            <BrowserNotificationSettings />
+          </div>
         </div>
 
         <div className="surface" style={{ marginTop: "1rem" }}>
