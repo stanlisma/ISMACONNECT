@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { getListingBoostState } from "@/lib/boost-products";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
+import { getListingBoostState } from "@/lib/boost-products";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryHref, getCategoryLabel } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
@@ -19,27 +19,37 @@ interface ListingCardProps {
   trustSummary?: SellerTrustSummary | null;
 }
 
-function formatTimeAgo(dateString: string) {
+function formatStaticDateLabel(dateString: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC"
+  }).format(new Date(dateString));
+}
+
+function getRelativeListingInfo(dateString: string) {
   const date = new Date(dateString);
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMinutes < 60) return "New";
-  if (diffHours < 24) return `${diffHours}h`;
-  if (diffDays < 7) return `${diffDays}d`;
+  if (diffMinutes < 60) {
+    return { isNew: true, timeLabel: "New" };
+  }
 
-  return date.toLocaleDateString("en-CA", {
-    month: "short",
-    day: "numeric"
-  });
-}
+  if (diffHours < 24) {
+    return { isNew: true, timeLabel: `${diffHours}h` };
+  }
 
-function isNewListing(dateString: string) {
-  const date = new Date(dateString);
-  const diffHours = (Date.now() - date.getTime()) / 36e5;
-  return diffHours <= 48;
+  if (diffDays < 7) {
+    return { isNew: diffHours <= 48, timeLabel: `${diffDays}d` };
+  }
+
+  return {
+    isNew: false,
+    timeLabel: formatStaticDateLabel(dateString)
+  };
 }
 
 export function ListingCard({
@@ -59,8 +69,16 @@ export function ListingCard({
         : [];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [relativeInfo, setRelativeInfo] = useState(() => ({
+    isNew: false,
+    timeLabel: formatStaticDateLabel(listing.created_at)
+  }));
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  useEffect(() => {
+    setRelativeInfo(getRelativeListingInfo(listing.created_at));
+  }, [listing.created_at]);
 
   function handleTouchStart(event: React.TouchEvent) {
     const touchX = event.touches[0].clientX;
@@ -104,16 +122,20 @@ export function ListingCard({
     rawViews === null || rawViews === undefined || rawViews === ""
       ? 0
       : Number(rawViews);
-
   const views = Number.isFinite(parsedViews) && parsedViews > 0 ? parsedViews : 0;
 
-  const isNew = isNewListing(listing.created_at);
+  const isNew = relativeInfo.isNew;
   const isPopular = views > 10;
-  const timeAgo = formatTimeAgo(listing.created_at);
+  const timeAgo = relativeInfo.timeLabel;
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
 
   function goToListing() {
     router.push(`/listings/${listing.slug}`);
+  }
+
+  function goToSellerStorefront(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    router.push(`/sellers/${listing.owner_id}`);
   }
 
   function showPreviousImage(event: React.MouseEvent<HTMLButtonElement>) {
@@ -158,13 +180,9 @@ export function ListingCard({
         ) : null}
 
         {images.length > 0 ? (
-          <Link
-            href={`/listings/${listing.slug}`}
-            aria-label={`View ${listing.title}`}
-          >
+          <div aria-label={`View ${listing.title}`}>
             <img alt={listing.title} src={images[activeImageIndex]} loading="lazy" />
 
-            {/* Desktop badges */}
             <div className="listing-card-badges">
               {isNew ? <span className="listing-card-badge listing-card-badge-new">New</span> : null}
 
@@ -177,7 +195,6 @@ export function ListingCard({
               ) : null}
             </div>
 
-            {/* Mobile/PWA badge */}
             <span className="mobile-marketplace-badge">
               {urgentActive ? "Urgent" : isNew ? "Just listed" : timeAgo}
             </span>
@@ -190,7 +207,7 @@ export function ListingCard({
                   onClick={showPreviousImage}
                   aria-label="Previous image"
                 >
-                  ‹
+                  {"<"}
                 </button>
 
                 <button
@@ -199,7 +216,7 @@ export function ListingCard({
                   onClick={showNextImage}
                   aria-label="Next image"
                 >
-                  ›
+                  {">"}
                 </button>
 
                 <span className="listing-gallery-count">
@@ -208,18 +225,17 @@ export function ListingCard({
               </>
             ) : null}
 
-            {/* Mobile/PWA overlay */}
             <div className="mobile-marketplace-overlay">
               <span className="mobile-marketplace-price">{formatCurrency(listing.price)}</span>
               <span className="mobile-marketplace-title">{listing.title}</span>
             </div>
-          </Link>
+          </div>
         ) : (
-          <Link href={`/listings/${listing.slug}`}>
+          <div>
             <div className="listing-placeholder">
               <span>{getCategoryLabel(listing.category)}</span>
             </div>
-          </Link>
+          </div>
         )}
       </div>
 
@@ -267,7 +283,7 @@ export function ListingCard({
           <div style={{ textAlign: "right" }}>
             <span className="listing-price">
               {formatCurrency(listing.price)}
-              {isPopular ? <span className="listing-urgency-inline"> 🔥</span> : null}
+              {isPopular ? <span className="listing-urgency-inline"> Hot</span> : null}
             </span>
           </div>
         </div>
@@ -277,30 +293,30 @@ export function ListingCard({
         <TrustBadges summary={trustSummary} compact />
 
         <div className="listing-seller-link-row">
-          <Link
-            href={`/sellers/${listing.owner_id}`}
+          <button
+            type="button"
             className="listing-seller-link"
-            onClick={(event) => event.stopPropagation()}
+            onClick={goToSellerStorefront}
           >
             Seller: {listing.contact_name}
-          </Link>
+          </button>
         </div>
 
         <div className="listing-card-signals">
-          <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
-          <span style={{ opacity: 0.5 }}>•</span>
+          <span className="listing-location">Location: {listing.location.split(",")[0]}</span>
+          <span style={{ opacity: 0.5 }}>|</span>
           <span>{timeAgo}</span>
 
           {boostedActive ? (
             <>
-              <span style={{ opacity: 0.5 }}>â€¢</span>
+              <span style={{ opacity: 0.5 }}>|</span>
               <span>Boosted</span>
             </>
           ) : null}
 
           {views > 0 ? (
             <>
-              <span style={{ opacity: 0.5 }}>•</span>
+              <span style={{ opacity: 0.5 }}>|</span>
               <span>{views > 0 ? `${views} views` : "New"}</span>
             </>
           ) : null}
