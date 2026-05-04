@@ -3036,9 +3036,14 @@ code {
 }
 
 .listing-seller-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
   color: var(--primary-dark);
+  cursor: pointer;
   font-size: 0.88rem;
   font-weight: 700;
+  text-align: left;
 }
 
 @media (max-width: 760px) {
