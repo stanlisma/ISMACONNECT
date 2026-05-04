@@ -77,3 +77,40 @@ export function getSingleParam(
   return value || undefined;
 }
 
+export function getPositiveIntParam(
+  value?: string | string[] | null,
+  fallback = 1
+) {
+  const singleValue = getSingleParam(value);
+
+  if (!singleValue) {
+    return fallback;
+  }
+
+  const parsed = Number(singleValue);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+export function buildPathWithQuery(
+  path: string,
+  params: Record<string, string | number | boolean | null | undefined>
+) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === "") {
+      return;
+    }
+
+    searchParams.set(key, String(value));
+  });
+
+  const query = searchParams.toString();
+
+  return query ? `${path}?${query}` : path;
+}

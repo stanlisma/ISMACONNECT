@@ -10,6 +10,7 @@ Production-ready marketplace MVP for Fort McMurray built with the Next.js App Ro
 - Public browse, search, category pages, and listing detail pages
 - Authenticated listing CRUD for marketplace members
 - Saved searches with in-app new-match alerts
+- Installable PWA shell with offline fallback, cached core routes, and browser push notifications
 - Seller ratings, Stripe Identity verification, and trust badges
 - Featured listings, urgent badges, and boost products with Stripe-ready checkout
 - Admin moderation flow for flagged listings
@@ -56,6 +57,8 @@ supabase/
   migrations/202605030003_featured_boosts.sql
   migrations/202605030004_stripe_identity_verification.sql
   migrations/202605030005_identity_verification_payments.sql
+  migrations/202605040006_notifications_realtime.sql
+  migrations/202605040007_push_subscriptions.sql
   seed.sql
 types/
 ```
@@ -89,13 +92,17 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_IDENTITY_VERIFICATION_PRICE_CENTS=499
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:hello@ismaconnect.ca
 ```
 
 If Stripe is not configured, local development can still test the boost flow in demo mode. Production boost checkout requires all three Stripe values.
+Browser push notifications require all three VAPID values.
 
 ### 4. Apply the database schema
 
-Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, then `supabase/migrations/202605030003_featured_boosts.sql`, then `supabase/migrations/202605030004_stripe_identity_verification.sql`, and finally `supabase/migrations/202605030005_identity_verification_payments.sql` inside the Supabase SQL editor.
+Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, then `supabase/migrations/202605030003_featured_boosts.sql`, then `supabase/migrations/202605030004_stripe_identity_verification.sql`, then `supabase/migrations/202605030005_identity_verification_payments.sql`, then `supabase/migrations/202605040006_notifications_realtime.sql`, and finally `supabase/migrations/202605040007_push_subscriptions.sql` inside the Supabase SQL editor.
 
 This creates:
 
@@ -107,6 +114,7 @@ This creates:
 - `listing_boost_orders`
 - Stripe Identity profile tracking fields
 - `identity_verification_orders`
+- `push_subscriptions`
 - RLS policies for public browsing, owner CRUD, and admin moderation
 - search and moderation triggers
 
@@ -151,6 +159,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - Rate sellers after contacting them through ISMACONNECT
 - Buy featured, urgent, and top-boost upgrades from `/dashboard/boosts`
 - Flag suspicious listings from listing detail pages
+- Turn on browser push notifications for messages, boost events, and verification updates from `/settings`
 
 ### Admin users
 
@@ -258,6 +267,18 @@ Example:
 - `999` = `$9.99 CAD`
 
 The existing Stripe webhook endpoint should also listen for the same `checkout.session.*` events already used by boost products, because verification payment uses Stripe Checkout first and Stripe Identity second.
+
+## Browser push notifications
+
+ISMACONNECT can send browser push notifications for messages, boost events, and verification status updates.
+
+Set these environment variables:
+
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
+
+Generate a VAPID keypair with your preferred tooling, then add the values to both local development and Vercel production environments.
 
 The listing model uses these promotion columns:
 

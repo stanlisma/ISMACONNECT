@@ -13,7 +13,7 @@ import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
-import { getSingleParam, resolveCategory } from "@/lib/utils";
+import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export function generateStaticParams() {
   return CATEGORIES.map((category) => ({
@@ -60,6 +60,7 @@ export default async function CategoryPage({
   const search = getSingleParam(resolvedSearchParams?.q);
   const minPriceParam = getSingleParam(resolvedSearchParams?.minPrice);
   const maxPriceParam = getSingleParam(resolvedSearchParams?.maxPrice);
+  const page = getPositiveIntParam(resolvedSearchParams?.page, 1);
 
   const minPrice = minPriceParam ? Number(minPriceParam) : null;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
@@ -91,16 +92,40 @@ export default async function CategoryPage({
     sort
   });
 
-  const { listings, isConfigured } = await getPublicListings({
+  const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
     category,
     subcategory,
     search,
     minPrice,
     maxPrice,
     sort,
-    limit: 24
+    limit: 24,
+    page
   });
   const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
+  const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
+  const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
+  const previousPageHref =
+    page > 1
+      ? buildPathWithQuery(categoryInfo.href, {
+          q: search,
+          subcategory,
+          minPrice,
+          maxPrice,
+          sort,
+          page: page - 1 > 1 ? page - 1 : undefined
+        })
+      : null;
+  const nextPageHref = hasMore
+    ? buildPathWithQuery(categoryInfo.href, {
+        q: search,
+        subcategory,
+        minPrice,
+        maxPrice,
+        sort,
+        page: page + 1
+      })
+    : null;
 
   return (
     <section className="section listing-feed-section">
@@ -136,7 +161,9 @@ export default async function CategoryPage({
         />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
-          {listings.length} results found
+          {totalCount > 0
+            ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
+            : "0 results found"}
         </p>
 
         <div className="pill-links">
@@ -161,18 +188,40 @@ export default async function CategoryPage({
             title={`No ${categoryInfo.label.toLowerCase()} listings found`}
           />
         ) : (
-          <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
-            {listings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                isSaved={savedIds.has(listing.id)}
-                canSave
-                pathToRevalidate={categoryInfo.href}
-                trustSummary={trustMap.get(listing.owner_id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
+              {listings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isSaved={savedIds.has(listing.id)}
+                  canSave
+                  pathToRevalidate={categoryInfo.href}
+                  trustSummary={trustMap.get(listing.owner_id)}
+                />
+              ))}
+            </div>
+
+            {previousPageHref || nextPageHref ? (
+              <div className="action-row" style={{ marginTop: "1.25rem", justifyContent: "space-between" }}>
+                <div>
+                  {previousPageHref ? (
+                    <Link className="button button-secondary" href={previousPageHref}>
+                      Previous page
+                    </Link>
+                  ) : null}
+                </div>
+
+                <div>
+                  {nextPageHref ? (
+                    <Link className="button" href={nextPageHref}>
+                      Load more listings
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
     </section>

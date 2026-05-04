@@ -15,6 +15,7 @@ import {
   hasPaidIdentityVerification
 } from "@/lib/identity-verification";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createNotificationAndPush } from "@/lib/push";
 import {
   createStripeCheckoutSession,
   createStripeIdentityVerificationSession,
@@ -265,6 +266,24 @@ export async function reviewVerificationRequestAction(
   revalidatePath("/settings");
   revalidatePath("/admin/moderation");
 
+  try {
+    await createNotificationAndPush({
+      userId: profileId,
+      type: "verification",
+      title:
+        decision === "approve"
+          ? "Seller verification approved"
+          : "Seller verification declined",
+      body:
+        decision === "approve"
+          ? "Your verified seller badge is now active on ISMACONNECT."
+          : "Your verification request was declined. You can try again from settings.",
+      link: "/settings"
+    });
+  } catch (notificationError) {
+    console.error("Manual verification notification failed:", notificationError);
+  }
+
   redirectWithMessage(
     "/admin/moderation",
     "success",
@@ -350,6 +369,18 @@ export async function submitSellerReviewAction(
 
   if (listing?.category) {
     revalidatePath(`/categories/${listing.category}`);
+  }
+
+  try {
+    await createNotificationAndPush({
+      userId: sellerId,
+      type: "review",
+      title: "New seller rating",
+      body: `Someone left a ${rating}-star rating on one of your listings.`,
+      link: `/listings/${listingSlug}`
+    });
+  } catch (notificationError) {
+    console.error("Seller review notification failed:", notificationError);
   }
 
   redirectWithMessage(`/listings/${listingSlug}`, "success", "Thanks for rating this seller.");

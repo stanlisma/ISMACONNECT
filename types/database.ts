@@ -139,6 +139,29 @@ export interface IdentityVerificationOrder {
   updated_at: string;
 }
 
+export interface PublicSellerStorefront {
+  seller_id: string;
+  display_name: string;
+  primary_location: string;
+  total_active_listings: number;
+  active_categories: ListingCategory[];
+  listings: Listing[];
+}
+
+export interface PushSubscriptionRecord {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  user_agent: string | null;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+  failure_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Viewer {
   user: User;
   profile: Profile;

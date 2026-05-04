@@ -276,6 +276,16 @@ export function ListingCard({
 
         <TrustBadges summary={trustSummary} compact />
 
+        <div className="listing-seller-link-row">
+          <Link
+            href={`/sellers/${listing.owner_id}`}
+            className="listing-seller-link"
+            onClick={(event) => event.stopPropagation()}
+          >
+            Seller: {listing.contact_name}
+          </Link>
+        </div>
+
         <div className="listing-card-signals">
           <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
           <span style={{ opacity: 0.5 }}>•</span>

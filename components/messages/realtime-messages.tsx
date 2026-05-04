@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { useEffect, useRef, useState } from "react";
 
 type Message = {
   id: string;
@@ -70,22 +70,27 @@ export function RealtimeMessages({
         (payload) => {
           if (payload.eventType === "INSERT") {
             setMessages((current) => {
-              const exists = current.some((m) => m.id === payload.new.id);
-              if (exists) return current;
+              const exists = current.some((message) => message.id === payload.new.id);
+              if (exists) {
+                return current;
+              }
+
               return [...current, payload.new as Message];
             });
           }
 
           if (payload.eventType === "UPDATE") {
             setMessages((current) =>
-              current.map((m) => (m.id === payload.new.id ? (payload.new as Message) : m))
+              current.map((message) =>
+                message.id === payload.new.id ? (payload.new as Message) : message
+              )
             );
           }
         }
       )
       .subscribe();
 
-    const convoChannel = supabase
+    const conversationChannel = supabase
       .channel(`conversation:${conversationId}`)
       .on(
         "postgres_changes",
@@ -104,22 +109,23 @@ export function RealtimeMessages({
 
     return () => {
       supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(convoChannel);
+      supabase.removeChannel(conversationChannel);
     };
   }, [conversationId]);
 
-  const lastMine = [...messages].reverse().find((m) => m.sender_id === viewerId);
+  const lastMine = [...messages].reverse().find((message) => message.sender_id === viewerId);
 
   return (
     <div
+      className="surface"
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "0.75rem",
+        gap: "0.85rem",
         minHeight: "420px",
         maxHeight: "60vh",
         overflowY: "auto",
-        paddingRight: "0.25rem"
+        padding: "1rem"
       }}
     >
       {messages.map((message) => {
@@ -145,8 +151,11 @@ export function RealtimeMessages({
                 style={{
                   padding: "0.8rem 1rem",
                   borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  background: mine ? "#3157d5" : "white",
+                  background: mine
+                    ? "linear-gradient(135deg, var(--primary), var(--primary-dark))"
+                    : "white",
                   color: mine ? "white" : "#101828",
+                  border: mine ? "none" : "1px solid rgba(201, 219, 251, 0.9)",
                   boxShadow: "0 1px 3px rgba(16,24,40,0.08)"
                 }}
               >
@@ -177,7 +186,7 @@ export function RealtimeMessages({
       })}
 
       {otherTyping ? (
-        <div style={{ color: "#667085", fontSize: "0.9rem" }}>{otherUserName} is typing…</div>
+        <div style={{ color: "#667085", fontSize: "0.9rem" }}>{otherUserName} is typing...</div>
       ) : null}
 
       <div ref={bottomRef} />

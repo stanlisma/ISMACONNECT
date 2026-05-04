@@ -465,6 +465,60 @@ code {
   color: #a62f3c;
 }
 
+.app-status-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid transparent;
+  font-weight: 700;
+}
+
+.app-status-banner-offline {
+  background: #fff7e8;
+  border-color: #fde68a;
+  color: #9a6700;
+}
+
+.app-status-banner-update {
+  background: #e8f1ff;
+  border-color: #bfd3ff;
+  color: #1549b7;
+}
+
+.browser-notification-card {
+  display: grid;
+  gap: 0.85rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.browser-notification-copy {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.browser-notification-copy p,
+.browser-notification-actions p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.browser-notification-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.offline-surface {
+  display: grid;
+  gap: 1rem;
+}
+
 .setup-notice h3,
 .empty-state h3 {
   margin-top: 0;
@@ -2330,6 +2384,48 @@ code {
   color: #667085;
 }
 
+.account-menu-pill.is-active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.messages-toolbar-form {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 360px);
+}
+
+.messages-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  min-height: 70vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.dashboard-filters-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.dashboard-filter-search {
+  grid-column: span 1;
+}
+
+.dashboard-filter-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .account-signout-card {
   display: grid;
   gap: 0.9rem;
@@ -2893,6 +2989,58 @@ code {
   flex-wrap: wrap;
 }
 
+.seller-storefront-hero {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.seller-storefront-copy {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.seller-storefront-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.seller-storefront-stats {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.seller-storefront-stat {
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+}
+
+.seller-storefront-stat span {
+  display: block;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.seller-storefront-stat strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.listing-seller-link-row {
+  margin-top: 0.65rem;
+}
+
+.listing-seller-link {
+  color: var(--primary-dark);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .saved-search-banner,
   .saved-searches-summary,
@@ -2919,5 +3067,30 @@ code {
 
   .saved-search-alert-actions {
     width: 100%;
+  }
+
+  .seller-storefront-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .messages-toolbar-form {
+    width: 100%;
+  }
+
+  .messages-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-filter-search {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-filter-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

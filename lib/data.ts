@@ -1,7 +1,12 @@
 import { expireListingPromotions } from "@/lib/boosts";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
-import type { FlaggedListing, Listing, ListingCategory } from "@/types/database";
+import type {
+  FlaggedListing,
+  Listing,
+  ListingCategory,
+  PublicSellerStorefront
+} from "@/types/database";
 
 interface ListingFilters {
   category?: ListingCategory;
@@ -9,6 +14,8 @@ interface ListingFilters {
   search?: string;
   limit?: number;
 }
+
+const DEFAULT_PUBLIC_LISTINGS_PAGE_SIZE = 24;
 
 function isPromotionSchemaError(error: {
   message?: string | null;
@@ -120,11 +127,20 @@ export async function getPublicListings(filters: {
   maxPrice?: number | null;
   sort?: string | null;
   limit?: number;
+  page?: number;
 }) {
+  const pageSize = filters.limit ?? DEFAULT_PUBLIC_LISTINGS_PAGE_SIZE;
+  const page = Math.max(filters.page ?? 1, 1);
+  const offset = (page - 1) * pageSize;
+
   if (!isSupabaseConfigured()) {
     return {
       isConfigured: false,
-      listings: [] as Listing[]
+      listings: [] as Listing[],
+      hasMore: false,
+      totalCount: 0,
+      page,
+      pageSize
     };
   }
 
@@ -134,7 +150,7 @@ export async function getPublicListings(filters: {
   const buildBaseQuery = () => {
     let query = supabase
     .from("listings")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("status", "active");
 
     if (filters.category) {
@@ -201,9 +217,7 @@ export async function getPublicListings(filters: {
         query = query.order("created_at", { ascending: false });
     }
 
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
+    query = query.range(offset, offset + pageSize);
 
     return query;
   };
@@ -218,9 +232,17 @@ export async function getPublicListings(filters: {
     logDataError("Public listings query failed", primaryResponse.error);
   }
 
+  const rawListings = (primaryResponse.data || []) as Listing[];
+  const hasMore = rawListings.length > pageSize;
+  const listings = hasMore ? rawListings.slice(0, pageSize) : rawListings;
+
   return {
     isConfigured: true,
-    listings: ((primaryResponse.data || []) as Listing[])
+    listings,
+    hasMore,
+    totalCount: primaryResponse.count ?? listings.length,
+    page,
+    pageSize
   };
 }
 
@@ -387,6 +409,62 @@ export async function getSavedListings(userId: string) {
   return (data || [])
     .map((row: any) => row.listing)
     .filter(Boolean) as Listing[];
+}
+
+export async function getPublicSellerStorefront(
+  sellerId: string,
+  limit = 12
+): Promise<PublicSellerStorefront | null> {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
+  const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
+
+  let response = await supabase
+    .from("listings")
+    .select("*", { count: "exact" })
+    .eq("status", "active")
+    .eq("owner_id", sellerId)
+    .order("is_featured", { ascending: false })
+    .order("boosted_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (response.error && isPromotionSchemaError(response.error)) {
+    response = await supabase
+      .from("listings")
+      .select("*", { count: "exact" })
+      .eq("status", "active")
+      .eq("owner_id", sellerId)
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(limit);
+  }
+
+  if (response.error) {
+    logDataError("Public seller storefront query failed", response.error);
+    return null;
+  }
+
+  const listings = (response.data || []) as Listing[];
+
+  if (!listings.length) {
+    return null;
+  }
+
+  const firstListing = listings[0];
+  const activeCategories = Array.from(new Set(listings.map((listing) => listing.category)));
+
+  return {
+    seller_id: sellerId,
+    display_name: firstListing.contact_name || "Local seller",
+    primary_location: firstListing.location,
+    total_active_listings: response.count ?? listings.length,
+    active_categories: activeCategories,
+    listings
+  };
 }
 
 export async function getConversationForListing(listingId: string, userId: string) {

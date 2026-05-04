@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireViewer } from "@/lib/auth";
 import { sendNewMessageEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/env";
+import { createNotificationAndPush } from "@/lib/push";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
@@ -71,13 +72,17 @@ export async function sendThreadMessageAction(formData: FormData) {
     })
     .eq("id", conversation.id);
 
-  await supabase.from("notifications").insert({
-    user_id: recipientId,
-    type: "message",
-    title: "New reply",
-    body: "You have a new reply in a conversation.",
-    link: `/messages/${conversation.id}`
-  });
+  try {
+    await createNotificationAndPush({
+      userId: recipientId,
+      type: "message",
+      title: "New reply",
+      body: body ? "You have a new reply in a conversation." : "You received a new image reply.",
+      link: `/messages/${conversation.id}`
+    });
+  } catch (error) {
+    console.error("Reply notification failed:", error);
+  }
 
   const { data: listing } = await supabase
     .from("listings")
@@ -107,7 +112,7 @@ export async function sendThreadMessageAction(formData: FormData) {
         conversationUrl: `${getBaseUrl()}/messages/${conversation.id}`,
         messagePreview: body
           ? body.length > 240
-            ? `${body.slice(0, 240)}…`
+            ? `${body.slice(0, 240)}...`
             : body
           : "Sent an image attachment."
       });
