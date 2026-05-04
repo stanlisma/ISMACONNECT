@@ -2578,6 +2578,30 @@ code {
   grid-template-columns: 2fr 1fr 1fr 1fr;
 }
 
+.dashboard-stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard-stat-card {
+  padding: 0.85rem 0.95rem;
+  border-radius: 18px;
+}
+
+.dashboard-stat-card span {
+  display: block;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.dashboard-stat-card strong {
+  margin-top: 0.35rem;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
 .dashboard-filter-search {
   grid-column: span 1;
 }
@@ -2648,6 +2672,23 @@ code {
 }
 
 @media (max-width: 760px) {
+  .dashboard-stats-grid {
+    gap: 0.65rem;
+  }
+
+  .dashboard-stat-card {
+    padding: 0.8rem 0.85rem;
+    border-radius: 16px;
+  }
+
+  .dashboard-stat-card span {
+    font-size: 0.78rem;
+  }
+
+  .dashboard-stat-card strong {
+    font-size: 1.45rem;
+  }
+
   .account-page {
     padding-top: 0.85rem !important;
     padding-bottom: 6rem !important;
@@ -2707,6 +2748,12 @@ code {
 
   .account-menu-description {
     font-size: 0.84rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

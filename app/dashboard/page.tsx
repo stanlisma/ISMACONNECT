@@ -97,20 +97,20 @@ export default async function DashboardPage({
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
-      <div className="stats-grid">
-        <div className="stat-card">
+      <div className="stats-grid dashboard-stats-grid">
+        <div className="stat-card dashboard-stat-card">
           <span>Total listings</span>
           <strong>{listings.length}</strong>
         </div>
-        <div className="stat-card">
+        <div className="stat-card dashboard-stat-card">
           <span>Active listings</span>
           <strong>{activeCount}</strong>
         </div>
-        <div className="stat-card">
+        <div className="stat-card dashboard-stat-card">
           <span>Flagged listings</span>
           <strong>{flaggedCount}</strong>
         </div>
-        <div className="stat-card">
+        <div className="stat-card dashboard-stat-card">
           <span>Live promotions</span>
           <strong>{boostedCount}</strong>
         </div>
