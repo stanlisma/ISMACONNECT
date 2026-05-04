@@ -8,6 +8,10 @@ import {
   markBoostOrderStatus
 } from "@/lib/boosts";
 import { isStripeWebhookConfigured } from "@/lib/env";
+import {
+  findIdentityVerificationOrderByStripeSession,
+  markIdentityVerificationOrderStatus
+} from "@/lib/identity-verification";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import {
   type StripeIdentityVerificationSession,
@@ -92,6 +96,11 @@ async function syncIdentityVerificationSession(
   await revalidateSellerTrustPaths(profileId);
 }
 
+function revalidateIdentityPaymentPaths() {
+  revalidatePath("/account");
+  revalidatePath("/settings");
+}
+
 export async function POST(request: Request) {
   if (!isStripeWebhookConfigured()) {
     return NextResponse.json({ error: "Stripe webhook is not configured." }, { status: 503 });
@@ -121,6 +130,24 @@ export async function POST(request: Request) {
       const order = await findBoostOrderByStripeSession(boostOrderId, session.id);
 
       if (!order) {
+        const identityOrder = await findIdentityVerificationOrderByStripeSession(
+          session.metadata?.identity_verification_order_id,
+          session.id
+        );
+
+        if (!identityOrder) {
+          break;
+        }
+
+        if (session.payment_status === "paid") {
+          await markIdentityVerificationOrderStatus(
+            identityOrder.id,
+            "paid",
+            typeof session.payment_intent === "string" ? session.payment_intent : null
+          );
+          revalidateIdentityPaymentPaths();
+        }
+
         break;
       }
 
@@ -135,6 +162,17 @@ export async function POST(request: Request) {
       const order = await findBoostOrderByStripeSession(boostOrderId, session.id);
 
       if (!order) {
+        const identityOrder = await findIdentityVerificationOrderByStripeSession(
+          session.metadata?.identity_verification_order_id,
+          session.id
+        );
+
+        if (!identityOrder) {
+          break;
+        }
+
+        await markIdentityVerificationOrderStatus(identityOrder.id, "canceled");
+        revalidateIdentityPaymentPaths();
         break;
       }
 
@@ -147,6 +185,21 @@ export async function POST(request: Request) {
       const order = await findBoostOrderByStripeSession(boostOrderId, session.id);
 
       if (!order) {
+        const identityOrder = await findIdentityVerificationOrderByStripeSession(
+          session.metadata?.identity_verification_order_id,
+          session.id
+        );
+
+        if (!identityOrder) {
+          break;
+        }
+
+        await markIdentityVerificationOrderStatus(
+          identityOrder.id,
+          "failed",
+          typeof session.payment_intent === "string" ? session.payment_intent : null
+        );
+        revalidateIdentityPaymentPaths();
         break;
       }
 
