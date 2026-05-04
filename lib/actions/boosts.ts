@@ -60,15 +60,25 @@ export async function startBoostCheckoutAction(listingId: string, productKey: st
       );
     }
 
-    await createPendingBoostOrder({
-      id: orderId,
-      listing,
-      ownerId: viewer.user.id,
-      product,
-      provider: "demo"
-    });
+    let updatedListing;
 
-    const updatedListing = await activateBoostOrder({ orderId });
+    try {
+      await createPendingBoostOrder({
+        id: orderId,
+        listing,
+        ownerId: viewer.user.id,
+        product,
+        provider: "demo"
+      });
+
+      updatedListing = await activateBoostOrder({ orderId });
+    } catch (error) {
+      redirectWithMessage(
+        `/dashboard/listings/${listing.id}/boost`,
+        "error",
+        error instanceof Error ? error.message : "Could not activate the demo boost."
+      );
+    }
 
     getBoostRevalidationPaths(updatedListing).forEach((path) => {
       revalidatePath(path);
@@ -89,17 +99,17 @@ export async function startBoostCheckoutAction(listingId: string, productKey: st
     );
   }
 
-  await createPendingBoostOrder({
-    id: orderId,
-    listing,
-    ownerId: viewer.user.id,
-    product,
-    provider: "stripe"
-  });
-
   let session: Awaited<ReturnType<typeof createStripeCheckoutSession>>;
 
   try {
+    await createPendingBoostOrder({
+      id: orderId,
+      listing,
+      ownerId: viewer.user.id,
+      product,
+      provider: "stripe"
+    });
+
     const baseUrl = getBaseUrl();
     session = await createStripeCheckoutSession({
       amountCents: product.amountCents,
