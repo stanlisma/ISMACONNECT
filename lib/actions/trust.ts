@@ -149,7 +149,7 @@ export async function requestSellerVerificationAction() {
         description: "Unlock Stripe ID verification and a verified seller badge on ISMACONNECT.",
         successUrl: `${getBaseUrl()}/settings?success=${encodeURIComponent(
           "Payment received. Start your Stripe ID verification below once payment confirmation finishes."
-        )}`,
+        )}&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${getBaseUrl()}/settings?error=${encodeURIComponent(
           "Verification payment was canceled."
         )}`,

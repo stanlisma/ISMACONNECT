@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
+import { retrieveStripeCheckoutSession } from "@/lib/stripe";
 import type { IdentityVerificationOrder } from "@/types/database";
 
 const DEFAULT_IDENTITY_VERIFICATION_PRICE_CENTS = 499;
@@ -145,4 +146,45 @@ export async function findIdentityVerificationOrderByStripeSession(
     .maybeSingle();
 
   return (data as IdentityVerificationOrder | null) ?? null;
+}
+
+export async function reconcileLatestIdentityVerificationPayment(userId: string) {
+  const latestOrder = await getLatestIdentityVerificationOrder(userId);
+
+  if (
+    !latestOrder ||
+    latestOrder.status !== "pending" ||
+    !latestOrder.stripe_checkout_session_id
+  ) {
+    return latestOrder;
+  }
+
+  const session = await retrieveStripeCheckoutSession(latestOrder.stripe_checkout_session_id);
+
+  if (session.payment_status === "paid") {
+    await markIdentityVerificationOrderStatus(
+      latestOrder.id,
+      "paid",
+      typeof session.payment_intent === "string" ? session.payment_intent : null
+    );
+
+    return {
+      ...latestOrder,
+      status: "paid",
+      stripe_payment_intent_id:
+        typeof session.payment_intent === "string" ? session.payment_intent : null,
+      paid_at: new Date().toISOString()
+    } as IdentityVerificationOrder;
+  }
+
+  if (session.status === "expired") {
+    await markIdentityVerificationOrderStatus(latestOrder.id, "canceled");
+
+    return {
+      ...latestOrder,
+      status: "canceled"
+    } as IdentityVerificationOrder;
+  }
+
+  return latestOrder;
 }

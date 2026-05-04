@@ -7,6 +7,8 @@ import {
   type BoostProduct,
   type BoostProductKey
 } from "@/lib/boost-products";
+import { isStripeConfigured } from "@/lib/env";
+import { retrieveStripeCheckoutSession } from "@/lib/stripe";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import type { Listing, ListingBoostOrder } from "@/types/database";
@@ -96,7 +98,9 @@ export async function getUserBoostOrders(userId: string) {
     throw new Error(error.message);
   }
 
-  return (data || []) as ListingBoostOrder[];
+  const orders = (data || []) as ListingBoostOrder[];
+  await reconcilePendingBoostOrders(orders);
+  return await getUserBoostOrdersSnapshot(userId);
 }
 
 export async function getListingBoostOrders(listingId: string, ownerId: string) {
@@ -118,7 +122,9 @@ export async function getListingBoostOrders(listingId: string, ownerId: string) 
     throw new Error(error.message);
   }
 
-  return (data || []) as ListingBoostOrder[];
+  const orders = (data || []) as ListingBoostOrder[];
+  await reconcilePendingBoostOrders(orders);
+  return await getListingBoostOrdersSnapshot(listingId, ownerId);
 }
 
 export async function createPendingBoostOrder(params: {
@@ -330,11 +336,28 @@ export async function getBoostListingOverview(userId: string) {
       .order("created_at", { ascending: false })
   ]);
 
-  return {
-    listings: (listingsResult.data || []) as Listing[],
-    orders: ordersResult.error && isBoostSchemaError(ordersResult.error)
+  const orders =
+    ordersResult.error && isBoostSchemaError(ordersResult.error)
       ? []
-      : ((ordersResult.data || []) as ListingBoostOrder[])
+      : ((ordersResult.data || []) as ListingBoostOrder[]);
+
+  await reconcilePendingBoostOrders(orders);
+
+  const refreshedListingsResult = await supabase
+    .from("listings")
+    .select("*")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false });
+
+  const refreshedOrdersResult = await supabase
+    .from("listing_boost_orders")
+    .select("*")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false });
+
+  return {
+    listings: (refreshedListingsResult.data || []) as Listing[],
+    orders: (refreshedOrdersResult.data || []) as ListingBoostOrder[]
   };
 }
 
@@ -381,4 +404,54 @@ export function getBoostProductPriceLabel(productKey: BoostProductKey | string) 
     currency: product.currency.toUpperCase(),
     maximumFractionDigits: 2
   }).format(product.amountCents / 100);
+}
+
+async function getUserBoostOrdersSnapshot(userId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("listing_boost_orders")
+    .select("*")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false });
+
+  return (data || []) as ListingBoostOrder[];
+}
+
+async function getListingBoostOrdersSnapshot(listingId: string, ownerId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("listing_boost_orders")
+    .select("*")
+    .eq("listing_id", listingId)
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  return (data || []) as ListingBoostOrder[];
+}
+
+async function reconcilePendingBoostOrders(orders: ListingBoostOrder[]) {
+  if (!isStripeConfigured()) {
+    return;
+  }
+
+  for (const order of orders) {
+    if (order.status !== "pending" || !order.stripe_checkout_session_id) {
+      continue;
+    }
+
+    const session = await retrieveStripeCheckoutSession(order.stripe_checkout_session_id);
+
+    if (session.payment_status === "paid") {
+      await activateBoostOrder({
+        orderId: order.id,
+        stripePaymentIntentId:
+          typeof session.payment_intent === "string" ? session.payment_intent : null
+      });
+      continue;
+    }
+
+    if (session.status === "expired") {
+      await markBoostOrderStatus(order.id, "canceled");
+    }
+  }
 }
