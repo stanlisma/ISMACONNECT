@@ -18,6 +18,7 @@ export interface StripeCheckoutSession {
   id: string;
   url: string | null;
   payment_status: string;
+  status?: string | null;
   payment_intent?: string | null;
   metadata?: Record<string, string>;
 }
@@ -95,6 +96,12 @@ export async function createStripeCheckoutSession({
       "Content-Type": "application/x-www-form-urlencoded"
     },
     body
+  });
+}
+
+export async function retrieveStripeCheckoutSession(sessionId: string) {
+  return stripeRequest<StripeCheckoutSession>(`/v1/checkout/sessions/${sessionId}`, {
+    method: "GET"
   });
 }
 

@@ -1,6 +1,9 @@
 import { FlashMessage } from "@/components/ui/flash-message";
 import { TrustBadges } from "@/components/trust/trust-badges";
-import { getIdentityVerificationPriceLabel, getLatestIdentityVerificationOrder } from "@/lib/identity-verification";
+import {
+  getIdentityVerificationPriceLabel,
+  reconcileLatestIdentityVerificationPayment
+} from "@/lib/identity-verification";
 import { updateNotificationSettingsAction } from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
@@ -19,7 +22,7 @@ export default async function SettingsPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const trustSummary = await getSellerTrustSummary(viewer.user.id);
   const stripeIdentityReady = isStripeWebhookConfigured();
-  const latestVerificationOrder = await getLatestIdentityVerificationOrder(viewer.user.id);
+  const latestVerificationOrder = await reconcileLatestIdentityVerificationPayment(viewer.user.id);
   const verificationPriceLabel = getIdentityVerificationPriceLabel();
 
   const { data: profile } = await supabase

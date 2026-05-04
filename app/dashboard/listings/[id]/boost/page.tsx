@@ -20,13 +20,14 @@ export default async function ListingBoostPage({
   const { id } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const viewer = await requireViewer();
-  const listing = await getEditableListing(id);
+  const initialListing = await getEditableListing(id);
 
-  if (!listing || listing.owner_id !== viewer.user.id) {
+  if (!initialListing || initialListing.owner_id !== viewer.user.id) {
     notFound();
   }
 
-  const orders = await getListingBoostOrders(listing.id, viewer.user.id);
+  const orders = await getListingBoostOrders(initialListing.id, viewer.user.id);
+  const listing = (await getEditableListing(id)) ?? initialListing;
   const boostState = getListingBoostState(listing);
   const stripeReady = isStripeConfigured();
   const demoModeEnabled = !stripeReady && canUseDemoPayments();
