@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
+import { getBaseUrl, isStripeWebhookConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  createStripeIdentityVerificationSession,
+  retrieveStripeIdentityVerificationSession
+} from "@/lib/stripe";
 import { canViewerRateSeller, getViewerSellerReview } from "@/lib/trust";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
@@ -17,7 +22,9 @@ export async function requestSellerVerificationAction() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("verification_status")
+    .select(
+      "verification_status, stripe_identity_verification_session_id, stripe_identity_session_status"
+    )
     .eq("id", viewer.user.id)
     .single();
 
@@ -25,12 +32,117 @@ export async function requestSellerVerificationAction() {
     redirectWithMessage("/settings", "error", "Your profile could not be loaded.");
   }
 
+  if (!isStripeWebhookConfigured()) {
+    redirectWithMessage(
+      "/settings",
+      "error",
+      "Stripe Identity is not configured yet. Add Stripe keys and webhook settings first."
+    );
+  }
+
   if (profile.verification_status === "verified") {
     redirectWithMessage("/settings", "success", "Your seller verification is already active.");
   }
 
-  if (profile.verification_status === "pending") {
-    redirectWithMessage("/settings", "success", "Your verification request is already pending review.");
+  let existingSession:
+    | Awaited<ReturnType<typeof retrieveStripeIdentityVerificationSession>>
+    | null = null;
+
+  if (profile.stripe_identity_verification_session_id) {
+    try {
+      existingSession = await retrieveStripeIdentityVerificationSession(
+        profile.stripe_identity_verification_session_id
+      );
+    } catch {
+      // Fall through and create a fresh session if Stripe no longer accepts the previous one.
+    }
+  }
+
+  if (existingSession?.status === "verified") {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        verification_status: "verified",
+        verification_requested_at: null,
+        verified_at: new Date().toISOString(),
+        stripe_identity_session_status: existingSession.status,
+        stripe_identity_last_error_code: null,
+        stripe_identity_last_error_reason: null
+      })
+      .eq("id", viewer.user.id);
+
+    if (error) {
+      redirectWithMessage("/settings", "error", error.message);
+    }
+
+    revalidatePath("/");
+    revalidatePath("/browse");
+    revalidatePath("/account");
+    revalidatePath("/settings");
+
+    redirectWithMessage(
+      "/settings",
+      "success",
+      "Your seller verification is already complete."
+    );
+  }
+
+  if (
+    existingSession &&
+    (existingSession.status === "processing" || existingSession.status === "requires_input")
+  ) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        verification_status: "pending",
+        verification_requested_at: new Date().toISOString(),
+        verified_at: null,
+        stripe_identity_session_status: existingSession.status,
+        stripe_identity_last_error_code: existingSession.last_error?.code ?? null,
+        stripe_identity_last_error_reason: existingSession.last_error?.reason ?? null
+      })
+      .eq("id", viewer.user.id);
+
+    if (error) {
+      redirectWithMessage("/settings", "error", error.message);
+    }
+
+    if (existingSession.url) {
+      redirect(existingSession.url);
+    }
+
+    redirectWithMessage(
+      "/settings",
+      "success",
+      existingSession.status === "processing"
+        ? "Stripe is still processing your document verification."
+        : "Continue your Stripe ID verification."
+    );
+  }
+
+  let session;
+
+  try {
+    session = await createStripeIdentityVerificationSession({
+      userId: viewer.user.id,
+      returnUrl: `${getBaseUrl()}/settings?success=${encodeURIComponent(
+        "Verification submitted. We will update your badge after Stripe finishes processing."
+      )}`
+    });
+  } catch (error) {
+    redirectWithMessage(
+      "/settings",
+      "error",
+      error instanceof Error ? error.message : "Could not start Stripe ID verification."
+    );
+  }
+
+  if (!session.url) {
+    redirectWithMessage(
+      "/settings",
+      "error",
+      "Stripe Identity did not return a redirect URL."
+    );
   }
 
   const { error } = await supabase
@@ -38,7 +150,11 @@ export async function requestSellerVerificationAction() {
     .update({
       verification_status: "pending",
       verification_requested_at: new Date().toISOString(),
-      verified_at: null
+      verified_at: null,
+      stripe_identity_verification_session_id: session.id,
+      stripe_identity_session_status: session.status,
+      stripe_identity_last_error_code: session.last_error?.code ?? null,
+      stripe_identity_last_error_reason: session.last_error?.reason ?? null
     })
     .eq("id", viewer.user.id);
 
@@ -50,7 +166,7 @@ export async function requestSellerVerificationAction() {
   revalidatePath("/settings");
   revalidatePath("/admin/moderation");
 
-  redirectWithMessage("/settings", "success", "Verification request submitted.");
+  redirect(session.url);
 }
 
 export async function reviewVerificationRequestAction(

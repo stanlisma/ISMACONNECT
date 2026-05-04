@@ -93,6 +93,7 @@ export async function getPendingVerificationProfiles() {
     .from("profiles")
     .select("id, email, full_name, phone, role, verification_status, verification_requested_at, verified_at, created_at, updated_at")
     .eq("verification_status", "pending")
+    .is("stripe_identity_verification_session_id", null)
     .order("verification_requested_at", { ascending: true });
 
   return ((data ?? []) as Profile[]).map((profile) => ({

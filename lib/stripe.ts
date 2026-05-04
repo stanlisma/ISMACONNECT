@@ -30,6 +30,41 @@ export interface StripeWebhookEvent<T = any> {
   };
 }
 
+export interface StripeIdentityVerificationSession {
+  id: string;
+  object: "identity.verification_session";
+  client_reference_id?: string | null;
+  created: number;
+  last_error?: {
+    code?: string | null;
+    reason?: string | null;
+  } | null;
+  metadata?: Record<string, string>;
+  status: "requires_input" | "processing" | "verified" | "canceled";
+  type: "document" | "id_number";
+  url: string | null;
+}
+
+async function stripeRequest<T>(path: string, init?: RequestInit) {
+  const { stripeSecretKey } = getStripeEnv();
+  const response = await fetch(`https://api.stripe.com${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${stripeSecretKey}`,
+      "Stripe-Version": STRIPE_API_VERSION,
+      ...(init?.headers || {})
+    }
+  });
+
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload?.error?.message || "Stripe request failed.");
+  }
+
+  return payload as T;
+}
+
 export async function createStripeCheckoutSession({
   amountCents,
   currency,
@@ -39,8 +74,6 @@ export async function createStripeCheckoutSession({
   cancelUrl,
   metadata
 }: CreateCheckoutSessionInput) {
-  const { stripeSecretKey } = getStripeEnv();
-
   const body = new URLSearchParams();
   body.set("mode", "payment");
   body.set("success_url", successUrl);
@@ -56,23 +89,43 @@ export async function createStripeCheckoutSession({
     body.set(`payment_intent_data[metadata][${key}]`, value);
   }
 
-  const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+  return stripeRequest<StripeCheckoutSession>("/v1/checkout/sessions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${stripeSecretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Stripe-Version": STRIPE_API_VERSION
+      "Content-Type": "application/x-www-form-urlencoded"
     },
     body
   });
+}
 
-  const payload = await response.json();
+export async function createStripeIdentityVerificationSession(params: {
+  userId: string;
+  returnUrl: string;
+}) {
+  const body = new URLSearchParams();
+  body.set("type", "document");
+  body.set("return_url", params.returnUrl);
+  body.set("client_reference_id", params.userId);
+  body.set("metadata[user_id]", params.userId);
+  body.set("metadata[source]", "ismaconnect");
+  body.set("options[document][require_matching_selfie]", "true");
 
-  if (!response.ok) {
-    throw new Error(payload?.error?.message || "Stripe checkout could not be created.");
-  }
+  return stripeRequest<StripeIdentityVerificationSession>("/v1/identity/verification_sessions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body
+  });
+}
 
-  return payload as StripeCheckoutSession;
+export async function retrieveStripeIdentityVerificationSession(sessionId: string) {
+  return stripeRequest<StripeIdentityVerificationSession>(
+    `/v1/identity/verification_sessions/${sessionId}`,
+    {
+      method: "GET"
+    }
+  );
 }
 
 function secureCompare(a: string, b: string) {
