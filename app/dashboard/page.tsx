@@ -4,6 +4,8 @@ import { DeleteListingForm } from "@/components/listings/delete-listing-form";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireViewer } from "@/lib/auth";
+import { getListingBoostState } from "@/lib/boost-products";
+import { getPromotionChips } from "@/lib/boosts";
 import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { getUserListings } from "@/lib/data";
 import { formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/lib/utils";
@@ -20,6 +22,10 @@ export default async function DashboardPage({
   const activeCount = listings.filter((listing) => listing.status === "active").length;
   const flaggedCount = listings.filter((listing) => listing.status === "flagged").length;
   const featuredCount = listings.filter((listing) => listing.is_featured).length;
+  const boostedCount = listings.filter((listing) => {
+    const state = getListingBoostState(listing);
+    return state.featuredActive || state.urgentActive || state.boostedActive;
+  }).length;
 
   return (
     <>
@@ -38,6 +44,10 @@ export default async function DashboardPage({
         <div className="stat-card">
           <span>Featured slots</span>
           <strong>{featuredCount}</strong>
+        </div>
+        <div className="stat-card">
+          <span>Live boosts</span>
+          <strong>{boostedCount}</strong>
         </div>
       </div>
 
@@ -74,6 +84,25 @@ export default async function DashboardPage({
                 {formatCurrency(listing.price)} • {listing.location} • Posted {formatDate(listing.created_at)}
               </p>
 
+              {getPromotionChips(listing).length ? (
+                <div className="badge-row" style={{ marginTop: "0.75rem" }}>
+                  {getPromotionChips(listing).map((chip) => (
+                    <span
+                      key={chip}
+                      className={`badge ${
+                        chip === "Featured"
+                          ? "badge-featured"
+                          : chip === "Urgent"
+                            ? "badge-urgent"
+                            : "badge-soft"
+                      }`}
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
               <div className="action-row">
                 {listing.status === "active" ? (
                   <Link className="button button-secondary" href={`/listings/${listing.slug}`}>
@@ -83,6 +112,11 @@ export default async function DashboardPage({
                 <Link className="button" href={`/dashboard/listings/${listing.id}/edit`}>
                   Edit
                 </Link>
+                {listing.status === "active" ? (
+                  <Link className="button button-secondary" href={`/dashboard/listings/${listing.id}/boost`}>
+                    Promote
+                  </Link>
+                ) : null}
                 <DeleteListingForm listingId={listing.id} />
               </div>
             </div>

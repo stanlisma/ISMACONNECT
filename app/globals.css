@@ -2098,6 +2098,200 @@ code {
   flex-shrink: 0;
 }
 
+.stack-md {
+  display: grid;
+  gap: 1rem;
+}
+
+.badge-urgent {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.listing-card-badge-urgent {
+  background: #fee2e2;
+  color: #b42318;
+}
+
+.boost-hero-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.boost-stats-grid {
+  margin-top: 0.25rem;
+}
+
+.boost-product-grid,
+.boost-listing-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.boost-product-card,
+.boost-listing-card,
+.boost-status-card,
+.boost-order-row {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.boost-product-card,
+.boost-listing-card,
+.boost-order-row {
+  padding: 1.1rem;
+}
+
+.boost-product-head,
+.boost-order-row,
+.boost-listing-meta {
+  display: flex;
+  gap: 1rem;
+}
+
+.boost-product-head,
+.boost-order-row {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.boost-product-head h3,
+.boost-listing-card h3,
+.boost-order-row h3 {
+  margin: 0.35rem 0 0;
+}
+
+.boost-product-label {
+  display: inline-flex;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 111, 214, 0.1);
+  color: var(--primary-dark);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.boost-product-price {
+  text-align: right;
+}
+
+.boost-product-price strong {
+  display: block;
+  font-size: 1.35rem;
+  color: var(--text);
+}
+
+.boost-product-price span,
+.boost-product-callout,
+.boost-product-description,
+.boost-listing-meta,
+.boost-order-row p,
+.boost-order-meta {
+  color: var(--text-soft);
+}
+
+.boost-product-description,
+.boost-product-callout {
+  margin: 0.85rem 0 0;
+  line-height: 1.55;
+}
+
+.boost-product-callout {
+  font-weight: 700;
+}
+
+.boost-product-highlights {
+  display: grid;
+  gap: 0.45rem;
+  margin: 1rem 0 1.2rem;
+  padding: 0 0 0 1.1rem;
+  color: var(--text);
+}
+
+.boost-product-card form {
+  margin-top: auto;
+}
+
+.boost-product-card .button {
+  width: 100%;
+}
+
+.boost-status-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.boost-status-card {
+  padding: 1rem;
+}
+
+.boost-status-card span,
+.boost-status-card small {
+  color: var(--text-soft);
+}
+
+.boost-status-card strong {
+  display: block;
+  margin: 0.2rem 0 0.25rem;
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.boost-listing-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.boost-listing-meta {
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.boost-orders-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.boost-order-meta {
+  display: grid;
+  gap: 0.35rem;
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.boost-runtime-note {
+  background: linear-gradient(180deg, #fffdf8, #fff8ea);
+}
+
+@media (min-width: 720px) {
+  .boost-product-grid,
+  .boost-listing-grid,
+  .boost-status-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .boost-product-head,
+  .boost-order-row {
+    flex-direction: column;
+  }
+
+  .boost-product-price,
+  .boost-order-meta {
+    text-align: left;
+  }
+
+  .boost-status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .account-menu-count,
 .account-menu-badge,
 .account-menu-pill {

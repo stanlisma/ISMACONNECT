@@ -4,6 +4,7 @@ import {
   Heart,
   ListChecks,
   Mail,
+  Megaphone,
   MessageCircle,
   Search,
   ShieldCheck,
@@ -197,6 +198,19 @@ export default async function AccountPage() {
                   ) : (
                     <span className="account-menu-count">{savedSearchesCount}</span>
                   )}
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/dashboard/boosts" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <Megaphone aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Boost Products</span>
+                  <span className="account-menu-description">Feature important listings and run paid boosts</span>
+                </span>
+                <span className="account-menu-meta">
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>

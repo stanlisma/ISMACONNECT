@@ -13,6 +13,7 @@ import { TrustBadges } from "@/components/trust/trust-badges";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
+import { getListingBoostState } from "@/lib/boost-products";
 import { CATEGORY_MAP, SITE_NAME } from "@/lib/constants";
 import {
   getConversationForListing,
@@ -99,6 +100,7 @@ export default async function ListingPage({
       : listing.image_url
         ? [listing.image_url]
         : [];
+  const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -137,9 +139,11 @@ export default async function ListingPage({
                     {category.label}
                   </Link>
 
-                  {listing.is_featured ? (
+                  {featuredActive ? (
                     <span className="badge badge-featured">Featured</span>
                   ) : null}
+                  {urgentActive ? <span className="badge badge-urgent">Urgent</span> : null}
+                  {boostedActive ? <span className="badge badge-soft">Boosted</span> : null}
                 </div>
 
                 <div
@@ -184,13 +188,19 @@ export default async function ListingPage({
                 description="Clear local details keep replies fast and reduce back-and-forth."
               />
 
-              <div className="meta-list">
-                <span>Category: {category.label}</span>
-                <span>Location: {listing.location}</span>
-                <span>Posted: {formatDate(listing.created_at)}</span>
-                <span>Price: {formatCurrency(listing.price)}</span>
+                <div className="meta-list">
+                  <span>Category: {category.label}</span>
+                  <span>Location: {listing.location}</span>
+                  <span>Posted: {formatDate(listing.created_at)}</span>
+                  <span>Price: {formatCurrency(listing.price)}</span>
+                  {featuredActive && listing.featured_until ? (
+                    <span>Featured until: {formatDate(listing.featured_until)}</span>
+                  ) : null}
+                  {urgentActive && listing.urgent_until ? (
+                    <span>Urgent until: {formatDate(listing.urgent_until)}</span>
+                  ) : null}
+                </div>
               </div>
-            </div>
 
             {viewer ? (
               viewer.user.id !== listing.owner_id ? (
@@ -221,11 +231,16 @@ export default async function ListingPage({
                   <SectionHeading
                     eyebrow="Your Listing"
                     title="You own this listing"
-                    description="Use My Listings to edit details, upload images, or remove the post."
+                    description="Use My Listings to edit details, upload images, remove the post, or run paid boosts."
                   />
-                  <Link href="/dashboard" className="button button-secondary">
-                    Go to My Listings
-                  </Link>
+                  <div className="action-row">
+                    <Link href="/dashboard" className="button button-secondary">
+                      Go to My Listings
+                    </Link>
+                    <Link href={`/dashboard/listings/${listing.id}/boost`} className="button">
+                      Promote listing
+                    </Link>
+                  </div>
                 </div>
               )
             ) : (
