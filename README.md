@@ -55,6 +55,7 @@ supabase/
   migrations/202605030002_trust_and_ratings.sql
   migrations/202605030003_featured_boosts.sql
   migrations/202605030004_stripe_identity_verification.sql
+  migrations/202605030005_identity_verification_payments.sql
   seed.sql
 types/
 ```
@@ -87,13 +88,14 @@ SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
+STRIPE_IDENTITY_VERIFICATION_PRICE_CENTS=499
 ```
 
 If Stripe is not configured, local development can still test the boost flow in demo mode. Production boost checkout requires all three Stripe values.
 
 ### 4. Apply the database schema
 
-Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, then `supabase/migrations/202605030003_featured_boosts.sql`, and finally `supabase/migrations/202605030004_stripe_identity_verification.sql` inside the Supabase SQL editor.
+Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, then `supabase/migrations/202605030003_featured_boosts.sql`, then `supabase/migrations/202605030004_stripe_identity_verification.sql`, and finally `supabase/migrations/202605030005_identity_verification_payments.sql` inside the Supabase SQL editor.
 
 This creates:
 
@@ -104,6 +106,7 @@ This creates:
 - `seller_reviews`
 - `listing_boost_orders`
 - Stripe Identity profile tracking fields
+- `identity_verification_orders`
 - RLS policies for public browsing, owner CRUD, and admin moderation
 - search and moderation triggers
 
@@ -144,7 +147,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - Edit or delete their own listings from `/dashboard`
 - Save searches from `/browse` and category pages
 - Review saved-search alerts from `/dashboard/searches`
-- Start Stripe ID verification from `/settings`
+- Pay for seller verification and then start Stripe ID verification from `/settings`
 - Rate sellers after contacting them through ISMACONNECT
 - Buy featured, urgent, and top-boost upgrades from `/dashboard/boosts`
 - Flag suspicious listings from listing detail pages
@@ -200,6 +203,10 @@ Stores paid or demo boost purchases, checkout state, activation windows, and Str
 
 Stores the latest Stripe Identity verification session ID, status, and failure details for seller badge automation.
 
+### `identity_verification_orders`
+
+Stores the Stripe Checkout payments that gate seller verification before a Stripe Identity session can begin.
+
 ## Stripe boost checkout
 
 ISMACONNECT now supports seller-facing boost products with a Stripe-hosted Checkout flow when these variables are set:
@@ -234,6 +241,23 @@ https://your-domain.com/api/stripe/webhook
 ```
 
 When a seller starts verification, the app creates a Stripe `VerificationSession`, redirects the seller to Stripe, and updates `profiles.verification_status` automatically from webhook results.
+
+## Paid seller verification
+
+ISMACONNECT now supports charging sellers before they can start Stripe Identity verification.
+
+Set the verification fee in cents with:
+
+```text
+STRIPE_IDENTITY_VERIFICATION_PRICE_CENTS=499
+```
+
+Example:
+
+- `499` = `$4.99 CAD`
+- `999` = `$9.99 CAD`
+
+The existing Stripe webhook endpoint should also listen for the same `checkout.session.*` events already used by boost products, because verification payment uses Stripe Checkout first and Stripe Identity second.
 
 The listing model uses these promotion columns:
 

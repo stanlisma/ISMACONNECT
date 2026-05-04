@@ -5,6 +5,7 @@ export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "
 export type ListingStatus = "active" | "flagged" | "removed";
 export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
 export type BoostOrderStatus = "pending" | "active" | "expired" | "canceled" | "failed";
+export type IdentityVerificationOrderStatus = "pending" | "paid" | "canceled" | "failed";
 
 export interface Profile {
   id: string;
@@ -121,6 +122,19 @@ export interface ListingBoostOrder {
   stripe_payment_intent_id: string | null;
   applied_at: string | null;
   expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IdentityVerificationOrder {
+  id: string;
+  user_id: string;
+  amount_cents: number;
+  currency: string;
+  status: IdentityVerificationOrderStatus;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  paid_at: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -1,5 +1,6 @@
 import { FlashMessage } from "@/components/ui/flash-message";
 import { TrustBadges } from "@/components/trust/trust-badges";
+import { getIdentityVerificationPriceLabel, getLatestIdentityVerificationOrder } from "@/lib/identity-verification";
 import { updateNotificationSettingsAction } from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
@@ -18,6 +19,8 @@ export default async function SettingsPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const trustSummary = await getSellerTrustSummary(viewer.user.id);
   const stripeIdentityReady = isStripeWebhookConfigured();
+  const latestVerificationOrder = await getLatestIdentityVerificationOrder(viewer.user.id);
+  const verificationPriceLabel = getIdentityVerificationPriceLabel();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -29,6 +32,8 @@ export default async function SettingsPage({
 
   const identityNeedsRetry = profile?.stripe_identity_session_status === "requires_input";
   const identityProcessing = profile?.stripe_identity_session_status === "processing";
+  const verificationPaid = latestVerificationOrder?.status === "paid";
+  const verificationPaymentPending = latestVerificationOrder?.status === "pending";
 
   return (
     <section className="section">
@@ -97,8 +102,19 @@ export default async function SettingsPage({
                   : identityNeedsRetry
                     ? profile?.stripe_identity_last_error_reason ||
                       "Stripe needs more information before your seller badge can be approved."
+                    : !verificationPaid
+                      ? `A one-time ${verificationPriceLabel} Stripe Checkout payment is required before ID verification starts.`
                     : "Use Stripe Identity to verify a government-issued photo ID and matching selfie."}
               </p>
+
+              {!verificationPaid && latestVerificationOrder ? (
+                <p className="section-copy" style={{ marginTop: "0.75rem" }}>
+                  Latest payment status: {latestVerificationOrder.status}
+                  {verificationPaymentPending
+                    ? " — waiting for Stripe to confirm the payment."
+                    : ""}
+                </p>
+              ) : null}
 
               {!stripeIdentityReady ? (
                 <p className="section-copy" style={{ marginTop: "1rem" }}>
@@ -111,6 +127,8 @@ export default async function SettingsPage({
                       ? "Retry Stripe ID verification"
                       : identityProcessing || profile?.verification_status === "pending"
                         ? "Continue Stripe ID verification"
+                        : !verificationPaid
+                          ? `Pay ${verificationPriceLabel} to verify`
                         : "Start Stripe ID verification"}
                   </button>
                 </form>

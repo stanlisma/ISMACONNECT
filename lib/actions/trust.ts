@@ -1,12 +1,22 @@
 "use server";
 
+import crypto from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { getBaseUrl, isStripeWebhookConfigured } from "@/lib/env";
+import {
+  attachStripeSessionToIdentityVerificationOrder,
+  createPendingIdentityVerificationOrder,
+  getIdentityVerificationCurrency,
+  getIdentityVerificationPriceCents,
+  hasPaidIdentityVerification
+} from "@/lib/identity-verification";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
+  createStripeCheckoutSession,
   createStripeIdentityVerificationSession,
   retrieveStripeIdentityVerificationSession
 } from "@/lib/stripe";
@@ -118,6 +128,56 @@ export async function requestSellerVerificationAction() {
         ? "Stripe is still processing your document verification."
         : "Continue your Stripe ID verification."
     );
+  }
+
+  const hasPaidOrder = await hasPaidIdentityVerification(viewer.user.id);
+
+  if (!hasPaidOrder) {
+    const orderId = crypto.randomUUID();
+    let session;
+
+    try {
+      await createPendingIdentityVerificationOrder({
+        id: orderId,
+        userId: viewer.user.id
+      });
+
+      session = await createStripeCheckoutSession({
+        amountCents: getIdentityVerificationPriceCents(),
+        currency: getIdentityVerificationCurrency(),
+        name: "Seller verification",
+        description: "Unlock Stripe ID verification and a verified seller badge on ISMACONNECT.",
+        successUrl: `${getBaseUrl()}/settings?success=${encodeURIComponent(
+          "Payment received. Start your Stripe ID verification below once payment confirmation finishes."
+        )}`,
+        cancelUrl: `${getBaseUrl()}/settings?error=${encodeURIComponent(
+          "Verification payment was canceled."
+        )}`,
+        metadata: {
+          identity_verification_order_id: orderId,
+          user_id: viewer.user.id,
+          purchase_type: "identity_verification"
+        }
+      });
+
+      await attachStripeSessionToIdentityVerificationOrder(orderId, session.id);
+    } catch (error) {
+      redirectWithMessage(
+        "/settings",
+        "error",
+        error instanceof Error ? error.message : "Could not start verification payment."
+      );
+    }
+
+    if (!session?.url) {
+      redirectWithMessage(
+        "/settings",
+        "error",
+        "Stripe checkout did not return a redirect URL."
+      );
+    }
+
+    redirect(session.url);
   }
 
   let session;
