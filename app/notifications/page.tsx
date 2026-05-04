@@ -5,15 +5,15 @@ import { markNotificationReadAction } from "@/lib/actions/notifications";
 import { requireViewer } from "@/lib/auth";
 import { getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
 export default async function NotificationsPage() {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
-  const savedSearches = await getSavedSearchesWithStats(viewer.user.id);
-  const savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
 
-  const { data: notifications } = await supabase
+  let savedSearches = await getSavedSearchesWithStats(viewer.user.id);
+  let savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
+
+  let { data: notifications } = await supabase
     .from("notifications")
     .select("*")
     .eq("user_id", viewer.user.id)
@@ -41,7 +41,16 @@ export default async function NotificationsPage() {
         : Promise.resolve()
     ]);
 
-    redirect("/notifications");
+    savedSearches = await getSavedSearchesWithStats(viewer.user.id);
+    savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
+
+    const refreshedNotifications = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", viewer.user.id)
+      .order("created_at", { ascending: false });
+
+    notifications = refreshedNotifications.data;
   }
 
   return (
