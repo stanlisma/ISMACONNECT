@@ -1,14 +1,6 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing environment variable: ${name}`);
-  }
-  return value;
-}
+import { getEmailEnv } from "@/lib/env";
 
 export async function sendNewMessageEmail(args: {
   to: string;
@@ -18,7 +10,8 @@ export async function sendNewMessageEmail(args: {
   conversationUrl: string;
   messagePreview: string;
 }) {
-  const from = requireEnv("EMAIL_FROM");
+  const { resendApiKey, emailFrom } = getEmailEnv();
+  const resend = new Resend(resendApiKey);
 
   const greeting = args.recipientName?.trim() || "there";
 
@@ -51,10 +44,10 @@ ${args.messagePreview}
 
 Open conversation:
 ${args.conversationUrl}
-`;
+  `;
 
   const { error } = await resend.emails.send({
-    from,
+    from: emailFrom,
     to: [args.to],
     subject,
     html,

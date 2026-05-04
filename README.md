@@ -91,6 +91,8 @@ SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
+RESEND_API_KEY=
+EMAIL_FROM=hello@ismaconnect.ca
 STRIPE_IDENTITY_VERIFICATION_PRICE_CENTS=499
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
@@ -99,6 +101,7 @@ VAPID_SUBJECT=mailto:hello@ismaconnect.ca
 
 If Stripe is not configured, local development can still test the boost flow in demo mode. Production boost checkout requires all three Stripe values.
 Browser push notifications require all three VAPID values.
+Message email notifications require both `RESEND_API_KEY` and `EMAIL_FROM`.
 
 ### 4. Apply the database schema
 
@@ -279,6 +282,17 @@ Set these environment variables:
 - `VAPID_SUBJECT`
 
 Generate a VAPID keypair with your preferred tooling, then add the values to both local development and Vercel production environments.
+
+## Message email notifications
+
+ISMACONNECT can email sellers when someone sends a message about their listing.
+
+Set these environment variables:
+
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+
+`EMAIL_FROM` must be a sender address allowed by your Resend account, such as a verified domain sender like `hello@ismaconnect.ca`.
 
 The listing model uses these promotion columns:
 

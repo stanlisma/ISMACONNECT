@@ -8,6 +8,8 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim() || "";
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() || "";
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY?.trim() || "";
 const vapidSubject = process.env.VAPID_SUBJECT?.trim() || "";
+const resendApiKey = process.env.RESEND_API_KEY?.trim() || "";
+const emailFrom = process.env.EMAIL_FROM?.trim() || "";
 
 export function getBaseUrl() {
   return appUrl.replace(/\/$/, "");
@@ -95,5 +97,22 @@ export function getWebPushEnv() {
     vapidPublicKey,
     vapidPrivateKey,
     vapidSubject
+  };
+}
+
+export function isEmailConfigured() {
+  return Boolean(resendApiKey && emailFrom);
+}
+
+export function getEmailEnv() {
+  if (!isEmailConfigured()) {
+    throw new Error(
+      "Missing email environment variables. Set RESEND_API_KEY and EMAIL_FROM."
+    );
+  }
+
+  return {
+    resendApiKey,
+    emailFrom
   };
 }
