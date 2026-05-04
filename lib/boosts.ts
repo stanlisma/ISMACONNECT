@@ -13,6 +13,28 @@ import type { Listing, ListingBoostOrder } from "@/types/database";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+function isBoostSchemaError(error: {
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+} | null | undefined) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+
+  return (
+    message.includes("listing_boost_orders") ||
+    message.includes("boost_order_status") ||
+    message.includes("expire_listing_promotions") ||
+    message.includes("boosted_at") ||
+    message.includes("boosted_until") ||
+    message.includes("is_urgent") ||
+    message.includes("urgent_until")
+  );
+}
+
+function getBoostSchemaErrorMessage() {
+  return "Boost database schema is not installed yet. Run 202605030003_featured_boosts.sql in Supabase.";
+}
+
 export function getBoostProducts() {
   return BOOST_PRODUCTS;
 }
@@ -49,18 +71,30 @@ function latestTimestamp(values: Array<string | null | undefined>) {
 
 export async function expireListingPromotions(supabase?: SupabaseClient) {
   const client = supabase ?? (await createServerSupabaseClient());
-  await client.rpc("expire_listing_promotions");
+  const { error } = await client.rpc("expire_listing_promotions");
+
+  if (error && !isBoostSchemaError(error)) {
+    throw new Error(error.message);
+  }
 }
 
 export async function getUserBoostOrders(userId: string) {
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("listing_boost_orders")
     .select("*")
     .eq("owner_id", userId)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    if (isBoostSchemaError(error)) {
+      return [];
+    }
+
+    throw new Error(error.message);
+  }
 
   return (data || []) as ListingBoostOrder[];
 }
@@ -69,12 +103,20 @@ export async function getListingBoostOrders(listingId: string, ownerId: string) 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("listing_boost_orders")
     .select("*")
     .eq("listing_id", listingId)
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    if (isBoostSchemaError(error)) {
+      return [];
+    }
+
+    throw new Error(error.message);
+  }
 
   return (data || []) as ListingBoostOrder[];
 }
@@ -109,7 +151,13 @@ export async function createPendingBoostOrder(params: {
     .single();
 
   if (error || !data) {
-    throw new Error(error?.message || "Could not create the boost order.");
+    throw new Error(
+      error
+        ? isBoostSchemaError(error)
+          ? getBoostSchemaErrorMessage()
+          : error.message
+        : "Could not create the boost order."
+    );
   }
 
   return data as ListingBoostOrder;
@@ -126,7 +174,7 @@ export async function attachStripeSessionToBoostOrder(orderId: string, sessionId
     .eq("id", orderId);
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(isBoostSchemaError(error) ? getBoostSchemaErrorMessage() : error.message);
   }
 }
 
@@ -284,7 +332,9 @@ export async function getBoostListingOverview(userId: string) {
 
   return {
     listings: (listingsResult.data || []) as Listing[],
-    orders: (ordersResult.data || []) as ListingBoostOrder[]
+    orders: ordersResult.error && isBoostSchemaError(ordersResult.error)
+      ? []
+      : ((ordersResult.data || []) as ListingBoostOrder[])
   };
 }
 
