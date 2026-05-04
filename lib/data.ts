@@ -1,4 +1,4 @@
-import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { expireListingPromotions } from "@/lib/boosts";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import type { FlaggedListing, Listing, ListingCategory } from "@/types/database";
@@ -10,6 +10,27 @@ interface ListingFilters {
   limit?: number;
 }
 
+function isPromotionSchemaError(error: {
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+} | null | undefined) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+
+  return (
+    message.includes("boosted_at") ||
+    message.includes("is_urgent") ||
+    message.includes("urgent_until") ||
+    message.includes("expire_listing_promotions")
+  );
+}
+
+function logDataError(context: string, error: { message?: string | null } | null | undefined) {
+  if (error) {
+    console.error(`${context}:`, error.message || error);
+  }
+}
+
 export async function getHomepageData() {
   if (!isSupabaseConfigured()) {
     return {
@@ -19,7 +40,8 @@ export async function getHomepageData() {
     };
   }
 
-  const supabase = createPublicSupabaseClient();
+  const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
   const [featuredResponse, latestResponse] = await Promise.all([
     supabase
@@ -27,6 +49,8 @@ export async function getHomepageData() {
       .select("*")
       .eq("status", "active")
       .eq("is_featured", true)
+      .order("featured_until", { ascending: false })
+      .order("boosted_at", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(3),
 
@@ -35,12 +59,51 @@ export async function getHomepageData() {
       .select("*")
       .eq("status", "active")
       .order("is_featured", { ascending: false })
+      .order("boosted_at", { ascending: false })
+      .order("is_urgent", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(8)
   ]);
 
-  const featuredListings = (featuredResponse.data || []) as Listing[];
-  const latestListings = (latestResponse.data || []) as Listing[];
+  let featuredListings = (featuredResponse.data || []) as Listing[];
+  let latestListings = (latestResponse.data || []) as Listing[];
+
+  if (featuredResponse.error && isPromotionSchemaError(featuredResponse.error)) {
+    const fallbackResponse = await supabase
+      .from("listings")
+      .select("*")
+      .eq("status", "active")
+      .eq("is_featured", true)
+      .order("featured_until", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    if (fallbackResponse.error) {
+      logDataError("Homepage featured listings fallback failed", fallbackResponse.error);
+    } else {
+      featuredListings = (fallbackResponse.data || []) as Listing[];
+    }
+  } else if (featuredResponse.error) {
+    logDataError("Homepage featured listings query failed", featuredResponse.error);
+  }
+
+  if (latestResponse.error && isPromotionSchemaError(latestResponse.error)) {
+    const fallbackResponse = await supabase
+      .from("listings")
+      .select("*")
+      .eq("status", "active")
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(8);
+
+    if (fallbackResponse.error) {
+      logDataError("Homepage latest listings fallback failed", fallbackResponse.error);
+    } else {
+      latestListings = (fallbackResponse.data || []) as Listing[];
+    }
+  } else if (latestResponse.error) {
+    logDataError("Homepage latest listings query failed", latestResponse.error);
+  }
 
   return {
     isConfigured: true,
@@ -65,63 +128,99 @@ export async function getPublicListings(filters: {
     };
   }
 
-  const supabase = createPublicSupabaseClient();
+  const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
-  let query = supabase
+  const buildBaseQuery = () => {
+    let query = supabase
     .from("listings")
     .select("*")
     .eq("status", "active");
 
-  // CATEGORY
-  if (filters.category) {
-    query = query.eq("category", filters.category);
+    if (filters.category) {
+      query = query.eq("category", filters.category);
+    }
+
+    if (filters.subcategory) {
+      query = query.eq("subcategory", filters.subcategory);
+    }
+
+    if (filters.search?.trim()) {
+      query = query.textSearch("search_document", filters.search.trim(), {
+        type: "websearch",
+        config: "simple"
+      });
+    }
+
+    if (filters.minPrice !== null && filters.minPrice !== undefined) {
+      query = query.gte("price", filters.minPrice);
+    }
+
+    if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
+      query = query.lte("price", filters.maxPrice);
+    }
+
+    return query;
+  };
+
+  const applySort = (query: any, includePromotionOrdering: boolean) => {
+    switch (filters.sort) {
+      case "price_asc":
+        if (includePromotionOrdering) {
+          query = query
+            .order("is_featured", { ascending: false })
+            .order("boosted_at", { ascending: false })
+            .order("is_urgent", { ascending: false });
+        } else {
+          query = query.order("is_featured", { ascending: false });
+        }
+
+        query = query.order("price", { ascending: true });
+        break;
+      case "price_desc":
+        if (includePromotionOrdering) {
+          query = query
+            .order("is_featured", { ascending: false })
+            .order("boosted_at", { ascending: false })
+            .order("is_urgent", { ascending: false });
+        } else {
+          query = query.order("is_featured", { ascending: false });
+        }
+
+        query = query.order("price", { ascending: false });
+        break;
+      default:
+        query = query.order("is_featured", { ascending: false });
+
+        if (includePromotionOrdering) {
+          query = query
+            .order("boosted_at", { ascending: false })
+            .order("is_urgent", { ascending: false });
+        }
+
+        query = query.order("created_at", { ascending: false });
+    }
+
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    return query;
+  };
+
+  let primaryResponse = await applySort(buildBaseQuery(), true);
+
+  if (primaryResponse.error && isPromotionSchemaError(primaryResponse.error)) {
+    primaryResponse = await applySort(buildBaseQuery(), false);
   }
 
-  // SUBCATEGORY
-  if (filters.subcategory) {
-    query = query.eq("subcategory", filters.subcategory);
+  if (primaryResponse.error) {
+    logDataError("Public listings query failed", primaryResponse.error);
   }
-
-  // SEARCH
-  if (filters.search?.trim()) {
-    query = query.textSearch("search_document", filters.search.trim(), {
-      type: "websearch",
-      config: "simple"
-    });
-  }
-
-  // PRICE FILTER
-  if (filters.minPrice !== null && filters.minPrice !== undefined) {
-    query = query.gte("price", filters.minPrice);
-  }
-
-  if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
-    query = query.lte("price", filters.maxPrice);
-  }
-
-  // SORTING
-  switch (filters.sort) {
-    case "price_asc":
-      query = query.order("price", { ascending: true });
-      break;
-    case "price_desc":
-      query = query.order("price", { ascending: false });
-      break;
-    default:
-      query = query
-        .order("is_featured", { ascending: false })
-        .order("created_at", { ascending: false });
-  }
-
-  if (filters.limit) {
-    query = query.limit(filters.limit);
-  }
-
-  const { data } = await query;
 
   return {
     isConfigured: true,
-    listings: (data || []) as Listing[]
+    listings: ((primaryResponse.data || []) as Listing[])
   };
 }
 
@@ -156,7 +255,8 @@ export async function getPublicListingBySlug(slug: string) {
     return null;
   }
 
-  const supabase = createPublicSupabaseClient();
+  const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
   const { data } = await supabase
     .from("listings")
@@ -177,34 +277,70 @@ export async function getRelatedListings(listing: Listing) {
     return [];
   }
 
-  const supabase = createPublicSupabaseClient();
+  const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
-  const { data } = await supabase
+  let response = await supabase
     .from("listings")
     .select("*")
     .eq("status", "active")
     .eq("category", listing.category)
     .neq("id", listing.id)
+    .order("is_featured", { ascending: false })
+    .order("boosted_at", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3);
 
-  return (data || []) as Listing[];
+  if (response.error && isPromotionSchemaError(response.error)) {
+    response = await supabase
+      .from("listings")
+      .select("*")
+      .eq("status", "active")
+      .eq("category", listing.category)
+      .neq("id", listing.id)
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(3);
+  }
+
+  if (response.error) {
+    logDataError("Related listings query failed", response.error);
+  }
+
+  return (response.data || []) as Listing[];
 }
 
 export async function getUserListings(userId: string) {
   const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
-  const { data } = await supabase
+  let response = await supabase
     .from("listings")
     .select("*")
     .eq("owner_id", userId)
+    .order("is_featured", { ascending: false })
+    .order("boosted_at", { ascending: false })
     .order("created_at", { ascending: false });
 
-  return (data || []) as Listing[];
+  if (response.error && isPromotionSchemaError(response.error)) {
+    response = await supabase
+      .from("listings")
+      .select("*")
+      .eq("owner_id", userId)
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false });
+  }
+
+  if (response.error) {
+    logDataError("User listings query failed", response.error);
+  }
+
+  return (response.data || []) as Listing[];
 }
 
 export async function getEditableListing(listingId: string) {
   const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
   const { data } = await supabase
     .from("listings")
@@ -240,6 +376,7 @@ export async function getSavedListingIds(userId: string) {
 
 export async function getSavedListings(userId: string) {
   const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
 
   const { data } = await supabase
     .from("saved_listings")

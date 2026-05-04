@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { getListingBoostState } from "@/lib/boost-products";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { getSubcategoryLabel } from "@/lib/subcategories";
@@ -109,6 +110,7 @@ export function ListingCard({
   const isNew = isNewListing(listing.created_at);
   const isPopular = views > 10;
   const timeAgo = formatTimeAgo(listing.created_at);
+  const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
 
   function goToListing() {
     router.push(`/listings/${listing.slug}`);
@@ -166,14 +168,18 @@ export function ListingCard({
             <div className="listing-card-badges">
               {isNew ? <span className="listing-card-badge listing-card-badge-new">New</span> : null}
 
-              {listing.is_featured ? (
+              {featuredActive ? (
                 <span className="listing-card-badge listing-card-badge-featured">Featured</span>
+              ) : null}
+
+              {urgentActive ? (
+                <span className="listing-card-badge listing-card-badge-urgent">Urgent</span>
               ) : null}
             </div>
 
             {/* Mobile/PWA badge */}
             <span className="mobile-marketplace-badge">
-              {isNew ? "Just listed" : timeAgo}
+              {urgentActive ? "Urgent" : isNew ? "Just listed" : timeAgo}
             </span>
 
             {images.length > 1 ? (
@@ -274,6 +280,13 @@ export function ListingCard({
           <span className="listing-location">📍 {listing.location.split(",")[0]}</span>
           <span style={{ opacity: 0.5 }}>•</span>
           <span>{timeAgo}</span>
+
+          {boostedActive ? (
+            <>
+              <span style={{ opacity: 0.5 }}>â€¢</span>
+              <span>Boosted</span>
+            </>
+          ) : null}
 
           {views > 0 ? (
             <>

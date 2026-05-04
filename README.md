@@ -11,6 +11,7 @@ Production-ready marketplace MVP for Fort McMurray built with the Next.js App Ro
 - Authenticated listing CRUD for marketplace members
 - Saved searches with in-app new-match alerts
 - Seller ratings, verification requests, and trust badges
+- Featured listings, urgent badges, and boost products with Stripe-ready checkout
 - Admin moderation flow for flagged listings
 - Seed data for local demo users and listings
 - SEO basics: metadata, `robots.ts`, `sitemap.ts`, category routes, listing slugs
@@ -34,10 +35,13 @@ app/
   browse/
   categories/[category]/
   dashboard/
+    boosts/
+    listings/[id]/boost/
   listings/[slug]/
 components/
   admin/
   auth/
+  boosts/
   layout/
   listings/
   ui/
@@ -49,6 +53,7 @@ supabase/
   migrations/202604210001_init.sql
   migrations/202605030001_saved_searches.sql
   migrations/202605030002_trust_and_ratings.sql
+  migrations/202605030003_featured_boosts.sql
   seed.sql
 types/
 ```
@@ -80,13 +85,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 ```
 
-The Stripe variables are placeholders for future featured listings and are not required for the MVP to run.
+If Stripe is not configured, local development can still test the boost flow in demo mode. Production boost checkout requires all three Stripe values.
 
 ### 4. Apply the database schema
 
-Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, and then `supabase/migrations/202605030002_trust_and_ratings.sql` inside the Supabase SQL editor.
+Run the SQL in `supabase/migrations/202604210001_init.sql`, then `supabase/migrations/202605030001_saved_searches.sql`, then `supabase/migrations/202605030002_trust_and_ratings.sql`, and finally `supabase/migrations/202605030003_featured_boosts.sql` inside the Supabase SQL editor.
 
 This creates:
 
@@ -95,6 +101,7 @@ This creates:
 - `listing_flags`
 - `saved_searches`
 - `seller_reviews`
+- `listing_boost_orders`
 - RLS policies for public browsing, owner CRUD, and admin moderation
 - search and moderation triggers
 
@@ -137,6 +144,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - Review saved-search alerts from `/dashboard/searches`
 - Request seller verification from `/settings`
 - Rate sellers after contacting them through ISMACONNECT
+- Buy featured, urgent, and top-boost upgrades from `/dashboard/boosts`
 - Flag suspicious listings from listing detail pages
 
 ### Admin users
@@ -182,20 +190,44 @@ Stores saved browse or category filters for signed-in users and powers in-app al
 
 Stores per-listing seller ratings submitted after contact, which power trust badges and rating summaries on listing cards and detail pages.
 
-## Stripe preparation
+### `listing_boost_orders`
 
-The MVP intentionally does not process payments yet, but it is prepared for featured listings through these columns on `public.listings`:
+Stores paid or demo boost purchases, checkout state, activation windows, and Stripe session references for featured products.
+
+## Stripe boost checkout
+
+ISMACONNECT now supports seller-facing boost products with a Stripe-hosted Checkout flow when these variables are set:
+
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Set your Stripe webhook endpoint to:
+
+```text
+https://your-domain.com/api/stripe/webhook
+```
+
+Listen for these events:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+
+The listing model uses these promotion columns:
 
 - `is_featured`
 - `featured_until`
+- `boosted_at`
+- `boosted_until`
+- `is_urgent`
+- `urgent_until`
 - `stripe_checkout_session_id`
-
-That means the future Stripe work can focus on checkout, webhook handling, and entitlement updates instead of reworking the core listing model.
 
 ## Suggested next steps
 
 - Add image uploads with Supabase Storage
 - Add pagination
-- Add Stripe Checkout for featured listing upgrades
 - Add email notifications for listing replies and moderation actions
 - Add analytics and structured event tracking

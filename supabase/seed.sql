@@ -158,6 +158,10 @@ insert into public.listings (
   image_url,
   is_featured,
   featured_until,
+  boosted_at,
+  boosted_until,
+  is_urgent,
+  urgent_until,
   status
 )
 values
@@ -175,6 +179,10 @@ values
     'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
     true,
     now() + interval '30 days',
+    now() - interval '12 hours',
+    now() + interval '3 days',
+    false,
+    null,
     'active'
   ),
   (
@@ -191,6 +199,10 @@ values
     'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=1200&q=80',
     false,
     null,
+    now() - interval '3 hours',
+    now() + interval '2 days',
+    true,
+    now() + interval '5 days',
     'active'
   ),
   (
@@ -207,6 +219,10 @@ values
     'https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&q=80',
     false,
     null,
+    null,
+    null,
+    true,
+    now() + interval '7 days',
     'active'
   ),
   (
@@ -221,6 +237,10 @@ values
     'sarah@ismaconnect.local',
     '780-555-0110',
     'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
+    false,
+    null,
+    null,
+    null,
     false,
     null,
     'active'
@@ -239,6 +259,10 @@ values
     'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=1200&q=80',
     false,
     null,
+    null,
+    null,
+    false,
+    null,
     'active'
   ),
   (
@@ -252,6 +276,10 @@ values
     'Devin Richards',
     'devin@ismaconnect.local',
     '780-555-0112',
+    null,
+    false,
+    null,
+    null,
     null,
     false,
     null,
@@ -270,7 +298,65 @@ set
   image_url = excluded.image_url,
   is_featured = excluded.is_featured,
   featured_until = excluded.featured_until,
+  boosted_at = excluded.boosted_at,
+  boosted_until = excluded.boosted_until,
+  is_urgent = excluded.is_urgent,
+  urgent_until = excluded.urgent_until,
   status = excluded.status;
+
+insert into public.listing_boost_orders (
+  listing_id,
+  owner_id,
+  product_key,
+  product_name,
+  product_description,
+  amount_cents,
+  currency,
+  status,
+  provider,
+  applied_at,
+  expires_at
+)
+select
+  listings.id,
+  listings.owner_id,
+  seed.product_key,
+  seed.product_name,
+  seed.product_description,
+  seed.amount_cents,
+  'cad',
+  'active',
+  'manual',
+  now() - interval '12 hours',
+  seed.expires_at
+from public.listings
+join (
+  values
+    (
+      'private-room-in-thickwood-with-parking',
+      'featured_spotlight_7d',
+      'Featured Spotlight',
+      'Homepage and category priority boost for 7 days.',
+      1490,
+      now() + interval '30 days'
+    ),
+    (
+      'daily-morning-ride-from-timberlea-to-site-gate',
+      'top_boost_3d',
+      'Top Boost',
+      'Top-of-feed boost for the next few days.',
+      790,
+      now() + interval '2 days'
+    )
+) as seed(slug, product_key, product_name, product_description, amount_cents, expires_at)
+  on seed.slug = listings.slug
+where not exists (
+  select 1
+  from public.listing_boost_orders
+  where listing_boost_orders.listing_id = listings.id
+    and listing_boost_orders.product_key = seed.product_key
+    and listing_boost_orders.status = 'active'
+);
 
 insert into public.listing_flags (listing_id, reporter_id, reason)
 select

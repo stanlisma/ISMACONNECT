@@ -4,6 +4,7 @@ export type AppRole = "user" | "admin";
 export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "buy-sell";
 export type ListingStatus = "active" | "flagged" | "removed";
 export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
+export type BoostOrderStatus = "pending" | "active" | "expired" | "canceled" | "failed";
 
 export interface Profile {
   id: string;
@@ -40,6 +41,10 @@ export interface Listing {
 
   is_featured: boolean;
   featured_until: string | null;
+  boosted_at: string | null;
+  boosted_until: string | null;
+  is_urgent: boolean;
+  urgent_until: string | null;
   stripe_checkout_session_id: string | null;
   status: ListingStatus;
   flag_count: number;
@@ -95,6 +100,25 @@ export interface SellerTrustSummary {
   review_count: number;
   top_rated: boolean;
   member_since: string;
+}
+
+export interface ListingBoostOrder {
+  id: string;
+  listing_id: string;
+  owner_id: string;
+  product_key: string;
+  product_name: string;
+  product_description: string | null;
+  amount_cents: number;
+  currency: string;
+  status: BoostOrderStatus;
+  provider: "stripe" | "demo" | "manual";
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  applied_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Viewer {
