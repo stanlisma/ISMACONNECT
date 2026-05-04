@@ -8,7 +8,7 @@ import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { getListingBoostState } from "@/lib/boost-products";
 import { getSubcategoryLabel } from "@/lib/subcategories";
-import { excerpt, formatCurrency, getCategoryHref, getCategoryLabel } from "@/lib/utils";
+import { excerpt, formatCurrency, getCategoryLabel } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
 
 interface ListingCardProps {
@@ -127,15 +127,10 @@ export function ListingCard({
   const isNew = relativeInfo.isNew;
   const isPopular = views > 10;
   const timeAgo = relativeInfo.timeLabel;
-  const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
+  const { featuredActive, urgentActive } = getListingBoostState(listing);
 
   function goToListing() {
     router.push(`/listings/${listing.slug}`);
-  }
-
-  function goToSellerStorefront(event: React.MouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
-    router.push(`/sellers/${listing.owner_id}`);
   }
 
   function showPreviousImage(event: React.MouseEvent<HTMLButtonElement>) {
@@ -180,8 +175,13 @@ export function ListingCard({
         ) : null}
 
         {images.length > 0 ? (
-          <div aria-label={`View ${listing.title}`}>
-            <img alt={listing.title} src={images[activeImageIndex]} loading="lazy" />
+          <div className="listing-media-frame" aria-label={`View ${listing.title}`}>
+            <img
+              alt={listing.title}
+              className="listing-media-image"
+              src={images[activeImageIndex]}
+              loading="lazy"
+            />
 
             <div className="listing-card-badges">
               {isNew ? <span className="listing-card-badge listing-card-badge-new">New</span> : null}
@@ -245,14 +245,6 @@ export function ListingCard({
           style={{ justifyContent: "space-between", alignItems: "center" }}
         >
           <div className="badge-row">
-            <Link
-              className="badge badge-soft"
-              href={getCategoryHref(listing.category)}
-              onClick={(event) => event.stopPropagation()}
-            >
-              {getCategoryLabel(listing.category)}
-            </Link>
-
             {listing.subcategory ? (
               <span className="badge badge-subcategory">
                 {getSubcategoryLabel(listing.category, listing.subcategory)}
@@ -262,6 +254,7 @@ export function ListingCard({
 
           {canSave ? (
             <div
+              className="desktop-listing-save"
               onClick={(event) => {
                 event.stopPropagation();
               }}
@@ -292,27 +285,10 @@ export function ListingCard({
 
         <TrustBadges summary={trustSummary} compact />
 
-        <div className="listing-seller-link-row">
-          <button
-            type="button"
-            className="listing-seller-link"
-            onClick={goToSellerStorefront}
-          >
-            Seller: {listing.contact_name}
-          </button>
-        </div>
-
         <div className="listing-card-signals">
-          <span className="listing-location">Location: {listing.location.split(",")[0]}</span>
+          <span className="listing-location">{listing.location.split(",")[0]}</span>
           <span style={{ opacity: 0.5 }}>|</span>
           <span>{timeAgo}</span>
-
-          {boostedActive ? (
-            <>
-              <span style={{ opacity: 0.5 }}>|</span>
-              <span>Boosted</span>
-            </>
-          ) : null}
 
           {views > 0 ? (
             <>
