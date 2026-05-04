@@ -75,6 +75,9 @@ export function ListingCard({
   }));
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchEndY = useRef(0);
+  const suppressNextClick = useRef(false);
 
   useEffect(() => {
     setRelativeInfo(getRelativeListingInfo(listing.created_at));
@@ -82,12 +85,17 @@ export function ListingCard({
 
   function handleTouchStart(event: React.TouchEvent) {
     const touchX = event.touches[0].clientX;
+    const touchY = event.touches[0].clientY;
     touchStartX.current = touchX;
     touchEndX.current = touchX;
+    touchStartY.current = touchY;
+    touchEndY.current = touchY;
+    suppressNextClick.current = false;
   }
 
   function handleTouchMove(event: React.TouchEvent) {
     touchEndX.current = event.touches[0].clientX;
+    touchEndY.current = event.touches[0].clientY;
   }
 
   function handleTouchEnd(event: React.TouchEvent) {
@@ -98,21 +106,26 @@ export function ListingCard({
       return;
     }
 
-    const swipeDistance = touchStartX.current - touchEndX.current;
+    const horizontalDistance = touchEndX.current - touchStartX.current;
+    const verticalDistance = touchEndY.current - touchStartY.current;
+    const isHorizontalSwipe =
+      Math.abs(horizontalDistance) > 32 &&
+      Math.abs(horizontalDistance) > Math.abs(verticalDistance);
 
-    if (Math.abs(swipeDistance) <= 40) {
-      event.preventDefault();
-      router.push(`/listings/${listing.slug}`);
+    if (!isHorizontalSwipe) {
       return;
     }
 
-    if (swipeDistance > 40) {
+    suppressNextClick.current = true;
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (horizontalDistance < 0) {
       event.preventDefault();
       setActiveImageIndex((current) => (current + 1) % images.length);
     }
 
-    if (swipeDistance < -40) {
-      event.preventDefault();
+    if (horizontalDistance > 0) {
       setActiveImageIndex((current) => (current - 1 + images.length) % images.length);
     }
   }
@@ -129,7 +142,14 @@ export function ListingCard({
   const timeAgo = relativeInfo.timeLabel;
   const { featuredActive, urgentActive } = getListingBoostState(listing);
 
-  function goToListing() {
+  function goToListing(event?: React.MouseEvent<HTMLElement>) {
+    if (suppressNextClick.current) {
+      suppressNextClick.current = false;
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
+
     router.push(`/listings/${listing.slug}`);
   }
 
@@ -152,7 +172,10 @@ export function ListingCard({
   }
 
   return (
-    <article className="listing-card listing-card-clickable" onClick={goToListing}>
+    <article
+      className="listing-card listing-card-clickable"
+      onClick={(event) => goToListing(event)}
+    >
       <div
         className="listing-media listing-media-gallery"
         onTouchStart={handleTouchStart}
