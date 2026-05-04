@@ -8,7 +8,7 @@ import {
 import { updateNotificationSettingsAction } from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
-import { isStripeWebhookConfigured } from "@/lib/env";
+import { isEmailConfigured, isStripeWebhookConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
 import { getSingleParam } from "@/lib/utils";
@@ -23,6 +23,7 @@ export default async function SettingsPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const trustSummary = await getSellerTrustSummary(viewer.user.id);
   const stripeIdentityReady = isStripeWebhookConfigured();
+  const emailDeliveryReady = isEmailConfigured();
   const latestVerificationOrder = await reconcileLatestIdentityVerificationPayment(viewer.user.id);
   const verificationPriceLabel = getIdentityVerificationPriceLabel();
 
@@ -77,6 +78,14 @@ export default async function SettingsPage({
               Save settings
             </button>
           </form>
+
+          {!emailDeliveryReady ? (
+            <p className="section-copy" style={{ marginTop: "0.9rem", marginBottom: 0 }}>
+              Email delivery is not configured on this deployment yet. Turn on
+              ` RESEND_API_KEY ` and ` EMAIL_FROM ` in the app environment to send
+              message emails.
+            </p>
+          ) : null}
 
           <div style={{ marginTop: "1.1rem" }}>
             <BrowserNotificationSettings />
