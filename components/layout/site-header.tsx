@@ -2,6 +2,7 @@
 
 import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import InstallButton from "@/components/install-button";
 import "./site-header.css";
 
@@ -31,6 +32,10 @@ export function SiteHeader({
   unreadMessagesCount,
   unreadNotificationsCount,
 }: SiteHeaderProps) {
+  const pathname = usePathname();
+  const visibleUnreadNotificationsCount =
+    pathname === "/notifications" ? 0 : unreadNotificationsCount;
+
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -81,8 +86,8 @@ export function SiteHeader({
 
                 <Link href="/notifications" className="icon-link header-utility-link" aria-label="Notifications">
                   <Bell aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
-                  {unreadNotificationsCount > 0 ? (
-                    <span className="header-action-badge">{formatBadgeCount(unreadNotificationsCount)}</span>
+                  {visibleUnreadNotificationsCount > 0 ? (
+                    <span className="header-action-badge">{formatBadgeCount(visibleUnreadNotificationsCount)}</span>
                   ) : null}
                 </Link>
 
