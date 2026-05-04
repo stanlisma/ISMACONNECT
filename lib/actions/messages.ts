@@ -7,6 +7,7 @@ import { sendNewMessageEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/env";
 import { createNotificationAndPush } from "@/lib/push";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { resolveUserEmail } from "@/lib/user-email";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -38,7 +39,7 @@ export async function sendListingMessageAction(listingId: string, formData: Form
 
   const { data: recipientProfile } = await supabase
     .from("profiles")
-    .select("email, full_name, email_notifications")
+    .select("full_name, email_notifications")
     .eq("id", listing.owner_id)
     .single();
 
@@ -110,11 +111,14 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     console.error("Message notification failed:", error);
   }
 
-  if (recipientProfile?.email && recipientProfile.email_notifications !== false) {
+  const recipientAllowsEmail = recipientProfile?.email_notifications !== false;
+  const recipientEmail = recipientAllowsEmail ? await resolveUserEmail(recipientId) : null;
+
+  if (recipientEmail && recipientAllowsEmail) {
     try {
       await sendNewMessageEmail({
-        to: recipientProfile.email,
-        recipientName: recipientProfile.full_name ?? listing.contact_name ?? null,
+        to: recipientEmail,
+        recipientName: recipientProfile?.full_name ?? listing.contact_name ?? null,
         senderName:
           senderProfile?.full_name ??
           viewer.user.user_metadata?.full_name ??
