@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DashboardListingControls } from "@/components/dashboard/dashboard-listing-controls";
 import { DeleteListingForm } from "@/components/listings/delete-listing-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -131,70 +132,16 @@ export default async function DashboardPage({
               Filter your inventory fast, keep an eye on promotions, and jump back into the right listing.
             </p>
           </div>
-
-          <form action="/dashboard" method="get" style={{ display: "grid", gap: "0.75rem", width: "100%" }}>
-            <div className="dashboard-filters-grid">
-              <label className="field dashboard-filter-search" style={{ marginBottom: 0 }}>
-                <span className="field-label">Search</span>
-                <input
-                  className="input"
-                  type="search"
-                  name="q"
-                  defaultValue={searchQuery}
-                  placeholder="Search by title or location"
-                />
-              </label>
-
-              <label className="field" style={{ marginBottom: 0 }}>
-                <span className="field-label">Status</span>
-                <select className="select" name="status" defaultValue={statusFilter}>
-                  <option value="all">All</option>
-                  <option value="active">Active</option>
-                  <option value="flagged">Flagged</option>
-                  <option value="removed">Removed</option>
-                </select>
-              </label>
-
-              <label className="field" style={{ marginBottom: 0 }}>
-                <span className="field-label">Category</span>
-                <select className="select" name="category" defaultValue={categoryFilter ?? ""}>
-                  <option value="">All</option>
-                  <option value="rentals">Rentals</option>
-                  <option value="ride-share">Ride Share</option>
-                  <option value="jobs">Jobs</option>
-                  <option value="services">Services</option>
-                  <option value="buy-sell">Buy & Sell</option>
-                </select>
-              </label>
-
-              <label className="field" style={{ marginBottom: 0 }}>
-                <span className="field-label">Promotion</span>
-                <select className="select" name="promotion" defaultValue={promotionFilter}>
-                  <option value="all">All</option>
-                  <option value="promoted">Any active promo</option>
-                  <option value="featured">Featured</option>
-                  <option value="boosted">Boosted</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="dashboard-filter-actions">
-              <span className="section-copy" style={{ marginBottom: 0 }}>
-                Showing {filteredListings.length} of {listings.length} listings
-              </span>
-
-              <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button className="button" type="submit">
-                  Apply filters
-                </button>
-                <Link className="button button-secondary" href="/dashboard">
-                  Clear
-                </Link>
-              </div>
-            </div>
-          </form>
         </div>
+
+        <DashboardListingControls
+          searchQuery={searchQuery}
+          statusFilter={statusFilter}
+          promotionFilter={promotionFilter}
+          categoryFilter={categoryFilter}
+          filteredCount={filteredListings.length}
+          totalCount={listings.length}
+        />
 
         <div className="pill-row" style={{ marginTop: "1rem" }}>
           <Link
