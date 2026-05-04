@@ -49,8 +49,8 @@ export async function getHomepageData() {
       .select("*")
       .eq("status", "active")
       .eq("is_featured", true)
-      .order("featured_until", { ascending: false })
-      .order("boosted_at", { ascending: false })
+      .order("featured_until", { ascending: false, nullsFirst: false })
+      .order("boosted_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(3),
 
@@ -59,7 +59,7 @@ export async function getHomepageData() {
       .select("*")
       .eq("status", "active")
       .order("is_featured", { ascending: false })
-      .order("boosted_at", { ascending: false })
+      .order("boosted_at", { ascending: false, nullsFirst: false })
       .order("is_urgent", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(8)
@@ -74,7 +74,7 @@ export async function getHomepageData() {
       .select("*")
       .eq("status", "active")
       .eq("is_featured", true)
-      .order("featured_until", { ascending: false })
+      .order("featured_until", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(3);
 
@@ -169,7 +169,7 @@ export async function getPublicListings(filters: {
         if (includePromotionOrdering) {
           query = query
             .order("is_featured", { ascending: false })
-            .order("boosted_at", { ascending: false })
+            .order("boosted_at", { ascending: false, nullsFirst: false })
             .order("is_urgent", { ascending: false });
         } else {
           query = query.order("is_featured", { ascending: false });
@@ -181,7 +181,7 @@ export async function getPublicListings(filters: {
         if (includePromotionOrdering) {
           query = query
             .order("is_featured", { ascending: false })
-            .order("boosted_at", { ascending: false })
+            .order("boosted_at", { ascending: false, nullsFirst: false })
             .order("is_urgent", { ascending: false });
         } else {
           query = query.order("is_featured", { ascending: false });
@@ -194,7 +194,7 @@ export async function getPublicListings(filters: {
 
         if (includePromotionOrdering) {
           query = query
-            .order("boosted_at", { ascending: false })
+            .order("boosted_at", { ascending: false, nullsFirst: false })
             .order("is_urgent", { ascending: false });
         }
 
@@ -287,7 +287,7 @@ export async function getRelatedListings(listing: Listing) {
     .eq("category", listing.category)
     .neq("id", listing.id)
     .order("is_featured", { ascending: false })
-    .order("boosted_at", { ascending: false })
+    .order("boosted_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(3);
 
@@ -319,7 +319,7 @@ export async function getUserListings(userId: string) {
     .select("*")
     .eq("owner_id", userId)
     .order("is_featured", { ascending: false })
-    .order("boosted_at", { ascending: false })
+    .order("boosted_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   if (response.error && isPromotionSchemaError(response.error)) {
