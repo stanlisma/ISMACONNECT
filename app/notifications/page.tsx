@@ -5,6 +5,7 @@ import { markNotificationReadAction } from "@/lib/actions/notifications";
 import { requireViewer } from "@/lib/auth";
 import { getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function NotificationsPage() {
   const viewer = await requireViewer();
@@ -17,6 +18,31 @@ export default async function NotificationsPage() {
     .select("*")
     .eq("user_id", viewer.user.id)
     .order("created_at", { ascending: false });
+
+  const hasUnreadNotifications = notifications?.some((notification) => !notification.is_read) ?? false;
+  const hasSavedSearchAlerts = savedSearchAlerts.length > 0;
+
+  if (hasUnreadNotifications || hasSavedSearchAlerts) {
+    const viewedAt = new Date().toISOString();
+
+    await Promise.all([
+      hasUnreadNotifications
+        ? supabase
+            .from("notifications")
+            .update({ is_read: true })
+            .eq("user_id", viewer.user.id)
+            .eq("is_read", false)
+        : Promise.resolve(),
+      hasSavedSearchAlerts
+        ? supabase
+            .from("saved_searches")
+            .update({ last_checked_at: viewedAt })
+            .eq("user_id", viewer.user.id)
+        : Promise.resolve()
+    ]);
+
+    redirect("/notifications");
+  }
 
   return (
     <section className="section">
