@@ -21,6 +21,7 @@ import {
   getRelatedListings,
   getSavedListingIds,
 } from "@/lib/data";
+import { getStructuredDetailItems } from "@/lib/listing-structured-fields";
 import {
   canViewerRateSeller,
   getSellerTrustSummary,
@@ -101,6 +102,7 @@ export default async function ListingPage({
         ? [listing.image_url]
         : [];
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
+  const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -193,6 +195,9 @@ export default async function ListingPage({
                   <span>Location: {listing.location}</span>
                   <span>Posted: {formatDate(listing.created_at)}</span>
                   <span>Price: {formatCurrency(listing.price)}</span>
+                  {structuredDetailItems.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
                   {featuredActive && listing.featured_until ? (
                     <span>Featured until: {formatDate(listing.featured_until)}</span>
                   ) : null}

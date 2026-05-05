@@ -16,6 +16,7 @@ interface SaveSearchToggleProps {
   minPrice?: number | null;
   maxPrice?: number | null;
   sort?: string | null;
+  extraFilters?: Record<string, string | boolean>;
   isSaved: boolean;
 }
 
@@ -29,6 +30,7 @@ export function SaveSearchToggle({
   minPrice,
   maxPrice,
   sort,
+  extraFilters,
   isSaved
 }: SaveSearchToggleProps) {
   const canSaveSearch = hasMeaningfulSavedSearchCriteria({
@@ -38,7 +40,8 @@ export function SaveSearchToggle({
     subcategory,
     minPrice,
     maxPrice,
-    sort
+    sort,
+    extraFilters
   });
 
   if (!canSaveSearch) {
@@ -87,6 +90,7 @@ export function SaveSearchToggle({
         <input type="hidden" name="minPrice" value={minPrice ?? ""} />
         <input type="hidden" name="maxPrice" value={maxPrice ?? ""} />
         <input type="hidden" name="sort" value={sort ?? ""} />
+        <input type="hidden" name="extraFilters" value={JSON.stringify(extraFilters ?? {})} />
 
         <SubmitButton
           className={isSaved ? "button-secondary saved-search-submit" : "saved-search-submit"}

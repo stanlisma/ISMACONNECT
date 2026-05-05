@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { CATEGORIES } from "@/lib/constants";
+import {
+  getStructuredFilterDefinitions,
+  serializeStructuredFilterValue
+} from "@/lib/listing-structured-fields";
 import { getSubcategories } from "@/lib/subcategories";
 
 export function BrowseFilters({
@@ -14,6 +18,7 @@ export function BrowseFilters({
   minPrice,
   maxPrice,
   sort,
+  structuredFilters,
   showCategorySelect = true
 }: any) {
   const [searchText, setSearchText] = useState(search ?? "");
@@ -22,6 +27,52 @@ export function BrowseFilters({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const subcategories = useMemo(() => getSubcategories(selectedCategory), [selectedCategory]);
+  const activeStructuredCategory = (showCategorySelect ? selectedCategory : category) ?? "";
+  const structuredFilterDefinitions = useMemo(
+    () => getStructuredFilterDefinitions(activeStructuredCategory as any),
+    [activeStructuredCategory]
+  );
+
+  function renderStructuredFilterFields() {
+    if (!structuredFilterDefinitions.length) {
+      return null;
+    }
+
+    return (
+      <>
+        {structuredFilterDefinitions.map((field) => {
+          const defaultValue = serializeStructuredFilterValue(structuredFilters?.[field.name]);
+
+          if (field.kind === "checkbox") {
+            return (
+              <label key={field.name} className="field">
+                <span className="field-label">{field.label}</span>
+                <select className="select" name={field.name} defaultValue={defaultValue}>
+                  <option value="">Any</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </label>
+            );
+          }
+
+          return (
+            <label key={field.name} className="field">
+              <span className="field-label">{field.label}</span>
+              <select className="select" name={field.name} defaultValue={defaultValue}>
+                <option value="">Any</option>
+                {field.options?.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          );
+        })}
+      </>
+    );
+  }
 
   return (
     <>
@@ -32,6 +83,9 @@ export function BrowseFilters({
         {minPrice ? <input name="minPrice" type="hidden" value={minPrice} /> : null}
         {maxPrice ? <input name="maxPrice" type="hidden" value={maxPrice} /> : null}
         {sort ? <input name="sort" type="hidden" value={sort} /> : null}
+        {Object.entries((structuredFilters ?? {}) as Record<string, string | boolean>).map(([key, value]) => (
+          <input key={key} name={key} type="hidden" value={serializeStructuredFilterValue(value)} />
+        ))}
 
         <input
           className="input mobile-filter-search"
@@ -136,6 +190,10 @@ export function BrowseFilters({
           </select>
         </label>
 
+        <div className="browse-structured-filters" key={activeStructuredCategory}>
+          {renderStructuredFilterFields()}
+        </div>
+
         <div className="filter-actions">
           <button className="button" type="submit">
             Apply
@@ -234,6 +292,10 @@ export function BrowseFilters({
                   <option value="price_desc">Price: High to Low</option>
                 </select>
               </label>
+
+              <div className="browse-structured-filters" key={`${activeStructuredCategory}-mobile`}>
+                {renderStructuredFilterFields()}
+              </div>
 
               <div className="mobile-filter-sheet-actions">
                 <Link href={actionPath} className="button button-secondary">

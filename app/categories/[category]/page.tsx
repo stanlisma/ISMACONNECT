@@ -11,6 +11,7 @@ import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
+import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
@@ -67,6 +68,14 @@ export default async function CategoryPage({
   
   const sort = getSingleParam(resolvedSearchParams?.sort);
   const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
+  const structuredFilters = Object.fromEntries(
+    getStructuredFilterDefinitions(category)
+      .map((field) => {
+        const value = getSingleParam(resolvedSearchParams?.[field.name]);
+        return value ? ([field.name, value] as const) : null;
+      })
+      .filter(Boolean) as Array<readonly [string, string]>
+  );
 
   const categoryInfo = CATEGORY_MAP[category];
   const viewer = await getViewer();
@@ -79,7 +88,8 @@ export default async function CategoryPage({
         subcategory,
         minPrice,
         maxPrice,
-        sort
+        sort,
+        extraFilters: structuredFilters
       })
     : null;
   const returnTo = buildSavedSearchHref({
@@ -89,7 +99,8 @@ export default async function CategoryPage({
     subcategory,
     minPrice,
     maxPrice,
-    sort
+    sort,
+    extraFilters: structuredFilters
   });
 
   const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
@@ -99,6 +110,7 @@ export default async function CategoryPage({
     minPrice,
     maxPrice,
     sort,
+    extraFilters: structuredFilters,
     limit: 24,
     page
   });
@@ -113,6 +125,7 @@ export default async function CategoryPage({
           minPrice,
           maxPrice,
           sort,
+          ...structuredFilters,
           page: page - 1 > 1 ? page - 1 : undefined
         })
       : null;
@@ -123,6 +136,7 @@ export default async function CategoryPage({
         minPrice,
         maxPrice,
         sort,
+        ...structuredFilters,
         page: page + 1
       })
     : null;
@@ -144,6 +158,7 @@ export default async function CategoryPage({
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort}
+          structuredFilters={structuredFilters}
           showCategorySelect={false}
         />
 
@@ -157,6 +172,7 @@ export default async function CategoryPage({
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort}
+          extraFilters={structuredFilters}
           isSaved={Boolean(savedSearch)}
         />
 
