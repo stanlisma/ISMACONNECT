@@ -342,7 +342,7 @@ export function countSavedSearchAlerts(savedSearches: SavedSearchWithStats[]) {
   return savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0).length;
 }
 
-export async function getSavedSearchAlertCount(userId: string) {
+export async function getSavedSearchAlertState(userId: string) {
   const supabase = await createServerSupabaseClient();
 
   const { data } = await supabase
@@ -353,12 +353,15 @@ export async function getSavedSearchAlertCount(userId: string) {
   const savedSearches = (data ?? []) as SavedSearch[];
 
   if (!savedSearches.length) {
-    return 0;
+    return {
+      count: 0,
+      latestCreatedAt: null as string | null
+    };
   }
 
   const publicSupabase = createPublicSupabaseClient();
 
-  const counts = await Promise.all(
+  const alertStates = await Promise.all(
     savedSearches.map(async (savedSearch) => {
       let alertCountQuery = applyListingFilters(
         publicSupabase.from("listings").select("id", { count: "exact", head: true }),
@@ -370,9 +373,55 @@ export async function getSavedSearchAlertCount(userId: string) {
       }
 
       const { count } = await alertCountQuery;
-      return count && count > 0 ? 1 : 0;
+
+      if (!count || count <= 0) {
+        return {
+          hasAlert: 0,
+          latestCreatedAt: null as string | null
+        };
+      }
+
+      let latestMatchQuery = applyListingFilters(
+        publicSupabase.from("listings").select("created_at"),
+        getSavedSearchFiltersFromRecord(savedSearch)
+      )
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (savedSearch.last_checked_at) {
+        latestMatchQuery = latestMatchQuery.gt("created_at", savedSearch.last_checked_at);
+      }
+
+      const { data: latestMatches } = await latestMatchQuery;
+
+      return {
+        hasAlert: 1,
+        latestCreatedAt: latestMatches?.[0]?.created_at ?? null
+      };
     })
   );
 
-  return counts.reduce<number>((total, count) => total + count, 0);
+  const latestCreatedAt = alertStates.reduce<string | null>((latest, current) => {
+    if (!current.latestCreatedAt) {
+      return latest;
+    }
+
+    if (!latest) {
+      return current.latestCreatedAt;
+    }
+
+    return new Date(current.latestCreatedAt).getTime() > new Date(latest).getTime()
+      ? current.latestCreatedAt
+      : latest;
+  }, null);
+
+  return {
+    count: alertStates.reduce<number>((total, item) => total + item.hasAlert, 0),
+    latestCreatedAt
+  };
+}
+
+export async function getSavedSearchAlertCount(userId: string) {
+  const state = await getSavedSearchAlertState(userId);
+  return state.count;
 }

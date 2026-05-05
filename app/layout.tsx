@@ -7,7 +7,7 @@ import { PwaShell } from "@/components/pwa/pwa-shell";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
-import { getSavedSearchAlertCount } from "@/lib/saved-searches";
+import { getSavedSearchAlertState } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 import "./globals.css";
@@ -17,11 +17,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   let unreadMessagesCount = 0;
   let unreadNotificationsCount = 0;
+  let unreadNotificationsMarker: string | null = null;
 
   if (viewer) {
     const supabase = await createServerSupabaseClient();
 
-    const [conversationsResult, notificationsResult, unreadSavedSearchAlertsCount] = await Promise.all([
+    const [conversationsResult, notificationsResult, latestUnreadNotificationResult, unreadSavedSearchAlertsState] = await Promise.all([
       supabase
         .from("conversations")
         .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
@@ -31,7 +32,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         .select("*", { count: "exact", head: true })
         .eq("user_id", viewer.user.id)
         .eq("is_read", false),
-      getSavedSearchAlertCount(viewer.user.id)
+      supabase
+        .from("notifications")
+        .select("created_at")
+        .eq("user_id", viewer.user.id)
+        .eq("is_read", false)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      getSavedSearchAlertState(viewer.user.id)
     ]);
 
     unreadMessagesCount =
@@ -47,7 +56,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         return total;
       }, 0) ?? 0;
 
-    unreadNotificationsCount = (notificationsResult.count ?? 0) + unreadSavedSearchAlertsCount;
+    unreadNotificationsCount = (notificationsResult.count ?? 0) + unreadSavedSearchAlertsState.count;
+
+    const latestUnreadNotificationAt = latestUnreadNotificationResult.data?.created_at ?? null;
+    const latestUnreadSavedSearchAt = unreadSavedSearchAlertsState.latestCreatedAt ?? null;
+
+    unreadNotificationsMarker =
+      [latestUnreadNotificationAt, latestUnreadSavedSearchAt]
+        .filter((value): value is string => Boolean(value))
+        .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null;
   }
 
   return (
@@ -60,6 +77,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             viewer={viewer}
             unreadMessagesCount={unreadMessagesCount}
             unreadNotificationsCount={unreadNotificationsCount}
+            unreadNotificationsMarker={unreadNotificationsMarker}
           />
 
           <main>{children}</main>

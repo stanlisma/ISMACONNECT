@@ -18,7 +18,10 @@ interface SiteHeaderProps {
   viewer: Viewer;
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
+  unreadNotificationsMarker: string | null;
 }
+
+const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
 
 function formatBadgeCount(count: number) {
   if (count > 99) {
@@ -32,30 +35,59 @@ export function SiteHeader({
   viewer,
   unreadMessagesCount,
   unreadNotificationsCount,
+  unreadNotificationsMarker,
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const [notificationBadgeCount, setNotificationBadgeCount] = useState(
     pathname === "/notifications" ? 0 : unreadNotificationsCount
   );
-  const previousUnreadNotificationsCount = useRef(unreadNotificationsCount);
+  const previousUnreadNotificationsMarker = useRef<string | null>(unreadNotificationsMarker);
   const isExactPath = (path: string) => pathname === path;
   const isPathGroup = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
   useEffect(() => {
     if (pathname === "/notifications") {
       setNotificationBadgeCount(0);
-    }
-  }, [pathname]);
 
-  useEffect(() => {
-    if (previousUnreadNotificationsCount.current !== unreadNotificationsCount) {
-      previousUnreadNotificationsCount.current = unreadNotificationsCount;
-
-      if (pathname !== "/notifications") {
-        setNotificationBadgeCount(unreadNotificationsCount);
+      if (unreadNotificationsMarker) {
+        window.localStorage.setItem(CLEARED_NOTIFICATIONS_MARKER_KEY, unreadNotificationsMarker);
+      } else {
+        window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
       }
     }
-  }, [pathname, unreadNotificationsCount]);
+  }, [pathname, unreadNotificationsMarker]);
+
+  useEffect(() => {
+    const clearedMarker = window.localStorage.getItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+
+    if (pathname === "/notifications") {
+      setNotificationBadgeCount(0);
+      return;
+    }
+
+    if (!unreadNotificationsMarker || unreadNotificationsCount <= 0) {
+      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      setNotificationBadgeCount(0);
+      previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
+      return;
+    }
+
+    if (clearedMarker && clearedMarker === unreadNotificationsMarker) {
+      setNotificationBadgeCount(0);
+      previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
+      return;
+    }
+
+    if (
+      previousUnreadNotificationsMarker.current &&
+      previousUnreadNotificationsMarker.current !== unreadNotificationsMarker
+    ) {
+      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+    }
+
+    setNotificationBadgeCount(unreadNotificationsCount);
+    previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
+  }, [pathname, unreadNotificationsCount, unreadNotificationsMarker]);
 
   return (
     <header className="site-header">
