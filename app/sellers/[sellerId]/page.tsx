@@ -7,9 +7,10 @@ import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
+import { CATEGORY_MAP } from "@/lib/constants";
 import { getPublicSellerStorefront, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummary, getSellerTrustSummaryMap } from "@/lib/trust";
-import { getCategoryLabel } from "@/lib/utils";
+import { buildPathWithQuery, formatDate, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export async function generateMetadata({
   params
@@ -36,72 +37,138 @@ export async function generateMetadata({
 }
 
 export default async function SellerStorefrontPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ sellerId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { sellerId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const storefront = await getPublicSellerStorefront(sellerId);
 
   if (!storefront) {
     notFound();
   }
 
+  const categoryFilter = resolveCategory(getSingleParam(resolvedSearchParams?.category));
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const trustSummary = await getSellerTrustSummary(sellerId);
   const trustMap = await getSellerTrustSummaryMap(storefront.listings.map((listing) => listing.owner_id));
+  const filteredListings = categoryFilter
+    ? storefront.listings.filter((listing) => listing.category === categoryFilter)
+    : storefront.listings;
+  const categoryCounts = storefront.active_categories
+    .map((category) => ({
+      category,
+      count: storefront.listings.filter((listing) => listing.category === category).length
+    }))
+    .sort((left, right) => right.count - left.count);
+  const storefrontInitial = storefront.display_name.trim().charAt(0).toUpperCase() || "S";
+  const memberSinceLabel = trustSummary?.member_since
+    ? formatDate(trustSummary.member_since)
+    : "Recently joined";
+  const ratingLabel =
+    trustSummary?.review_count && trustSummary.average_rating !== null
+      ? `${trustSummary.average_rating.toFixed(1)} / 5`
+      : "No ratings yet";
 
   return (
     <section className="section">
       <div className="container">
         <div className="surface seller-storefront-hero">
-          <div className="seller-storefront-copy">
-            <span className="eyebrow">Seller storefront</span>
-            <h1 className="section-title">{storefront.display_name}</h1>
-            <p className="section-copy">
-              Review this seller&apos;s active listings, trust badges, and category footprint before you message.
-            </p>
+          <div className="seller-storefront-header">
+            <div className="seller-storefront-profile">
+              <div className="seller-storefront-avatar" aria-hidden="true">
+                {storefrontInitial}
+              </div>
+
+              <div className="seller-storefront-copy">
+                <span className="eyebrow">Seller storefront</span>
+                <h1 className="section-title">{storefront.display_name}</h1>
+                <p className="section-copy">
+                  Review this seller&apos;s live listings, local category footprint, and trust signals before you message.
+                </p>
+
+                <div className="seller-storefront-meta">
+                  <span>{storefront.primary_location.split(",")[0]}</span>
+                  <span>Member since {memberSinceLabel}</span>
+                  <span>{ratingLabel}</span>
+                </div>
+
+                <TrustBadges summary={trustSummary} />
+              </div>
+            </div>
+
+            <div className="seller-storefront-rail">
+              <div className="seller-storefront-stats">
+                <div className="seller-storefront-stat">
+                  <span>Active listings</span>
+                  <strong>{storefront.total_active_listings}</strong>
+                </div>
+                <div className="seller-storefront-stat">
+                  <span>Categories</span>
+                  <strong>{storefront.active_categories.length}</strong>
+                </div>
+                <div className="seller-storefront-stat">
+                  <span>Reviews</span>
+                  <strong>{trustSummary?.review_count ?? 0}</strong>
+                </div>
+              </div>
+
+              <div className="seller-storefront-actions">
+                <Link className="button" href="/browse">
+                  Browse all listings
+                </Link>
+                <Link className="button button-secondary" href={`/browse?category=${storefront.active_categories[0] ?? "buy-sell"}`}>
+                  Explore similar listings
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <div className="seller-storefront-summary">
-            <TrustBadges summary={trustSummary} />
+          <div className="seller-storefront-category-row">
+            {categoryCounts.map(({ category, count }) => {
+              const isActive = categoryFilter === category;
+              const href = buildPathWithQuery(`/sellers/${sellerId}`, {
+                category: isActive ? undefined : category
+              });
 
-            <div className="seller-storefront-stats">
-              <div className="seller-storefront-stat">
-                <span>Active listings</span>
-                <strong>{storefront.total_active_listings}</strong>
-              </div>
-              <div className="seller-storefront-stat">
-                <span>Categories</span>
-                <strong>{storefront.active_categories.length}</strong>
-              </div>
-              <div className="seller-storefront-stat">
-                <span>Primary area</span>
-                <strong>{storefront.primary_location.split(",")[0]}</strong>
-              </div>
-            </div>
-
-            <div className="badge-row">
-              {storefront.active_categories.map((category) => (
-                <Link className="badge badge-soft" href={`/browse?category=${category}`} key={category}>
-                  {getCategoryLabel(category)}
+              return (
+                <Link
+                  key={category}
+                  className={`seller-storefront-category-pill ${isActive ? "is-active" : ""}`}
+                  href={href}
+                >
+                  <span>{getCategoryLabel(category)}</span>
+                  <strong>{count}</strong>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
+
+            {categoryFilter ? (
+              <Link className="seller-storefront-category-clear" href={`/sellers/${sellerId}`}>
+                Clear filter
+              </Link>
+            ) : null}
           </div>
         </div>
 
         <div style={{ marginTop: "1.5rem" }}>
           <SectionHeading
             eyebrow="Active Listings"
-            title={`Live posts from ${storefront.display_name}`}
+            title={
+              categoryFilter
+                ? `${CATEGORY_MAP[categoryFilter].label} from ${storefront.display_name}`
+                : `Live posts from ${storefront.display_name}`
+            }
             description="These listings are currently visible across browse and category feeds."
           />
 
-          {storefront.listings.length ? (
+          {filteredListings.length ? (
             <div className="listing-grid listing-feed-grid">
-              {storefront.listings.map((listing) => (
+              {filteredListings.map((listing) => (
                 <ListingCard
                   key={listing.id}
                   listing={listing}
@@ -114,10 +181,10 @@ export default async function SellerStorefrontPage({
             </div>
           ) : (
             <EmptyState
-              actionHref="/browse"
-              actionLabel="Browse all listings"
-              description="This seller does not have active public listings right now."
-              title="No active listings"
+              actionHref={`/sellers/${sellerId}`}
+              actionLabel="See all seller listings"
+              description="This seller has active listings, but not in the category you filtered to."
+              title="No listings in this category"
             />
           )}
         </div>
