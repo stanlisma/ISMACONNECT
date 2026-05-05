@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,10 +34,28 @@ export function SiteHeader({
   unreadNotificationsCount,
 }: SiteHeaderProps) {
   const pathname = usePathname();
-  const visibleUnreadNotificationsCount =
-    pathname === "/notifications" ? 0 : unreadNotificationsCount;
+  const [notificationBadgeCount, setNotificationBadgeCount] = useState(
+    pathname === "/notifications" ? 0 : unreadNotificationsCount
+  );
+  const previousUnreadNotificationsCount = useRef(unreadNotificationsCount);
   const isExactPath = (path: string) => pathname === path;
   const isPathGroup = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
+
+  useEffect(() => {
+    if (pathname === "/notifications") {
+      setNotificationBadgeCount(0);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    if (previousUnreadNotificationsCount.current !== unreadNotificationsCount) {
+      previousUnreadNotificationsCount.current = unreadNotificationsCount;
+
+      if (pathname !== "/notifications") {
+        setNotificationBadgeCount(unreadNotificationsCount);
+      }
+    }
+  }, [pathname, unreadNotificationsCount]);
 
   return (
     <header className="site-header">
@@ -88,8 +107,8 @@ export function SiteHeader({
 
                 <Link href="/notifications" className="icon-link header-utility-link" aria-label="Notifications">
                   <Bell aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
-                  {visibleUnreadNotificationsCount > 0 ? (
-                    <span className="header-action-badge">{formatBadgeCount(visibleUnreadNotificationsCount)}</span>
+                  {notificationBadgeCount > 0 ? (
+                    <span className="header-action-badge">{formatBadgeCount(notificationBadgeCount)}</span>
                   ) : null}
                 </Link>
 
