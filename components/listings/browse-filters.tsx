@@ -9,6 +9,7 @@ import {
   serializeStructuredFilterValue
 } from "@/lib/listing-structured-fields";
 import { getSubcategories } from "@/lib/subcategories";
+import { buildPathWithQuery } from "@/lib/utils";
 
 export function BrowseFilters({
   actionPath,
@@ -19,6 +20,7 @@ export function BrowseFilters({
   maxPrice,
   sort,
   structuredFilters,
+  view,
   showCategorySelect = true
 }: any) {
   const [searchText, setSearchText] = useState(search ?? "");
@@ -32,6 +34,9 @@ export function BrowseFilters({
     () => getStructuredFilterDefinitions(activeStructuredCategory as any),
     [activeStructuredCategory]
   );
+  const clearHref = buildPathWithQuery(actionPath, {
+    view
+  });
 
   function renderStructuredFilterFields() {
     if (!structuredFilterDefinitions.length) {
@@ -78,6 +83,7 @@ export function BrowseFilters({
     <>
       {/* MOBILE COMPACT SEARCH */}
       <form action={actionPath} className="mobile-filter-row" method="get">
+        {view ? <input name="view" type="hidden" value={view} /> : null}
         {category ? <input name="category" type="hidden" value={category} /> : null}
         {subcategory ? <input name="subcategory" type="hidden" value={subcategory} /> : null}
         {minPrice ? <input name="minPrice" type="hidden" value={minPrice} /> : null}
@@ -108,6 +114,7 @@ export function BrowseFilters({
 
       {/* DESKTOP FULL FILTERS */}
       <form action={actionPath} className="surface filters-grid desktop-filters" method="get">
+        {view ? <input name="view" type="hidden" value={view} /> : null}
         <label className="field filter-search">
           <span className="field-label">Search</span>
           <input
@@ -199,7 +206,7 @@ export function BrowseFilters({
             Apply
           </button>
 
-          <Link href={actionPath} className="button button-secondary">
+          <Link href={clearHref} className="button button-secondary">
             Clear
           </Link>
         </div>
@@ -218,6 +225,7 @@ export function BrowseFilters({
 
             <form action={actionPath} method="get" className="mobile-filter-sheet-form">
               <input type="hidden" name="q" value={searchText} />
+              {view ? <input name="view" type="hidden" value={view} /> : null}
 
               {showCategorySelect ? (
                 <label className="field">
@@ -298,7 +306,7 @@ export function BrowseFilters({
               </div>
 
               <div className="mobile-filter-sheet-actions">
-                <Link href={actionPath} className="button button-secondary">
+                <Link href={clearHref} className="button button-secondary">
                   Clear
                 </Link>
 

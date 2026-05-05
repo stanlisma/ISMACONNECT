@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
+import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -39,6 +40,9 @@ export default async function BrowsePage({
   const minPrice = minPriceParam ? Number(minPriceParam) : null;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
   const sort = getSingleParam(resolvedSearchParams?.sort);
+  const requestedView = getSingleParam(resolvedSearchParams?.view);
+  const isMapEligibleCategory = category === "rentals" || category === "ride-share";
+  const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
   const structuredFilters = Object.fromEntries(
     getStructuredFilterDefinitions(category)
       .map((field) => {
@@ -90,6 +94,28 @@ export default async function BrowsePage({
   const categoryLabel = category
     ? CATEGORIES.find((item) => item.value === category)?.label
     : null;
+  const listViewHref = buildPathWithQuery("/browse", {
+    q: search,
+    category,
+    subcategory,
+    minPrice,
+    maxPrice,
+    sort,
+    ...structuredFilters
+  });
+  const mapViewHref =
+    isMapEligibleCategory
+      ? buildPathWithQuery("/browse", {
+          q: search,
+          category,
+          subcategory,
+          minPrice,
+          maxPrice,
+          sort,
+          ...structuredFilters,
+          view: "map"
+        })
+      : null;
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
   const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
   const previousPageHref =
@@ -101,6 +127,7 @@ export default async function BrowsePage({
           minPrice,
           maxPrice,
           sort,
+          view: view === "map" ? "map" : undefined,
           ...structuredFilters,
           page: page - 1 > 1 ? page - 1 : undefined
         })
@@ -113,6 +140,7 @@ export default async function BrowsePage({
         minPrice,
         maxPrice,
         sort,
+        view: view === "map" ? "map" : undefined,
         ...structuredFilters,
         page: page + 1
       })
@@ -127,6 +155,19 @@ export default async function BrowsePage({
           description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
         />
 
+        {isMapEligibleCategory ? (
+          <div className="listing-view-toggle" style={{ marginBottom: "1rem" }}>
+            <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+              List view
+            </Link>
+            {mapViewHref ? (
+              <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+                Map view
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
+
         <BrowseFilters
           actionPath="/browse"
           category={category}
@@ -136,6 +177,7 @@ export default async function BrowsePage({
           maxPrice={maxPrice}
           sort={sort}
           structuredFilters={structuredFilters}
+          view={view === "map" ? "map" : undefined}
         />
 
         <SaveSearchToggle
@@ -185,7 +227,24 @@ export default async function BrowsePage({
           />
         ) : (
           <>
-            <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
+            {view === "map" && isMapEligibleCategory ? (
+              <LocalMapExplorer
+                category={category}
+                listings={listings}
+                actionPath="/browse"
+                search={search}
+                subcategory={subcategory}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                sort={sort}
+                structuredFilters={structuredFilters}
+              />
+            ) : null}
+
+            <div
+              className={`listing-grid listing-feed-grid${view === "map" ? " listing-feed-grid-map-view" : ""}`}
+              style={{ marginTop: "1.25rem" }}
+            >
               {listings.map((listing) => (
                 <ListingCard
                   key={listing.id}

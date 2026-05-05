@@ -17,12 +17,16 @@ export type JobShiftPattern =
 export type JobWorkSetup = "local" | "camp" | "fifo" | "dido" | "hybrid";
 export type JobPayBand = "under-25" | "25-35" | "35-50" | "50-plus" | "salary";
 export type RentalParkingType = "none" | "street" | "stall" | "truck";
-export type RideShareArea =
+export type FortMcMurrayArea =
   | "downtown"
   | "thickwood"
   | "timberlea"
   | "gregoire"
   | "airport"
+  | "abasand"
+  | "eagle-ridge";
+export type RideShareArea =
+  | FortMcMurrayArea
   | "site-camp"
   | "edmonton"
   | "calgary";
@@ -35,6 +39,7 @@ export interface JobListingStructuredData {
 }
 
 export interface RentalListingStructuredData {
+  rentalArea?: FortMcMurrayArea | null;
   furnished?: boolean;
   utilitiesIncluded?: boolean;
   shortTerm?: boolean;

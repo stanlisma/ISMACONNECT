@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import {
+  FORT_MCMURRAY_AREA_OPTIONS,
+  RIDE_SHARE_AREA_OPTIONS
+} from "@/lib/local-marketplace";
 import type {
   JobListingStructuredData,
   ListingCategory,
@@ -49,22 +53,13 @@ const JOB_PAY_BAND_OPTIONS = [
   { value: "salary", label: "Salary" }
 ] as const satisfies StructuredFieldOption[];
 
+const RENTAL_AREA_OPTIONS = FORT_MCMURRAY_AREA_OPTIONS as readonly StructuredFieldOption[];
+
 const RENTAL_PARKING_OPTIONS = [
   { value: "none", label: "No parking" },
   { value: "street", label: "Street parking" },
   { value: "stall", label: "Stall / driveway" },
   { value: "truck", label: "Truck-friendly parking" }
-] as const satisfies StructuredFieldOption[];
-
-const RIDE_SHARE_AREA_OPTIONS = [
-  { value: "downtown", label: "Downtown" },
-  { value: "thickwood", label: "Thickwood" },
-  { value: "timberlea", label: "Timberlea" },
-  { value: "gregoire", label: "Gregoire" },
-  { value: "airport", label: "Airport" },
-  { value: "site-camp", label: "Site / camp" },
-  { value: "edmonton", label: "Edmonton" },
-  { value: "calgary", label: "Calgary" }
 ] as const satisfies StructuredFieldOption[];
 
 const JOB_SHIFT_VALUES = JOB_SHIFT_OPTIONS.map((option) => option.value) as [
@@ -76,6 +71,10 @@ const JOB_WORK_SETUP_VALUES = JOB_WORK_SETUP_OPTIONS.map((option) => option.valu
   ...string[]
 ];
 const JOB_PAY_BAND_VALUES = JOB_PAY_BAND_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RENTAL_AREA_VALUES = RENTAL_AREA_OPTIONS.map((option) => option.value) as [
   string,
   ...string[]
 ];
@@ -120,6 +119,14 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
     }
   ],
   rentals: [
+    {
+      name: "rentalArea",
+      label: "Area / neighbourhood",
+      kind: "select",
+      options: [...RENTAL_AREA_OPTIONS],
+      helpText: "Help renters spot where the place sits in Fort McMurray.",
+      showInFilters: true
+    },
     {
       name: "furnished",
       label: "Furnished",
@@ -211,6 +218,7 @@ const jobsStructuredDataSchema = z.object({
 });
 
 const rentalsStructuredDataSchema = z.object({
+  rentalArea: toOptionalEnum(RENTAL_AREA_VALUES),
   furnished: z.boolean().default(false),
   utilitiesIncluded: z.boolean().default(false),
   shortTerm: z.boolean().default(false),
@@ -273,6 +281,7 @@ export function parseStructuredListingData(category: ListingCategory, formData: 
       });
     case "rentals":
       return rentalsStructuredDataSchema.safeParse({
+        rentalArea: getFormValue(formData, "rentalArea"),
         furnished: formData.has("furnished"),
         utilitiesIncluded: formData.has("utilitiesIncluded"),
         shortTerm: formData.has("shortTerm"),
@@ -437,6 +446,9 @@ export function getStructuredDetailItems(
     case "rentals": {
       const data = getStructuredSchema(category).parse(structuredData) as RentalListingStructuredData;
       const details = [
+        optionLabel(RENTAL_AREA_OPTIONS, data.rentalArea)
+          ? `Area: ${optionLabel(RENTAL_AREA_OPTIONS, data.rentalArea)}`
+          : null,
         typeof data.furnished === "boolean" ? `Furnished: ${booleanLabel(data.furnished)}` : null,
         typeof data.utilitiesIncluded === "boolean"
           ? `Utilities included: ${booleanLabel(data.utilitiesIncluded)}`
