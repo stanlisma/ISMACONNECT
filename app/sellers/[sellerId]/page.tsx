@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Building2, ExternalLink } from "lucide-react";
 
 import { ListingCard } from "@/components/listings/listing-card";
 import { TrustBadges } from "@/components/trust/trust-badges";
@@ -32,7 +33,10 @@ export async function generateMetadata({
 
   return {
     title: `${storefront.display_name} on ISMACONNECT`,
-    description: `Browse active local marketplace listings from ${storefront.display_name} on ISMACONNECT.`
+    description:
+      storefront.is_business && storefront.business_description
+        ? storefront.business_description
+        : `Browse active local marketplace listings from ${storefront.display_name} on ISMACONNECT.`
   };
 }
 
@@ -73,6 +77,10 @@ export default async function SellerStorefrontPage({
     trustSummary?.review_count && trustSummary.average_rating !== null
       ? `${trustSummary.average_rating.toFixed(1)} / 5`
       : "No ratings yet";
+  const storefrontDescription = storefront.is_business
+    ? storefront.business_description ||
+      "Browse this business storefront, review trust signals, and explore active local listings."
+    : "Review this seller's live listings, local category footprint, and trust signals before you message.";
 
   return (
     <section className="section">
@@ -81,21 +89,41 @@ export default async function SellerStorefrontPage({
           <div className="seller-storefront-header">
             <div className="seller-storefront-profile">
               <div className="seller-storefront-avatar" aria-hidden="true">
-                {storefrontInitial}
+                {storefront.business_logo_url ? (
+                  <img src={storefront.business_logo_url} alt="" className="seller-storefront-avatar-image" />
+                ) : (
+                  storefrontInitial
+                )}
               </div>
 
               <div className="seller-storefront-copy">
-                <span className="eyebrow">Seller storefront</span>
+                <span className="eyebrow">{storefront.is_business ? "Business storefront" : "Seller storefront"}</span>
                 <h1 className="section-title">{storefront.display_name}</h1>
-                <p className="section-copy">
-                  Review this seller&apos;s live listings, local category footprint, and trust signals before you message.
-                </p>
+                <p className="section-copy">{storefrontDescription}</p>
 
                 <div className="seller-storefront-meta">
                   <span>{storefront.primary_location.split(",")[0]}</span>
                   <span>Member since {memberSinceLabel}</span>
                   <span>{ratingLabel}</span>
+                  {storefront.is_business ? <span>Business account</span> : null}
                 </div>
+
+                {storefront.service_areas.length ? (
+                  <div className="seller-storefront-service-areas">
+                    {storefront.service_areas.map((area) => (
+                      <span key={area} className="seller-storefront-service-chip">
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                {storefront.is_business && trustSummary?.verification_status === "verified" ? (
+                  <div className="seller-storefront-business-badge">
+                    <Building2 aria-hidden="true" size={16} strokeWidth={2.1} />
+                    <span>Verified business storefront</span>
+                  </div>
+                ) : null}
 
                 <TrustBadges summary={trustSummary} />
               </div>
@@ -118,9 +146,21 @@ export default async function SellerStorefrontPage({
               </div>
 
               <div className="seller-storefront-actions">
-                <Link className="button" href="/browse">
-                  Browse all listings
-                </Link>
+                {storefront.business_website ? (
+                  <a
+                    className="button"
+                    href={storefront.business_website}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>Visit website</span>
+                    <ExternalLink aria-hidden="true" size={15} strokeWidth={2.2} />
+                  </a>
+                ) : (
+                  <Link className="button" href="/browse">
+                    Browse all listings
+                  </Link>
+                )}
                 <Link className="button button-secondary" href={`/browse?category=${storefront.active_categories[0] ?? "buy-sell"}`}>
                   Explore similar listings
                 </Link>
