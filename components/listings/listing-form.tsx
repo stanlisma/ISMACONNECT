@@ -1,6 +1,16 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ImagePlus,
+  LoaderCircle,
+  Sparkles,
+  Star,
+  Trash2,
+  UploadCloud
+} from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { getSubcategories } from "@/lib/subcategories";
 
@@ -22,6 +32,105 @@ type ListingFormProps = {
   submitLabel?: string;
 };
 
+type UploadStatus = "compressing" | "uploading" | "done" | "error";
+
+type UploadItem = {
+  id: string;
+  name: string;
+  details: string;
+  status: UploadStatus;
+};
+
+const MAX_IMAGE_COUNT = 8;
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 1800;
+const WEBP_QUALITY = 0.82;
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (toIndex < 0 || toIndex >= items.length || fromIndex === toIndex) {
+    return items;
+  }
+
+  const next = [...items];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
+}
+
+function updateUploadItem(
+  setUploadItems: React.Dispatch<React.SetStateAction<UploadItem[]>>,
+  id: string,
+  updater: (item: UploadItem) => UploadItem
+) {
+  setUploadItems((current) => current.map((item) => (item.id === id ? updater(item) : item)));
+}
+
+async function loadImageFromFile(file: File) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Could not read this image."));
+      img.src = objectUrl;
+    });
+
+    return image;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function optimizeImage(file: File) {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+
+  const image = await loadImageFromFile(file);
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Could not prepare this image for upload.");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/webp", WEBP_QUALITY);
+  });
+
+  if (!blob) {
+    throw new Error("Could not compress this image.");
+  }
+
+  if (blob.size >= file.size && file.size <= MAX_UPLOAD_BYTES) {
+    return file;
+  }
+
+  const optimizedName = file.name.replace(/\.[a-z0-9]+$/i, "") || "listing-photo";
+
+  return new File([blob], `${optimizedName}.webp`, {
+    type: "image/webp",
+    lastModified: Date.now()
+  });
+}
+
 export function ListingForm({
   action,
   defaults,
@@ -30,7 +139,6 @@ export function ListingForm({
   const [category, setCategory] = useState(defaults?.category ?? "buy-sell");
   const [subcategory, setSubcategory] = useState(defaults?.subcategory ?? "");
   const [description, setDescription] = useState(defaults?.description ?? "");
-
   const [imageUrls, setImageUrls] = useState<string[]>(
     defaults?.imageUrls?.length
       ? defaults.imageUrls
@@ -38,9 +146,9 @@ export function ListingForm({
         ? [defaults.imageUrl]
         : []
   );
-
+  const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const [uploadError, setUploadError] = useState("");
-  const [isUploading, startUpload] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
 
   const subcategories = useMemo(() => getSubcategories(category), [category]);
 
@@ -53,37 +161,104 @@ export function ListingForm({
 
     setUploadError("");
 
-    startUpload(async () => {
+    const availableSlots = Math.max(0, MAX_IMAGE_COUNT - imageUrls.length);
+    const selectedFiles = Array.from(files).slice(0, availableSlots);
+
+    if (!availableSlots) {
+      setUploadError(`You can upload up to ${MAX_IMAGE_COUNT} photos per listing.`);
+      event.target.value = "";
+      return;
+    }
+
+    if (selectedFiles.length < files.length) {
+      setUploadError(`Only the first ${availableSlots} additional photo(s) were added.`);
+    }
+
+    const queuedItems = selectedFiles.map((file, index) => ({
+      id: `${Date.now()}-${index}-${file.name}`,
+      name: file.name,
+      details: `${formatFileSize(file.size)} · preparing`,
+      status: "compressing" as const
+    }));
+
+    setUploadItems((current) => [...queuedItems, ...current].slice(0, 12));
+    setIsUploading(true);
+
+    for (let index = 0; index < selectedFiles.length; index += 1) {
+      const originalFile = selectedFiles[index];
+      const queueItem = queuedItems[index];
+
       try {
-        const uploadedUrls: string[] = [];
+        updateUploadItem(setUploadItems, queueItem.id, (item) => ({
+          ...item,
+          status: "compressing",
+          details: `${formatFileSize(originalFile.size)} · compressing`
+        }));
 
-        for (const file of Array.from(files)) {
-          const formData = new FormData();
-          formData.append("file", file);
+        const optimizedFile = await optimizeImage(originalFile);
 
-          const response = await fetch("/api/upload", {
-            method: "POST",
-            body: formData
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error || "Upload failed.");
-          }
-
-          uploadedUrls.push(data.url);
+        if (optimizedFile.size > MAX_UPLOAD_BYTES) {
+          throw new Error("Image is still larger than 5MB after optimization.");
         }
 
-        setImageUrls((current) => [...current, ...uploadedUrls]);
+        updateUploadItem(setUploadItems, queueItem.id, (item) => ({
+          ...item,
+          status: "uploading",
+          details: `${formatFileSize(optimizedFile.size)} · uploading`
+        }));
+
+        const formData = new FormData();
+        formData.append("file", optimizedFile);
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Upload failed.");
+        }
+
+        setImageUrls((current) => [...current, data.url].slice(0, MAX_IMAGE_COUNT));
+
+        updateUploadItem(setUploadItems, queueItem.id, (item) => ({
+          ...item,
+          status: "done",
+          details:
+            optimizedFile === originalFile
+              ? `${formatFileSize(optimizedFile.size)} · uploaded`
+              : `${formatFileSize(originalFile.size)} → ${formatFileSize(optimizedFile.size)}`
+        }));
       } catch (error) {
-        setUploadError(error instanceof Error ? error.message : "Upload failed.");
+        const message = error instanceof Error ? error.message : "Upload failed.";
+        setUploadError(message);
+
+        updateUploadItem(setUploadItems, queueItem.id, (item) => ({
+          ...item,
+          status: "error",
+          details: message
+        }));
       }
-    });
+    }
+
+    setIsUploading(false);
+    event.target.value = "";
   }
 
   function removeImage(indexToRemove: number) {
     setImageUrls((current) => current.filter((_, index) => index !== indexToRemove));
+  }
+
+  function setCoverImage(index: number) {
+    setImageUrls((current) => moveItem(current, index, 0));
+  }
+
+  function moveImage(index: number, direction: "left" | "right") {
+    setImageUrls((current) =>
+      moveItem(current, index, direction === "left" ? index - 1 : index + 1)
+    );
   }
 
   return (
@@ -140,7 +315,7 @@ export function ListingForm({
         <input className="input" name="location" defaultValue={defaults?.location ?? ""} />
       </label>
 
-      <label className="field" style={{ gridColumn: "1 / -1" }}>
+      <label className="field field-full">
         <span className="field-label">Description</span>
         <textarea
           className="input"
@@ -151,15 +326,7 @@ export function ListingForm({
           required
         />
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: "0.35rem",
-            fontSize: "0.8rem",
-            color: description.length < 10 ? "#b42318" : "#667085"
-          }}
-        >
+        <div className="listing-description-hint">
           <span>Minimum 10 characters</span>
           <span>{description.length}/3000</span>
         </div>
@@ -191,89 +358,147 @@ export function ListingForm({
         <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
       </label>
 
-      <div className="field">
-        <span className="field-label">Upload images</span>
-        <input className="input" type="file" accept="image/*" multiple onChange={handleFileChange} />
+      <div className="field field-full">
+        <div className="listing-media-panel">
+          <div className="listing-media-panel-head">
+            <div>
+              <span className="field-label">Listing photos</span>
+              <p className="field-hint listing-media-panel-copy">
+                Upload up to {MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.
+              </p>
+            </div>
 
-        {isUploading ? <p style={{ marginTop: "0.5rem" }}>Uploading images...</p> : null}
-        {uploadError ? (
-          <p style={{ marginTop: "0.5rem", color: "#b42318" }}>{uploadError}</p>
-        ) : null}
+            <div className="listing-media-panel-meta">
+              <span>{imageUrls.length}/{MAX_IMAGE_COUNT} photos</span>
+              <span>First image becomes the cover</span>
+            </div>
+          </div>
+
+          <label className="listing-upload-dropzone">
+            <div className="listing-upload-dropzone-icon">
+              {isUploading ? (
+                <LoaderCircle aria-hidden="true" size={20} strokeWidth={2.3} className="listing-spin" />
+              ) : (
+                <UploadCloud aria-hidden="true" size={20} strokeWidth={2.3} />
+              )}
+            </div>
+            <div className="listing-upload-dropzone-copy">
+              <strong>{isUploading ? "Uploading your photos…" : "Add listing photos"}</strong>
+              <span>JPG, PNG, or WebP. We compress them automatically and keep the sharpest cover photo first.</span>
+            </div>
+            <span className="listing-upload-dropzone-action">
+              <ImagePlus aria-hidden="true" size={16} strokeWidth={2.2} />
+              <span>Choose files</span>
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              disabled={isUploading || imageUrls.length >= MAX_IMAGE_COUNT}
+            />
+          </label>
+
+          {uploadError ? <p className="listing-upload-error">{uploadError}</p> : null}
+
+          {uploadItems.length ? (
+            <div className="listing-upload-status-list">
+              {uploadItems.map((item) => (
+                <div key={item.id} className={`listing-upload-status is-${item.status}`}>
+                  <span className="listing-upload-status-name">{item.name}</span>
+                  <span className="listing-upload-status-details">{item.details}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <input type="hidden" name="imageUrl" value={imageUrls[0] || ""} />
+          <input type="hidden" name="imageUrls" value={JSON.stringify(imageUrls)} />
+
+          {imageUrls.length ? (
+            <div className="listing-image-manager">
+              <div className="listing-image-manager-head">
+                <span className="field-label">Arrange photos</span>
+                <span className="field-hint">
+                  Use cover, move, or remove to control how your listing appears in browse.
+                </span>
+              </div>
+
+              <div className="listing-image-grid">
+                {imageUrls.map((url, index) => (
+                  <div key={`${url}-${index}`} className="listing-image-card">
+                    <div className="listing-image-card-media">
+                      <img src={url} alt={`Listing preview ${index + 1}`} />
+
+                      {index === 0 ? (
+                        <span className="listing-image-cover-badge">
+                          <Star aria-hidden="true" size={12} strokeWidth={2.4} />
+                          <span>Cover</span>
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="listing-image-card-body">
+                      <div className="listing-image-card-meta">
+                        <strong>Photo {index + 1}</strong>
+                        <span>{index === 0 ? "Primary image in browse" : "Additional gallery image"}</span>
+                      </div>
+
+                      <div className="listing-image-card-actions">
+                        <button
+                          type="button"
+                          className="listing-image-action"
+                          onClick={() => setCoverImage(index)}
+                          disabled={index === 0}
+                        >
+                          <Star aria-hidden="true" size={14} strokeWidth={2.3} />
+                          <span>Make cover</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="listing-image-action"
+                          onClick={() => moveImage(index, "left")}
+                          disabled={index === 0}
+                        >
+                          <ArrowLeft aria-hidden="true" size={14} strokeWidth={2.3} />
+                          <span>Move left</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="listing-image-action"
+                          onClick={() => moveImage(index, "right")}
+                          disabled={index === imageUrls.length - 1}
+                        >
+                          <ArrowRight aria-hidden="true" size={14} strokeWidth={2.3} />
+                          <span>Move right</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="listing-image-action is-danger"
+                          onClick={() => removeImage(index)}
+                        >
+                          <Trash2 aria-hidden="true" size={14} strokeWidth={2.3} />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="listing-image-empty-state">
+              <Sparkles aria-hidden="true" size={18} strokeWidth={2.2} />
+              <span>Add at least one clear photo so your listing feels trustworthy and complete.</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <input type="hidden" name="imageUrl" value={imageUrls[0] || ""} />
-      <input type="hidden" name="imageUrls" value={JSON.stringify(imageUrls)} />
-
-      {imageUrls.length > 0 ? (
-        <div style={{ gridColumn: "1 / -1" }}>
-          <span className="field-label">Preview</span>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-              gap: "0.75rem",
-              marginTop: "0.5rem"
-            }}
-          >
-            {imageUrls.map((url, index) => (
-              <div key={`${url}-${index}`} style={{ position: "relative" }}>
-                <img
-                  src={url}
-                  alt={`Listing preview ${index + 1}`}
-                  style={{
-                    width: "100%",
-                    height: "110px",
-                    objectFit: "cover",
-                    borderRadius: "10px",
-                    border: "1px solid #d0d5dd"
-                  }}
-                />
-
-                {index === 0 ? (
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: "0.4rem",
-                      top: "0.4rem",
-                      background: "#15365b",
-                      color: "white",
-                      borderRadius: "999px",
-                      padding: "0.15rem 0.45rem",
-                      fontSize: "0.7rem",
-                      fontWeight: 700
-                    }}
-                  >
-                    Cover
-                  </span>
-                ) : null}
-
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  style={{
-                    position: "absolute",
-                    right: "0.35rem",
-                    top: "0.35rem",
-                    border: "none",
-                    borderRadius: "999px",
-                    background: "rgba(0,0,0,0.65)",
-                    color: "white",
-                    width: "24px",
-                    height: "24px",
-                    cursor: "pointer"
-                  }}
-                  aria-label="Remove image"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div style={{ gridColumn: "1 / -1" }}>
+      <div className="field-full">
         <button className="button" type="submit" disabled={isUploading || description.length < 10}>
           {isUploading ? "Uploading..." : submitLabel}
         </button>

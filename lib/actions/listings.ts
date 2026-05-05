@@ -21,7 +21,13 @@ function parseImageUrls(formData: FormData) {
 
   try {
     const parsed = JSON.parse(String(raw));
-    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return Array.from(
+      new Set(parsed.filter((item) => typeof item === "string" && item.trim().length > 0))
+    ).slice(0, 8);
   } catch {
     return [];
   }
