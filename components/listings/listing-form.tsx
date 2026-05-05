@@ -156,6 +156,10 @@ export function ListingForm({
   const subcategories = useMemo(() => getSubcategories(category), [category]);
   const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
   const structuredDefaults = defaults?.structuredData ?? null;
+  const descriptionReady = description.trim().length >= 10;
+  const stickyHint = isUploading
+    ? "Uploading photos..."
+    : `${imageUrls.length}/${MAX_IMAGE_COUNT} photos | ${description.length}/3000 chars`;
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -182,7 +186,7 @@ export function ListingForm({
     const queuedItems = selectedFiles.map((file, index) => ({
       id: `${Date.now()}-${index}-${file.name}`,
       name: file.name,
-      details: `${formatFileSize(file.size)} · preparing`,
+      details: `${formatFileSize(file.size)} | preparing`,
       status: "compressing" as const
     }));
 
@@ -197,7 +201,7 @@ export function ListingForm({
         updateUploadItem(setUploadItems, queueItem.id, (item) => ({
           ...item,
           status: "compressing",
-          details: `${formatFileSize(originalFile.size)} · compressing`
+          details: `${formatFileSize(originalFile.size)} | compressing`
         }));
 
         const optimizedFile = await optimizeImage(originalFile);
@@ -209,7 +213,7 @@ export function ListingForm({
         updateUploadItem(setUploadItems, queueItem.id, (item) => ({
           ...item,
           status: "uploading",
-          details: `${formatFileSize(optimizedFile.size)} · uploading`
+          details: `${formatFileSize(optimizedFile.size)} | uploading`
         }));
 
         const formData = new FormData();
@@ -233,8 +237,8 @@ export function ListingForm({
           status: "done",
           details:
             optimizedFile === originalFile
-              ? `${formatFileSize(optimizedFile.size)} · uploaded`
-              : `${formatFileSize(originalFile.size)} → ${formatFileSize(optimizedFile.size)}`
+              ? `${formatFileSize(optimizedFile.size)} | uploaded`
+              : `${formatFileSize(originalFile.size)} -> ${formatFileSize(optimizedFile.size)}`
         }));
       } catch (error) {
         const message = error instanceof Error ? error.message : "Upload failed.";
@@ -267,78 +271,112 @@ export function ListingForm({
   }
 
   return (
-    <form action={action} className="form-grid">
-      <label className="field">
-        <span className="field-label">Category</span>
-        <select
-          className="input"
-          name="category"
-          value={category}
-          onChange={(event) => {
-            setCategory(event.target.value);
-            setSubcategory("");
-          }}
-          required
-        >
-          <option value="rentals">Rentals</option>
-          <option value="ride-share">Ride Share</option>
-          <option value="jobs">Jobs</option>
-          <option value="services">Services</option>
-          <option value="buy-sell">Buy &amp; Sell</option>
-        </select>
-      </label>
-
-      <label className="field">
-        <span className="field-label">Sub-category</span>
-        <select
-          className="input"
-          name="subcategory"
-          value={subcategory}
-          onChange={(event) => setSubcategory(event.target.value)}
-        >
-          <option value="">Select a sub-category</option>
-          {subcategories.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="field">
-        <span className="field-label">Title</span>
-        <input className="input" name="title" defaultValue={defaults?.title ?? ""} required />
-      </label>
-
-      <label className="field">
-        <span className="field-label">Price</span>
-        <input className="input" name="price" defaultValue={defaults?.price ?? ""} />
-      </label>
-
-      <label className="field">
-        <span className="field-label">Location</span>
-        <input className="input" name="location" defaultValue={defaults?.location ?? ""} />
-      </label>
-
-      <label className="field field-full">
-        <span className="field-label">Description</span>
-        <textarea
-          className="input"
-          name="description"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          rows={6}
-          required
-        />
-
-        <div className="listing-description-hint">
-          <span>Minimum 10 characters</span>
-          <span>{description.length}/3000</span>
+    <form action={action} className="form-grid listing-editor-form">
+      <div className="field-full listing-form-mobile-summary surface">
+        <div className="listing-form-mobile-summary-copy">
+          <span className="eyebrow">Mobile-friendly flow</span>
+          <h2>Post faster on your phone</h2>
+          <p>Work from top to bottom: basics, details, contact, then photos.</p>
         </div>
-      </label>
+
+        <div className="listing-form-progress-pills">
+          <span className="listing-form-progress-pill">Basics</span>
+          <span className="listing-form-progress-pill">Details</span>
+          <span className="listing-form-progress-pill">Contact</span>
+          <span className="listing-form-progress-pill">Photos</span>
+        </div>
+      </div>
+
+      <section className="field-full listing-form-section">
+        <div className="listing-form-section-head">
+          <div>
+            <span className="field-label">Basics</span>
+            <p className="field-hint">Start with the core facts people scan first.</p>
+          </div>
+        </div>
+
+        <div className="listing-form-section-grid">
+          <label className="field">
+            <span className="field-label">Category</span>
+            <select
+              className="input"
+              name="category"
+              value={category}
+              onChange={(event) => {
+                setCategory(event.target.value);
+                setSubcategory("");
+              }}
+              required
+            >
+              <option value="rentals">Rentals</option>
+              <option value="ride-share">Ride Share</option>
+              <option value="jobs">Jobs</option>
+              <option value="services">Services</option>
+              <option value="buy-sell">Buy &amp; Sell</option>
+            </select>
+          </label>
+
+          <label className="field">
+            <span className="field-label">Sub-category</span>
+            <select
+              className="input"
+              name="subcategory"
+              value={subcategory}
+              onChange={(event) => setSubcategory(event.target.value)}
+            >
+              <option value="">Select a sub-category</option>
+              {subcategories.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field listing-form-title-field">
+            <span className="field-label">Title</span>
+            <input className="input" name="title" defaultValue={defaults?.title ?? ""} required />
+          </label>
+
+          <label className="field">
+            <span className="field-label">Price</span>
+            <input className="input" name="price" defaultValue={defaults?.price ?? ""} />
+          </label>
+
+          <label className="field">
+            <span className="field-label">Location</span>
+            <input className="input" name="location" defaultValue={defaults?.location ?? ""} />
+          </label>
+        </div>
+      </section>
+
+      <section className="field-full listing-form-section">
+        <div className="listing-form-section-head">
+          <div>
+            <span className="field-label">Description</span>
+            <p className="field-hint">A little detail helps buyers trust the listing quickly.</p>
+          </div>
+        </div>
+
+        <label className="field field-full">
+          <textarea
+            className="input listing-description-input"
+            name="description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={6}
+            required
+          />
+
+          <div className="listing-description-hint">
+            <span>Minimum 10 characters</span>
+            <span>{description.length}/3000</span>
+          </div>
+        </label>
+      </section>
 
       {structuredFields.length ? (
-        <div className="field field-full">
+        <section className="field-full listing-form-section">
           <div className="listing-structured-panel" key={category}>
             <div className="listing-structured-panel-head">
               <div>
@@ -411,36 +449,47 @@ export function ListingForm({
               })}
             </div>
           </div>
-        </div>
+        </section>
       ) : null}
 
-      <label className="field">
-        <span className="field-label">Contact name</span>
-        <input
-          className="input"
-          name="contactName"
-          defaultValue={defaults?.contactName ?? ""}
-          required
-        />
-      </label>
+      <section className="field-full listing-form-section">
+        <div className="listing-form-section-head">
+          <div>
+            <span className="field-label">Contact</span>
+            <p className="field-hint">Use the contact details you want replies to go to.</p>
+          </div>
+        </div>
 
-      <label className="field">
-        <span className="field-label">Contact email</span>
-        <input
-          className="input"
-          name="contactEmail"
-          type="email"
-          defaultValue={defaults?.contactEmail ?? ""}
-          required
-        />
-      </label>
+        <div className="listing-form-section-grid">
+          <label className="field">
+            <span className="field-label">Contact name</span>
+            <input
+              className="input"
+              name="contactName"
+              defaultValue={defaults?.contactName ?? ""}
+              required
+            />
+          </label>
 
-      <label className="field">
-        <span className="field-label">Contact phone</span>
-        <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
-      </label>
+          <label className="field">
+            <span className="field-label">Contact email</span>
+            <input
+              className="input"
+              name="contactEmail"
+              type="email"
+              defaultValue={defaults?.contactEmail ?? ""}
+              required
+            />
+          </label>
 
-      <div className="field field-full">
+          <label className="field">
+            <span className="field-label">Contact phone</span>
+            <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
+          </label>
+        </div>
+      </section>
+
+      <section className="field-full listing-form-section">
         <div className="listing-media-panel">
           <div className="listing-media-panel-head">
             <div>
@@ -465,7 +514,7 @@ export function ListingForm({
               )}
             </div>
             <div className="listing-upload-dropzone-copy">
-              <strong>{isUploading ? "Uploading your photos…" : "Add listing photos"}</strong>
+              <strong>{isUploading ? "Uploading your photos..." : "Add listing photos"}</strong>
               <span>JPG, PNG, or WebP. We compress them automatically and keep the sharpest cover photo first.</span>
             </div>
             <span className="listing-upload-dropzone-action">
@@ -578,10 +627,20 @@ export function ListingForm({
             </div>
           )}
         </div>
+      </section>
+
+      <div className="field-full listing-form-desktop-actions">
+        <button className="button" type="submit" disabled={isUploading || !descriptionReady}>
+          {isUploading ? "Uploading..." : submitLabel}
+        </button>
       </div>
 
-      <div className="field-full">
-        <button className="button" type="submit" disabled={isUploading || description.length < 10}>
+      <div className="listing-form-sticky-bar">
+        <div className="listing-form-sticky-meta">
+          <strong>{submitLabel}</strong>
+          <span>{stickyHint}</span>
+        </div>
+        <button className="button" type="submit" disabled={isUploading || !descriptionReady}>
           {isUploading ? "Uploading..." : submitLabel}
         </button>
       </div>

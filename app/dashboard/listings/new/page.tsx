@@ -15,11 +15,14 @@ export default async function NewListingPage({
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
 
-      <div className="surface" style={{ marginBottom: "1rem" }}>
-        <h2>Create a new listing</h2>
-        <p className="section-copy">
-          Add the details buyers, renters, applicants, or neighbours need to respond quickly.
-        </p>
+      <div className="surface listing-editor-page-head">
+        <div className="listing-editor-page-copy">
+          <span className="eyebrow">New Listing</span>
+          <h2>Create a new listing</h2>
+          <p className="section-copy">
+            Add the details buyers, renters, applicants, or neighbours need to respond quickly.
+          </p>
+        </div>
       </div>
 
       <ListingForm action={createListingAction} submitLabel="Publish listing" />

@@ -29,9 +29,10 @@ export default async function EditListingPage({
     <>
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
-      <div className="surface" style={{ marginBottom: "1rem" }}>
-        <div className="action-row" style={{ justifyContent: "space-between" }}>
-          <div>
+      <div className="surface listing-editor-page-head">
+        <div className="action-row listing-editor-page-actions">
+          <div className="listing-editor-page-copy">
+            <span className="eyebrow">Edit Listing</span>
             <h2>Edit listing</h2>
             <p className="section-copy">
               Update details, pricing, contact info, or imagery for this listing.
