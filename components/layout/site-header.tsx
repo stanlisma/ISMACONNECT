@@ -116,68 +116,68 @@ export function SiteHeader({
 
             {/* RENTALS */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=rentals" className="market-nav-link">Rentals</Link>
+              <Link href="/categories/rentals" className="market-nav-link">Rentals</Link>
               <div className="nav-dropdown-menu">
-                <a href="/browse?category=rentals&subcategory=apartments">Apartments</a>
-                <a href="/browse?category=rentals&subcategory=rooms-for-rent">Rooms for Rent</a>
-                <a href="/browse?category=rentals&subcategory=short-term-rentals">Short-Term Rentals</a>
-                <a href="/browse?category=rentals&subcategory=basement-suites">Basement Suites</a>
-                <a href="/browse?category=rentals&subcategory=furnished-rentals">Furnished Rentals</a>
-                <a href="/browse?category=rentals&subcategory=storage-parking">Storage / Parking</a>
+                <Link href="/categories/rentals?subcategory=apartments">Apartments</Link>
+                <Link href="/categories/rentals?subcategory=rooms-for-rent">Rooms for Rent</Link>
+                <Link href="/categories/rentals?subcategory=short-term-rentals">Short-Term Rentals</Link>
+                <Link href="/categories/rentals?subcategory=basement-suites">Basement Suites</Link>
+                <Link href="/categories/rentals?subcategory=furnished-rentals">Furnished Rentals</Link>
+                <Link href="/categories/rentals?subcategory=storage-parking">Storage / Parking</Link>
               </div>
             </div>
 
             {/* RIDE SHARE */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=ride-share" className="market-nav-link">Ride Share</Link>
+              <Link href="/categories/ride-share" className="market-nav-link">Ride Share</Link>
               <div className="nav-dropdown-menu">
-                <a href="/browse?category=ride-share&subcategory=daily-commute">Daily Commute</a>
-                <a href="/browse?category=ride-share&subcategory=camp-rides">Camp Rides</a>
-                <a href="/browse?category=ride-share&subcategory=airport-rides">Airport Rides</a>
-                <a href="/browse?category=ride-share&subcategory=edmonton-calgary-trips">Edmonton / Calgary Trips</a>
-                <a href="/browse?category=ride-share&subcategory=one-time-rides">One-Time Rides</a>
-                <a href="/browse?category=ride-share&subcategory=drivers-available">Drivers Available</a>
+                <Link href="/categories/ride-share?subcategory=daily-commute&view=map">Daily Commute</Link>
+                <Link href="/categories/ride-share?subcategory=camp-rides&view=map">Camp Rides</Link>
+                <Link href="/categories/ride-share?subcategory=airport-rides&view=map">Airport Rides</Link>
+                <Link href="/categories/ride-share?subcategory=edmonton-calgary-trips&view=map">Edmonton / Calgary Trips</Link>
+                <Link href="/categories/ride-share?subcategory=one-time-rides&view=map">One-Time Rides</Link>
+                <Link href="/categories/ride-share?subcategory=drivers-available&view=map">Drivers Available</Link>
               </div>
             </div>
 
             {/* JOBS */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=jobs" className="market-nav-link">Jobs</Link>
+              <Link href="/categories/jobs" className="market-nav-link">Jobs</Link>
               <div className="nav-dropdown-menu">
-                <a href="/browse?category=jobs&subcategory=full-time">Full-Time</a>
-                <a href="/browse?category=jobs&subcategory=part-time">Part-Time</a>
-                <a href="/browse?category=jobs&subcategory=contract">Contract</a>
-                <a href="/browse?category=jobs&subcategory=camp-jobs">Camp Jobs</a>
-                <a href="/browse?category=jobs&subcategory=skilled-trades">Skilled Trades</a>
-                <a href="/browse?category=jobs&subcategory=general-labour">General Labour</a>
+                <Link href="/categories/jobs?subcategory=full-time">Full-Time</Link>
+                <Link href="/categories/jobs?subcategory=part-time">Part-Time</Link>
+                <Link href="/categories/jobs?subcategory=contract">Contract</Link>
+                <Link href="/categories/jobs?subcategory=camp-jobs">Camp Jobs</Link>
+                <Link href="/categories/jobs?subcategory=skilled-trades">Skilled Trades</Link>
+                <Link href="/categories/jobs?subcategory=general-labour">General Labour</Link>
               </div>
             </div>
 
             {/* SERVICES */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=services" className="market-nav-link">Services</Link>
+              <Link href="/categories/services" className="market-nav-link">Services</Link>
               <div className="nav-dropdown-menu">
-                <a href="/browse?category=services&subcategory=cleaning">Cleaning</a>
-                <a href="/browse?category=services&subcategory=moving">Moving</a>
-                <a href="/browse?category=services&subcategory=repairs-handyman">Repairs / Handyman</a>
-                <a href="/browse?category=services&subcategory=tutoring">Tutoring</a>
-                <a href="/browse?category=services&subcategory=beauty-personal-care">Beauty / Personal Care</a>
-                <a href="/browse?category=services&subcategory=senior-care">Senior Care</a>
-                <a href="/browse?category=services&subcategory=automotive-services">Automotive Services</a>
+                <Link href="/categories/services?subcategory=cleaning">Cleaning</Link>
+                <Link href="/categories/services?subcategory=moving">Moving</Link>
+                <Link href="/categories/services?subcategory=repairs-handyman">Repairs / Handyman</Link>
+                <Link href="/categories/services?subcategory=tutoring">Tutoring</Link>
+                <Link href="/categories/services?subcategory=beauty-personal-care">Beauty / Personal Care</Link>
+                <Link href="/categories/services?subcategory=senior-care">Senior Care</Link>
+                <Link href="/categories/services?subcategory=automotive-services">Automotive Services</Link>
               </div>
             </div>
 
             {/* BUY & SELL */}
             <div className="nav-dropdown">
-              <Link href="/browse?category=buy-sell" className="market-nav-link">Buy & Sell</Link>
+              <Link href="/categories/buy-sell" className="market-nav-link">Buy & Sell</Link>
               <div className="nav-dropdown-menu">
-                <a href="/browse?category=buy-sell&subcategory=furniture">Furniture</a>
-                <a href="/browse?category=buy-sell&subcategory=electronics">Electronics</a>
-                <a href="/browse?category=buy-sell&subcategory=tools-equipment">Tools & Equipment</a>
-                <a href="/browse?category=buy-sell&subcategory=appliances">Appliances</a>
-                <a href="/browse?category=buy-sell&subcategory=clothing">Clothing</a>
-                <a href="/browse?category=buy-sell&subcategory=baby-kids-items">Baby / Kids Items</a>
-                <a href="/browse?category=buy-sell&subcategory=vehicles-parts">Vehicles / Parts</a>
+                <Link href="/categories/buy-sell?subcategory=furniture">Furniture</Link>
+                <Link href="/categories/buy-sell?subcategory=electronics">Electronics</Link>
+                <Link href="/categories/buy-sell?subcategory=tools-equipment">Tools & Equipment</Link>
+                <Link href="/categories/buy-sell?subcategory=appliances">Appliances</Link>
+                <Link href="/categories/buy-sell?subcategory=clothing">Clothing</Link>
+                <Link href="/categories/buy-sell?subcategory=baby-kids-items">Baby / Kids Items</Link>
+                <Link href="/categories/buy-sell?subcategory=vehicles-parts">Vehicles / Parts</Link>
               </div>
             </div>
 

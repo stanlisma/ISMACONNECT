@@ -51,11 +51,11 @@ export default async function HomePage() {
         </div>
 
         <div style={pillWrapStyle}>
-          <Link href="/browse?category=rentals" style={pillStyle}>Rentals</Link>
-          <Link href="/browse?category=ride-share" style={pillStyle}>Ride Share</Link>
-          <Link href="/browse?category=jobs" style={pillStyle}>Jobs</Link>
-          <Link href="/browse?category=services" style={pillStyle}>Services</Link>
-          <Link href="/browse?category=buy-sell" style={pillStyle}>Buy & Sell</Link>
+          <Link href="/categories/rentals" style={pillStyle}>Rentals</Link>
+          <Link href="/categories/ride-share" style={pillStyle}>Ride Share</Link>
+          <Link href="/categories/jobs" style={pillStyle}>Jobs</Link>
+          <Link href="/categories/services" style={pillStyle}>Services</Link>
+          <Link href="/categories/buy-sell" style={pillStyle}>Buy & Sell</Link>
         </div>
       </section>
 
@@ -112,15 +112,18 @@ export default async function HomePage() {
 
         <div style={cardGridStyle}>
           {[
-            ["Rentals", "Apartments, rooms, storage, and local rental opportunities across Fort McMurray."],
-            ["Ride Share", "Daily commutes, camp rides, airport pickups, and local travel coordination."],
-            ["Jobs", "Part-time, full-time, and contract roles for local workers and employers."],
-            ["Services", "Trusted help for cleaning, moving, repairs, tutoring, and more."],
-            ["Buy & Sell", "Furniture, electronics, tools, and everyday items from local sellers."],
-          ].map(([title, text]) => (
+            ["/categories/rentals", "Rentals", "Apartments, rooms, storage, and local rental opportunities across Fort McMurray."],
+            ["/categories/ride-share", "Ride Share", "Daily commutes, camp rides, airport pickups, and local travel coordination."],
+            ["/categories/jobs", "Jobs", "Part-time, full-time, and contract roles for local workers and employers."],
+            ["/categories/services", "Services", "Trusted help for cleaning, moving, repairs, tutoring, and more."],
+            ["/categories/buy-sell", "Buy & Sell", "Furniture, electronics, tools, and everyday items from local sellers."],
+          ].map(([href, title, text]) => (
             <article key={title} style={cardStyle}>
               <h3 style={cardTitleStyle}>{title}</h3>
               <p style={cardTextStyle}>{text}</p>
+              <Link href={href} style={cardLinkStyle}>
+                Explore {title}
+              </Link>
             </article>
           ))}
         </div>
@@ -263,4 +266,12 @@ const cardTitleStyle = {
 const cardTextStyle = {
   marginTop: "10px",
   color: "#5b6f99",
+};
+
+const cardLinkStyle = {
+  display: "inline-flex",
+  marginTop: "14px",
+  color: "#1549b7",
+  fontWeight: 800,
+  textDecoration: "none",
 };
