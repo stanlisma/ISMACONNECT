@@ -148,20 +148,17 @@ export default async function ListingPage({
                   {boostedActive ? <span className="badge badge-soft">Boosted</span> : null}
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "1rem"
-                  }}
-                >
-                  <ListingViewTracker listingId={listing.id} />
-
-                  <h1 className="detail-title" style={{ marginBottom: 0 }}>
-                    {listing.title}
-                  </h1>
-
+                <div className="detail-headline">
+                  <div className="detail-title-group">
+                    <h1 className="detail-title">
+                      {listing.title}
+                    </h1>
+                    <div className="detail-top-meta">
+                      <span>{listing.location}</span>
+                      <span aria-hidden="true">|</span>
+                      <span>{formatDate(listing.created_at)}</span>
+                    </div>
+                  </div>
                   {viewer && viewer.user.id !== listing.owner_id ? (
                     <SaveListingButton
                       listingId={listing.id}
@@ -169,6 +166,13 @@ export default async function ListingPage({
                       pathToRevalidate={`/listings/${listing.slug}`}
                     />
                   ) : null}
+                </div>
+
+                <div className="detail-summary-row">
+                  <span className="detail-price">{formatCurrency(listing.price)}</span>
+                  <div className="detail-summary-meta">
+                    <ListingViewTracker listingId={listing.id} />
+                  </div>
                 </div>
 
                 <p className="detail-copy">{listing.description}</p>
@@ -207,6 +211,26 @@ export default async function ListingPage({
                 </div>
               </div>
 
+            {viewer && viewer.user.id !== listing.owner_id ? (
+              <div className="detail-card detail-quick-actions">
+                <div className="detail-quick-actions-copy">
+                  <span className="eyebrow">Quick Action</span>
+                  <h2>Contact the seller</h2>
+                  <p>Send a message while this listing is fresh.</p>
+                </div>
+
+                {existingConversation ? (
+                  <Link href={`/messages/${existingConversation.id}`} className="button">
+                    Open conversation
+                  </Link>
+                ) : (
+                  <Link href="#message-seller" className="button">
+                    Message seller
+                  </Link>
+                )}
+              </div>
+            ) : null}
+
             {viewer ? (
               viewer.user.id !== listing.owner_id ? (
                 existingConversation ? (
@@ -218,11 +242,11 @@ export default async function ListingPage({
                     />
 
                     <Link href={`/messages/${existingConversation.id}`} className="button">
-                      💬 Open Conversation
+                      Open conversation
                     </Link>
                   </div>
                 ) : (
-                  <div className="detail-card">
+                  <div className="detail-card" id="message-seller">
                     <SectionHeading
                       eyebrow="Contact Seller"
                       title="Send a message"
@@ -252,35 +276,35 @@ export default async function ListingPage({
               <div className="detail-card">
                 <SectionHeading
                   eyebrow="Contact"
-                  title="Unlock seller details 🔓"
+                  title="Unlock seller details"
                   description="Join ISMACONNECT to instantly message sellers and get faster responses."
                 />
 
                 <div className="meta-list blurred-contact-preview">
                   <span>
-                    👤{" "}
+                    Seller:{" "}
                     {listing.contact_name
                       ? `${listing.contact_name.split(" ")[0]} ******`
                       : "Seller ******"}
                   </span>
-                  {listing.contact_email ? <span>📧 ********@*****.com</span> : null}
+                  {listing.contact_email ? <span>Email: ********@*****.com</span> : null}
                   {listing.contact_phone ? (
-                    <span>📞 ***-***-{listing.contact_phone.slice(-4)}</span>
+                    <span>Phone: ***-***-{listing.contact_phone.slice(-4)}</span>
                   ) : null}
                 </div>
 
                 <div className="unlock-box">
-                  <p className="unlock-text">🔥 This listing is getting attention</p>
+                  <p className="unlock-text">This listing is getting attention</p>
 
                   <p style={{ fontSize: "0.85rem", color: "#667085" }}>
-                    👀 {(listing as any).views ?? 0} people viewed this listing
+                    {(listing as any).views ?? 0} people viewed this listing
                   </p>
 
                   <Link href="/auth/sign-in" className="button unlock-button">
                     Unlock Contact Info
                   </Link>
 
-                  <p className="unlock-sub">Takes less than 10 seconds • No spam</p>
+                  <p className="unlock-sub">Takes less than 10 seconds | No spam</p>
                 </div>
               </div>
             )}
@@ -399,7 +423,7 @@ export default async function ListingPage({
         {!viewer ? (
           <div className="mobile-unlock-bar">
             <Link href="/auth/sign-in" className="button">
-              🔓 Unlock Contact
+              Unlock contact
             </Link>
           </div>
         ) : null}

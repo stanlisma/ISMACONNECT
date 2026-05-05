@@ -53,7 +53,7 @@ export function ListingImageGallery({
 
   return (
     <div className="listing-detail-gallery">
-      <div style={{ position: "relative" }}>
+      <div className="listing-detail-gallery-stage">
         <img
           src={images[activeImage]}
           alt={`${title} image ${activeImage + 1}`}
@@ -70,7 +70,7 @@ export function ListingImageGallery({
               onClick={showPreviousImage}
               aria-label="Previous image"
             >
-              ‹
+              &lt;
             </button>
 
             <button
@@ -79,7 +79,7 @@ export function ListingImageGallery({
               onClick={showNextImage}
               aria-label="Next image"
             >
-              ›
+              &gt;
             </button>
 
             <span className="listing-detail-count">

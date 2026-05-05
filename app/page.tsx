@@ -3,22 +3,34 @@ import { getViewer } from "@/lib/auth";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { SetupNotice } from "@/components/ui/setup-notice";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 export default async function HomePage() {
   const viewer = await getViewer();
-  const { latestListings, featuredListings, isConfigured } = await getHomepageData();
+  const { latestListings, isConfigured } = await getHomepageData();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
-  const homepageListings =
-    featuredListings.length > 0 ? featuredListings.concat(latestListings).slice(0, 8) : latestListings;
   const visibleListings = latestListings.slice(0, 8);
   const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));
 
   return (
     <main className="homepage-main" style={pageStyle}>
+      <section className="home-mobile-hero surface">
+        <div className="home-mobile-hero-copy">
+          <span className="eyebrow">Fort McMurray</span>
+          <h1>Everything local in one marketplace</h1>
+          <p>Find rentals, rides, jobs, services, and everyday deals fast.</p>
+        </div>
+
+        <div className="home-mobile-category-row">
+          <Link href="/categories/rentals" className="home-mobile-category-pill">Rentals</Link>
+          <Link href="/categories/ride-share" className="home-mobile-category-pill">Ride Share</Link>
+          <Link href="/categories/jobs" className="home-mobile-category-pill">Jobs</Link>
+          <Link href="/categories/services" className="home-mobile-category-pill">Services</Link>
+          <Link href="/categories/buy-sell" className="home-mobile-category-pill">Buy & Sell</Link>
+        </div>
+      </section>
+
       <section className="home-hero-section" style={heroCardStyle}>
         <span style={badgeStyle}>LOCAL FIRST</span>
 
@@ -73,9 +85,12 @@ export default async function HomePage() {
 
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
-          <h2 style={{ marginBottom: "1rem" }}>
-            Latest Listings
-          </h2>
+          <div className="home-section-head">
+            <h2>Latest Listings</h2>
+            <Link href="/browse" className="home-section-link">
+              See all
+            </Link>
+          </div>
 
           {!isConfigured ? (
             <p>Setup required</p>
