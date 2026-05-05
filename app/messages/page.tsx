@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Inbox, Search } from "lucide-react";
 
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -124,44 +125,43 @@ export default async function MessagesPage({
     0
   );
 
+  const latestConversationAt = conversationEntries[0]?.last_message_at
+    ? new Intl.DateTimeFormat("en-CA", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      }).format(new Date(conversationEntries[0].last_message_at))
+    : "No activity yet";
+
   return (
     <section className="section">
-      <div className="container" style={{ maxWidth: "1100px" }}>
-        <div className="surface" style={{ marginBottom: "1rem" }}>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              gap: "1rem"
-            }}
-          >
-            <div>
+      <div className="container messages-page-container">
+        <div className="surface messages-overview-card">
+          <div className="messages-overview-head">
+            <div className="messages-overview-copy">
               <span className="eyebrow">Inbox</span>
-              <h1 className="section-title" style={{ marginBottom: "0.4rem" }}>
-                Messages
-              </h1>
-              <p className="section-copy" style={{ marginBottom: 0 }}>
+              <h1 className="section-title">Messages</h1>
+              <p className="section-copy">
                 Keep track of buyers, sellers, and listing conversations from one place.
               </p>
             </div>
 
             <form action="/messages" method="get" className="messages-toolbar-form">
-              <label className="field" style={{ marginBottom: 0 }}>
-                <span className="field-label">Search conversations</span>
+              <label className="messages-search-field">
+                <Search aria-hidden="true" size={18} strokeWidth={2.2} />
                 <input
-                  className="input"
+                  className="messages-search-input"
                   type="search"
                   name="q"
                   defaultValue={rawQuery}
-                  placeholder="Search by listing or person"
+                  placeholder="Search by listing, person, or preview"
                 />
               </label>
 
               {activeFilter === "unread" ? <input type="hidden" name="filter" value="unread" /> : null}
 
-              <div style={{ display: "flex", gap: "0.75rem" }}>
+              <div className="messages-toolbar-actions">
                 <button className="button" type="submit">
                   Search
                 </button>
@@ -172,22 +172,26 @@ export default async function MessagesPage({
             </form>
           </div>
 
-          <div className="stats-grid" style={{ marginTop: "1rem" }}>
-            <div className="stat-card">
+          <div className="messages-stats-grid">
+            <div className="stat-card messages-stat-card">
               <span>Total conversations</span>
               <strong>{conversationEntries.length}</strong>
             </div>
-            <div className="stat-card">
+            <div className="stat-card messages-stat-card">
               <span>Unread messages</span>
               <strong>{totalUnreadCount}</strong>
             </div>
-            <div className="stat-card">
+            <div className="stat-card messages-stat-card">
               <span>Filtered results</span>
               <strong>{filteredConversations.length}</strong>
             </div>
+            <div className="stat-card messages-stat-card">
+              <span>Latest activity</span>
+              <strong className="messages-stat-meta">{latestConversationAt}</strong>
+            </div>
           </div>
 
-          <div className="pill-row" style={{ marginTop: "1rem" }}>
+          <div className="pill-row messages-filter-pills">
             <Link
               className={`account-menu-pill ${activeFilter === "all" ? "is-active" : ""}`}
               href={buildMessagesHref({ q: rawQuery || null })}
@@ -204,103 +208,96 @@ export default async function MessagesPage({
         </div>
 
         <div className="surface messages-shell">
-          <div style={{ borderRight: "1px solid #e5e7eb" }}>
-            <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid #e5e7eb" }}>
-              <h2 style={{ margin: 0, fontSize: "1.05rem" }}>Conversation list</h2>
+          <div className="messages-list-pane">
+            <div className="messages-list-head">
+              <div>
+                <h2>Conversation list</h2>
+                <p>
+                  {activeFilter === "unread"
+                    ? "Showing unread threads only."
+                    : "Open any thread to reply, send images, or follow up."}
+                </p>
+              </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column" }}>
+            <div className="messages-list">
               {filteredConversations.length ? (
                 filteredConversations.map((conversation) => (
                   <Link
                     key={conversation.id}
                     href={`/messages/${conversation.id}`}
-                    style={{
-                      padding: "1rem 1.25rem",
-                      borderBottom: "1px solid #f2f4f7",
-                      textDecoration: "none",
-                      color: "inherit"
-                    }}
+                    className="messages-list-item"
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: "0.75rem"
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <strong style={{ display: "block", marginBottom: "0.2rem" }}>
-                          {conversation.listing?.title ?? "Listing conversation"}
-                        </strong>
-                        <span style={{ display: "block", color: "#1e3a8a", fontSize: "0.88rem", fontWeight: 600 }}>
-                          {conversation.otherUserName}
-                        </span>
-                        <small
-                          style={{
-                            color: "#667085",
-                            display: "block",
-                            marginTop: "0.3rem",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis"
-                          }}
-                        >
-                          {conversation.preview}
-                        </small>
-                        <small style={{ color: "#94a3b8", display: "block", marginTop: "0.35rem" }}>
-                          {conversation.last_message_at
-                            ? new Date(conversation.last_message_at).toLocaleString()
-                            : "No messages yet"}
-                        </small>
+                    <div className="messages-list-avatar">
+                      {conversation.otherUserName.trim().charAt(0).toUpperCase() || "U"}
+                    </div>
+
+                    <div className="messages-list-content">
+                      <div className="messages-list-topline">
+                        <strong>{conversation.listing?.title ?? "Listing conversation"}</strong>
+                        {conversation.unreadCount > 0 ? (
+                          <span className="messages-unread-badge">{conversation.unreadCount}</span>
+                        ) : null}
                       </div>
 
-                      {conversation.unreadCount > 0 ? (
-                        <span
-                          style={{
-                            minWidth: "1.3rem",
-                            height: "1.3rem",
-                            borderRadius: "999px",
-                            background: "#ef4444",
-                            color: "white",
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: "0 0.35rem"
-                          }}
-                        >
-                          {conversation.unreadCount}
+                      <div className="messages-list-subline">
+                        <span className="messages-list-name">{conversation.otherUserName}</span>
+                        <span>·</span>
+                        <span>
+                          {conversation.last_message_at
+                            ? new Intl.DateTimeFormat("en-CA", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit"
+                              }).format(new Date(conversation.last_message_at))
+                            : "No messages yet"}
                         </span>
-                      ) : null}
+                      </div>
+
+                      <p className="messages-list-preview">
+                        {conversation.preview}
+                      </p>
+
+                      <div className="messages-list-meta">
+                        <span className="messages-list-chip">
+                          {conversation.unreadCount > 0 ? "Needs reply" : "Up to date"}
+                        </span>
+                        {conversation.listing?.slug ? (
+                          <span className="messages-list-meta-link">View listing from thread</span>
+                        ) : null}
+                      </div>
                     </div>
                   </Link>
                 ))
               ) : (
-                <div style={{ padding: "1.25rem", color: "#667085" }}>
-                  {conversationEntries.length
-                    ? "No conversations match the current filter."
-                    : "No messages yet."}
+                <div className="messages-empty-list">
+                  {conversationEntries.length ? (
+                    <>
+                      <h3>No conversations match this view</h3>
+                      <p>Try a broader search or switch back to all conversations.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3>No messages yet</h3>
+                      <p>Your buyer and seller conversations will appear here as soon as someone reaches out.</p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              padding: "2rem",
-              color: "#667085"
-            }}
-          >
-            <h3 style={{ marginBottom: "0.5rem", color: "#102a43" }}>Select a conversation</h3>
-            <p style={{ margin: 0 }}>
-              Choose a thread on the left to review replies, send a message, or follow up with a buyer or seller.
-            </p>
+          <div className="messages-empty-pane">
+            <div className="messages-empty-pane-card">
+              <div className="messages-empty-pane-icon">
+                <Inbox aria-hidden="true" size={28} strokeWidth={2.1} />
+              </div>
+              <h3>Select a conversation</h3>
+              <p>
+                Choose a thread on the left to review replies, send a message, or follow up with a buyer or seller.
+              </p>
+            </div>
           </div>
         </div>
       </div>

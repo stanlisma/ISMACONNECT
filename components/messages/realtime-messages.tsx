@@ -35,6 +35,14 @@ function formatTime(value: string) {
   });
 }
 
+function formatDayLabel(value: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  }).format(new Date(value));
+}
+
 export function RealtimeMessages({
   conversationId,
   initialMessages,
@@ -49,11 +57,13 @@ export function RealtimeMessages({
   const [buyerTyping, setBuyerTyping] = useState(initialBuyerTyping);
   const [sellerTyping, setSellerTyping] = useState(initialSellerTyping);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedRef = useRef(false);
 
   const otherTyping = viewerId === buyerId ? sellerTyping : buyerTyping;
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: hasMountedRef.current ? "smooth" : "auto" });
+    hasMountedRef.current = true;
   }, [messages, otherTyping]);
 
   useEffect(() => {
@@ -116,80 +126,54 @@ export function RealtimeMessages({
   const lastMine = [...messages].reverse().find((message) => message.sender_id === viewerId);
 
   return (
-    <div
-      className="surface"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "0.85rem",
-        minHeight: "420px",
-        maxHeight: "60vh",
-        overflowY: "auto",
-        padding: "1rem"
-      }}
-    >
-      {messages.map((message) => {
-        const mine = message.sender_id === viewerId;
+    <div className="surface messages-thread-shell">
+      <div className="messages-thread-feed">
+        {messages.map((message, index) => {
+          const mine = message.sender_id === viewerId;
+          const previousMessage = messages[index - 1];
+          const showDayDivider =
+            !previousMessage ||
+            new Date(previousMessage.created_at).toDateString() !==
+              new Date(message.created_at).toDateString();
 
-        return (
-          <div
-            key={message.id}
-            style={{
-              display: "flex",
-              justifyContent: mine ? "flex-end" : "flex-start"
-            }}
-          >
-            <div
-              style={{
-                maxWidth: "75%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: mine ? "flex-end" : "flex-start"
-              }}
-            >
-              <div
-                style={{
-                  padding: "0.8rem 1rem",
-                  borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  background: mine
-                    ? "linear-gradient(135deg, var(--primary), var(--primary-dark))"
-                    : "white",
-                  color: mine ? "white" : "#101828",
-                  border: mine ? "none" : "1px solid rgba(201, 219, 251, 0.9)",
-                  boxShadow: "0 1px 3px rgba(16,24,40,0.08)"
-                }}
-              >
-                {message.body ? <div style={{ whiteSpace: "pre-wrap" }}>{message.body}</div> : null}
+          return (
+            <div key={message.id}>
+              {showDayDivider ? (
+                <div className="messages-day-divider">
+                  <span>{formatDayLabel(message.created_at)}</span>
+                </div>
+              ) : null}
 
-                {message.image_url ? (
-                  <img
-                    src={message.image_url}
-                    alt="Attachment"
-                    style={{
-                      marginTop: message.body ? "0.75rem" : 0,
-                      maxWidth: "280px",
-                      width: "100%",
-                      borderRadius: "12px",
-                      display: "block"
-                    }}
-                  />
-                ) : null}
+              <div className={`messages-bubble-row ${mine ? "is-mine" : "is-theirs"}`}>
+                <div className={`messages-bubble-stack ${mine ? "is-mine" : "is-theirs"}`}>
+                  <div className={`messages-bubble ${mine ? "is-mine" : "is-theirs"}`}>
+                    {message.body ? <div className="messages-bubble-text">{message.body}</div> : null}
+
+                    {message.image_url ? (
+                      <img
+                        src={message.image_url}
+                        alt="Attachment"
+                        className="messages-bubble-image"
+                      />
+                    ) : null}
+                  </div>
+
+                  <small className="messages-bubble-meta">
+                    {mine ? "You" : otherUserName} · {formatTime(message.created_at)}
+                    {mine && message.id === lastMine?.id ? ` · ${message.seen_at ? "Seen" : "Delivered"}` : ""}
+                  </small>
+                </div>
               </div>
-
-              <small style={{ marginTop: "0.35rem", color: "#667085" }}>
-                {mine ? "You" : otherUserName} · {formatTime(message.created_at)}
-                {mine && message.id === lastMine?.id ? ` · ${message.seen_at ? "Seen" : "Delivered"}` : ""}
-              </small>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
 
-      {otherTyping ? (
-        <div style={{ color: "#667085", fontSize: "0.9rem" }}>{otherUserName} is typing...</div>
-      ) : null}
+        {otherTyping ? (
+          <div className="messages-typing-indicator">{otherUserName} is typing…</div>
+        ) : null}
 
-      <div ref={bottomRef} />
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 }
