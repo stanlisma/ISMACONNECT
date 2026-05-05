@@ -149,14 +149,24 @@ export default async function BrowsePage({
   return (
     <section className="section listing-feed-section">
       <div className="container listing-feed-container">
-        <SectionHeading
-          eyebrow={category ? "Category" : "Browse"}
-          title={categoryLabel ? `${categoryLabel} Listings` : "Search every local listing"}
-          description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
-        />
+        <div className="browse-mobile-overview surface">
+          <div className="browse-mobile-overview-copy">
+            <span className="eyebrow">{category ? "Category" : "Browse"}</span>
+            <h1>{categoryLabel ? `${categoryLabel} Listings` : "Search local listings"}</h1>
+            <p>Fast filters, compact cards, and map view for rentals and rides.</p>
+          </div>
+        </div>
+
+        <div className="browse-desktop-heading">
+          <SectionHeading
+            eyebrow={category ? "Category" : "Browse"}
+            title={categoryLabel ? `${categoryLabel} Listings` : "Search every local listing"}
+            description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
+          />
+        </div>
 
         {isMapEligibleCategory ? (
-          <div className="listing-view-toggle" style={{ marginBottom: "1rem" }}>
+          <div className="listing-view-toggle browse-view-toggle" style={{ marginBottom: "1rem" }}>
             <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
               List view
             </Link>
@@ -194,11 +204,13 @@ export default async function BrowsePage({
           isSaved={Boolean(savedSearch)}
         />
 
-        <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
-          {totalCount > 0
-            ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
-            : "0 results found"}
-        </p>
+        <div className="browse-results-toolbar">
+          <p className="browse-results-count">
+            {totalCount > 0
+              ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
+              : "0 results found"}
+          </p>
+        </div>
 
         <div className="pill-links">
           <Link className="pill-link" href="/browse">
