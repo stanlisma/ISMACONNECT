@@ -35,6 +35,8 @@ export function SiteHeader({
   const pathname = usePathname();
   const visibleUnreadNotificationsCount =
     pathname === "/notifications" ? 0 : unreadNotificationsCount;
+  const isExactPath = (path: string) => pathname === path;
+  const isPathGroup = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
   return (
     <header className="site-header">
@@ -205,6 +207,23 @@ export function SiteHeader({
             </nav>
           )}
         </div>
+
+        {viewer ? (
+          <nav className="mobile-account-nav" aria-label="Mobile account shortcuts">
+            <Link href="/dashboard" className={isExactPath("/dashboard") ? "is-active" : ""}>
+              Listings
+            </Link>
+            <Link href="/dashboard/searches" className={isPathGroup("/dashboard/searches") ? "is-active" : ""}>
+              Saved Searches
+            </Link>
+            <Link href="/dashboard/saved" className={isPathGroup("/dashboard/saved") ? "is-active" : ""}>
+              Favourites
+            </Link>
+            <Link href="/settings" className={isPathGroup("/settings") ? "is-active" : ""}>
+              Settings
+            </Link>
+          </nav>
+        ) : null}
       </div>
     </header>
   );

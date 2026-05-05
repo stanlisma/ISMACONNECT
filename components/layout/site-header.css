@@ -203,6 +203,10 @@ header.site-header {
   overflow-x: auto;
 }
 
+.mobile-account-nav {
+  display: none;
+}
+
 /* ========================= */
 /* ✅ DROPDOWN FIX (NO GAP) */
 /* ========================= */
@@ -489,5 +493,44 @@ header.site-header {
 
   .account-nav {
     display: none !important;
+  }
+
+  .mobile-account-nav {
+    display: flex;
+    gap: 0.55rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    margin-top: 0.72rem;
+    padding: 0 0 0.15rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-account-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-account-nav a {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 0.88rem;
+    border-radius: 999px;
+    text-decoration: none;
+    background: linear-gradient(180deg, #ffffff, #f7fbff);
+    border: 1px solid #d8e6fb;
+    box-shadow: 0 8px 18px rgba(15, 54, 91, 0.08);
+    color: #36567f;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .mobile-account-nav a.is-active {
+    background: linear-gradient(135deg, #e8f2ff, #ffffff);
+    border-color: #bfd9ff;
+    color: #0d5bc3;
   }
 }
