@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
+import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -12,6 +13,10 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
+import {
+  getCategoryLocalContent,
+  getCategorySeoTitle
+} from "@/lib/local-marketplace";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
@@ -37,8 +42,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: CATEGORY_MAP[category].seoTitle,
-    description: CATEGORY_MAP[category].description
+    title: getCategorySeoTitle(category),
+    description: getCategoryLocalContent(category).heroDescription
   };
 }
 
@@ -65,8 +70,10 @@ export default async function CategoryPage({
 
   const minPrice = minPriceParam ? Number(minPriceParam) : null;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
-  
   const sort = getSingleParam(resolvedSearchParams?.sort);
+  const requestedView = getSingleParam(resolvedSearchParams?.view);
+  const isMapEligibleCategory = category === "rentals" || category === "ride-share";
+  const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
   const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
   const structuredFilters = Object.fromEntries(
     getStructuredFilterDefinitions(category)
@@ -78,6 +85,7 @@ export default async function CategoryPage({
   );
 
   const categoryInfo = CATEGORY_MAP[category];
+  const localContent = getCategoryLocalContent(category);
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const savedSearch = viewer
@@ -102,6 +110,26 @@ export default async function CategoryPage({
     sort,
     extraFilters: structuredFilters
   });
+  const listViewHref = buildPathWithQuery(categoryInfo.href, {
+    q: search,
+    subcategory,
+    minPrice,
+    maxPrice,
+    sort,
+    ...structuredFilters
+  });
+  const mapViewHref =
+    isMapEligibleCategory
+      ? buildPathWithQuery(categoryInfo.href, {
+          q: search,
+          subcategory,
+          minPrice,
+          maxPrice,
+          sort,
+          ...structuredFilters,
+          view: "map"
+        })
+      : null;
 
   const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
     category,
@@ -125,6 +153,7 @@ export default async function CategoryPage({
           minPrice,
           maxPrice,
           sort,
+          view: view === "map" ? "map" : undefined,
           ...structuredFilters,
           page: page - 1 > 1 ? page - 1 : undefined
         })
@@ -136,10 +165,19 @@ export default async function CategoryPage({
         minPrice,
         maxPrice,
         sort,
+        view: view === "map" ? "map" : undefined,
         ...structuredFilters,
         page: page + 1
       })
     : null;
+  const collectionStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: getCategorySeoTitle(category),
+    description: localContent.heroDescription,
+    about: categoryInfo.label,
+    areaServed: "Fort McMurray, Alberta"
+  };
 
   return (
     <section className="section listing-feed-section">
@@ -147,8 +185,44 @@ export default async function CategoryPage({
         <SectionHeading
           eyebrow="Category"
           title={categoryInfo.label}
-          description={categoryInfo.description}
+          description={localContent.heroDescription}
         />
+
+        <div className="category-local-strip surface">
+          <div className="category-local-strip-copy">
+            <p>{localContent.supportingCopy}</p>
+          </div>
+
+          <div className="category-local-highlight-grid">
+            {localContent.localHighlights.map((highlight) => (
+              <div key={highlight} className="category-local-highlight">
+                <span className="category-local-highlight-dot" aria-hidden="true" />
+                <p>{highlight}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="category-local-links">
+            {localContent.quickLinks.map((item) => (
+              <Link key={item.href} href={item.href} className="category-local-link">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {isMapEligibleCategory ? (
+          <div className="listing-view-toggle" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+            <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+              List view
+            </Link>
+            {mapViewHref ? (
+              <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+                Map view
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
 
         <BrowseFilters
           actionPath={categoryInfo.href}
@@ -159,6 +233,7 @@ export default async function CategoryPage({
           maxPrice={maxPrice}
           sort={sort}
           structuredFilters={structuredFilters}
+          view={view === "map" ? "map" : undefined}
           showCategorySelect={false}
         />
 
@@ -205,7 +280,24 @@ export default async function CategoryPage({
           />
         ) : (
           <>
-            <div className="listing-grid listing-feed-grid" style={{ marginTop: "1.25rem" }}>
+            {view === "map" && isMapEligibleCategory ? (
+              <LocalMapExplorer
+                category={category}
+                listings={listings}
+                actionPath={categoryInfo.href}
+                search={search}
+                subcategory={subcategory}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                sort={sort}
+                structuredFilters={structuredFilters}
+              />
+            ) : null}
+
+            <div
+              className={`listing-grid listing-feed-grid${view === "map" ? " listing-feed-grid-map-view" : ""}`}
+              style={{ marginTop: "1.25rem" }}
+            >
               {listings.map((listing) => (
                 <ListingCard
                   key={listing.id}
@@ -239,6 +331,45 @@ export default async function CategoryPage({
             ) : null}
           </>
         )}
+
+        <div className="category-guide-grid" style={{ marginTop: "1.5rem" }}>
+          <div className="surface category-guide-card">
+            <SectionHeading
+              eyebrow="Local tips"
+              title={`What locals usually care about in ${categoryInfo.label.toLowerCase()}`}
+              description="Use the structured fields and filters to cut down the back-and-forth before you message."
+            />
+
+            <ul className="category-guide-list">
+              {localContent.buyerTips.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="surface category-guide-card">
+            <SectionHeading
+              eyebrow="FAQ"
+              title={`${categoryInfo.label} questions people actually ask`}
+              description="These quick answers help buyers and sellers use the category more effectively."
+            />
+
+            <div className="category-faq-list">
+              {localContent.faqs.map((item) => (
+                <article key={item.question} className="category-faq-item">
+                  <h3>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <script
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionStructuredData) }}
+          suppressHydrationWarning
+          type="application/ld+json"
+        />
       </div>
     </section>
   );
