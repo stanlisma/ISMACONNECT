@@ -164,7 +164,7 @@ export default async function MessageThreadPage({
               <h2>Manage this conversation</h2>
             </div>
             <p>
-              Use these controls if someone is spamming, harassing, or behaving suspiciously in chat.
+              Block or report suspicious chat without leaving the thread.
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default async function MessageThreadPage({
 
               <div className="messages-safety-card-copy">
                 <strong>Block user</strong>
-                <p>Turn off messaging in this thread immediately. They will no longer be able to send you replies here.</p>
+                <p>Stop replies from this person in this thread immediately.</p>
               </div>
 
               <SubmitButton
@@ -209,11 +209,11 @@ export default async function MessageThreadPage({
 
               <div className="messages-safety-card-copy">
                 <strong>Report user</strong>
-                <p>Send this conversation to the moderation queue if it looks like spam, harassment, or a scam.</p>
+                <p>Send this thread to moderation if it looks unsafe or suspicious.</p>
               </div>
 
-              <label className="field">
-                <span className="field-label">Reason</span>
+              <label className="field messages-safety-select-field">
+                <span className="messages-safety-select-label">Reason</span>
                 <select name="reason" className="input" defaultValue={existingReport?.reason ?? "spam"}>
                   <option value="spam">Spam or unwanted contact</option>
                   <option value="harassment">Harassment or abusive language</option>
