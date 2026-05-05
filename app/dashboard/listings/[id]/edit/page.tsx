@@ -51,6 +51,7 @@ export default async function EditListingPage({
           contactPhone: listing.contact_phone ?? undefined,
           description: listing.description ?? undefined,
           imageUrl: listing.image_url ?? undefined,
+          imageUrls: listing.image_urls ?? undefined,
           location: listing.location ?? undefined,
           price: listing.price != null ? String(listing.price) : undefined,
           title: listing.title ?? undefined
