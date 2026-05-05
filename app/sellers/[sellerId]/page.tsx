@@ -161,7 +161,7 @@ export default async function SellerStorefrontPage({
                     Browse all listings
                   </Link>
                 )}
-                <Link className="button button-secondary" href={`/browse?category=${storefront.active_categories[0] ?? "buy-sell"}`}>
+                <Link className="button button-secondary" href={`/categories/${storefront.active_categories[0] ?? "buy-sell"}`}>
                   Explore similar listings
                 </Link>
               </div>
