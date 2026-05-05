@@ -183,7 +183,7 @@ export default async function MessageThreadPage({
           ) : null}
 
           <div className="messages-safety-grid">
-            <form action={blockConversationUserAction} className="messages-safety-card">
+            <form action={blockConversationUserAction} className="messages-safety-card is-block">
               <input type="hidden" name="conversationId" value={id} />
               <input type="hidden" name="blockedUserId" value={otherUserId} />
               <input type="hidden" name="reason" value="Blocked from conversation" />
@@ -202,7 +202,7 @@ export default async function MessageThreadPage({
               </SubmitButton>
             </form>
 
-            <form action={reportConversationUserAction} className="messages-safety-card">
+            <form action={reportConversationUserAction} className="messages-safety-card is-report">
               <input type="hidden" name="conversationId" value={id} />
               <input type="hidden" name="reportedUserId" value={otherUserId} />
               <input type="hidden" name="listingId" value={listing?.id ?? ""} />
