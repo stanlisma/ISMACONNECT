@@ -60,6 +60,12 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   role: AppRole;
+  is_business?: boolean | null;
+  business_name?: string | null;
+  business_description?: string | null;
+  business_logo_url?: string | null;
+  business_website?: string | null;
+  service_areas?: string[] | null;
   email_notifications?: boolean | null;
   verification_status?: ProfileVerificationStatus;
   verification_requested_at?: string | null;
@@ -191,6 +197,11 @@ export interface IdentityVerificationOrder {
 export interface PublicSellerStorefront {
   seller_id: string;
   display_name: string;
+  is_business: boolean;
+  business_description: string | null;
+  business_logo_url: string | null;
+  business_website: string | null;
+  service_areas: string[];
   primary_location: string;
   total_active_listings: number;
   active_categories: ListingCategory[];

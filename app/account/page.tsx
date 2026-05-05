@@ -111,7 +111,11 @@ export default async function AccountPage() {
 
               <div className="account-profile-copy">
                 <span className="account-eyebrow">
-                  {viewer.profile.role === "admin" ? "Admin Account" : "Member Account"}
+                  {viewer.profile.role === "admin"
+                    ? "Admin Account"
+                    : viewer.profile.is_business
+                      ? "Business Account"
+                      : "Member Account"}
                 </span>
                 <h1 className="section-title">Account</h1>
                 <p className="account-name">{fullName}</p>

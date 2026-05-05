@@ -1,11 +1,17 @@
+import { BusinessProfileForm } from "@/components/settings/business-profile-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import {
+  EMPTY_BUSINESS_PROFILE,
+  isBusinessProfileSchemaError,
+  normalizeBusinessProfileRow
+} from "@/lib/business-profile";
+import {
   getIdentityVerificationPriceLabel,
   reconcileLatestIdentityVerificationPayment
 } from "@/lib/identity-verification";
-import { updateNotificationSettingsAction } from "@/lib/actions/settings";
+import { updateBusinessProfileAction, updateNotificationSettingsAction } from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
 import { isEmailConfigured, isStripeWebhookConfigured } from "@/lib/env";
@@ -34,6 +40,36 @@ export default async function SettingsPage({
     )
     .eq("id", viewer.user.id)
     .single();
+
+  const businessProfileResponse = await supabase
+    .from("profiles")
+    .select("full_name, is_business, business_name, business_description, business_logo_url, business_website, service_areas")
+    .eq("id", viewer.user.id)
+    .maybeSingle();
+
+  let businessSchemaReady = true;
+  let businessProfile = EMPTY_BUSINESS_PROFILE;
+
+  if (businessProfileResponse.error) {
+    if (isBusinessProfileSchemaError(businessProfileResponse.error)) {
+      businessSchemaReady = false;
+
+      const fallbackProfile = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", viewer.user.id)
+        .maybeSingle();
+
+      businessProfile = {
+        ...EMPTY_BUSINESS_PROFILE,
+        full_name: fallbackProfile.data?.full_name ?? null
+      };
+    } else {
+      console.error("Business profile load failed:", businessProfileResponse.error.message);
+    }
+  } else {
+    businessProfile = normalizeBusinessProfileRow(businessProfileResponse.data);
+  }
 
   const identityNeedsRetry = profile?.stripe_identity_session_status === "requires_input";
   const identityProcessing = profile?.stripe_identity_session_status === "processing";
@@ -90,6 +126,21 @@ export default async function SettingsPage({
           <div style={{ marginTop: "1.1rem" }}>
             <BrowserNotificationSettings />
           </div>
+        </div>
+
+        <div style={{ marginTop: "1rem" }}>
+          <BusinessProfileForm
+            action={updateBusinessProfileAction}
+            schemaReady={businessSchemaReady}
+            defaults={{
+              isBusiness: businessProfile.is_business,
+              businessName: businessProfile.business_name ?? "",
+              businessDescription: businessProfile.business_description ?? "",
+              businessLogoUrl: businessProfile.business_logo_url ?? "",
+              businessWebsite: businessProfile.business_website ?? "",
+              serviceAreas: businessProfile.service_areas.join(", ")
+            }}
+          />
         </div>
 
         <div className="surface" style={{ marginTop: "1rem" }}>

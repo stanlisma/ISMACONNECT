@@ -1,4 +1,9 @@
 import { expireListingPromotions } from "@/lib/boosts";
+import {
+  EMPTY_BUSINESS_PROFILE,
+  isBusinessProfileSchemaError,
+  normalizeBusinessProfileRow
+} from "@/lib/business-profile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
@@ -459,10 +464,45 @@ export async function getPublicSellerStorefront(
 
   const firstListing = listings[0];
   const activeCategories = Array.from(new Set(listings.map((listing) => listing.category)));
+  let businessProfile = EMPTY_BUSINESS_PROFILE;
+
+  const businessProfileResponse = await supabase
+    .from("profiles")
+    .select("full_name, is_business, business_name, business_description, business_logo_url, business_website, service_areas")
+    .eq("id", sellerId)
+    .maybeSingle();
+
+  if (businessProfileResponse.error) {
+    if (isBusinessProfileSchemaError(businessProfileResponse.error)) {
+      const fallbackProfile = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", sellerId)
+        .maybeSingle();
+
+      businessProfile = {
+        ...EMPTY_BUSINESS_PROFILE,
+        full_name: fallbackProfile.data?.full_name ?? null
+      };
+    } else {
+      logDataError("Public seller business profile query failed", businessProfileResponse.error);
+    }
+  } else {
+    businessProfile = normalizeBusinessProfileRow(businessProfileResponse.data);
+  }
+
+  const displayName = businessProfile.is_business
+    ? businessProfile.business_name || businessProfile.full_name || firstListing.contact_name || "Local business"
+    : businessProfile.full_name || firstListing.contact_name || "Local seller";
 
   return {
     seller_id: sellerId,
-    display_name: firstListing.contact_name || "Local seller",
+    display_name: displayName,
+    is_business: businessProfile.is_business,
+    business_description: businessProfile.business_description,
+    business_logo_url: businessProfile.business_logo_url,
+    business_website: businessProfile.business_website,
+    service_areas: businessProfile.service_areas,
     primary_location: firstListing.location,
     total_active_listings: response.count ?? listings.length,
     active_categories: activeCategories,
