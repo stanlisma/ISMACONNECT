@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories } from "@/lib/subcategories";
+import type { ListingStructuredData } from "@/types/database";
 
 type ListingFormProps = {
   action: (formData: FormData) => void | Promise<void>;
@@ -28,6 +30,7 @@ type ListingFormProps = {
     contactPhone?: string;
     imageUrl?: string;
     imageUrls?: string[];
+    structuredData?: ListingStructuredData | null;
   };
   submitLabel?: string;
 };
@@ -151,6 +154,8 @@ export function ListingForm({
   const [isUploading, setIsUploading] = useState(false);
 
   const subcategories = useMemo(() => getSubcategories(category), [category]);
+  const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
+  const structuredDefaults = defaults?.structuredData ?? null;
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -331,6 +336,83 @@ export function ListingForm({
           <span>{description.length}/3000</span>
         </div>
       </label>
+
+      {structuredFields.length ? (
+        <div className="field field-full">
+          <div className="listing-structured-panel" key={category}>
+            <div className="listing-structured-panel-head">
+              <div>
+                <span className="field-label">Category details</span>
+                <p className="field-hint">
+                  A few local details make your listing easier to trust and much easier to filter.
+                </p>
+              </div>
+            </div>
+
+            <div className="listing-structured-grid">
+              {structuredFields.map((field) => {
+                const fieldValue =
+                  structuredDefaults && typeof structuredDefaults === "object"
+                    ? structuredDefaults[field.name as keyof typeof structuredDefaults]
+                    : undefined;
+
+                if (field.kind === "checkbox") {
+                  return (
+                    <label key={field.name} className="listing-structured-checkbox">
+                      <input
+                        type="checkbox"
+                        name={field.name}
+                        defaultChecked={Boolean(fieldValue)}
+                      />
+                      <span className="listing-structured-checkbox-copy">
+                        <strong>{field.label}</strong>
+                        {field.helpText ? <span>{field.helpText}</span> : null}
+                      </span>
+                    </label>
+                  );
+                }
+
+                if (field.kind === "number") {
+                  return (
+                    <label key={field.name} className="field">
+                      <span className="field-label">{field.label}</span>
+                      <input
+                        className="input"
+                        type="number"
+                        min={1}
+                        max={8}
+                        name={field.name}
+                        defaultValue={typeof fieldValue === "number" ? String(fieldValue) : ""}
+                        placeholder="Enter a number"
+                      />
+                      {field.helpText ? <span className="field-hint">{field.helpText}</span> : null}
+                    </label>
+                  );
+                }
+
+                return (
+                  <label key={field.name} className="field">
+                    <span className="field-label">{field.label}</span>
+                    <select
+                      className="input"
+                      name={field.name}
+                      defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
+                    >
+                      <option value="">Select an option</option>
+                      {field.options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {field.helpText ? <span className="field-hint">{field.helpText}</span> : null}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <label className="field">
         <span className="field-label">Contact name</span>

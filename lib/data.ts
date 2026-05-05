@@ -1,6 +1,7 @@
 import { expireListingPromotions } from "@/lib/boosts";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
+import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
 import type {
   FlaggedListing,
   Listing,
@@ -13,6 +14,7 @@ interface ListingFilters {
   subcategory?: string | null;
   search?: string;
   limit?: number;
+  extraFilters?: Record<string, unknown>;
 }
 
 const DEFAULT_PUBLIC_LISTINGS_PAGE_SIZE = 24;
@@ -126,6 +128,7 @@ export async function getPublicListings(filters: {
   minPrice?: number | null;
   maxPrice?: number | null;
   sort?: string | null;
+  extraFilters?: Record<string, unknown>;
   limit?: number;
   page?: number;
 }) {
@@ -176,7 +179,7 @@ export async function getPublicListings(filters: {
       query = query.lte("price", filters.maxPrice);
     }
 
-    return query;
+    return applyStructuredListingFilters(query, filters.category, filters.extraFilters);
   };
 
   const applySort = (query: any, includePromotionOrdering: boolean) => {

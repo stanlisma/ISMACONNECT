@@ -7,7 +7,8 @@ import { requireViewer } from "@/lib/auth";
 import {
   buildSavedSearchSignature,
   hasMeaningfulSavedSearchCriteria,
-  normalizeSavedSearchFilters
+  normalizeSavedSearchFilters,
+  type SavedSearchFilters
 } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -27,20 +28,37 @@ function getRevalidationPaths(path: string) {
   );
 }
 
+function getExtraFilters(formData: FormData) {
+  const raw = getFormValue(formData, "extraFilters");
+
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
 export async function toggleSavedSearchAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
 
   const returnTo = getFormValue(formData, "returnTo") || "/browse";
-  const filters = normalizeSavedSearchFilters({
+  const filtersInput: SavedSearchFilters = {
     path: getFormValue(formData, "path") || "/browse",
     search: getFormValue(formData, "search"),
     category: getFormValue(formData, "category"),
     subcategory: getFormValue(formData, "subcategory"),
     minPrice: getFormValue(formData, "minPrice"),
     maxPrice: getFormValue(formData, "maxPrice"),
-    sort: getFormValue(formData, "sort")
-  });
+    sort: getFormValue(formData, "sort"),
+    extraFilters: getExtraFilters(formData)
+  };
+  const filters = normalizeSavedSearchFilters(filtersInput);
 
   if (!hasMeaningfulSavedSearchCriteria(filters)) {
     redirect(returnTo);
@@ -71,6 +89,7 @@ export async function toggleSavedSearchAction(formData: FormData) {
       min_price: filters.minPrice,
       max_price: filters.maxPrice,
       sort: filters.sort,
+      extra_filters: filters.extraFilters,
       signature,
       last_checked_at: new Date().toISOString()
     });

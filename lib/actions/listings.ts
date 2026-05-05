@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
+import { parseStructuredListingData } from "@/lib/listing-structured-fields";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
@@ -89,6 +90,11 @@ export async function createListingAction(formData: FormData) {
 
   const dataInput = parsed.data;
   const imageUrls = parseImageUrls(formData);
+  const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
+
+  if (!structuredDataResult.success) {
+    redirectWithMessage("/dashboard/listings/new", "error", firstMessage(structuredDataResult.error));
+  }
 
   const supabase = await createServerSupabaseClient();
   const slug = await generateUniqueSlug(dataInput.title);
@@ -108,7 +114,8 @@ export async function createListingAction(formData: FormData) {
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
       image_url: imageUrls[0] || dataInput.imageUrl,
-      image_urls: imageUrls
+      image_urls: imageUrls,
+      structured_data: structuredDataResult.data
     })
     .select("slug, category")
     .single();
@@ -161,6 +168,15 @@ export async function updateListingAction(listingId: string, formData: FormData)
 
   const dataInput = parsed.data;
   const imageUrls = parseImageUrls(formData);
+  const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
+
+  if (!structuredDataResult.success) {
+    redirectWithMessage(
+      `/dashboard/listings/${listingId}/edit`,
+      "error",
+      firstMessage(structuredDataResult.error)
+    );
+  }
 
   const supabase = await createServerSupabaseClient();
 
@@ -177,7 +193,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
       image_url: imageUrls[0] || dataInput.imageUrl,
-      image_urls: imageUrls
+      image_urls: imageUrls,
+      structured_data: structuredDataResult.data
     })
     .eq("id", listingId)
     .select("slug, category")

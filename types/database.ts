@@ -6,6 +6,52 @@ export type ListingStatus = "active" | "flagged" | "removed";
 export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
 export type BoostOrderStatus = "pending" | "active" | "expired" | "canceled" | "failed";
 export type IdentityVerificationOrderStatus = "pending" | "paid" | "canceled" | "failed";
+export type JobShiftPattern =
+  | "day-shift"
+  | "night-shift"
+  | "7-on-7-off"
+  | "14-on-7-off"
+  | "14-on-14-off"
+  | "other";
+export type JobWorkSetup = "local" | "camp" | "fifo" | "dido" | "hybrid";
+export type JobPayBand = "under-25" | "25-35" | "35-50" | "50-plus" | "salary";
+export type RentalParkingType = "none" | "street" | "stall" | "truck";
+export type RideShareArea =
+  | "downtown"
+  | "thickwood"
+  | "timberlea"
+  | "gregoire"
+  | "airport"
+  | "site-camp"
+  | "edmonton"
+  | "calgary";
+
+export interface JobListingStructuredData {
+  shiftPattern?: JobShiftPattern | null;
+  workSetup?: JobWorkSetup | null;
+  payBand?: JobPayBand | null;
+  ticketsRequired?: boolean;
+}
+
+export interface RentalListingStructuredData {
+  furnished?: boolean;
+  utilitiesIncluded?: boolean;
+  shortTerm?: boolean;
+  parkingType?: RentalParkingType | null;
+}
+
+export interface RideShareListingStructuredData {
+  departureArea?: RideShareArea | null;
+  destinationArea?: RideShareArea | null;
+  seatsAvailable?: number | null;
+  toolSpace?: boolean;
+}
+
+export type ListingStructuredData =
+  | JobListingStructuredData
+  | RentalListingStructuredData
+  | RideShareListingStructuredData
+  | Record<string, never>;
 
 export interface Profile {
   id: string;
@@ -53,6 +99,7 @@ export interface Listing {
   stripe_checkout_session_id: string | null;
   status: ListingStatus;
   flag_count: number;
+  structured_data: ListingStructuredData | null;
   created_at: string;
   updated_at: string;
   subcategory: string | null;
@@ -80,6 +127,7 @@ export interface SavedSearch {
   min_price: number | null;
   max_price: number | null;
   sort: string | null;
+  extra_filters: Record<string, string | boolean> | null;
   signature: string;
   last_checked_at: string;
   created_at: string;

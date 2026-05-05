@@ -54,6 +54,7 @@ export default async function EditListingPage({
           imageUrls: listing.image_urls ?? undefined,
           location: listing.location ?? undefined,
           price: listing.price != null ? String(listing.price) : undefined,
+          structuredData: listing.structured_data ?? undefined,
           title: listing.title ?? undefined
         }}
         submitLabel="Save changes"

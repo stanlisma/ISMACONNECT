@@ -1,4 +1,9 @@
 import { CATEGORY_MAP } from "@/lib/constants";
+import {
+  applyStructuredListingFilters,
+  getStructuredFilterSummaryItems,
+  normalizeStructuredFilterValues
+} from "@/lib/listing-structured-fields";
 import { getSubcategories } from "@/lib/subcategories";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -15,6 +20,7 @@ export interface SavedSearchFilters {
   minPrice?: number | string | null;
   maxPrice?: number | string | null;
   sort?: string | null;
+  extraFilters?: Record<string, unknown> | null;
 }
 
 export interface NormalizedSavedSearchFilters {
@@ -25,6 +31,7 @@ export interface NormalizedSavedSearchFilters {
   minPrice: number | null;
   maxPrice: number | null;
   sort: string | null;
+  extraFilters: Record<string, string | boolean>;
 }
 
 export interface SavedSearchWithStats extends SavedSearch {
@@ -90,14 +97,17 @@ function getSubcategoryLabel(category: ListingCategory | null, subcategory: stri
 }
 
 export function normalizeSavedSearchFilters(filters: SavedSearchFilters): NormalizedSavedSearchFilters {
+  const category = resolveCategory(filters.category ?? null) ?? null;
+
   return {
     path: normalizePath(filters.path),
     search: normalizeText(filters.search),
-    category: resolveCategory(filters.category ?? null) ?? null,
+    category,
     subcategory: normalizeText(filters.subcategory),
     minPrice: normalizeNumber(filters.minPrice),
     maxPrice: normalizeNumber(filters.maxPrice),
-    sort: normalizeSort(filters.sort)
+    sort: normalizeSort(filters.sort),
+    extraFilters: normalizeStructuredFilterValues(category, filters.extraFilters)
   };
 }
 
@@ -110,7 +120,8 @@ export function hasMeaningfulSavedSearchCriteria(filters: SavedSearchFilters) {
       normalized.subcategory ||
       normalized.minPrice !== null ||
       normalized.maxPrice !== null ||
-      normalized.sort
+      normalized.sort ||
+      Object.keys(normalized.extraFilters).length > 0
   );
 }
 
@@ -124,7 +135,8 @@ export function buildSavedSearchSignature(filters: SavedSearchFilters) {
     subcategory: normalized.subcategory,
     minPrice: normalized.minPrice,
     maxPrice: normalized.maxPrice,
-    sort: normalized.sort
+    sort: normalized.sort,
+    extraFilters: normalized.extraFilters
   });
 }
 
@@ -155,6 +167,10 @@ export function buildSavedSearchHref(filters: SavedSearchFilters) {
   if (normalized.sort) {
     params.set("sort", normalized.sort);
   }
+
+  Object.entries(normalized.extraFilters).forEach(([key, value]) => {
+    params.set(key, String(value));
+  });
 
   const queryString = params.toString();
 
@@ -206,6 +222,8 @@ export function getSavedSearchDescription(filters: SavedSearchFilters) {
     details.push("Price: High to Low");
   }
 
+  details.push(...getStructuredFilterSummaryItems(normalized.category, normalized.extraFilters));
+
   return details.join(" | ");
 }
 
@@ -217,7 +235,8 @@ export function getSavedSearchFiltersFromRecord(savedSearch: SavedSearch): Norma
     subcategory: savedSearch.subcategory,
     minPrice: savedSearch.min_price,
     maxPrice: savedSearch.max_price,
-    sort: savedSearch.sort
+    sort: savedSearch.sort,
+    extraFilters: savedSearch.extra_filters ?? {}
   });
 }
 
@@ -248,7 +267,7 @@ function applyListingFilters(query: any, filters: SavedSearchFilters) {
     nextQuery = nextQuery.lte("price", normalized.maxPrice);
   }
 
-  return nextQuery;
+  return applyStructuredListingFilters(nextQuery, normalized.category, normalized.extraFilters);
 }
 
 export async function getSavedSearchByFilters(userId: string, filters: SavedSearchFilters) {
