@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireViewer } from "@/lib/auth";
 import { sendNewMessageEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/env";
+import { getConversationSafetyState, getMessagingDisabledMessage } from "@/lib/message-safety";
 import { createNotificationAndPush } from "@/lib/push";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveUserEmail } from "@/lib/user-email";
@@ -35,6 +36,13 @@ export async function sendListingMessageAction(listingId: string, formData: Form
 
   if (listing.owner_id === viewer.user.id) {
     redirectWithMessage(`/listings/${listing.slug}`, "error", "You cannot message your own listing.");
+  }
+
+  const safetyState = await getConversationSafetyState(supabase, viewer.user.id, listing.owner_id);
+  const disabledMessage = getMessagingDisabledMessage(safetyState);
+
+  if (disabledMessage) {
+    redirectWithMessage(`/listings/${listing.slug}`, "error", disabledMessage);
   }
 
   const { data: recipientProfile } = await supabase
