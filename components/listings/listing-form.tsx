@@ -272,21 +272,6 @@ export function ListingForm({
 
   return (
     <form action={action} className="form-grid listing-editor-form">
-      <div className="field-full listing-form-mobile-summary surface">
-        <div className="listing-form-mobile-summary-copy">
-          <span className="eyebrow">Mobile-friendly flow</span>
-          <h2>Post faster on your phone</h2>
-          <p>Work from top to bottom: basics, details, contact, then photos.</p>
-        </div>
-
-        <div className="listing-form-progress-pills">
-          <span className="listing-form-progress-pill">Basics</span>
-          <span className="listing-form-progress-pill">Details</span>
-          <span className="listing-form-progress-pill">Contact</span>
-          <span className="listing-form-progress-pill">Photos</span>
-        </div>
-      </div>
-
       <section className="field-full listing-form-section">
         <div className="listing-form-section-head">
           <div>

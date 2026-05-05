@@ -32,11 +32,7 @@ export default async function EditListingPage({
       <div className="surface listing-editor-page-head">
         <div className="action-row listing-editor-page-actions">
           <div className="listing-editor-page-copy">
-            <span className="eyebrow">Edit Listing</span>
             <h2>Edit listing</h2>
-            <p className="section-copy">
-              Update details, pricing, contact info, or imagery for this listing.
-            </p>
           </div>
           <DeleteListingForm listingId={listing.id} />
         </div>
