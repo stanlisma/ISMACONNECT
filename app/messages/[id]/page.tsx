@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChevronLeft, ExternalLink, ImageIcon } from "lucide-react";
 
 import { MessageComposer } from "@/components/messages/message-composer";
 import { RealtimeMessages } from "@/components/messages/realtime-messages";
@@ -88,59 +89,56 @@ export default async function MessageThreadPage({
 
   return (
     <section className="section">
-      <div className="container" style={{ maxWidth: "960px" }}>
+      <div className="container messages-thread-page-container">
         <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
         <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
-        <div className="surface" style={{ marginBottom: "1rem" }}>
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div className="surface messages-thread-hero">
+          <div className="messages-thread-back">
+            <Link href="/messages" className="button button-secondary messages-thread-back-link">
+              <ChevronLeft aria-hidden="true" size={16} strokeWidth={2.4} />
+              <span>Back to inbox</span>
+            </Link>
+          </div>
+
+          <div className="messages-thread-summary">
             {listing?.image_url ? (
-              <Link href={`/listings/${listing.slug}`}>
+              <Link href={`/listings/${listing.slug}`} className="messages-thread-listing-thumb">
                 <img
                   src={listing.image_url}
                   alt={listing.title ?? "Listing image"}
-                  style={{
-                    width: "88px",
-                    height: "88px",
-                    objectFit: "cover",
-                    borderRadius: "16px",
-                    border: "1px solid #d0d5dd",
-                    display: "block"
-                  }}
                 />
               </Link>
             ) : (
-              <div
-                style={{
-                  width: "88px",
-                  height: "88px",
-                  borderRadius: "16px",
-                  border: "1px solid #d0d5dd",
-                  background: "#f8fafc",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#667085",
-                  fontSize: "0.9rem",
-                  fontWeight: 600
-                }}
-              >
-                Listing
+              <div className="messages-thread-listing-thumb messages-thread-listing-thumb-placeholder">
+                <ImageIcon aria-hidden="true" size={20} strokeWidth={2.1} />
               </div>
             )}
 
-            <div>
-              <h1 className="section-title" style={{ marginBottom: "0.5rem" }}>
-                <Link
-                  href={`/listings/${listing?.slug}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  {listing?.title ?? "Conversation"}
-                </Link>
+            <div className="messages-thread-copy">
+              <span className="eyebrow">Conversation</span>
+              <h1 className="section-title">
+                {listing?.slug ? (
+                  <Link href={`/listings/${listing.slug}`} className="messages-thread-title-link">
+                    {listing.title ?? "Conversation"}
+                  </Link>
+                ) : (
+                  <span>{listing?.title ?? "Conversation"}</span>
+                )}
               </h1>
-              <p className="section-copy" style={{ marginBottom: 0 }}>
-                Chat with {otherUserFirstName} about this listing.
+              <p className="section-copy">
+                Chat with {otherUserFirstName} about this listing and keep everything in one thread.
               </p>
+
+              <div className="messages-thread-meta">
+                <span className="messages-thread-person-pill">{otherUserFullName}</span>
+                {listing?.slug ? (
+                  <Link href={`/listings/${listing.slug}`} className="messages-thread-listing-link">
+                    <span>View public listing</span>
+                    <ExternalLink aria-hidden="true" size={14} strokeWidth={2.3} />
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
@@ -158,17 +156,23 @@ export default async function MessageThreadPage({
 
         <form
           action={sendThreadMessageAction}
-          className="surface"
-          style={{ marginTop: "1rem", padding: "1rem" }}
+          className="surface messages-reply-shell"
         >
           <input type="hidden" name="conversationId" value={id} />
 
-          <label className="field" style={{ display: "block" }}>
+          <div className="messages-reply-head">
+            <div>
+              <h2>Send reply</h2>
+              <p>Keep it clear and local. Photos, pickup details, and timing questions usually get the fastest response.</p>
+            </div>
+          </div>
+
+          <label className="field messages-reply-field">
             <span className="field-label">Reply</span>
             <MessageComposer conversationId={id} />
           </label>
 
-          <div style={{ marginTop: "1rem", display: "flex", justifyContent: "flex-end" }}>
+          <div className="messages-reply-actions">
             <button className="button" type="submit">
               Send reply
             </button>

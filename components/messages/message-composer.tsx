@@ -1,5 +1,6 @@
 "use client";
 
+import { ImagePlus, X } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { setTypingAction } from "@/lib/actions/typing";
@@ -53,46 +54,56 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
   }
 
   return (
-    <div style={{ display: "grid", gap: "0.75rem" }}>
+    <div className="message-composer">
       <textarea
-        className="input"
+        className="input message-composer-textarea"
         name="body"
-        rows={4}
-        placeholder="Type your message..."
+        rows={5}
+        placeholder="Ask a question, confirm pickup details, or send a quick update…"
         onChange={handleTyping}
       />
 
-      <div>
-        <span className="field-label">Upload image (optional)</span>
-        <input
-          className="input"
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          style={{ marginTop: "0.5rem" }}
-        />
+      <div className="message-composer-toolbar">
+        <label className="message-composer-upload">
+          <ImagePlus aria-hidden="true" size={16} strokeWidth={2.2} />
+          <span>{isUploading ? "Uploading image…" : "Attach image"}</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={isUploading}
+          />
+        </label>
 
-        {isUploading ? <p style={{ marginTop: "0.5rem" }}>Uploading image...</p> : null}
-        {uploadError ? <p style={{ marginTop: "0.5rem", color: "#b42318" }}>{uploadError}</p> : null}
+        <span className="message-composer-tip">Photos help with pickup, condition, and proof.</span>
       </div>
+
+      {uploadError ? <p className="message-composer-error">{uploadError}</p> : null}
 
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
       {imageUrl ? (
-        <div>
-          <span className="field-label">Preview</span>
-          <div style={{ marginTop: "0.5rem" }}>
-            <img
-              src={imageUrl}
-              alt="Message attachment preview"
-              style={{
-                width: "100%",
-                maxWidth: "240px",
-                borderRadius: "12px",
-                border: "1px solid #d0d5dd"
+        <div className="message-composer-preview">
+          <div className="message-composer-preview-head">
+            <span className="field-label">Attachment preview</span>
+            <button
+              type="button"
+              className="message-composer-clear"
+              onClick={() => {
+                setImageUrl("");
+                setUploadError("");
               }}
-            />
+            >
+              <X aria-hidden="true" size={14} strokeWidth={2.4} />
+              <span>Remove</span>
+            </button>
           </div>
+
+          <img
+            src={imageUrl}
+            alt="Message attachment preview"
+            className="message-composer-preview-image"
+          />
         </div>
       ) : null}
     </div>
