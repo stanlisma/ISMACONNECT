@@ -5,13 +5,27 @@ import { useRef, useState } from "react";
 
 import { setTypingAction } from "@/lib/actions/typing";
 
-export function MessageComposer({ conversationId }: { conversationId: string }) {
+interface MessageComposerProps {
+  conversationId: string;
+  disabled?: boolean;
+  disabledMessage?: string | null;
+}
+
+export function MessageComposer({
+  conversationId,
+  disabled = false,
+  disabledMessage
+}: MessageComposerProps) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
   async function handleTyping() {
+    if (disabled) {
+      return;
+    }
+
     await setTypingAction(conversationId, true);
 
     if (timeoutRef.current) {
@@ -25,7 +39,7 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || disabled) return;
 
     setUploadError("");
     setIsUploading(true);
@@ -59,23 +73,32 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
         className="input message-composer-textarea"
         name="body"
         rows={5}
-        placeholder="Ask a question, confirm pickup details, or send a quick update…"
+        placeholder={
+          disabled
+            ? disabledMessage ?? "Messaging is disabled for this conversation."
+            : "Ask a question, confirm pickup details, or send a quick update..."
+        }
         onChange={handleTyping}
+        disabled={disabled}
       />
 
       <div className="message-composer-toolbar">
-        <label className="message-composer-upload">
+        <label className={`message-composer-upload ${disabled ? "is-disabled" : ""}`}>
           <ImagePlus aria-hidden="true" size={16} strokeWidth={2.2} />
-          <span>{isUploading ? "Uploading image…" : "Attach image"}</span>
+          <span>{isUploading ? "Uploading image..." : "Attach image"}</span>
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            disabled={isUploading}
+            disabled={isUploading || disabled}
           />
         </label>
 
-        <span className="message-composer-tip">Photos help with pickup, condition, and proof.</span>
+        <span className="message-composer-tip">
+          {disabled
+            ? disabledMessage ?? "Messaging is disabled for this conversation."
+            : "Photos help with pickup, condition, and proof."}
+        </span>
       </div>
 
       {uploadError ? <p className="message-composer-error">{uploadError}</p> : null}

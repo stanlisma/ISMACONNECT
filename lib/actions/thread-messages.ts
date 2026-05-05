@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireViewer } from "@/lib/auth";
 import { sendNewMessageEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/env";
+import { getConversationSafetyState, getMessagingDisabledMessage } from "@/lib/message-safety";
 import { createNotificationAndPush } from "@/lib/push";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveUserEmail } from "@/lib/user-email";
@@ -48,6 +49,14 @@ export async function sendThreadMessageAction(formData: FormData) {
     redirectWithMessage("/messages", "error", "You do not have access to this conversation.");
   }
 
+  const recipientId = conversation.buyer_id === viewer.user.id ? conversation.seller_id : conversation.buyer_id;
+  const safetyState = await getConversationSafetyState(supabase, viewer.user.id, recipientId);
+  const disabledMessage = getMessagingDisabledMessage(safetyState);
+
+  if (disabledMessage) {
+    redirectWithMessage(`/messages/${conversation.id}`, "error", disabledMessage);
+  }
+
   const { error: messageError } = await supabase.from("messages").insert({
     conversation_id: conversation.id,
     sender_id: viewer.user.id,
@@ -62,7 +71,6 @@ export async function sendThreadMessageAction(formData: FormData) {
   const isBuyer = viewer.user.id === conversation.buyer_id;
   const unreadField = isBuyer ? "seller_unread_count" : "buyer_unread_count";
   const typingField = isBuyer ? "buyer_typing" : "seller_typing";
-  const recipientId = isBuyer ? conversation.seller_id : conversation.buyer_id;
 
   await supabase
     .from("conversations")

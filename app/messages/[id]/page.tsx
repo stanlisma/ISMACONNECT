@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ExternalLink, ImageIcon } from "lucide-react";
+import { ChevronLeft, ExternalLink, ImageIcon, ShieldAlert, ShieldBan } from "lucide-react";
 
 import { MessageComposer } from "@/components/messages/message-composer";
 import { RealtimeMessages } from "@/components/messages/realtime-messages";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { FlashMessage } from "@/components/ui/flash-message";
+import { blockConversationUserAction, reportConversationUserAction } from "@/lib/actions/message-safety";
 import { sendThreadMessageAction } from "@/lib/actions/thread-messages";
 import { requireViewer } from "@/lib/auth";
+import {
+  getConversationSafetyState,
+  getExistingConversationReport,
+  getMessagingDisabledMessage
+} from "@/lib/message-safety";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSingleParam } from "@/lib/utils";
 
@@ -47,6 +54,7 @@ export default async function MessageThreadPage({
   }
 
   const isBuyer = conversation.buyer_id === viewer.user.id;
+  const otherUserId = isBuyer ? conversation.seller_id : conversation.buyer_id;
 
   await supabase
     .from("conversations")
@@ -80,8 +88,12 @@ export default async function MessageThreadPage({
     viewer.user.id === conversation.seller_id ? buyerFullName : sellerFullName;
 
   const otherUserFirstName = otherUserFullName.trim().split(" ")[0] || "User";
+  const safetyState = await getConversationSafetyState(supabase, viewer.user.id, otherUserId);
+  const existingReport = await getExistingConversationReport(supabase, viewer.user.id, otherUserId, id);
+  const messagingDisabledMessage = getMessagingDisabledMessage(safetyState);
 
   const listing = conversation.listing as {
+    id?: string | null;
     title?: string | null;
     slug?: string | null;
     image_url?: string | null;
@@ -132,6 +144,8 @@ export default async function MessageThreadPage({
 
               <div className="messages-thread-meta">
                 <span className="messages-thread-person-pill">{otherUserFullName}</span>
+                {safetyState.viewerBlockedOther ? <span className="badge badge-neutral">Blocked</span> : null}
+                {existingReport ? <span className="badge badge-soft">Reported</span> : null}
                 {listing?.slug ? (
                   <Link href={`/listings/${listing.slug}`} className="messages-thread-listing-link">
                     <span>View public listing</span>
@@ -140,6 +154,79 @@ export default async function MessageThreadPage({
                 ) : null}
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="surface messages-safety-panel">
+          <div className="messages-safety-head">
+            <div>
+              <span className="eyebrow">Safety tools</span>
+              <h2>Manage this conversation</h2>
+            </div>
+            <p>
+              Use these controls if someone is spamming, harassing, or behaving suspiciously in chat.
+            </p>
+          </div>
+
+          {messagingDisabledMessage ? (
+            <div className="messages-safety-notice is-blocked">
+              <ShieldBan aria-hidden="true" size={18} strokeWidth={2.2} />
+              <span>{messagingDisabledMessage}</span>
+            </div>
+          ) : null}
+
+          {existingReport ? (
+            <div className="messages-safety-notice">
+              <ShieldAlert aria-hidden="true" size={18} strokeWidth={2.2} />
+              <span>Your report is already in the moderation queue. Submit again to update the reason if needed.</span>
+            </div>
+          ) : null}
+
+          <div className="messages-safety-grid">
+            <form action={blockConversationUserAction} className="messages-safety-card">
+              <input type="hidden" name="conversationId" value={id} />
+              <input type="hidden" name="blockedUserId" value={otherUserId} />
+              <input type="hidden" name="reason" value="Blocked from conversation" />
+
+              <div className="messages-safety-card-copy">
+                <strong>Block user</strong>
+                <p>Turn off messaging in this thread immediately. They will no longer be able to send you replies here.</p>
+              </div>
+
+              <SubmitButton
+                className="button button-ghost button-danger"
+                pendingLabel="Blocking..."
+                disabled={safetyState.viewerBlockedOther}
+              >
+                {safetyState.viewerBlockedOther ? "User blocked" : "Block user"}
+              </SubmitButton>
+            </form>
+
+            <form action={reportConversationUserAction} className="messages-safety-card">
+              <input type="hidden" name="conversationId" value={id} />
+              <input type="hidden" name="reportedUserId" value={otherUserId} />
+              <input type="hidden" name="listingId" value={listing?.id ?? ""} />
+
+              <div className="messages-safety-card-copy">
+                <strong>Report user</strong>
+                <p>Send this conversation to the moderation queue if it looks like spam, harassment, or a scam.</p>
+              </div>
+
+              <label className="field">
+                <span className="field-label">Reason</span>
+                <select name="reason" className="input" defaultValue={existingReport?.reason ?? "spam"}>
+                  <option value="spam">Spam or unwanted contact</option>
+                  <option value="harassment">Harassment or abusive language</option>
+                  <option value="scam">Scam or suspicious payment request</option>
+                  <option value="fake-listing">Fake listing or misleading info</option>
+                  <option value="other">Other safety concern</option>
+                </select>
+              </label>
+
+              <SubmitButton className="button button-secondary" pendingLabel="Submitting...">
+                {existingReport ? "Update report" : "Report user"}
+              </SubmitButton>
+            </form>
           </div>
         </div>
 
@@ -169,13 +256,21 @@ export default async function MessageThreadPage({
 
           <label className="field messages-reply-field">
             <span className="field-label">Reply</span>
-            <MessageComposer conversationId={id} />
+            <MessageComposer
+              conversationId={id}
+              disabled={Boolean(messagingDisabledMessage)}
+              disabledMessage={messagingDisabledMessage}
+            />
           </label>
 
           <div className="messages-reply-actions">
-            <button className="button" type="submit">
-              Send reply
-            </button>
+            <SubmitButton
+              className="button"
+              pendingLabel="Sending..."
+              disabled={Boolean(messagingDisabledMessage)}
+            >
+              {messagingDisabledMessage ? "Messaging disabled" : "Send reply"}
+            </SubmitButton>
           </div>
         </form>
       </div>

@@ -6,6 +6,7 @@ export type ListingStatus = "active" | "flagged" | "removed";
 export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
 export type BoostOrderStatus = "pending" | "active" | "expired" | "canceled" | "failed";
 export type IdentityVerificationOrderStatus = "pending" | "paid" | "canceled" | "failed";
+export type UserReportStatus = "open" | "resolved" | "dismissed";
 export type JobShiftPattern =
   | "day-shift"
   | "night-shift"
@@ -206,6 +207,27 @@ export interface PushSubscriptionRecord {
   last_success_at: string | null;
   last_failure_at: string | null;
   failure_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BlockedUser {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  conversation_id: string | null;
+  reason: string | null;
+  created_at: string;
+}
+
+export interface UserReport {
+  id: string;
+  reporter_id: string;
+  reported_user_id: string;
+  conversation_id: string | null;
+  listing_id: string | null;
+  reason: string;
+  status: UserReportStatus;
   created_at: string;
   updated_at: string;
 }
