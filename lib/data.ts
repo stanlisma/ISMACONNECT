@@ -4,6 +4,7 @@ import {
   isBusinessProfileSchemaError,
   normalizeBusinessProfileRow
 } from "@/lib/business-profile";
+import { getSubcategoryQueryValues } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
@@ -166,7 +167,13 @@ export async function getPublicListings(filters: {
     }
 
     if (filters.subcategory) {
-      query = query.eq("subcategory", filters.subcategory);
+      const subcategoryValues = getSubcategoryQueryValues(filters.category, filters.subcategory);
+
+      if (subcategoryValues.length === 1) {
+        query = query.eq("subcategory", subcategoryValues[0]);
+      } else if (subcategoryValues.length > 1) {
+        query = query.in("subcategory", subcategoryValues);
+      }
     }
 
     if (filters.search?.trim()) {

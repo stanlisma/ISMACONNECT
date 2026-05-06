@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
+import { normalizeSubcategory } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
@@ -89,6 +90,7 @@ export async function createListingAction(formData: FormData) {
   }
 
   const dataInput = parsed.data;
+  const normalizedSubcategory = normalizeSubcategory(dataInput.category, dataInput.subcategory);
   const imageUrls = parseImageUrls(formData);
   const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
 
@@ -105,7 +107,7 @@ export async function createListingAction(formData: FormData) {
       owner_id: viewer.user.id,
       slug,
       category: dataInput.category,
-      subcategory: dataInput.subcategory,
+      subcategory: normalizedSubcategory,
       title: dataInput.title,
       description: dataInput.description,
       price: dataInput.price,
@@ -167,6 +169,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
   }
 
   const dataInput = parsed.data;
+  const normalizedSubcategory = normalizeSubcategory(dataInput.category, dataInput.subcategory);
   const imageUrls = parseImageUrls(formData);
   const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
 
@@ -184,7 +187,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
     .from("listings")
     .update({
       category: dataInput.category,
-      subcategory: dataInput.subcategory,
+      subcategory: normalizedSubcategory,
       title: dataInput.title,
       description: dataInput.description,
       price: dataInput.price,

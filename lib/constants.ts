@@ -16,35 +16,35 @@ export const CATEGORIES: Array<{
   {
     value: "rentals",
     label: "Rentals",
-    description: "Apartments, rooms, storage, and local rental opportunities across Fort McMurray.",
+    description: "Apartments, houses, shared rooms, commercial space, and parking across Fort McMurray.",
     href: "/categories/rentals",
     seoTitle: "Fort McMurray rentals"
   },
   {
     value: "ride-share",
     label: "Ride Share",
-    description: "Daily commutes, camp rides, airport pickups, and local travel coordination.",
+    description: "Daily commutes, airport trips, camp transport, and long-distance local travel coordination.",
     href: "/categories/ride-share",
     seoTitle: "Fort McMurray ride share listings"
   },
   {
     value: "jobs",
     label: "Jobs",
-    description: "Part-time, full-time, and contract roles for local workers and employers.",
+    description: "Construction, oilfield, delivery, hospitality, healthcare, and office jobs for local workers.",
     href: "/categories/jobs",
     seoTitle: "Fort McMurray jobs"
   },
   {
     value: "services",
     label: "Services",
-    description: "Trusted help for cleaning, moving, repairs, tutoring, and more.",
+    description: "Trusted local help for trades, cleaning, moving, tutoring, beauty, and business services.",
     href: "/categories/services",
     seoTitle: "Fort McMurray services"
   },
   {
     value: "buy-sell",
     label: "Buy & Sell",
-    description: "Furniture, electronics, tools, and everyday items from local sellers.",
+    description: "Furniture, electronics, phones, computers, home goods, tools, and everyday items from local sellers.",
     href: "/categories/buy-sell",
     seoTitle: "Fort McMurray buy and sell"
   }
@@ -70,4 +70,3 @@ export const HOMEPAGE_FEATURES = [
   "Supabase Auth and Postgres-ready moderation workflows",
   "SEO-friendly category and listing pages built with the Next.js App Router"
 ];
-

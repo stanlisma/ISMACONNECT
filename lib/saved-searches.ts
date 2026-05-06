@@ -4,7 +4,11 @@ import {
   getStructuredFilterSummaryItems,
   normalizeStructuredFilterValues
 } from "@/lib/listing-structured-fields";
-import { getSubcategories } from "@/lib/subcategories";
+import {
+  getSubcategories,
+  getSubcategoryQueryValues,
+  normalizeSubcategory
+} from "@/lib/subcategories";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveCategory } from "@/lib/utils";
@@ -103,7 +107,7 @@ export function normalizeSavedSearchFilters(filters: SavedSearchFilters): Normal
     path: normalizePath(filters.path),
     search: normalizeText(filters.search),
     category,
-    subcategory: normalizeText(filters.subcategory),
+    subcategory: normalizeSubcategory(category, normalizeText(filters.subcategory)),
     minPrice: normalizeNumber(filters.minPrice),
     maxPrice: normalizeNumber(filters.maxPrice),
     sort: normalizeSort(filters.sort),
@@ -249,7 +253,13 @@ function applyListingFilters(query: any, filters: SavedSearchFilters) {
   }
 
   if (normalized.subcategory) {
-    nextQuery = nextQuery.eq("subcategory", normalized.subcategory);
+    const subcategoryValues = getSubcategoryQueryValues(normalized.category, normalized.subcategory);
+
+    if (subcategoryValues.length === 1) {
+      nextQuery = nextQuery.eq("subcategory", subcategoryValues[0]);
+    } else if (subcategoryValues.length > 1) {
+      nextQuery = nextQuery.in("subcategory", subcategoryValues);
+    }
   }
 
   if (normalized.search) {

@@ -3,6 +3,7 @@ import { getViewer } from "@/lib/auth";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
+import { CATEGORIES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
@@ -46,7 +47,7 @@ export default async function HomePage() {
           <form action="/browse" style={searchFormStyle}>
             <input
               name="q"
-              placeholder="Rentals, camp rides, tools, cleaning, jobs..."
+              placeholder="Rentals, airport rides, tools, cleaning, jobs..."
               style={inputStyle}
             />
 
@@ -126,18 +127,12 @@ export default async function HomePage() {
         </p>
 
         <div style={cardGridStyle}>
-          {[
-            ["/categories/rentals", "Rentals", "Apartments, rooms, storage, and local rental opportunities across Fort McMurray."],
-            ["/categories/ride-share", "Ride Share", "Daily commutes, camp rides, airport pickups, and local travel coordination."],
-            ["/categories/jobs", "Jobs", "Part-time, full-time, and contract roles for local workers and employers."],
-            ["/categories/services", "Services", "Trusted help for cleaning, moving, repairs, tutoring, and more."],
-            ["/categories/buy-sell", "Buy & Sell", "Furniture, electronics, tools, and everyday items from local sellers."],
-          ].map(([href, title, text]) => (
-            <article key={title} style={cardStyle}>
-              <h3 style={cardTitleStyle}>{title}</h3>
-              <p style={cardTextStyle}>{text}</p>
-              <Link href={href} style={cardLinkStyle}>
-                Explore {title}
+          {CATEGORIES.map((category) => (
+            <article key={category.value} style={cardStyle}>
+              <h3 style={cardTitleStyle}>{category.label}</h3>
+              <p style={cardTextStyle}>{category.description}</p>
+              <Link href={category.href} style={cardLinkStyle}>
+                Explore {category.label}
               </Link>
             </article>
           ))}

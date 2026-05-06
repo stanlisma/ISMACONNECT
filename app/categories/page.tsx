@@ -78,7 +78,7 @@ export default function CategoriesPage() {
 
             <ul className="category-guide-list">
               <li>Rentals focus on furnished setups, short-term stays, and parking realities.</li>
-              <li>Ride share supports camp routes, airport travel, and intercity trips to Edmonton or Calgary.</li>
+              <li>Ride share supports camp routes, airport travel, delivery runs, and intercity trips to Edmonton or Calgary.</li>
               <li>Jobs surface shift pattern, work setup, pay band, and ticket expectations earlier.</li>
             </ul>
           </div>
@@ -94,7 +94,7 @@ export default function CategoriesPage() {
               <Link href="/categories/rentals?shortTerm=true" className="category-local-link">
                 Short-term rentals
               </Link>
-              <Link href="/categories/ride-share?subcategory=airport-rides&view=map" className="category-local-link">
+              <Link href="/categories/ride-share?subcategory=airport-ride&view=map" className="category-local-link">
                 Airport ride map
               </Link>
               <Link href="/categories/jobs?shiftPattern=7-on-7-off" className="category-local-link">
