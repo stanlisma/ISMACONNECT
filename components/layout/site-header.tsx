@@ -5,6 +5,7 @@ import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import InstallButton from "@/components/install-button";
+import { getSubcategories } from "@/lib/subcategories";
 import "./site-header.css";
 
 type Viewer = {
@@ -22,6 +23,7 @@ interface SiteHeaderProps {
 }
 
 const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
+const HEADER_DROPDOWN_LIMIT = 6;
 
 function formatBadgeCount(count: number) {
   if (count > 99) {
@@ -44,6 +46,11 @@ export function SiteHeader({
   const previousUnreadNotificationsMarker = useRef<string | null>(unreadNotificationsMarker);
   const isExactPath = (path: string) => pathname === path;
   const isPathGroup = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
+  const rentalLinks = getSubcategories("rentals").slice(0, HEADER_DROPDOWN_LIMIT);
+  const rideShareLinks = getSubcategories("ride-share").slice(0, HEADER_DROPDOWN_LIMIT);
+  const jobLinks = getSubcategories("jobs").slice(0, HEADER_DROPDOWN_LIMIT);
+  const serviceLinks = getSubcategories("services").slice(0, HEADER_DROPDOWN_LIMIT);
+  const buySellLinks = getSubcategories("buy-sell").slice(0, HEADER_DROPDOWN_LIMIT);
 
   useEffect(() => {
     if (pathname === "/notifications") {
@@ -171,12 +178,11 @@ export function SiteHeader({
             <div className="nav-dropdown">
               <Link href="/categories/rentals" className="market-nav-link">Rentals</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/categories/rentals?subcategory=apartments">Apartments</Link>
-                <Link href="/categories/rentals?subcategory=rooms-for-rent">Rooms for Rent</Link>
-                <Link href="/categories/rentals?subcategory=short-term-rentals">Short-Term Rentals</Link>
-                <Link href="/categories/rentals?subcategory=basement-suites">Basement Suites</Link>
-                <Link href="/categories/rentals?subcategory=furnished-rentals">Furnished Rentals</Link>
-                <Link href="/categories/rentals?subcategory=storage-parking">Storage / Parking</Link>
+                {rentalLinks.map((item) => (
+                  <Link key={item.value} href={`/categories/rentals?subcategory=${item.value}`}>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -184,12 +190,11 @@ export function SiteHeader({
             <div className="nav-dropdown">
               <Link href="/categories/ride-share" className="market-nav-link">Ride Share</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/categories/ride-share?subcategory=daily-commute&view=map">Daily Commute</Link>
-                <Link href="/categories/ride-share?subcategory=camp-rides&view=map">Camp Rides</Link>
-                <Link href="/categories/ride-share?subcategory=airport-rides&view=map">Airport Rides</Link>
-                <Link href="/categories/ride-share?subcategory=edmonton-calgary-trips&view=map">Edmonton / Calgary Trips</Link>
-                <Link href="/categories/ride-share?subcategory=one-time-rides&view=map">One-Time Rides</Link>
-                <Link href="/categories/ride-share?subcategory=drivers-available&view=map">Drivers Available</Link>
+                {rideShareLinks.map((item) => (
+                  <Link key={item.value} href={`/categories/ride-share?subcategory=${item.value}&view=map`}>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -197,12 +202,11 @@ export function SiteHeader({
             <div className="nav-dropdown">
               <Link href="/categories/jobs" className="market-nav-link">Jobs</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/categories/jobs?subcategory=full-time">Full-Time</Link>
-                <Link href="/categories/jobs?subcategory=part-time">Part-Time</Link>
-                <Link href="/categories/jobs?subcategory=contract">Contract</Link>
-                <Link href="/categories/jobs?subcategory=camp-jobs">Camp Jobs</Link>
-                <Link href="/categories/jobs?subcategory=skilled-trades">Skilled Trades</Link>
-                <Link href="/categories/jobs?subcategory=general-labour">General Labour</Link>
+                {jobLinks.map((item) => (
+                  <Link key={item.value} href={`/categories/jobs?subcategory=${item.value}`}>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -210,13 +214,11 @@ export function SiteHeader({
             <div className="nav-dropdown">
               <Link href="/categories/services" className="market-nav-link">Services</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/categories/services?subcategory=cleaning">Cleaning</Link>
-                <Link href="/categories/services?subcategory=moving">Moving</Link>
-                <Link href="/categories/services?subcategory=repairs-handyman">Repairs / Handyman</Link>
-                <Link href="/categories/services?subcategory=tutoring">Tutoring</Link>
-                <Link href="/categories/services?subcategory=beauty-personal-care">Beauty / Personal Care</Link>
-                <Link href="/categories/services?subcategory=senior-care">Senior Care</Link>
-                <Link href="/categories/services?subcategory=automotive-services">Automotive Services</Link>
+                {serviceLinks.map((item) => (
+                  <Link key={item.value} href={`/categories/services?subcategory=${item.value}`}>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -224,13 +226,11 @@ export function SiteHeader({
             <div className="nav-dropdown">
               <Link href="/categories/buy-sell" className="market-nav-link">Buy & Sell</Link>
               <div className="nav-dropdown-menu">
-                <Link href="/categories/buy-sell?subcategory=furniture">Furniture</Link>
-                <Link href="/categories/buy-sell?subcategory=electronics">Electronics</Link>
-                <Link href="/categories/buy-sell?subcategory=tools-equipment">Tools & Equipment</Link>
-                <Link href="/categories/buy-sell?subcategory=appliances">Appliances</Link>
-                <Link href="/categories/buy-sell?subcategory=clothing">Clothing</Link>
-                <Link href="/categories/buy-sell?subcategory=baby-kids-items">Baby / Kids Items</Link>
-                <Link href="/categories/buy-sell?subcategory=vehicles-parts">Vehicles / Parts</Link>
+                {buySellLinks.map((item) => (
+                  <Link key={item.value} href={`/categories/buy-sell?subcategory=${item.value}`}>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
 

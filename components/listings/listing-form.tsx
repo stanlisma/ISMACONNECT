@@ -13,7 +13,7 @@ import {
 import { useMemo, useState } from "react";
 
 import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
-import { getSubcategories } from "@/lib/subcategories";
+import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import type { ListingStructuredData } from "@/types/database";
 
 type ListingFormProps = {
@@ -140,7 +140,9 @@ export function ListingForm({
   submitLabel = "Publish listing"
 }: ListingFormProps) {
   const [category, setCategory] = useState(defaults?.category ?? "buy-sell");
-  const [subcategory, setSubcategory] = useState(defaults?.subcategory ?? "");
+  const [subcategory, setSubcategory] = useState(
+    normalizeSubcategory(defaults?.category ?? "buy-sell", defaults?.subcategory) ?? ""
+  );
   const [description, setDescription] = useState(defaults?.description ?? "");
   const [imageUrls, setImageUrls] = useState<string[]>(
     defaults?.imageUrls?.length

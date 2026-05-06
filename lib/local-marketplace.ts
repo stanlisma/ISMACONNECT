@@ -147,7 +147,7 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       "Shorter back-and-forth because listings can surface utilities, parking, and furnished status up front."
     ],
     quickLinks: [
-      { label: "Furnished rentals", href: "/categories/rentals?subcategory=furnished-rentals" },
+      { label: "Apartments & condos", href: "/categories/rentals?subcategory=apartments" },
       { label: "Short-term friendly", href: "/categories/rentals?shortTerm=true" },
       { label: "Truck-friendly parking", href: "/categories/rentals?parkingType=truck" },
       { label: "Timberlea rentals", href: "/categories/rentals?rentalArea=timberlea&view=map" }
@@ -187,9 +187,9 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       "Tool-space and seat-count context helps workers and commuters decide faster."
     ],
     quickLinks: [
-      { label: "Airport rides", href: "/categories/ride-share?subcategory=airport-rides&view=map" },
-      { label: "Camp rides", href: "/categories/ride-share?subcategory=camp-rides&view=map" },
-      { label: "Edmonton trips", href: "/categories/ride-share?destinationArea=edmonton&view=map" },
+      { label: "Airport rides", href: "/categories/ride-share?subcategory=airport-ride&view=map" },
+      { label: "Camp / site transport", href: "/categories/ride-share?subcategory=camp-site-transport&view=map" },
+      { label: "Edmonton trips", href: "/categories/ride-share?subcategory=long-distance-ride&destinationArea=edmonton&view=map" },
       { label: "Tools / luggage space", href: "/categories/ride-share?toolSpace=true&view=map" }
     ],
     buyerTips: [
@@ -227,7 +227,7 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       "Built for practical Fort McMurray hiring, not generic job-board noise."
     ],
     quickLinks: [
-      { label: "Camp jobs", href: "/categories/jobs?subcategory=camp-jobs" },
+      { label: "Oilfield / camp jobs", href: "/categories/jobs?subcategory=oilfield-camp-site" },
       { label: "7 on / 7 off", href: "/categories/jobs?shiftPattern=7-on-7-off" },
       { label: "Tickets required", href: "/categories/jobs?ticketsRequired=true" },
       { label: "Salary roles", href: "/categories/jobs?payBand=salary" }
@@ -270,7 +270,7 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       { label: "Cleaning services", href: "/categories/services?subcategory=cleaning" },
       { label: "Senior care", href: "/categories/services?subcategory=senior-care" },
       { label: "Automotive services", href: "/categories/services?subcategory=automotive-services" },
-      { label: "Tutoring", href: "/categories/services?subcategory=tutoring" }
+      { label: "Lessons & tutoring", href: "/categories/services?subcategory=lessons-tutoring" }
     ],
     buyerTips: [
       "Open the seller storefront before messaging so you can compare business details and active listings.",
@@ -298,19 +298,19 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
   "buy-sell": {
     heroTitle: "Buy and sell locally with faster browsing and cleaner seller trust signals",
     heroDescription:
-      "Shop furniture, electronics, tools, clothing, and everyday items from Fort McMurray sellers without digging through generic community feeds.",
+      "Shop furniture, electronics, phones, computers, tools, clothing, and everyday items from Fort McMurray sellers without digging through generic community feeds.",
     supportingCopy:
       "The best local buy-and-sell listings combine clear photos, specific subcategories, and seller trust signals so buyers can move quickly.",
     localHighlights: [
       "Stronger listing images, saved searches, and seller trust profiles improve conversion.",
-      "Subcategories help buyers move directly into furniture, electronics, tools, or clothing.",
+      "Subcategories help buyers move directly into furniture, electronics, phones, tools, or clothing.",
       "Built for local pickup-style transactions and faster response loops."
     ],
     quickLinks: [
       { label: "Furniture", href: "/categories/buy-sell?subcategory=furniture" },
       { label: "Electronics", href: "/categories/buy-sell?subcategory=electronics" },
       { label: "Tools & equipment", href: "/categories/buy-sell?subcategory=tools-equipment" },
-      { label: "Vehicles / parts", href: "/categories/buy-sell?subcategory=vehicles-parts" }
+      { label: "Auto parts", href: "/categories/buy-sell?subcategory=auto-parts" }
     ],
     buyerTips: [
       "Use subcategories first, then seller trust signals, before opening individual posts.",
@@ -321,7 +321,7 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       {
         question: "What kinds of items fit best here?",
         answer:
-          "Furniture, electronics, tools, clothing, vehicles and parts, baby items, and other everyday local buy-and-sell posts all fit well."
+          "Furniture, electronics, phones, computers, tools, clothing, baby items, auto parts, and other everyday local buy-and-sell posts all fit well."
       },
       {
         question: "How can sellers get more replies?",
@@ -482,7 +482,7 @@ export function getCategorySeoTitle(category: ListingCategory) {
     case "rentals":
       return "Fort McMurray rentals, furnished rooms, and short-term stays";
     case "ride-share":
-      return "Fort McMurray ride share, camp rides, and airport trips";
+      return "Fort McMurray ride share, camp transport, and airport trips";
     case "jobs":
       return "Fort McMurray jobs with camp, FIFO, DIDO, and rotation filters";
     case "services":

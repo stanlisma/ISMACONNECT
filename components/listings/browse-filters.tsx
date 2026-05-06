@@ -8,7 +8,7 @@ import {
   getStructuredFilterDefinitions,
   serializeStructuredFilterValue
 } from "@/lib/listing-structured-fields";
-import { getSubcategories } from "@/lib/subcategories";
+import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildPathWithQuery } from "@/lib/utils";
 
 export function BrowseFilters({
@@ -25,7 +25,9 @@ export function BrowseFilters({
 }: any) {
   const [searchText, setSearchText] = useState(search ?? "");
   const [selectedCategory, setSelectedCategory] = useState(category ?? "");
-  const [selectedSubcategory, setSelectedSubcategory] = useState(subcategory ?? "");
+  const [selectedSubcategory, setSelectedSubcategory] = useState(
+    normalizeSubcategory(category ?? "", subcategory ?? "") ?? ""
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const subcategories = useMemo(() => getSubcategories(selectedCategory), [selectedCategory]);

@@ -12,6 +12,7 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
+import { normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
@@ -31,7 +32,10 @@ export default async function BrowsePage({
 
   const search = getSingleParam(resolvedSearchParams?.q);
   const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
-  const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
+  const subcategory = normalizeSubcategory(
+    category,
+    getSingleParam(resolvedSearchParams?.subcategory)
+  );
 
   const minPriceParam = getSingleParam(resolvedSearchParams?.minPrice);
   const maxPriceParam = getSingleParam(resolvedSearchParams?.maxPrice);

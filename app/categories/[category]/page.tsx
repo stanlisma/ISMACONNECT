@@ -13,6 +13,7 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
+import { normalizeSubcategory } from "@/lib/subcategories";
 import {
   getCategoryLocalContent,
   getCategorySeoTitle
@@ -74,7 +75,10 @@ export default async function CategoryPage({
   const requestedView = getSingleParam(resolvedSearchParams?.view);
   const isMapEligibleCategory = category === "rentals" || category === "ride-share";
   const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
-  const subcategory = getSingleParam(resolvedSearchParams?.subcategory);
+  const subcategory = normalizeSubcategory(
+    category,
+    getSingleParam(resolvedSearchParams?.subcategory)
+  );
   const structuredFilters = Object.fromEntries(
     getStructuredFilterDefinitions(category)
       .map((field) => {
