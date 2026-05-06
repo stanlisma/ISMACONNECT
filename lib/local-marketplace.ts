@@ -17,6 +17,8 @@ type LocalAreaDefinition = {
   label: string;
   x: number;
   y: number;
+  lat: number;
+  lng: number;
   aliases: string[];
 };
 
@@ -63,6 +65,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Downtown",
     x: 58,
     y: 42,
+    lat: 56.7268,
+    lng: -111.3814,
     aliases: ["downtown", "city centre", "city center", "river city"]
   },
   thickwood: {
@@ -70,6 +74,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Thickwood",
     x: 34,
     y: 28,
+    lat: 56.7468,
+    lng: -111.4125,
     aliases: ["thickwood", "thickwood heights"]
   },
   timberlea: {
@@ -77,6 +83,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Timberlea",
     x: 26,
     y: 16,
+    lat: 56.7582,
+    lng: -111.4321,
     aliases: ["timberlea", "parsons creek"]
   },
   gregoire: {
@@ -84,6 +92,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Gregoire",
     x: 65,
     y: 60,
+    lat: 56.6952,
+    lng: -111.3528,
     aliases: ["gregoire", "gregoire lake", "gregoire industrial"]
   },
   airport: {
@@ -91,6 +101,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Airport",
     x: 78,
     y: 30,
+    lat: 56.6546,
+    lng: -111.2218,
     aliases: ["airport", "ymm"]
   },
   abasand: {
@@ -98,6 +110,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Abasand",
     x: 47,
     y: 52,
+    lat: 56.7175,
+    lng: -111.4011,
     aliases: ["abasand"]
   },
   "eagle-ridge": {
@@ -105,6 +119,8 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     label: "Eagle Ridge",
     x: 40,
     y: 18,
+    lat: 56.7514,
+    lng: -111.4039,
     aliases: ["eagle ridge", "eagleridge"]
   }
 };
@@ -116,6 +132,8 @@ const RIDE_SHARE_AREA_DEFINITIONS: Record<RideShareArea, LocalAreaDefinition> = 
     label: "Site / camp",
     x: 90,
     y: 16,
+    lat: 57.148,
+    lng: -111.641,
     aliases: ["site", "camp", "site-camp", "oil sands", "work site"]
   },
   edmonton: {
@@ -123,6 +141,8 @@ const RIDE_SHARE_AREA_DEFINITIONS: Record<RideShareArea, LocalAreaDefinition> = 
     label: "Edmonton",
     x: 18,
     y: 84,
+    lat: 53.5461,
+    lng: -113.4938,
     aliases: ["edmonton", "yeg"]
   },
   calgary: {
@@ -130,6 +150,8 @@ const RIDE_SHARE_AREA_DEFINITIONS: Record<RideShareArea, LocalAreaDefinition> = 
     label: "Calgary",
     x: 8,
     y: 96,
+    lat: 51.0447,
+    lng: -114.0719,
     aliases: ["calgary", "yyc"]
   }
 };
