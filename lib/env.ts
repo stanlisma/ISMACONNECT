@@ -1,4 +1,6 @@
 const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
+const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() || "";
+const googleMapsMapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || "";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || "";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || "";
@@ -13,6 +15,23 @@ const emailFrom = process.env.EMAIL_FROM?.trim() || "";
 
 export function getBaseUrl() {
   return appUrl.replace(/\/$/, "");
+}
+
+export function isGoogleMapsConfigured() {
+  return Boolean(googleMapsApiKey);
+}
+
+export function getGoogleMapsEnv() {
+  if (!isGoogleMapsConfigured()) {
+    throw new Error(
+      "Missing Google Maps environment variable. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY."
+    );
+  }
+
+  return {
+    googleMapsApiKey,
+    googleMapsMapId: googleMapsMapId || null
+  };
 }
 
 export function isSupabaseConfigured() {

@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Compass, MapPinned, Minus, Plus, RotateCcw, Route } from "lucide-react";
-import { useId, useRef, useState, type PointerEvent, type ReactNode, type WheelEvent } from "react";
+import { ArrowRight, Compass, MapPinned, RotateCcw, Route } from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MutableRefObject,
+  type ReactNode
+} from "react";
 
 import { getRentalAreaCounts, getRideShareRouteCounts } from "@/lib/local-marketplace";
 import { buildPathWithQuery } from "@/lib/utils";
@@ -20,18 +27,30 @@ type LocalMapExplorerProps = {
   structuredFilters?: Record<string, unknown>;
 };
 
-type MapCanvasProps = {
-  badge: ReactNode;
-  children: ReactNode;
-  summary?: ReactNode;
-};
+type RentalAreaSummary = ReturnType<typeof getRentalAreaCounts>["knownAreas"][number];
+type RideShareEndpointSummary = ReturnType<typeof getRideShareRouteCounts>["endpoints"][number];
+type RideShareRouteSummary = ReturnType<typeof getRideShareRouteCounts>["routes"][number];
 
-const MIN_MAP_ZOOM = 1;
-const MAX_MAP_ZOOM = 2.8;
-const MAP_ZOOM_STEP = 0.22;
+type GoogleMapsNamespace = any;
+type GoogleMapInstance = any;
+type GoogleMarkerInstance = any;
+type GooglePolylineInstance = any;
+type GoogleInfoWindowInstance = any;
+type LatLngLike = { lat: number; lng: number };
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
+const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || undefined;
+const GOOGLE_MAPS_CALLBACK = "__ismaconnectGoogleMapsInit";
+const FORT_MCMURRAY_CENTER = { lat: 56.7269, lng: -111.3806 };
+const ALBERTA_CENTER = { lat: 54.9, lng: -112.6 };
+
+let googleMapsPromise: Promise<GoogleMapsNamespace> | null = null;
+
+declare global {
+  interface Window {
+    google?: GoogleMapsNamespace;
+    [GOOGLE_MAPS_CALLBACK]?: () => void;
+  }
 }
 
 function toStringFilterRecord(filters?: Record<string, unknown>) {
@@ -40,159 +59,173 @@ function toStringFilterRecord(filters?: Record<string, unknown>) {
   ) as Record<string, string | undefined>;
 }
 
-function MapCanvas({ badge, children, summary }: MapCanvasProps) {
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const dragState = useRef<{
-    pointerId: number;
-    startX: number;
-    startY: number;
-    originX: number;
-    originY: number;
-  } | null>(null);
-  const [zoom, setZoom] = useState(MIN_MAP_ZOOM);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+function loadGoogleMapsApi(apiKey: string) {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Google Maps can only load in the browser."));
+  }
 
-  function clampOffset(nextOffset: { x: number; y: number }, nextZoom = zoom) {
-    if (!stageRef.current) {
-      return nextOffset;
-    }
+  if (window.google?.maps) {
+    return Promise.resolve(window.google.maps);
+  }
 
-    const bounds = stageRef.current.getBoundingClientRect();
-    const maxX = Math.max(0, (bounds.width * nextZoom - bounds.width) / 2);
-    const maxY = Math.max(0, (bounds.height * nextZoom - bounds.height) / 2);
+  if (googleMapsPromise) {
+    return googleMapsPromise;
+  }
 
-    return {
-      x: clamp(nextOffset.x, -maxX, maxX),
-      y: clamp(nextOffset.y, -maxY, maxY)
+  googleMapsPromise = new Promise<GoogleMapsNamespace>((resolve, reject) => {
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-google-maps-loader="ismaconnect"]');
+
+    window[GOOGLE_MAPS_CALLBACK] = () => {
+      if (window.google?.maps) {
+        resolve(window.google.maps);
+      } else {
+        googleMapsPromise = null;
+        reject(new Error("Google Maps loaded without a usable maps namespace."));
+      }
     };
-  }
 
-  function updateZoom(delta: number) {
-    setZoom((currentZoom) => {
-      const nextZoom = clamp(Number((currentZoom + delta).toFixed(2)), MIN_MAP_ZOOM, MAX_MAP_ZOOM);
-      setOffset((currentOffset) =>
-        nextZoom === MIN_MAP_ZOOM ? { x: 0, y: 0 } : clampOffset(currentOffset, nextZoom)
-      );
-      return nextZoom;
-    });
-  }
-
-  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    if ((event.target as HTMLElement).closest("button, a")) {
+    if (existingScript) {
       return;
     }
 
-    if (event.pointerType === "mouse" && event.button !== 0) {
-      return;
-    }
-
-    const target = stageRef.current;
-    if (!target) {
-      return;
-    }
-
-    target.setPointerCapture(event.pointerId);
-    dragState.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: offset.x,
-      originY: offset.y
+    const script = document.createElement("script");
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleMapsLoader = "ismaconnect";
+    script.src =
+      `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}` +
+      `&v=weekly&loading=async&callback=${GOOGLE_MAPS_CALLBACK}`;
+    script.onerror = () => {
+      googleMapsPromise = null;
+      reject(new Error("Failed to load Google Maps JavaScript API."));
     };
-    setIsDragging(true);
+
+    document.head.appendChild(script);
+  });
+
+  return googleMapsPromise;
+}
+
+function buildMapOptions(center: LatLngLike, zoom: number) {
+  return {
+    center,
+    zoom,
+    mapId: GOOGLE_MAP_ID,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    clickableIcons: false,
+    gestureHandling: "greedy" as const
+  };
+}
+
+function createCircleMarkerIcon(
+  googleMaps: GoogleMapsNamespace,
+  count: number,
+  isActive: boolean
+) {
+  return {
+    path: googleMaps.SymbolPath.CIRCLE,
+    scale: Math.min(23, isActive ? 11 + count * 1.05 : 9 + count * 0.9),
+    fillColor: isActive ? "#1549B7" : "#1E5FE0",
+    fillOpacity: 1,
+    strokeColor: "#FFFFFF",
+    strokeWeight: isActive ? 2.6 : 2.1
+  };
+}
+
+function createInfoContent(title: string, body: string) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "local-map-info-card";
+
+  const heading = document.createElement("strong");
+  heading.textContent = title;
+
+  const copy = document.createElement("p");
+  copy.textContent = body;
+
+  wrapper.append(heading, copy);
+  return wrapper;
+}
+
+function fitMapToPoints(
+  googleMaps: GoogleMapsNamespace,
+  map: GoogleMapInstance,
+  points: LatLngLike[],
+  fallbackCenter: LatLngLike,
+  fallbackZoom: number
+) {
+  if (!points.length) {
+    map.setCenter(fallbackCenter);
+    map.setZoom(fallbackZoom);
+    return;
   }
 
-  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (!dragState.current || dragState.current.pointerId !== event.pointerId) {
-      return;
-    }
-
-    const nextOffset = clampOffset({
-      x: dragState.current.originX + (event.clientX - dragState.current.startX),
-      y: dragState.current.originY + (event.clientY - dragState.current.startY)
-    });
-
-    setOffset(nextOffset);
+  if (points.length === 1) {
+    map.setCenter(points[0]);
+    map.setZoom(fallbackZoom);
+    return;
   }
 
-  function endDrag(event?: PointerEvent<HTMLDivElement>) {
-    if (event && stageRef.current?.hasPointerCapture(event.pointerId)) {
-      stageRef.current.releasePointerCapture(event.pointerId);
-    }
+  const bounds = new googleMaps.LatLngBounds();
+  points.forEach((point) => bounds.extend(point));
+  map.fitBounds(bounds, 48);
+}
 
-    dragState.current = null;
-    setIsDragging(false);
-  }
-
-  function handleWheel(event: WheelEvent<HTMLDivElement>) {
-    event.preventDefault();
-    updateZoom(event.deltaY < 0 ? MAP_ZOOM_STEP : -MAP_ZOOM_STEP);
-  }
-
+function MapSurface({
+  badge,
+  children,
+  status,
+  summary,
+  onReset
+}: {
+  badge: ReactNode;
+  children: ReactNode;
+  status: "loading" | "ready" | "error" | "missing-key";
+  summary?: ReactNode;
+  onReset: () => void;
+}) {
   return (
     <div className="local-map-canvas">
       <div className="local-map-canvas-top">
         <div className="local-map-canvas-badge">{badge}</div>
-
-        <div className="local-map-controls" aria-label="Map controls">
-          <button
-            type="button"
-            className="local-map-control"
-            onClick={() => updateZoom(MAP_ZOOM_STEP)}
-            aria-label="Zoom in"
-          >
-            <Plus size={16} strokeWidth={2.3} />
-          </button>
-          <button
-            type="button"
-            className="local-map-control"
-            onClick={() => updateZoom(-MAP_ZOOM_STEP)}
-            aria-label="Zoom out"
-          >
-            <Minus size={16} strokeWidth={2.3} />
-          </button>
-          <button
-            type="button"
-            className="local-map-control local-map-control-reset"
-            onClick={() => {
-              setZoom(MIN_MAP_ZOOM);
-              setOffset({ x: 0, y: 0 });
-            }}
-            aria-label="Reset map view"
-          >
+        <div className="local-map-stage-actions">
+          <button type="button" className="local-map-reset" onClick={onReset}>
             <RotateCcw size={15} strokeWidth={2.3} />
-            <span>{Math.round(zoom * 100)}%</span>
+            <span>Reset view</span>
           </button>
         </div>
       </div>
 
-      <div
-        ref={stageRef}
-        className={`local-map-stage${isDragging ? " is-dragging" : ""}`}
-        onDoubleClick={() => updateZoom(MAP_ZOOM_STEP)}
-        onPointerCancel={endDrag}
-        onPointerDown={handlePointerDown}
-        onPointerLeave={endDrag}
-        onPointerMove={handlePointerMove}
-        onPointerUp={endDrag}
-        onWheel={handleWheel}
-      >
-        <div className="local-map-stage-grid" aria-hidden="true" />
+      <div className="local-map-stage">
+        {children}
 
-        <div
-          className="local-map-scene"
-          style={{
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`
-          }}
-        >
-          {children}
-        </div>
+        {status === "loading" ? (
+          <div className="local-map-status">
+            <strong>Loading Google Maps</strong>
+            <p>Pulling in the live map tiles and interactive controls.</p>
+          </div>
+        ) : null}
+
+        {status === "missing-key" ? (
+          <div className="local-map-status is-warning">
+            <strong>Google Maps key required</strong>
+            <p>Set <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to render the real map on this screen.</p>
+          </div>
+        ) : null}
+
+        {status === "error" ? (
+          <div className="local-map-status is-warning">
+            <strong>Map failed to load</strong>
+            <p>Double-check your Google Maps JavaScript API key and billing setup, then refresh.</p>
+          </div>
+        ) : null}
       </div>
 
       <div className="local-map-stage-meta">
-        <span>Drag to pan</span>
-        <span>Double-click or use +/- to zoom</span>
+        <span>Google Maps with native pan and zoom</span>
+        <span>Tap markers or route chips to narrow results faster</span>
       </div>
 
       {summary ? <div className="local-map-summary-card">{summary}</div> : null}
@@ -211,8 +244,6 @@ export function LocalMapExplorer({
   sort,
   structuredFilters
 }: LocalMapExplorerProps) {
-  const routeGradientId = useId().replace(/:/g, "");
-  const fillGradientId = useId().replace(/:/g, "");
   const serializedFilters = toStringFilterRecord(structuredFilters);
 
   const buildHref = (overrides: Record<string, string | number | boolean | null | undefined>) =>
@@ -232,7 +263,6 @@ export function LocalMapExplorer({
       <RentalMapExplorer
         activeArea={typeof structuredFilters?.rentalArea === "string" ? structuredFilters.rentalArea : null}
         buildHref={buildHref}
-        fillGradientId={fillGradientId}
         listings={listings}
       />
     );
@@ -243,9 +273,7 @@ export function LocalMapExplorer({
       activeDeparture={typeof structuredFilters?.departureArea === "string" ? structuredFilters.departureArea : null}
       activeDestination={typeof structuredFilters?.destinationArea === "string" ? structuredFilters.destinationArea : null}
       buildHref={buildHref}
-      fillGradientId={fillGradientId}
       listings={listings}
-      routeGradientId={routeGradientId}
     />
   );
 }
@@ -253,17 +281,147 @@ export function LocalMapExplorer({
 function RentalMapExplorer({
   activeArea,
   buildHref,
-  fillGradientId,
   listings
 }: {
   activeArea: string | null;
   buildHref: (overrides: Record<string, string | number | boolean | null | undefined>) => string;
-  fillGradientId: string;
   listings: Listing[];
 }) {
-  const { knownAreas, unknownCount } = getRentalAreaCounts(listings);
+  const mapRootRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<GoogleMapInstance | null>(null);
+  const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
+  const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
+  const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">(
+    GOOGLE_MAPS_API_KEY ? "loading" : "missing-key"
+  );
+  const { knownAreas, unknownCount } = useMemo(() => getRentalAreaCounts(listings), [listings]);
+  const dataKey = useMemo(
+    () => knownAreas.map((area) => `${area.value}:${area.count}`).join("|"),
+    [knownAreas]
+  );
   const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? knownAreas[0]?.value ?? null);
+
+  useEffect(() => {
+    setSelectedArea(activeArea ?? knownAreas[0]?.value ?? null);
+  }, [activeArea, dataKey, knownAreas]);
+
+  useEffect(() => {
+    if (!GOOGLE_MAPS_API_KEY || !mapRootRef.current) {
+      setStatus("missing-key");
+      return;
+    }
+
+    let cancelled = false;
+
+    async function renderMap() {
+      try {
+        const googleMaps = await loadGoogleMapsApi(GOOGLE_MAPS_API_KEY);
+        if (cancelled || !mapRootRef.current) {
+          return;
+        }
+
+        const map =
+          mapRef.current ??
+          new googleMaps.Map(mapRootRef.current, buildMapOptions(FORT_MCMURRAY_CENTER, 11));
+        mapRef.current = map;
+        infoWindowRef.current = infoWindowRef.current ?? new googleMaps.InfoWindow();
+
+        Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
+        markersRef.current = {};
+
+        knownAreas.forEach((area) => {
+          const marker = new googleMaps.Marker({
+            map,
+            position: { lat: area.lat, lng: area.lng },
+            title: `${area.label} · ${area.count} rental${area.count === 1 ? "" : "s"}`,
+            label: {
+              text: String(area.count),
+              color: "#FFFFFF",
+              fontWeight: "800",
+              fontSize: "12px"
+            },
+            icon: createCircleMarkerIcon(googleMaps, area.count, selectedArea === area.value)
+          });
+
+          marker.addListener("click", () => {
+            setSelectedArea(area.value);
+            infoWindowRef.current?.setContent(
+              createInfoContent(
+                area.label,
+                `${area.count} active rental${area.count === 1 ? "" : "s"} currently pinned here.`
+              )
+            );
+            infoWindowRef.current?.open({ anchor: marker, map });
+          });
+
+          markersRef.current[area.value] = marker;
+        });
+
+        fitMapToPoints(
+          googleMaps,
+          map,
+          knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+          FORT_MCMURRAY_CENTER,
+          11
+        );
+        setStatus("ready");
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      }
+    }
+
+    void renderMap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dataKey, knownAreas, selectedArea]);
+
+  useEffect(() => {
+    if (!window.google?.maps) {
+      return;
+    }
+
+    const googleMaps = window.google.maps;
+    const map = mapRef.current;
+    const selectedMarker = selectedArea ? markersRef.current[selectedArea] : null;
+
+    Object.entries(markersRef.current).forEach(([value, marker]) => {
+      const area = knownAreas.find((item) => item.value === value);
+      if (!area) {
+        return;
+      }
+
+      marker.setIcon(createCircleMarkerIcon(googleMaps, area.count, selectedArea === value));
+      marker.setZIndex(selectedArea === value ? 20 : 10);
+    });
+
+    if (map && selectedMarker) {
+      const position = selectedMarker.getPosition?.();
+      if (position) {
+        map.panTo(position);
+      }
+    }
+  }, [selectedArea, knownAreas]);
+
   const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
+
+  function handleReset() {
+    const map = mapRef.current;
+    if (!map || !window.google?.maps) {
+      return;
+    }
+
+    fitMapToPoints(
+      window.google.maps,
+      map,
+      knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+      FORT_MCMURRAY_CENTER,
+      11
+    );
+  }
 
   return (
     <div className="local-map-shell surface">
@@ -271,7 +429,7 @@ function RentalMapExplorer({
         <div>
           <span className="eyebrow">Map view</span>
           <h3>Rental inventory by area</h3>
-          <p>Scan where active rentals are concentrated across Fort McMurray before opening every listing.</p>
+          <p>Browse live rental clusters on a real map before opening every listing card.</p>
         </div>
         <div className="local-map-mini-stats">
           <span>
@@ -286,13 +444,15 @@ function RentalMapExplorer({
       </div>
 
       <div className="local-map-layout">
-        <MapCanvas
+        <MapSurface
           badge={
             <>
               <MapPinned aria-hidden="true" size={16} strokeWidth={2.3} />
-              <span>Neighbourhood coverage</span>
+              <span>Live rental map</span>
             </>
           }
+          status={status}
+          onReset={handleReset}
           summary={
             selectedAreaData ? (
               <div className="local-map-summary-inner">
@@ -301,7 +461,7 @@ function RentalMapExplorer({
                   <strong>{selectedAreaData.label}</strong>
                   <p>
                     {selectedAreaData.count} active rental{selectedAreaData.count === 1 ? "" : "s"} currently mapped
-                    here.
+                    in this neighbourhood.
                   </p>
                 </div>
                 <Link href={buildHref({ rentalArea: selectedAreaData.value })} className="local-map-summary-link">
@@ -312,56 +472,8 @@ function RentalMapExplorer({
             ) : null
           }
         >
-          <svg viewBox="0 0 100 100" className="local-map-svg" aria-hidden="true">
-            <defs>
-              <linearGradient id={fillGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(47, 109, 246, 0.16)" />
-                <stop offset="100%" stopColor="rgba(21, 73, 183, 0.06)" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M15,78 C12,59 20,34 33,20 C43,10 59,8 72,15 C84,22 90,35 87,53 C84,72 68,85 48,87 C30,88 18,86 15,78 Z"
-              fill={`url(#${fillGradientId})`}
-              stroke="rgba(21, 73, 183, 0.18)"
-              strokeWidth="1.2"
-            />
-
-            {knownAreas.map((area) => (
-              <g key={area.value}>
-                <circle
-                  cx={area.x}
-                  cy={area.y}
-                  r={Math.min(8, 3.5 + area.count * 0.9)}
-                  className={`local-map-node${selectedArea === area.value ? " is-active" : ""}`}
-                />
-                <circle
-                  cx={area.x}
-                  cy={area.y}
-                  r={Math.min(13, 7 + area.count)}
-                  className={`local-map-node-pulse${selectedArea === area.value ? " is-active" : ""}`}
-                />
-              </g>
-            ))}
-          </svg>
-
-          <div className="local-map-labels">
-            {knownAreas.map((area) => (
-              <button
-                key={area.value}
-                type="button"
-                className={`local-map-label-button${selectedArea === area.value ? " is-active" : ""}`}
-                style={{
-                  left: `${area.x}%`,
-                  top: `${area.y}%`
-                }}
-                onClick={() => setSelectedArea(area.value)}
-              >
-                <strong>{area.label}</strong>
-                <span>{area.count}</span>
-              </button>
-            ))}
-          </div>
-        </MapCanvas>
+          <div ref={mapRootRef} className="local-map-google-stage" />
+        </MapSurface>
 
         <div className="local-map-sidebar">
           <div className="local-map-sidebar-card">
@@ -391,11 +503,11 @@ function RentalMapExplorer({
           </div>
 
           <div className="local-map-sidebar-card">
-            <strong>What this helps with</strong>
+            <strong>Why this is better</strong>
             <ul className="local-map-list">
-              <li>Spot whether active rental supply is concentrated in Timberlea, Thickwood, Downtown, or Gregoire.</li>
-              <li>Pair map view with furnished, short-term, and parking filters for worker-friendly searches.</li>
-              <li>Use the structured area field when posting new rentals so buyers can find you faster.</li>
+              <li>Actual Google Maps tiles make the rental areas feel familiar immediately.</li>
+              <li>Native pan and zoom behave the way users expect from Kijiji and Facebook Marketplace.</li>
+              <li>Area filters still narrow the results, but now the map is a real browsing surface too.</li>
             </ul>
           </div>
         </div>
@@ -408,29 +520,215 @@ function RideShareMapExplorer({
   activeDeparture,
   activeDestination,
   buildHref,
-  fillGradientId,
-  listings,
-  routeGradientId
+  listings
 }: {
   activeDeparture: string | null;
   activeDestination: string | null;
   buildHref: (overrides: Record<string, string | number | boolean | null | undefined>) => string;
-  fillGradientId: string;
   listings: Listing[];
-  routeGradientId: string;
 }) {
-  const { routes, endpoints, flexibleCount } = getRideShareRouteCounts(listings);
-  const topRoutes = routes.slice(0, 6);
+  const mapRootRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<GoogleMapInstance | null>(null);
+  const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
+  const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
+  const routeRefs = useRef<Array<{ route: RideShareRouteSummary; polyline: GooglePolylineInstance }>>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">(
+    GOOGLE_MAPS_API_KEY ? "loading" : "missing-key"
+  );
+  const { routes, endpoints, flexibleCount } = useMemo(() => getRideShareRouteCounts(listings), [listings]);
+  const topRoutes = useMemo(() => routes.slice(0, 6), [routes]);
+  const routeDataKey = useMemo(
+    () => topRoutes.map((route) => `${route.departure}:${route.destination}:${route.count}`).join("|"),
+    [topRoutes]
+  );
+  const endpointDataKey = useMemo(
+    () => endpoints.map((endpoint) => `${endpoint.value}:${endpoint.count}`).join("|"),
+    [endpoints]
+  );
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(activeDeparture ?? activeDestination ?? null);
-  const selectedEndpointData = endpoints.find((area) => area.value === selectedEndpoint) ?? null;
+
+  useEffect(() => {
+    setSelectedEndpoint(activeDeparture ?? activeDestination ?? endpoints[0]?.value ?? null);
+  }, [activeDeparture, activeDestination, endpointDataKey, endpoints]);
+
+  useEffect(() => {
+    if (!GOOGLE_MAPS_API_KEY || !mapRootRef.current) {
+      setStatus("missing-key");
+      return;
+    }
+
+    let cancelled = false;
+
+    async function renderMap() {
+      try {
+        const googleMaps = await loadGoogleMapsApi(GOOGLE_MAPS_API_KEY);
+        if (cancelled || !mapRootRef.current) {
+          return;
+        }
+
+        const map =
+          mapRef.current ??
+          new googleMaps.Map(mapRootRef.current, buildMapOptions(ALBERTA_CENTER, 6));
+        mapRef.current = map;
+        infoWindowRef.current = infoWindowRef.current ?? new googleMaps.InfoWindow();
+
+        Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
+        markersRef.current = {};
+        routeRefs.current.forEach(({ polyline }) => polyline.setMap(null));
+        routeRefs.current = [];
+
+        endpoints.forEach((endpoint) => {
+          const marker = new googleMaps.Marker({
+            map,
+            position: { lat: endpoint.lat, lng: endpoint.lng },
+            title: `${endpoint.label} · ${endpoint.count} route touchpoint${endpoint.count === 1 ? "" : "s"}`,
+            label: {
+              text: String(endpoint.count),
+              color: "#FFFFFF",
+              fontWeight: "800",
+              fontSize: "12px"
+            },
+            icon: createCircleMarkerIcon(googleMaps, endpoint.count, selectedEndpoint === endpoint.value)
+          });
+
+          marker.addListener("click", () => {
+            setSelectedEndpoint(endpoint.value);
+            infoWindowRef.current?.setContent(
+              createInfoContent(
+                endpoint.label,
+                `${endpoint.count} ride-share stop${endpoint.count === 1 ? "" : "s"} in the current result set.`
+              )
+            );
+            infoWindowRef.current?.open({ anchor: marker, map });
+          });
+
+          markersRef.current[endpoint.value] = marker;
+        });
+
+        topRoutes
+          .filter((route) => route.departure !== route.destination)
+          .forEach((route) => {
+            const polyline = new googleMaps.Polyline({
+              map,
+              path: [
+                { lat: route.departurePoint.lat, lng: route.departurePoint.lng },
+                { lat: route.destinationPoint.lat, lng: route.destinationPoint.lng }
+              ],
+              geodesic: true,
+              strokeColor: "#2F6DF6",
+              strokeOpacity: 0.72,
+              strokeWeight: Math.min(7, 2.2 + route.count * 0.75),
+              icons: [
+                {
+                  icon: {
+                    path: googleMaps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 3.5,
+                    strokeColor: "#1549B7",
+                    fillColor: "#1549B7",
+                    fillOpacity: 1
+                  },
+                  offset: "100%"
+                }
+              ]
+            });
+
+            polyline.addListener("click", (event: { latLng?: any }) => {
+              setSelectedEndpoint(route.departure);
+              if (event.latLng) {
+                infoWindowRef.current?.setPosition(event.latLng);
+                infoWindowRef.current?.setContent(
+                  createInfoContent(
+                    `${route.departureLabel} → ${route.destinationLabel}`,
+                    `${route.count} active ride${route.count === 1 ? "" : "s"} currently follow this route.`
+                  )
+                );
+                infoWindowRef.current?.open({ map });
+              }
+            });
+
+            routeRefs.current.push({ route, polyline });
+          });
+
+        const routePoints = [
+          ...endpoints.map((endpoint) => ({ lat: endpoint.lat, lng: endpoint.lng }))
+        ];
+        fitMapToPoints(googleMaps, map, routePoints, ALBERTA_CENTER, 6);
+        setStatus("ready");
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      }
+    }
+
+    void renderMap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [endpointDataKey, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
+
+  useEffect(() => {
+    if (!window.google?.maps) {
+      return;
+    }
+
+    const googleMaps = window.google.maps;
+    const map = mapRef.current;
+    const selectedMarker = selectedEndpoint ? markersRef.current[selectedEndpoint] : null;
+
+    Object.entries(markersRef.current).forEach(([value, marker]) => {
+      const endpoint = endpoints.find((item) => item.value === value);
+      if (!endpoint) {
+        return;
+      }
+
+      marker.setIcon(createCircleMarkerIcon(googleMaps, endpoint.count, selectedEndpoint === value));
+      marker.setZIndex(selectedEndpoint === value ? 20 : 10);
+    });
+
+    routeRefs.current.forEach(({ route, polyline }) => {
+      const related = selectedEndpoint
+        ? route.departure === selectedEndpoint || route.destination === selectedEndpoint
+        : true;
+      polyline.setOptions({
+        strokeOpacity: related ? 0.82 : 0.18,
+        zIndex: related ? 3 : 1
+      });
+    });
+
+    if (map && selectedMarker) {
+      const position = selectedMarker.getPosition?.();
+      if (position) {
+        map.panTo(position);
+      }
+    }
+  }, [selectedEndpoint, endpoints]);
+
+  const selectedEndpointData = endpoints.find((endpoint) => endpoint.value === selectedEndpoint) ?? null;
+
+  function handleReset() {
+    const map = mapRef.current;
+    if (!map || !window.google?.maps) {
+      return;
+    }
+
+    fitMapToPoints(
+      window.google.maps,
+      map,
+      endpoints.map((endpoint) => ({ lat: endpoint.lat, lng: endpoint.lng })),
+      ALBERTA_CENTER,
+      6
+    );
+  }
 
   return (
     <div className="local-map-shell surface">
       <div className="local-map-shell-head">
         <div>
           <span className="eyebrow">Map view</span>
-          <h3>Ride-share routes at a glance</h3>
-          <p>See where trips start, where they go, and which routes show up most often in active listings.</p>
+          <h3>Ride-share routes on a real map</h3>
+          <p>See live stops and route lines on Google Maps instead of guessing from raw listing text.</p>
         </div>
         <div className="local-map-mini-stats">
           <span>
@@ -445,13 +743,15 @@ function RideShareMapExplorer({
       </div>
 
       <div className="local-map-layout">
-        <MapCanvas
+        <MapSurface
           badge={
             <>
               <Route aria-hidden="true" size={16} strokeWidth={2.3} />
-              <span>Popular route pairs</span>
+              <span>Live route map</span>
             </>
           }
+          status={status}
+          onReset={handleReset}
           summary={
             selectedEndpointData ? (
               <div className="local-map-summary-inner">
@@ -460,7 +760,7 @@ function RideShareMapExplorer({
                   <strong>{selectedEndpointData.label}</strong>
                   <p>
                     {selectedEndpointData.count} route touchpoint{selectedEndpointData.count === 1 ? "" : "s"} in the
-                    current results.
+                    current result set.
                   </p>
                 </div>
                 <div className="local-map-summary-actions">
@@ -481,79 +781,8 @@ function RideShareMapExplorer({
             ) : null
           }
         >
-          <svg viewBox="0 0 100 100" className="local-map-svg" aria-hidden="true">
-            <defs>
-              <linearGradient id={fillGradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(47, 109, 246, 0.16)" />
-                <stop offset="100%" stopColor="rgba(21, 73, 183, 0.06)" />
-              </linearGradient>
-              <linearGradient id={routeGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="rgba(47, 109, 246, 0.82)" />
-                <stop offset="100%" stopColor="rgba(21, 73, 183, 0.55)" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M18,84 C21,66 28,49 38,33 C50,16 68,9 82,17 C92,23 92,37 87,49 C81,65 66,82 47,87 C33,91 22,89 18,84 Z"
-              fill={`url(#${fillGradientId})`}
-              stroke="rgba(21, 73, 183, 0.18)"
-              strokeWidth="1.2"
-            />
-
-            {topRoutes.map((route, index) => {
-              const midX = (route.departurePoint.x + route.destinationPoint.x) / 2;
-              const midY = Math.min(route.departurePoint.y, route.destinationPoint.y) - 10 - index * 1.2;
-              const isEndpointActive =
-                selectedEndpoint === route.departure || selectedEndpoint === route.destination;
-
-              return (
-                <path
-                  key={`${route.departure}-${route.destination}-${index}`}
-                  d={`M ${route.departurePoint.x} ${route.departurePoint.y} Q ${midX} ${midY} ${route.destinationPoint.x} ${route.destinationPoint.y}`}
-                  className={`local-map-route-line${
-                    selectedEndpoint ? (isEndpointActive ? " is-active" : " is-dim") : ""
-                  }`}
-                  stroke={`url(#${routeGradientId})`}
-                  strokeWidth={Math.min(4.6, 1.3 + route.count * 0.5)}
-                />
-              );
-            })}
-
-            {endpoints.map((area) => (
-              <g key={area.value}>
-                <circle
-                  cx={area.x}
-                  cy={area.y}
-                  r={Math.min(7.5, 3.4 + area.count * 0.55)}
-                  className={`local-map-node${selectedEndpoint === area.value ? " is-active" : ""}`}
-                />
-                <circle
-                  cx={area.x}
-                  cy={area.y}
-                  r={Math.min(12, 6 + area.count * 0.8)}
-                  className={`local-map-node-pulse${selectedEndpoint === area.value ? " is-active" : ""}`}
-                />
-              </g>
-            ))}
-          </svg>
-
-          <div className="local-map-labels">
-            {endpoints.map((area) => (
-              <button
-                key={area.value}
-                type="button"
-                className={`local-map-label-button${selectedEndpoint === area.value ? " is-active" : ""}`}
-                style={{
-                  left: `${area.x}%`,
-                  top: `${area.y}%`
-                }}
-                onClick={() => setSelectedEndpoint(area.value)}
-              >
-                <strong>{area.label}</strong>
-                <span>{area.count}</span>
-              </button>
-            ))}
-          </div>
-        </MapCanvas>
+          <div ref={mapRootRef} className="local-map-google-stage" />
+        </MapSurface>
 
         <div className="local-map-sidebar">
           <div className="local-map-sidebar-card">
@@ -565,27 +794,43 @@ function RideShareMapExplorer({
             <div className="local-map-route-list">
               {topRoutes.length ? (
                 topRoutes.map((route) => (
-                  <Link
-                    key={`${route.departure}-${route.destination}`}
-                    href={buildHref({
-                      departureArea: route.departure,
-                      destinationArea: route.destination
-                    })}
-                    className={`local-map-route-pill${
-                      activeDeparture === route.departure && activeDestination === route.destination
-                        ? " is-active"
-                        : ""
-                    }`}
-                  >
-                    <span>{route.departureLabel}</span>
-                    <ArrowRight size={14} strokeWidth={2.4} />
-                    <span>{route.destinationLabel}</span>
-                    <strong>{route.count}</strong>
-                  </Link>
+                  route.departure === route.destination ? (
+                    <Link
+                      key={`${route.departure}-${route.destination}`}
+                      href={buildHref({
+                        departureArea: route.departure,
+                        destinationArea: undefined
+                      })}
+                      className={`local-map-route-pill${
+                        activeDeparture === route.departure && !activeDestination ? " is-active" : ""
+                      }`}
+                    >
+                      <span>{route.departureLabel} area trips</span>
+                      <strong>{route.count}</strong>
+                    </Link>
+                  ) : (
+                    <Link
+                      key={`${route.departure}-${route.destination}`}
+                      href={buildHref({
+                        departureArea: route.departure,
+                        destinationArea: route.destination
+                      })}
+                      className={`local-map-route-pill${
+                        activeDeparture === route.departure && activeDestination === route.destination
+                          ? " is-active"
+                          : ""
+                      }`}
+                    >
+                      <span>{route.departureLabel}</span>
+                      <ArrowRight size={14} strokeWidth={2.4} />
+                      <span>{route.destinationLabel}</span>
+                      <strong>{route.count}</strong>
+                    </Link>
+                  )
                 ))
               ) : (
                 <p className="local-map-empty-copy">
-                  Map routes become more useful as riders and drivers fill in departure and destination areas.
+                  Route chips become more precise as riders and drivers fill in departure and destination fields.
                 </p>
               )}
             </div>
@@ -601,11 +846,11 @@ function RideShareMapExplorer({
           </div>
 
           <div className="local-map-sidebar-card">
-            <strong>How to get better matches</strong>
+            <strong>Why this is better</strong>
             <ul className="local-map-list">
-              <li>Use airport, camp, Edmonton, and Calgary route filters before opening individual ride posts.</li>
-              <li>Listings with departure, destination, and tool-space details are easier to trust and compare.</li>
-              <li>Flexible trips still show up, but routes become more accurate as posters use the structured fields.</li>
+              <li>The map now behaves like a real marketplace map with native Google zoom and pan.</li>
+              <li>Endpoint markers and route lines stay familiar for users coming from Kijiji or Facebook.</li>
+              <li>Route chips still refine the list, but the map now carries real browsing weight.</li>
             </ul>
           </div>
         </div>
