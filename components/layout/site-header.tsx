@@ -240,7 +240,7 @@ export function SiteHeader({
             <nav className="account-nav">
               <Link href="/dashboard">My Listings</Link>
               <Link href="/dashboard/searches">Saved Searches</Link>
-              <Link href="/dashboard/saved">Favourites</Link>
+              <Link href="/saved">Favourites</Link>
               <Link href="/settings">Settings</Link>
 
               <button
@@ -267,7 +267,7 @@ export function SiteHeader({
             <Link href="/dashboard/searches" className={isPathGroup("/dashboard/searches") ? "is-active" : ""}>
               Saved Searches
             </Link>
-            <Link href="/dashboard/saved" className={isPathGroup("/dashboard/saved") ? "is-active" : ""}>
+            <Link href="/saved" className={isExactPath("/saved") ? "is-active" : ""}>
               Favourites
             </Link>
             <Link href="/settings" className={isPathGroup("/settings") ? "is-active" : ""}>
