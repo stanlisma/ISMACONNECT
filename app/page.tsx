@@ -7,6 +7,14 @@ import { CATEGORIES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
+const POPULAR_QUERIES = [
+  { label: "2 bedroom rentals", href: "/browse?category=rentals&q=2+bedroom" },
+  { label: "Airport rides", href: "/browse?category=ride-share&q=airport" },
+  { label: "Camp jobs", href: "/browse?category=jobs&q=camp" },
+  { label: "Cleaners", href: "/browse?category=services&q=cleaning" },
+  { label: "Furniture", href: "/browse?category=buy-sell&subcategory=furniture" }
+];
+
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -23,12 +31,29 @@ export default async function HomePage() {
           <p>Find rentals, rides, jobs, services, and everyday deals fast.</p>
         </div>
 
+        <form action="/browse" className="home-mobile-search-form">
+          <label className="home-mobile-search-field">
+            <input name="q" placeholder="Search rentals, rides, jobs..." aria-label="Search local listings" />
+          </label>
+          <button type="submit" className="button home-mobile-search-button">
+            Search
+          </button>
+        </form>
+
         <div className="home-mobile-category-row">
           <Link href="/categories/rentals" className="home-mobile-category-pill">Rentals</Link>
           <Link href="/categories/ride-share" className="home-mobile-category-pill">Ride Share</Link>
           <Link href="/categories/jobs" className="home-mobile-category-pill">Jobs</Link>
           <Link href="/categories/services" className="home-mobile-category-pill">Services</Link>
           <Link href="/categories/buy-sell" className="home-mobile-category-pill">Buy & Sell</Link>
+        </div>
+
+        <div className="home-mobile-query-row">
+          {POPULAR_QUERIES.map((query) => (
+            <Link key={query.label} href={query.href} className="home-mobile-query-chip">
+              {query.label}
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -135,6 +160,14 @@ export default async function HomePage() {
                 Explore {category.label}
               </Link>
             </article>
+          ))}
+        </div>
+
+        <div className="home-desktop-query-row">
+          {POPULAR_QUERIES.map((query) => (
+            <Link key={query.label} href={query.href} className="home-desktop-query-chip">
+              {query.label}
+            </Link>
           ))}
         </div>
       </section>
