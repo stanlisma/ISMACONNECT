@@ -186,13 +186,40 @@ export default async function CategoryPage({
   return (
     <section className="section listing-feed-section">
       <div className="container listing-feed-container">
-        <SectionHeading
-          eyebrow="Category"
-          title={categoryInfo.label}
-          description={localContent.heroDescription}
-        />
+        <div className="browse-mobile-overview category-mobile-overview surface">
+          <div className="browse-mobile-overview-copy">
+            <span className="eyebrow">Category</span>
+            <h1>{categoryInfo.label}</h1>
+            <p>
+              {totalCount > 0
+                ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
+                : localContent.heroDescription}
+            </p>
+          </div>
 
-        <div className="category-local-strip surface">
+          {isMapEligibleCategory ? (
+            <div className="listing-view-toggle browse-view-toggle browse-view-toggle-mobile">
+              <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+                List
+              </Link>
+              {mapViewHref ? (
+                <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+                  Map
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="category-desktop-heading">
+          <SectionHeading
+            eyebrow="Category"
+            title={categoryInfo.label}
+            description={localContent.heroDescription}
+          />
+        </div>
+
+        <div className="category-local-strip category-local-strip-desktop surface">
           <div className="category-local-strip-copy">
             <p>{localContent.supportingCopy}</p>
           </div>
@@ -253,6 +280,7 @@ export default async function CategoryPage({
           sort={sort}
           extraFilters={structuredFilters}
           isSaved={Boolean(savedSearch)}
+          compactOnMobile
         />
 
         <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>

@@ -157,8 +157,25 @@ export default async function BrowsePage({
           <div className="browse-mobile-overview-copy">
             <span className="eyebrow">{category ? "Category" : "Browse"}</span>
             <h1>{categoryLabel ? `${categoryLabel} Listings` : "Search local listings"}</h1>
-            <p>Fast filters, compact cards, and map view for rentals and rides.</p>
+            <p>
+              {totalCount > 0
+                ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
+                : "Fast filters and map view for rentals and rides"}
+            </p>
           </div>
+
+          {isMapEligibleCategory ? (
+            <div className="listing-view-toggle browse-view-toggle browse-view-toggle-mobile">
+              <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+                List
+              </Link>
+              {mapViewHref ? (
+                <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+                  Map
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="browse-desktop-heading">
@@ -206,6 +223,7 @@ export default async function BrowsePage({
           sort={sort}
           extraFilters={structuredFilters}
           isSaved={Boolean(savedSearch)}
+          compactOnMobile
         />
 
         <div className="browse-results-toolbar">
