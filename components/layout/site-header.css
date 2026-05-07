@@ -207,6 +207,10 @@ header.site-header {
   display: none;
 }
 
+.mobile-marketplace-nav {
+  display: none;
+}
+
 /* ========================= */
 /* ✅ DROPDOWN FIX (NO GAP) */
 /* ========================= */
@@ -532,5 +536,44 @@ header.site-header {
     background: linear-gradient(135deg, #e8f2ff, #ffffff);
     border-color: #bfd9ff;
     color: #0d5bc3;
+  }
+
+  .mobile-marketplace-nav {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    margin-top: 0.65rem;
+    padding: 0 0 0.1rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-marketplace-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-marketplace-nav a {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 0.82rem;
+    border-radius: 999px;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(191, 217, 255, 0.88);
+    color: #456487;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .mobile-marketplace-nav a.is-active {
+    background: linear-gradient(135deg, #0f5bd8, #1e6bff);
+    border-color: #0f5bd8;
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(30, 107, 255, 0.22);
   }
 }
