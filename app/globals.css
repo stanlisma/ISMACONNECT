@@ -2565,7 +2565,7 @@ code {
   }
 
   .home-mobile-browse-controls {
-    display: contents;
+    display: none;
   }
 
   .mobile-filter-row {
@@ -5961,6 +5961,37 @@ code {
   gap: 0.9rem;
 }
 
+.home-mobile-search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.home-mobile-search-field {
+  display: flex;
+  align-items: center;
+  min-height: 2.85rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.home-mobile-search-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.94rem;
+}
+
+.home-mobile-search-button {
+  min-height: 2.85rem;
+  padding-inline: 1rem;
+}
+
 .home-mobile-hero-copy,
 .browse-mobile-overview-copy,
 .detail-quick-actions-copy {
@@ -5997,6 +6028,8 @@ code {
 }
 
 .home-mobile-category-pill,
+.home-mobile-query-chip,
+.home-desktop-query-chip,
 .home-section-link {
   display: inline-flex;
   align-items: center;
@@ -6011,6 +6044,26 @@ code {
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.home-mobile-query-row,
+.home-desktop-query-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.home-mobile-query-chip,
+.home-desktop-query-chip {
+  min-height: 34px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.82rem;
+  color: var(--primary-dark);
+  background: rgba(232, 241, 255, 0.8);
+}
+
+.home-desktop-query-row {
+  margin-top: 1rem;
 }
 
 .home-section-head {
@@ -6156,6 +6209,26 @@ code {
   .browse-mobile-overview-copy p {
     font-size: 0.95rem;
     line-height: 1.5;
+  }
+
+  .home-mobile-search-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .home-mobile-query-row {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 0.05rem;
+  }
+
+  .home-mobile-query-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-desktop-query-row {
+    display: none;
   }
 
   .home-section-head {
