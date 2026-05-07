@@ -5966,6 +5966,38 @@ code {
   display: none;
 }
 
+.detail-contact-card,
+.detail-conversation-card,
+.detail-guest-unlock-card {
+  scroll-margin-top: 6rem;
+}
+
+.detail-mobile-action-bar {
+  display: none;
+}
+
+.detail-mobile-action-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.detail-mobile-action-main {
+  min-height: 3rem;
+  justify-content: center;
+}
+
+.detail-mobile-action-save {
+  display: inline-flex;
+  align-items: center;
+}
+
+.detail-mobile-action-save .save-listing-button {
+  width: 48px;
+  height: 48px;
+}
+
 .listing-detail-gallery-stage {
   position: relative;
 }
@@ -6101,8 +6133,13 @@ code {
     padding: 1rem;
   }
 
+  .detail-main > * + * {
+    margin-top: 0.85rem;
+  }
+
   .detail-headline {
     align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .detail-title {
@@ -6116,6 +6153,7 @@ code {
 
   .detail-summary-row {
     align-items: flex-end;
+    gap: 0.75rem;
   }
 
   .detail-price {
@@ -6127,23 +6165,53 @@ code {
     line-height: 1.55;
   }
 
-  .detail-quick-actions {
-    flex-direction: column;
-    display: flex;
-    align-items: stretch;
-  }
-
-  .detail-quick-actions .button,
-  .contact-seller-actions .button {
+  .detail-conversation-card .button,
+  .contact-seller-actions .button,
+  .detail-mobile-action-main {
     width: 100%;
   }
 
-  .detail-quick-actions-copy h2 {
-    font-size: 1rem;
+  .detail-conversation-card .section-copy,
+  .detail-contact-card .section-copy,
+  .detail-guest-unlock-card .section-copy {
+    font-size: 0.9rem;
+    line-height: 1.45;
   }
 
-  .detail-quick-actions-copy p {
-    font-size: 0.9rem;
+  .detail-mobile-action-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 68px;
+    display: block;
+    z-index: 45;
+    padding: 0 0.75rem calc(env(safe-area-inset-bottom, 0px) + 0.35rem);
+    pointer-events: none;
+  }
+
+  .detail-mobile-action-shell {
+    padding: 0.65rem;
+    border: 1px solid rgba(201, 219, 251, 0.95);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 12px 28px rgba(15, 54, 91, 0.14);
+    backdrop-filter: blur(12px);
+    pointer-events: auto;
+  }
+
+  .detail-mobile-action-main {
+    min-height: 2.9rem;
+    padding-inline: 0.95rem;
+    font-size: 0.94rem;
+  }
+
+  .detail-mobile-action-save .save-listing-button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .contact-seller-actions .button {
+    width: 100%;
   }
 
   .meta-list {
@@ -6168,7 +6236,15 @@ code {
   }
 
   .contact-seller-textarea {
-    min-height: 110px;
+    min-height: 96px;
+  }
+
+  .contact-seller-form {
+    gap: 0.7rem;
+  }
+
+  .detail-main {
+    padding-bottom: 150px;
   }
 
   .listing-editor-page-head {
