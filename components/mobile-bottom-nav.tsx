@@ -34,7 +34,7 @@ export function MobileBottomNav() {
         <span>Listings</span>
       </Link>
 
-      <Link href="/dashboard/saved" className={isActive("/dashboard/saved") ? "active" : ""}>
+      <Link href="/saved" className={isActive("/saved") ? "active" : ""}>
         <Heart aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
         <span>Favourites</span>
       </Link>

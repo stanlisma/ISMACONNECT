@@ -177,7 +177,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/dashboard/saved" className="account-menu-item">
+              <Link href="/saved" className="account-menu-item">
                 <span className="account-menu-icon">
                   <Heart aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>

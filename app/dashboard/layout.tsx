@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <Link className="button button-secondary" href="/dashboard">
               Overview
             </Link>
-            <Link className="button button-secondary" href="/dashboard/saved">
+            <Link className="button button-secondary" href="/saved">
               Favourites
             </Link>
             <Link className="button button-secondary" href="/dashboard/searches">
