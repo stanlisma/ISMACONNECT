@@ -420,6 +420,64 @@ export function getRideShareAreasFromListing(listing: Listing) {
   };
 }
 
+function stableJitter(seed: string) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) % 1000003;
+  }
+
+  return (hash % 1000) / 1000;
+}
+
+function offsetCoordinate(base: number, seed: string, spread: number) {
+  const jitter = stableJitter(seed) - 0.5;
+  return Number((base + jitter * spread).toFixed(6));
+}
+
+export function getRentalListingMapPoint(listing: Listing) {
+  const area = getRentalAreaFromListing(listing);
+  const definition = getFortMcmurrayAreaDefinition(area);
+
+  if (!definition) {
+    return null;
+  }
+
+  return {
+    lat: offsetCoordinate(definition.lat, `${listing.id}-rental-lat`, 0.01),
+    lng: offsetCoordinate(definition.lng, `${listing.id}-rental-lng`, 0.015),
+    area: definition.value,
+    areaLabel: definition.label
+  };
+}
+
+export function getRideShareRouteMapPoints(listing: Listing) {
+  const { departureArea, destinationArea } = getRideShareAreasFromListing(listing);
+  const departureDefinition = getRideShareAreaDefinition(departureArea);
+  const destinationDefinition = getRideShareAreaDefinition(destinationArea);
+
+  return {
+    departure:
+      departureDefinition
+        ? {
+            lat: offsetCoordinate(departureDefinition.lat, `${listing.id}-departure-lat`, 0.012),
+            lng: offsetCoordinate(departureDefinition.lng, `${listing.id}-departure-lng`, 0.018),
+            area: departureDefinition.value,
+            areaLabel: departureDefinition.label
+          }
+        : null,
+    destination:
+      destinationDefinition
+        ? {
+            lat: offsetCoordinate(destinationDefinition.lat, `${listing.id}-destination-lat`, 0.012),
+            lng: offsetCoordinate(destinationDefinition.lng, `${listing.id}-destination-lng`, 0.018),
+            area: destinationDefinition.value,
+            areaLabel: destinationDefinition.label
+          }
+        : null
+  };
+}
+
 export function getRentalAreaCounts(listings: Listing[]) {
   const counts = new Map<FortMcMurrayArea, number>();
   let unknownCount = 0;

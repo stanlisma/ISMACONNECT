@@ -7,11 +7,15 @@ import {
   useMemo,
   useRef,
   useState,
-  type MutableRefObject,
   type ReactNode
 } from "react";
 
-import { getRentalAreaCounts, getRideShareRouteCounts } from "@/lib/local-marketplace";
+import {
+  getRentalAreaCounts,
+  getRentalListingMapPoint,
+  getRideShareRouteCounts,
+  getRideShareRouteMapPoints
+} from "@/lib/local-marketplace";
 import { buildPathWithQuery } from "@/lib/utils";
 import type { Listing } from "@/types/database";
 
@@ -37,6 +41,8 @@ type GoogleMarkerInstance = any;
 type GooglePolylineInstance = any;
 type GoogleInfoWindowInstance = any;
 type LatLngLike = { lat: number; lng: number };
+type RentalListingPoint = NonNullable<ReturnType<typeof getRentalListingMapPoint>> & { listing: Listing };
+type RideShareListingPoint = ReturnType<typeof getRideShareRouteMapPoints> & { listing: Listing };
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || undefined;
@@ -135,7 +141,45 @@ function createCircleMarkerIcon(
   };
 }
 
-function createInfoContent(title: string, body: string) {
+function formatCompactPrice(price: number | null) {
+  if (price === null || Number.isNaN(price)) {
+    return "View";
+  }
+
+  if (price >= 1000) {
+    return `$${(price / 1000).toFixed(price >= 10000 ? 0 : 1).replace(".0", "")}k`;
+  }
+
+  return `$${Math.round(price)}`;
+}
+
+function createPillMarkerIcon(
+  googleMaps: GoogleMapsNamespace,
+  label: string,
+  isActive: boolean,
+  tone: "primary" | "dark" = "primary"
+) {
+  const safeLabel = label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const fill = tone === "dark" ? (isActive ? "#0F2C52" : "#15365B") : isActive ? "#1549B7" : "#1E5FE0";
+  const stroke = isActive ? "#BFD8FF" : "#FFFFFF";
+  const textColor = "#FFFFFF";
+  const width = Math.max(74, Math.min(132, 28 + safeLabel.length * 7));
+  const height = 34;
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <rect x="1" y="1" width="${width - 2}" height="${height - 2}" rx="${height / 2}" fill="${fill}" stroke="${stroke}" stroke-width="2" />
+      <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="${textColor}">${safeLabel}</text>
+    </svg>
+  `.trim();
+
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new googleMaps.Size(width, height),
+    anchor: new googleMaps.Point(width / 2, height / 2)
+  };
+}
+
+function createInfoContent(title: string, body: string, caption?: string) {
   const wrapper = document.createElement("div");
   wrapper.className = "local-map-info-card";
 
@@ -146,6 +190,13 @@ function createInfoContent(title: string, body: string) {
   copy.textContent = body;
 
   wrapper.append(heading, copy);
+
+  if (caption) {
+    const meta = document.createElement("p");
+    meta.textContent = caption;
+    wrapper.append(meta);
+  }
+
   return wrapper;
 }
 
@@ -295,15 +346,31 @@ function RentalMapExplorer({
     GOOGLE_MAPS_API_KEY ? "loading" : "missing-key"
   );
   const { knownAreas, unknownCount } = useMemo(() => getRentalAreaCounts(listings), [listings]);
-  const dataKey = useMemo(
-    () => knownAreas.map((area) => `${area.value}:${area.count}`).join("|"),
-    [knownAreas]
+  const listingPoints = useMemo<RentalListingPoint[]>(
+    () =>
+      listings
+        .map((listing) => {
+          const point = getRentalListingMapPoint(listing);
+          return point ? { ...point, listing } : null;
+        })
+        .filter(Boolean) as RentalListingPoint[],
+    [listings]
   );
-  const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? knownAreas[0]?.value ?? null);
+  const dataKey = useMemo(
+    () => listingPoints.map((item) => `${item.listing.id}:${item.lat}:${item.lng}`).join("|"),
+    [listingPoints]
+  );
+  const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? listingPoints[0]?.area ?? null);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(listingPoints[0]?.listing.id ?? null);
 
   useEffect(() => {
-    setSelectedArea(activeArea ?? knownAreas[0]?.value ?? null);
-  }, [activeArea, dataKey, knownAreas]);
+    const nextSelectedListing =
+      activeArea
+        ? listingPoints.find((item) => item.area === activeArea)?.listing.id
+        : listingPoints[0]?.listing.id ?? null;
+    setSelectedArea(activeArea ?? listingPoints[0]?.area ?? null);
+    setSelectedListingId(nextSelectedListing ?? null);
+  }, [activeArea, dataKey, listingPoints]);
 
   useEffect(() => {
     if (!GOOGLE_MAPS_API_KEY || !mapRootRef.current) {
@@ -329,38 +396,45 @@ function RentalMapExplorer({
         Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
         markersRef.current = {};
 
-        knownAreas.forEach((area) => {
+        listingPoints.forEach((item) => {
+          const area = { label: item.areaLabel, count: 1, value: item.area };
           const marker = new googleMaps.Marker({
             map,
-            position: { lat: area.lat, lng: area.lng },
+            position: { lat: item.lat, lng: item.lng },
             title: `${area.label} · ${area.count} rental${area.count === 1 ? "" : "s"}`,
             label: {
-              text: String(area.count),
+              text: "",
               color: "#FFFFFF",
               fontWeight: "800",
               fontSize: "12px"
             },
-            icon: createCircleMarkerIcon(googleMaps, area.count, selectedArea === area.value)
+            icon: createPillMarkerIcon(
+              googleMaps,
+              formatCompactPrice(item.listing.price),
+              selectedListingId === item.listing.id
+            )
           });
 
           marker.addListener("click", () => {
-            setSelectedArea(area.value);
+            setSelectedArea(item.area);
+            setSelectedListingId(item.listing.id);
             infoWindowRef.current?.setContent(
               createInfoContent(
-                area.label,
-                `${area.count} active rental${area.count === 1 ? "" : "s"} currently pinned here.`
+                item.listing.title,
+                `${formatCompactPrice(item.listing.price)} · ${item.areaLabel}`,
+                item.listing.location
               )
             );
             infoWindowRef.current?.open({ anchor: marker, map });
           });
 
-          markersRef.current[area.value] = marker;
+          markersRef.current[item.listing.id] = marker;
         });
 
         fitMapToPoints(
           googleMaps,
           map,
-          knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+          listingPoints.map((item) => ({ lat: item.lat, lng: item.lng })),
           FORT_MCMURRAY_CENTER,
           11
         );
@@ -377,7 +451,7 @@ function RentalMapExplorer({
     return () => {
       cancelled = true;
     };
-  }, [dataKey, knownAreas, selectedArea]);
+  }, [dataKey, listingPoints, selectedListingId]);
 
   useEffect(() => {
     if (!window.google?.maps) {
@@ -386,16 +460,22 @@ function RentalMapExplorer({
 
     const googleMaps = window.google.maps;
     const map = mapRef.current;
-    const selectedMarker = selectedArea ? markersRef.current[selectedArea] : null;
+    const selectedMarker = selectedListingId ? markersRef.current[selectedListingId] : null;
 
     Object.entries(markersRef.current).forEach(([value, marker]) => {
-      const area = knownAreas.find((item) => item.value === value);
-      if (!area) {
+      const point = listingPoints.find((item) => item.listing.id === value);
+      if (!point) {
         return;
       }
 
-      marker.setIcon(createCircleMarkerIcon(googleMaps, area.count, selectedArea === value));
-      marker.setZIndex(selectedArea === value ? 20 : 10);
+      marker.setIcon(
+        createPillMarkerIcon(
+          googleMaps,
+          formatCompactPrice(point.listing.price),
+          selectedListingId === point.listing.id
+        )
+      );
+      marker.setZIndex(selectedListingId === point.listing.id ? 20 : 10);
     });
 
     if (map && selectedMarker) {
@@ -404,8 +484,13 @@ function RentalMapExplorer({
         map.panTo(position);
       }
     }
-  }, [selectedArea, knownAreas]);
+  }, [listingPoints, selectedListingId]);
 
+  const selectedListingPoint =
+    listingPoints.find((item) => item.listing.id === selectedListingId) ??
+    (selectedArea ? listingPoints.find((item) => item.area === selectedArea) : null) ??
+    listingPoints[0] ??
+    null;
   const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
 
   function handleReset() {
@@ -417,7 +502,7 @@ function RentalMapExplorer({
     fitMapToPoints(
       window.google.maps,
       map,
-      knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+      listingPoints.map((item) => ({ lat: item.lat, lng: item.lng })),
       FORT_MCMURRAY_CENTER,
       11
     );
@@ -429,16 +514,16 @@ function RentalMapExplorer({
         <div>
           <span className="eyebrow">Map view</span>
           <h3>Rental inventory by area</h3>
-          <p>Browse live rental clusters on a real map before opening every listing card.</p>
+          <p>Scan real rental pins, compare neighbourhoods, and open the right listing faster.</p>
         </div>
         <div className="local-map-mini-stats">
           <span>
-            <strong>{knownAreas.length}</strong>
-            <span>active areas</span>
+            <strong>{listingPoints.length}</strong>
+            <span>mapped rentals</span>
           </span>
           <span>
-            <strong>{unknownCount}</strong>
-            <span>without area</span>
+            <strong>{knownAreas.length}</strong>
+            <span>active areas</span>
           </span>
         </div>
       </div>
@@ -454,7 +539,29 @@ function RentalMapExplorer({
           status={status}
           onReset={handleReset}
           summary={
-            selectedAreaData ? (
+            selectedListingPoint ? (
+              <div className="local-map-summary-inner">
+                <div>
+                  <span className="local-map-summary-eyebrow">Selected listing</span>
+                  <strong>{selectedListingPoint.listing.title}</strong>
+                  <p>
+                    {formatCompactPrice(selectedListingPoint.listing.price)} · {selectedListingPoint.areaLabel}
+                  </p>
+                </div>
+                <div className="local-map-summary-actions">
+                  <Link href={`/listings/${selectedListingPoint.listing.slug}`} className="local-map-summary-link">
+                    Open listing
+                    <ArrowRight size={15} strokeWidth={2.4} />
+                  </Link>
+                  <Link
+                    href={buildHref({ rentalArea: selectedListingPoint.area })}
+                    className="local-map-summary-link is-secondary"
+                  >
+                    View area
+                  </Link>
+                </div>
+              </div>
+            ) : selectedAreaData ? (
               <div className="local-map-summary-inner">
                 <div>
                   <span className="local-map-summary-eyebrow">Selected area</span>
@@ -465,7 +572,7 @@ function RentalMapExplorer({
                   </p>
                 </div>
                 <Link href={buildHref({ rentalArea: selectedAreaData.value })} className="local-map-summary-link">
-                  View listings
+                  View area
                   <ArrowRight size={15} strokeWidth={2.4} />
                 </Link>
               </div>
@@ -505,10 +612,15 @@ function RentalMapExplorer({
           <div className="local-map-sidebar-card">
             <strong>Why this is better</strong>
             <ul className="local-map-list">
-              <li>Actual Google Maps tiles make the rental areas feel familiar immediately.</li>
-              <li>Native pan and zoom behave the way users expect from Kijiji and Facebook Marketplace.</li>
-              <li>Area filters still narrow the results, but now the map is a real browsing surface too.</li>
+              <li>Rentals now behave like real listing pins instead of abstract neighbourhood dots.</li>
+              <li>Native Google pan and zoom feel familiar for Kijiji and Facebook Marketplace users.</li>
+              <li>Area chips still narrow the feed, but the map now helps people pick a listing faster.</li>
             </ul>
+            {unknownCount > 0 ? (
+              <p className="local-map-empty-copy">
+                {unknownCount} listing{unknownCount === 1 ? "" : "s"} still need a clearer area to land on the map.
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -536,6 +648,13 @@ function RideShareMapExplorer({
     GOOGLE_MAPS_API_KEY ? "loading" : "missing-key"
   );
   const { routes, endpoints, flexibleCount } = useMemo(() => getRideShareRouteCounts(listings), [listings]);
+  const mappedRouteListings = useMemo<RideShareListingPoint[]>(
+    () =>
+      listings
+        .map((listing) => ({ ...getRideShareRouteMapPoints(listing), listing }))
+        .filter((item) => item.departure || item.destination),
+    [listings]
+  );
   const topRoutes = useMemo(() => routes.slice(0, 6), [routes]);
   const routeDataKey = useMemo(
     () => topRoutes.map((route) => `${route.departure}:${route.destination}:${route.count}`).join("|"),
@@ -650,6 +769,11 @@ function RideShareMapExplorer({
           });
 
         const routePoints = [
+          ...mappedRouteListings.flatMap((item) =>
+            [item.departure, item.destination]
+              .filter(Boolean)
+              .map((point) => ({ lat: point!.lat, lng: point!.lng }))
+          ),
           ...endpoints.map((endpoint) => ({ lat: endpoint.lat, lng: endpoint.lng }))
         ];
         fitMapToPoints(googleMaps, map, routePoints, ALBERTA_CENTER, 6);
@@ -666,7 +790,7 @@ function RideShareMapExplorer({
     return () => {
       cancelled = true;
     };
-  }, [endpointDataKey, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
+  }, [endpointDataKey, mappedRouteListings, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
 
   useEffect(() => {
     if (!window.google?.maps) {
