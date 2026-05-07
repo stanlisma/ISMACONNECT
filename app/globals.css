@@ -2551,6 +2551,10 @@ code {
   display: none;
 }
 
+.mobile-applied-filters {
+  display: none;
+}
+
 .home-mobile-browse-controls {
   display: none;
 }
@@ -2571,6 +2575,42 @@ code {
     align-items: center;
   }
 
+  .mobile-applied-filters {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0 0 0.65rem;
+  }
+
+  .mobile-applied-filter-row {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mobile-applied-filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-applied-filter-chip {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(237, 244, 255, 0.96);
+    border: 1px solid #cfe0fb;
+    color: #15365b;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .mobile-applied-filter-clear {
+    width: fit-content;
+    color: #0f5bd8;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
   .mobile-filter-search {
     height: 44px;
     border-radius: 999px;
@@ -2584,11 +2624,27 @@ code {
     height: 44px;
     border-radius: 999px;
     padding: 0 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     font-weight: 600;
     background: linear-gradient(135deg, #4f6ef7, #3b5bdb);
     color: white;
     font-weight: 600;
     box-shadow: 0 6px 14px rgba(79,110,247,0.35);
+  }
+
+  .mobile-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 0.78rem;
+    font-weight: 800;
   }
 
   .mobile-filter-backdrop {
@@ -2624,12 +2680,14 @@ code {
   }
 
   .mobile-filter-sheet-header button {
-    width: 38px;
-    height: 38px;
+    min-height: 38px;
+    padding: 0 0.9rem;
     border: 0;
     border-radius: 999px;
-    background: #f1f5f9;
-    font-size: 1.5rem;
+    background: #edf4ff;
+    color: #15365b;
+    font-size: 0.85rem;
+    font-weight: 700;
     cursor: pointer;
   }
 
@@ -5781,7 +5839,8 @@ code {
 }
 
 .home-mobile-hero,
-.browse-mobile-overview {
+.browse-mobile-overview,
+.category-mobile-overview {
   display: none;
 }
 
@@ -5971,27 +6030,30 @@ code {
   .browse-mobile-overview {
     display: grid;
     gap: 0.85rem;
-    margin-bottom: 0.75rem;
-    padding: 1rem;
-    border-radius: 22px;
+    margin-bottom: 0.55rem;
+    padding: 0.9rem 0.95rem;
+    border-radius: 18px;
     border: 1px solid var(--line);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(237, 246, 255, 0.96));
-    box-shadow: 0 14px 34px rgba(15, 54, 91, 0.08);
+    box-shadow: 0 10px 24px rgba(15, 54, 91, 0.07);
   }
 
   .browse-view-toggle {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0.55rem !important;
   }
 
   .browse-view-toggle .listing-view-pill {
     justify-content: center;
+    min-height: 40px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.84rem;
   }
 
   .browse-results-toolbar {
-    margin-top: 0.7rem;
+    margin-top: 0.45rem;
     margin-bottom: 0.15rem;
   }
 
@@ -6000,15 +6062,39 @@ code {
   }
 
   .saved-search-banner {
-    padding: 0.85rem 0.9rem !important;
-    border-radius: 18px !important;
+    padding: 0.72rem 0.82rem !important;
+    border-radius: 16px !important;
     gap: 0.8rem !important;
-    margin-top: 0.75rem !important;
+    margin-top: 0.55rem !important;
   }
 
   .saved-search-copy p {
-    font-size: 0.88rem;
-    line-height: 1.45;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .saved-search-banner-compact-mobile {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .saved-search-banner-compact-mobile .saved-search-copy strong {
+    font-size: 0.92rem;
+  }
+
+  .saved-search-banner-compact-mobile .saved-search-submit {
+    min-height: 40px;
+    padding: 0.7rem 0.9rem;
+  }
+
+  .category-desktop-heading,
+  .category-local-strip-desktop {
+    display: none !important;
+  }
+
+  .category-mobile-overview {
+    display: grid !important;
   }
 
   .detail-card {

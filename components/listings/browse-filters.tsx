@@ -36,6 +36,68 @@ export function BrowseFilters({
     () => getStructuredFilterDefinitions(activeStructuredCategory as any),
     [activeStructuredCategory]
   );
+  const activeFilterLabels = useMemo(() => {
+    const labels: string[] = [];
+    const appliedCategory = showCategorySelect ? category : null;
+    const appliedSubcategories = getSubcategories(category ?? selectedCategory);
+
+    if (showCategorySelect && appliedCategory) {
+      const categoryLabel = CATEGORIES.find((item) => item.value === appliedCategory)?.label;
+      if (categoryLabel) {
+        labels.push(categoryLabel);
+      }
+    }
+
+    if (subcategory) {
+      const subcategoryLabel =
+        appliedSubcategories.find((item) => item.value === subcategory)?.label ?? subcategory;
+      labels.push(subcategoryLabel);
+    }
+
+    if (minPrice !== null && minPrice !== undefined) {
+      labels.push(`Min $${minPrice}`);
+    }
+
+    if (maxPrice !== null && maxPrice !== undefined) {
+      labels.push(`Max $${maxPrice}`);
+    }
+
+    if (sort === "price_asc") {
+      labels.push("Price low-high");
+    } else if (sort === "price_desc") {
+      labels.push("Price high-low");
+    }
+
+    structuredFilterDefinitions.forEach((field) => {
+      const rawValue = structuredFilters?.[field.name];
+      const value = serializeStructuredFilterValue(rawValue);
+
+      if (!value) {
+        return;
+      }
+
+      if (field.kind === "checkbox") {
+        labels.push(value === "true" ? field.label : `No ${field.label.toLowerCase()}`);
+        return;
+      }
+
+      const optionLabel = field.options?.find((option) => option.value === value)?.label ?? value;
+      labels.push(optionLabel);
+    });
+
+    return labels;
+  }, [
+    category,
+    maxPrice,
+    minPrice,
+    selectedCategory,
+    showCategorySelect,
+    sort,
+    structuredFilterDefinitions,
+    structuredFilters,
+    subcategory
+  ]);
+  const activeFilterCount = activeFilterLabels.length;
   const clearHref = buildPathWithQuery(actionPath, {
     view
   });
@@ -110,9 +172,25 @@ export function BrowseFilters({
           type="button"
           onClick={() => setIsFilterOpen(true)}
         >
-          Filter
+          <span>Filter</span>
+          {activeFilterCount > 0 ? <span className="mobile-filter-count">{activeFilterCount}</span> : null}
         </button>
       </form>
+
+      {activeFilterCount > 0 ? (
+        <div className="mobile-applied-filters">
+          <div className="mobile-applied-filter-row">
+            {activeFilterLabels.map((label) => (
+              <span key={label} className="mobile-applied-filter-chip">
+                {label}
+              </span>
+            ))}
+          </div>
+          <Link href={clearHref} className="mobile-applied-filter-clear">
+            Clear
+          </Link>
+        </div>
+      ) : null}
 
       {/* DESKTOP FULL FILTERS */}
       <form action={actionPath} className="surface filters-grid desktop-filters" method="get">
@@ -221,7 +299,7 @@ export function BrowseFilters({
             <div className="mobile-filter-sheet-header">
               <h3>Filters</h3>
               <button aria-label="Close filters" type="button" onClick={() => setIsFilterOpen(false)}>
-                X
+                Close
               </button>
             </div>
 

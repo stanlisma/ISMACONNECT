@@ -18,6 +18,7 @@ interface SaveSearchToggleProps {
   sort?: string | null;
   extraFilters?: Record<string, string | boolean>;
   isSaved: boolean;
+  compactOnMobile?: boolean;
 }
 
 export function SaveSearchToggle({
@@ -31,7 +32,8 @@ export function SaveSearchToggle({
   maxPrice,
   sort,
   extraFilters,
-  isSaved
+  isSaved,
+  compactOnMobile = false
 }: SaveSearchToggleProps) {
   const canSaveSearch = hasMeaningfulSavedSearchCriteria({
     path: actionPath,
@@ -45,6 +47,10 @@ export function SaveSearchToggle({
   });
 
   if (!canSaveSearch) {
+    if (compactOnMobile) {
+      return null;
+    }
+
     return (
       <div className="saved-search-banner saved-search-banner-muted">
         <div className="saved-search-copy">
@@ -71,7 +77,7 @@ export function SaveSearchToggle({
   }
 
   return (
-    <div className="saved-search-banner">
+    <div className={`saved-search-banner${compactOnMobile ? " saved-search-banner-compact-mobile" : ""}`}>
       <div className="saved-search-copy">
         <strong>{isSaved ? "Search saved" : "Save this search"}</strong>
         <p>
