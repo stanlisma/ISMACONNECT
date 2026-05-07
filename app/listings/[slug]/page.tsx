@@ -103,6 +103,18 @@ export default async function ListingPage({
         : [];
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
+  const isOwner = viewer?.user.id === listing.owner_id;
+  const canUseMobileActions = !isOwner;
+  const mobilePrimaryHref = viewer
+    ? existingConversation
+      ? `/messages/${existingConversation.id}`
+      : "#message-seller"
+    : "/auth/sign-in";
+  const mobilePrimaryLabel = viewer
+    ? existingConversation
+      ? "Open chat"
+      : "Message seller"
+    : "Sign in to unlock";
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -211,30 +223,10 @@ export default async function ListingPage({
                 </div>
               </div>
 
-            {viewer && viewer.user.id !== listing.owner_id ? (
-              <div className="detail-card detail-quick-actions">
-                <div className="detail-quick-actions-copy">
-                  <span className="eyebrow">Quick Action</span>
-                  <h2>Contact the seller</h2>
-                  <p>Send a message while this listing is fresh.</p>
-                </div>
-
-                {existingConversation ? (
-                  <Link href={`/messages/${existingConversation.id}`} className="button">
-                    Open conversation
-                  </Link>
-                ) : (
-                  <Link href="#message-seller" className="button">
-                    Message seller
-                  </Link>
-                )}
-              </div>
-            ) : null}
-
             {viewer ? (
               viewer.user.id !== listing.owner_id ? (
                 existingConversation ? (
-                  <div className="detail-card">
+                  <div className="detail-card detail-conversation-card">
                     <SectionHeading
                       eyebrow="Conversation"
                       title="Continue your chat"
@@ -246,7 +238,7 @@ export default async function ListingPage({
                     </Link>
                   </div>
                 ) : (
-                  <div className="detail-card" id="message-seller">
+                  <div className="detail-card detail-contact-card" id="message-seller">
                     <SectionHeading
                       eyebrow="Contact Seller"
                       title="Send a message"
@@ -273,7 +265,7 @@ export default async function ListingPage({
                 </div>
               )
             ) : (
-              <div className="detail-card">
+              <div className="detail-card detail-guest-unlock-card">
                 <SectionHeading
                   eyebrow="Contact"
                   title="Unlock seller details"
@@ -396,6 +388,25 @@ export default async function ListingPage({
             ) : null}
           </aside>
         </div>
+
+        {canUseMobileActions ? (
+          <div className="detail-mobile-action-bar">
+            <div className="detail-mobile-action-shell">
+              <Link href={mobilePrimaryHref} className="button detail-mobile-action-main">
+                {mobilePrimaryLabel}
+              </Link>
+              {viewer ? (
+                <div className="detail-mobile-action-save">
+                  <SaveListingButton
+                    listingId={listing.id}
+                    isSaved={isSaved}
+                    pathToRevalidate={`/listings/${listing.slug}`}
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {relatedListings.length > 0 ? (
           <div style={{ marginTop: "2rem" }}>
