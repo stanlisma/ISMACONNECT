@@ -72,11 +72,11 @@ export function MessageComposer({
       <textarea
         className="input message-composer-textarea"
         name="body"
-        rows={5}
+        rows={4}
         placeholder={
           disabled
             ? disabledMessage ?? "Messaging is disabled for this conversation."
-            : "Ask a question, confirm pickup details, or send a quick update..."
+            : "Ask a question or confirm details..."
         }
         onChange={handleTyping}
         disabled={disabled}
@@ -97,7 +97,7 @@ export function MessageComposer({
         <span className="message-composer-tip">
           {disabled
             ? disabledMessage ?? "Messaging is disabled for this conversation."
-            : "Photos help with pickup, condition, and proof."}
+            : "Add a photo if it helps."}
         </span>
       </div>
 

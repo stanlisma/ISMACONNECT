@@ -181,11 +181,11 @@ export default async function MessagesPage({
               <span>Unread messages</span>
               <strong>{totalUnreadCount}</strong>
             </div>
-            <div className="stat-card messages-stat-card">
+            <div className="stat-card messages-stat-card is-secondary">
               <span>Filtered results</span>
               <strong>{filteredConversations.length}</strong>
             </div>
-            <div className="stat-card messages-stat-card">
+            <div className="stat-card messages-stat-card is-secondary">
               <span>Latest activity</span>
               <strong className="messages-stat-meta">{latestConversationAt}</strong>
             </div>
@@ -196,13 +196,13 @@ export default async function MessagesPage({
               className={`account-menu-pill ${activeFilter === "all" ? "is-active" : ""}`}
               href={buildMessagesHref({ q: rawQuery || null })}
             >
-              All conversations
+              All threads
             </Link>
             <Link
               className={`account-menu-pill ${activeFilter === "unread" ? "is-active" : ""}`}
               href={buildMessagesHref({ q: rawQuery || null, filter: "unread" })}
             >
-              Unread only
+              Unread
             </Link>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default async function MessagesPage({
                           {conversation.unreadCount > 0 ? "Needs reply" : "Up to date"}
                         </span>
                         {conversation.listing?.slug ? (
-                          <span className="messages-list-meta-link">View listing from thread</span>
+                          <span className="messages-list-meta-link">Listing linked</span>
                         ) : null}
                       </div>
                     </div>

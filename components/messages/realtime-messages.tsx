@@ -159,8 +159,8 @@ export function RealtimeMessages({
                   </div>
 
                   <small className="messages-bubble-meta">
-                    {mine ? "You" : otherUserName} · {formatTime(message.created_at)}
-                    {mine && message.id === lastMine?.id ? ` · ${message.seen_at ? "Seen" : "Delivered"}` : ""}
+                    {mine ? "You" : otherUserName} | {formatTime(message.created_at)}
+                    {mine && message.id === lastMine?.id ? ` | ${message.seen_at ? "Seen" : "Delivered"}` : ""}
                   </small>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export function RealtimeMessages({
         })}
 
         {otherTyping ? (
-          <div className="messages-typing-indicator">{otherUserName} is typing…</div>
+          <div className="messages-typing-indicator">{otherUserName} is typing...</div>
         ) : null}
 
         <div ref={bottomRef} />

@@ -139,7 +139,7 @@ export default async function MessageThreadPage({
                 )}
               </h1>
               <p className="section-copy">
-                Chat with {otherUserFirstName} about this listing and keep everything in one thread.
+                Chat with {otherUserFirstName} about this listing.
               </p>
 
               <div className="messages-thread-meta">
@@ -164,7 +164,7 @@ export default async function MessageThreadPage({
               <h2>Manage this conversation</h2>
             </div>
             <p>
-              Block or report suspicious chat without leaving the thread.
+              Block or report suspicious chat.
             </p>
           </div>
 
@@ -250,7 +250,7 @@ export default async function MessageThreadPage({
           <div className="messages-reply-head">
             <div>
               <h2>Send reply</h2>
-              <p>Keep it clear and local. Photos, pickup details, and timing questions usually get the fastest response.</p>
+              <p>Ask your question and keep the thread moving.</p>
             </div>
           </div>
 
