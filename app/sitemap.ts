@@ -12,6 +12,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/categories",
     "/auth/sign-in",
     "/auth/sign-up",
+    "/privacy",
+    "/terms",
+    "/safety",
+    "/contact",
     ...CATEGORIES.map((category) => category.href)
   ].map((path) => ({
     url: `${baseUrl}${path}`,

@@ -83,6 +83,11 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
             {isSignUp ? "Sign in" : "Create one"}
           </Link>
         </p>
+
+        <p className="auth-footer">
+          By continuing, you agree to the <Link href="/terms">Terms of Use</Link> and acknowledge the{" "}
+          <Link href="/privacy">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   );
