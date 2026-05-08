@@ -4,11 +4,12 @@ import { DashboardListingControls } from "@/components/dashboard/dashboard-listi
 import { DeleteListingForm } from "@/components/listings/delete-listing-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
-import { getListingBoostState } from "@/lib/boost-products";
 import { requireViewer } from "@/lib/auth";
+import { getListingBoostState } from "@/lib/boost-products";
 import { getPromotionChips } from "@/lib/boosts";
 import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { getUserListings } from "@/lib/data";
+import { getSubcategoryLabel } from "@/lib/subcategories";
 import {
   formatCurrency,
   formatDate,
@@ -116,19 +117,11 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <div className="surface" style={{ marginTop: "1.25rem" }}>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: "1rem"
-          }}
-        >
+      <div className="surface dashboard-controls-panel" style={{ marginTop: "1.25rem" }}>
+        <div className="dashboard-controls-head">
           <div>
             <h2 style={{ marginBottom: "0.5rem" }}>Listing controls</h2>
-            <p className="section-copy" style={{ marginBottom: 0 }}>
+            <p className="section-copy dashboard-controls-copy">
               Filter your inventory fast, keep an eye on promotions, and jump back into the right listing.
             </p>
           </div>
@@ -143,7 +136,7 @@ export default async function DashboardPage({
           totalCount={listings.length}
         />
 
-        <div className="pill-row" style={{ marginTop: "1rem" }}>
+        <div className="pill-row dashboard-summary-pills">
           <Link
             className={`account-menu-pill ${statusFilter === "all" ? "is-active" : ""}`}
             href={buildDashboardHref({
@@ -210,65 +203,96 @@ export default async function DashboardPage({
         </div>
       ) : (
         <div className="dashboard-list" style={{ marginTop: "1.25rem" }}>
-          {filteredListings.map((listing) => (
-            <div className="dashboard-listing" key={listing.id}>
-              <div className="badge-row">
-                <span className="badge badge-soft">{getCategoryLabel(listing.category)}</span>
-                <span
-                  className={`badge ${
-                    listing.status === "flagged"
-                      ? "badge-danger"
-                      : listing.status === "removed"
-                        ? "badge-neutral"
-                        : "badge-featured"
-                  }`}
-                >
-                  {LISTING_STATUS_LABELS[listing.status]}
-                </span>
-              </div>
+          {filteredListings.map((listing) => {
+            const promotionChips = getPromotionChips(listing);
 
-              <h3>{listing.title}</h3>
-              <p>
-                {formatCurrency(listing.price)} · {listing.location} · Posted {formatDate(listing.created_at)}
-              </p>
+            return (
+              <article className="dashboard-listing dashboard-listing-compact" key={listing.id}>
+                <div className="dashboard-listing-media">
+                  {listing.image_url ? (
+                    <img
+                      src={listing.image_url}
+                      alt={listing.title}
+                      className="dashboard-listing-image"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="dashboard-listing-image-placeholder">
+                      <span>{getCategoryLabel(listing.category)}</span>
+                    </div>
+                  )}
+                </div>
 
-              {getPromotionChips(listing).length ? (
-                <div className="badge-row" style={{ marginTop: "0.75rem" }}>
-                  {getPromotionChips(listing).map((chip) => (
+                <div className="dashboard-listing-body">
+                  <div className="badge-row dashboard-listing-badges">
+                    {listing.subcategory ? (
+                      <span className="badge badge-soft">
+                        {getSubcategoryLabel(listing.category, listing.subcategory)}
+                      </span>
+                    ) : (
+                      <span className="badge badge-soft">{getCategoryLabel(listing.category)}</span>
+                    )}
                     <span
-                      key={chip}
                       className={`badge ${
-                        chip === "Featured"
-                          ? "badge-featured"
-                          : chip === "Urgent"
-                            ? "badge-urgent"
-                            : "badge-soft"
+                        listing.status === "flagged"
+                          ? "badge-danger"
+                          : listing.status === "removed"
+                            ? "badge-neutral"
+                            : "badge-featured"
                       }`}
                     >
-                      {chip}
+                      {LISTING_STATUS_LABELS[listing.status]}
                     </span>
-                  ))}
-                </div>
-              ) : null}
+                  </div>
 
-              <div className="action-row">
-                {listing.status === "active" ? (
-                  <Link className="button button-secondary" href={`/listings/${listing.slug}`}>
-                    View
-                  </Link>
-                ) : null}
-                <Link className="button" href={`/dashboard/listings/${listing.id}/edit`}>
-                  Edit
-                </Link>
-                {listing.status === "active" ? (
-                  <Link className="button button-secondary" href={`/dashboard/listings/${listing.id}/boost`}>
-                    Promote
-                  </Link>
-                ) : null}
-                <DeleteListingForm listingId={listing.id} />
-              </div>
-            </div>
-          ))}
+                  <div className="dashboard-listing-headline">
+                    <h3>{listing.title}</h3>
+                    <strong className="dashboard-listing-price">{formatCurrency(listing.price)}</strong>
+                  </div>
+
+                  <p className="dashboard-listing-meta">
+                    {listing.location} | Posted {formatDate(listing.created_at)}
+                  </p>
+
+                  {promotionChips.length ? (
+                    <div className="badge-row dashboard-listing-promotions">
+                      {promotionChips.map((chip) => (
+                        <span
+                          key={chip}
+                          className={`badge ${
+                            chip === "Featured"
+                              ? "badge-featured"
+                              : chip === "Urgent"
+                                ? "badge-urgent"
+                                : "badge-soft"
+                          }`}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="action-row dashboard-listing-actions">
+                    {listing.status === "active" ? (
+                      <Link className="button button-secondary" href={`/listings/${listing.slug}`}>
+                        View
+                      </Link>
+                    ) : null}
+                    <Link className="button" href={`/dashboard/listings/${listing.id}/edit`}>
+                      Edit
+                    </Link>
+                    {listing.status === "active" ? (
+                      <Link className="button button-secondary" href={`/dashboard/listings/${listing.id}/boost`}>
+                        Promote
+                      </Link>
+                    ) : null}
+                    <DeleteListingForm listingId={listing.id} />
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </>
