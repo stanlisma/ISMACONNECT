@@ -1,14 +1,13 @@
-const CACHE_NAME = "ismaconnect-shell-v1";
+const CACHE_NAME = "ismaconnect-shell-v2";
 const OFFLINE_URL = "/offline-fallback.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
-  "/",
-  "/browse",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/apple-touch-icon.png",
   "/logo/logo-light.svg"
 ];
+const CACHEABLE_DESTINATIONS = new Set(["style", "script", "image", "font"]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -69,20 +68,16 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          return response;
-        })
-        .catch(async () => {
-          const cachedResponse = await caches.match(request);
-          return cachedResponse || caches.match(OFFLINE_URL);
-        })
+        .catch(() => caches.match(OFFLINE_URL))
     );
     return;
   }
 
   if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  if (!CACHEABLE_DESTINATIONS.has(request.destination)) {
     return;
   }
 
