@@ -7,6 +7,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SearchRecoveryPanel } from "@/components/ui/search-recovery-panel";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
@@ -183,6 +184,14 @@ export default async function CategoryPage({
     areaServed: "Fort McMurray, Alberta"
   };
   const subcategoryLinks = getSubcategories(category);
+  const recoveryLinks = [
+    { href: categoryInfo.href, label: `All ${categoryInfo.label}` },
+    { href: "/browse", label: "Browse every category" },
+    ...subcategoryLinks.slice(0, 4).map((item) => ({
+      href: buildPathWithQuery(categoryInfo.href, { subcategory: item.value }),
+      label: item.label
+    }))
+  ];
 
   return (
     <section className="section listing-feed-section">
@@ -341,12 +350,19 @@ export default async function CategoryPage({
         {!isConfigured ? (
           <SetupNotice />
         ) : listings.length === 0 ? (
-          <EmptyState
-            actionHref="/auth/sign-up"
-            actionLabel="Post in this category"
-            description={`No ${categoryInfo.label.toLowerCase()} listings are live yet. Add the first one.`}
-            title={`No ${categoryInfo.label.toLowerCase()} listings found`}
-          />
+          <>
+            <EmptyState
+              actionHref="/auth/sign-up"
+              actionLabel="Post in this category"
+              description={`No ${categoryInfo.label.toLowerCase()} listings are live yet. Add the first one.`}
+              title={`No ${categoryInfo.label.toLowerCase()} listings found`}
+            />
+            <SearchRecoveryPanel
+              title={`Try a different ${categoryInfo.label.toLowerCase()} slice`}
+              description="Switch to another subcategory or broaden back out to keep moving."
+              links={recoveryLinks}
+            />
+          </>
         ) : (
           <>
             {view === "map" && isMapEligibleCategory ? (
