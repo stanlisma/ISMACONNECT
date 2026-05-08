@@ -12,7 +12,7 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
-import { normalizeSubcategory } from "@/lib/subcategories";
+import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
@@ -149,6 +149,7 @@ export default async function BrowsePage({
         page: page + 1
       })
     : null;
+  const subcategoryLinks = category ? getSubcategories(category) : [];
 
   return (
     <section className="section listing-feed-section">
@@ -249,6 +250,44 @@ export default async function BrowsePage({
             </Link>
           ))}
         </div>
+
+        {category && subcategoryLinks.length ? (
+          <div className="subcategory-link-row">
+            <Link
+              className={`subcategory-link-pill${!subcategory ? " is-active" : ""}`}
+              href={buildPathWithQuery("/browse", {
+                q: search,
+                category,
+                minPrice,
+                maxPrice,
+                sort,
+                view: view === "map" ? "map" : undefined,
+                ...structuredFilters
+              })}
+            >
+              All {categoryLabel}
+            </Link>
+
+            {subcategoryLinks.map((item) => (
+              <Link
+                key={item.value}
+                className={`subcategory-link-pill${subcategory === item.value ? " is-active" : ""}`}
+                href={buildPathWithQuery("/browse", {
+                  q: search,
+                  category,
+                  subcategory: item.value,
+                  minPrice,
+                  maxPrice,
+                  sort,
+                  view: view === "map" ? "map" : undefined,
+                  ...structuredFilters
+                })}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        ) : null}
 
         {!isConfigured ? (
           <SetupNotice />

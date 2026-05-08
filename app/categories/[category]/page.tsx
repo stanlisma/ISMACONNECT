@@ -13,7 +13,7 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
-import { normalizeSubcategory } from "@/lib/subcategories";
+import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import {
   getCategoryLocalContent,
   getCategorySeoTitle
@@ -182,6 +182,7 @@ export default async function CategoryPage({
     about: categoryInfo.label,
     areaServed: "Fort McMurray, Alberta"
   };
+  const subcategoryLinks = getSubcategories(category);
 
   return (
     <section className="section listing-feed-section">
@@ -300,6 +301,42 @@ export default async function CategoryPage({
             </Link>
           ))}
         </div>
+
+        {subcategoryLinks.length ? (
+          <div className="subcategory-link-row">
+            <Link
+              className={`subcategory-link-pill${!subcategory ? " is-active" : ""}`}
+              href={buildPathWithQuery(categoryInfo.href, {
+                q: search,
+                minPrice,
+                maxPrice,
+                sort,
+                view: view === "map" ? "map" : undefined,
+                ...structuredFilters
+              })}
+            >
+              All {categoryInfo.label}
+            </Link>
+
+            {subcategoryLinks.map((item) => (
+              <Link
+                key={item.value}
+                className={`subcategory-link-pill${subcategory === item.value ? " is-active" : ""}`}
+                href={buildPathWithQuery(categoryInfo.href, {
+                  q: search,
+                  subcategory: item.value,
+                  minPrice,
+                  maxPrice,
+                  sort,
+                  view: view === "map" ? "map" : undefined,
+                  ...structuredFilters
+                })}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        ) : null}
 
         {!isConfigured ? (
           <SetupNotice />
