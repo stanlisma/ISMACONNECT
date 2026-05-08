@@ -7,12 +7,29 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireViewer } from "@/lib/auth";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { buildPathWithQuery, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
-export default async function DashboardSavedSearchesPage() {
+export default async function DashboardSavedSearchesPage({
+  searchParams
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const viewer = await requireViewer();
   const savedSearches = await getSavedSearchesWithStats(viewer.user.id);
+  const filter = getSingleParam(resolvedSearchParams?.filter) === "alerts" ? "alerts" : "all";
+  const sortedSearches = [...savedSearches].sort((left, right) => {
+    if (right.newMatchesCount !== left.newMatchesCount) {
+      return right.newMatchesCount - left.newMatchesCount;
+    }
+
+    return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime();
+  });
   const searchAlertsCount = countSavedSearchAlerts(savedSearches);
+  const visibleSearches =
+    filter === "alerts"
+      ? sortedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0)
+      : sortedSearches;
 
   return (
     <div className="stack-md">
@@ -34,6 +51,21 @@ export default async function DashboardSavedSearchesPage() {
             <span>With alerts</span>
           </div>
         </div>
+
+        <div className="pill-row saved-search-filter-row">
+          <Link
+            className={`account-menu-pill ${filter === "all" ? "is-active" : ""}`}
+            href="/dashboard/searches"
+          >
+            All searches
+          </Link>
+          <Link
+            className={`account-menu-pill ${filter === "alerts" ? "is-active" : ""}`}
+            href={buildPathWithQuery("/dashboard/searches", { filter: "alerts" })}
+          >
+            New matches
+          </Link>
+        </div>
       </div>
 
       {!savedSearches.length ? (
@@ -45,7 +77,8 @@ export default async function DashboardSavedSearchesPage() {
         />
       ) : (
         <div className="saved-searches-grid">
-          {savedSearches.map((savedSearch) => (
+          {visibleSearches.length ? (
+            visibleSearches.map((savedSearch) => (
             <article key={savedSearch.id} className="surface saved-search-card">
               <div className="saved-search-card-head">
                 <div>
@@ -88,7 +121,15 @@ export default async function DashboardSavedSearchesPage() {
                 <DeleteSavedSearchForm savedSearchId={savedSearch.id} />
               </div>
             </article>
-          ))}
+            ))
+          ) : (
+            <EmptyState
+              actionHref="/dashboard/searches"
+              actionLabel="Show all saved searches"
+              title="No active alerts right now"
+              description="Your saved searches are still active, but none have new matching listings at the moment."
+            />
+          )}
         </div>
       )}
     </div>
