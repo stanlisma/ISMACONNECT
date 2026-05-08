@@ -269,7 +269,7 @@ export function SiteHeader({
           )}
         </div>
 
-        {viewer ? (
+        {viewer && !isMarketplaceSurface ? (
           <nav className="mobile-account-nav" aria-label="Mobile account shortcuts">
             <Link href="/dashboard" className={isExactPath("/dashboard") ? "is-active" : ""}>
               Listings
