@@ -5093,6 +5093,10 @@ code {
   font-weight: 600;
 }
 
+.saved-search-filter-row {
+  margin-top: 0.85rem;
+}
+
 .saved-searches-grid {
   display: grid;
   gap: 1rem;
