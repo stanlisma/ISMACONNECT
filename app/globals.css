@@ -310,6 +310,49 @@ code {
   font-weight: 600;
 }
 
+.search-recovery-panel {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding: 1rem 1.05rem;
+}
+
+.search-recovery-copy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.search-recovery-copy strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.search-recovery-copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.search-recovery-links {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.search-recovery-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.55rem 0.88rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 219, 251, 0.96);
+  background: #ffffff;
+  color: var(--primary-dark);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .subcategory-link-row {
   display: flex;
   gap: 0.55rem;

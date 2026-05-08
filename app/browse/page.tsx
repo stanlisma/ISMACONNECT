@@ -6,10 +6,11 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SearchRecoveryPanel } from "@/components/ui/search-recovery-panel";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
-import { CATEGORIES } from "@/lib/constants";
+import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
@@ -150,6 +151,16 @@ export default async function BrowsePage({
       })
     : null;
   const subcategoryLinks = category ? getSubcategories(category) : [];
+  const recoveryLinks = category
+    ? [
+        { href: "/browse", label: "Browse all listings" },
+        { href: CATEGORY_MAP[category].href, label: `Open ${CATEGORY_MAP[category].label}` },
+        ...subcategoryLinks.slice(0, 3).map((item) => ({
+          href: `/browse?category=${category}&subcategory=${item.value}`,
+          label: item.label
+        }))
+      ]
+    : CATEGORIES.map((item) => ({ href: item.href, label: item.label }));
 
   return (
     <section className="section listing-feed-section">
@@ -292,12 +303,19 @@ export default async function BrowsePage({
         {!isConfigured ? (
           <SetupNotice />
         ) : listings.length === 0 ? (
-          <EmptyState
-            actionHref="/auth/sign-up"
-            actionLabel="Post the first listing"
-            description="Try broadening the search or create the listing yourself."
-            title="No listings match this search"
-          />
+          <>
+            <EmptyState
+              actionHref="/auth/sign-up"
+              actionLabel="Post the first listing"
+              description="Try broadening the search or create the listing yourself."
+              title="No listings match this search"
+            />
+            <SearchRecoveryPanel
+              title="Try a faster recovery path"
+              description="Broaden the search or jump into one of the most active sections instead of starting over."
+              links={recoveryLinks}
+            />
+          </>
         ) : (
           <>
             {view === "map" && isMapEligibleCategory ? (
