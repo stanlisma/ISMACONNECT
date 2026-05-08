@@ -30,6 +30,16 @@ export function SiteFooter() {
             ))}
           </div>
         </div>
+
+        <div>
+          <h4>Trust & Support</h4>
+          <div className="footer-links">
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Use</Link>
+            <Link href="/safety">Safety Tips</Link>
+            <Link href="/contact">Contact Support</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
