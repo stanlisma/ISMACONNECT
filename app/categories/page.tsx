@@ -12,6 +12,15 @@ export const metadata: Metadata = {
 };
 
 export default function CategoriesPage() {
+  const quickStarts = CATEGORIES.map((category) => {
+    const localContent = getCategoryLocalContent(category.value);
+
+    return {
+      label: localContent.quickLinks[0]?.label ?? category.label,
+      href: localContent.quickLinks[0]?.href ?? category.href
+    };
+  });
+
   return (
     <section className="section listing-feed-section">
       <div className="container listing-feed-container">
@@ -29,6 +38,14 @@ export default function CategoriesPage() {
             <Link href="/dashboard/listings/new" className="button button-secondary">
               Post a listing
             </Link>
+          </div>
+
+          <div className="category-hub-mobile-rail">
+            {quickStarts.map((quickStart) => (
+              <Link key={quickStart.href} href={quickStart.href} className="category-hub-mobile-chip">
+                {quickStart.label}
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -51,7 +68,7 @@ export default function CategoriesPage() {
                 </ul>
 
                 <div className="category-hub-link-row">
-                  {localContent.quickLinks.slice(0, 2).map((link) => (
+                  {localContent.quickLinks.slice(0, 3).map((link) => (
                     <Link key={link.href} href={link.href} className="category-hub-chip">
                       {link.label}
                     </Link>
@@ -62,6 +79,11 @@ export default function CategoriesPage() {
                   <Link href={category.href} className="button button-secondary">
                     Open {category.label}
                   </Link>
+                  {localContent.quickLinks[0] ? (
+                    <Link href={localContent.quickLinks[0].href} className="button button-ghost">
+                      {localContent.quickLinks[0].label}
+                    </Link>
+                  ) : null}
                 </div>
               </article>
             );
