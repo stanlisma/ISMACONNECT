@@ -293,7 +293,7 @@ export default async function CategoryPage({
           compactOnMobile
         />
 
-        <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
+        <p className="category-results-count" style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
           {totalCount > 0
             ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
             : "0 results found"}

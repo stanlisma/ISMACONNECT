@@ -6800,6 +6800,10 @@ code {
     margin-bottom: 0.55rem !important;
   }
 
+  .browse-view-toggle:not(.browse-view-toggle-mobile) {
+    display: none !important;
+  }
+
   .browse-view-toggle .listing-view-pill {
     justify-content: center;
     min-height: 40px;
@@ -6808,12 +6812,19 @@ code {
   }
 
   .browse-results-toolbar {
-    margin-top: 0.45rem;
-    margin-bottom: 0.15rem;
+    display: none;
   }
 
   .browse-results-count {
     font-size: 0.82rem;
+  }
+
+  .pill-links {
+    display: none;
+  }
+
+  .category-results-count {
+    display: none;
   }
 
   .saved-search-banner {
