@@ -5675,6 +5675,117 @@ code {
 }
 
 @media (max-width: 760px) {
+  .seller-storefront-hero {
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .seller-storefront-header {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .seller-storefront-profile {
+    gap: 0.75rem;
+  }
+
+  .seller-storefront-avatar {
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: 18px;
+    font-size: 1.35rem;
+  }
+
+  .seller-storefront-copy {
+    gap: 0.5rem;
+  }
+
+  .seller-storefront-copy .section-title {
+    margin: 0;
+    font-size: 1.6rem;
+    line-height: 1.05;
+  }
+
+  .seller-storefront-copy .section-copy {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .seller-storefront-meta {
+    gap: 0.35rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  .seller-storefront-service-areas {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .seller-storefront-service-areas::-webkit-scrollbar,
+  .seller-storefront-category-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seller-storefront-service-chip {
+    min-height: 1.8rem;
+    padding: 0.24rem 0.62rem;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+
+  .seller-storefront-business-badge {
+    min-height: 1.9rem;
+    padding: 0.32rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .seller-storefront-stats {
+    gap: 0.55rem;
+  }
+
+  .seller-storefront-stat {
+    padding: 0.7rem 0.75rem;
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  .seller-storefront-stat span {
+    font-size: 0.74rem;
+  }
+
+  .seller-storefront-stat strong {
+    margin-top: 0.2rem;
+    font-size: 1rem;
+  }
+
+  .seller-storefront-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .seller-storefront-actions .button {
+    min-height: 2.55rem;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .seller-storefront-category-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.55rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .seller-storefront-category-pill,
+  .seller-storefront-category-clear {
+    white-space: nowrap;
+  }
+
   .listing-description-hint,
   .listing-media-panel-head,
   .listing-image-manager-head {
