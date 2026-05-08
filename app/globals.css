@@ -1629,8 +1629,110 @@ code {
   margin-top: 0.5rem;
 }
 
+.dashboard-controls-copy {
+  margin-bottom: 0;
+}
+
+.dashboard-summary-pills {
+  margin-top: 1rem;
+}
+
 .dashboard-listing h3 {
   margin: 0 0 0.55rem;
+}
+
+.dashboard-listing-compact {
+  display: grid;
+  gap: 0.95rem;
+  align-items: start;
+}
+
+.dashboard-listing-media {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid #d9e8ff;
+  background: #eef5ff;
+}
+
+.dashboard-listing-image,
+.dashboard-listing-image-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.dashboard-listing-image-placeholder {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: linear-gradient(180deg, #eef5ff, #ddeafb);
+}
+
+.dashboard-listing-image-placeholder span {
+  color: #4b6993;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.dashboard-listing-body {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.dashboard-listing-badges,
+.dashboard-listing-promotions {
+  gap: 0.45rem;
+}
+
+.dashboard-listing-badges .badge,
+.dashboard-listing-promotions .badge {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.74rem;
+}
+
+.dashboard-listing-headline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dashboard-listing-headline h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.dashboard-listing-price {
+  flex-shrink: 0;
+  color: #123462;
+  font-size: 1rem;
+}
+
+.dashboard-listing-meta {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.dashboard-listing-actions {
+  gap: 0.45rem;
+}
+
+.dashboard-listing-actions .button,
+.dashboard-listing-actions form,
+.dashboard-listing-actions form .button {
+  min-height: 2.45rem;
+}
+
+.dashboard-listing-actions .button {
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
 }
 
 .footer {
@@ -1676,6 +1778,16 @@ code {
 
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-listing-compact {
+    grid-template-columns: 132px minmax(0, 1fr);
+  }
+
+  .dashboard-listing-actions .button,
+  .dashboard-listing-actions form,
+  .dashboard-listing-actions form .button {
+    min-height: 2.6rem;
   }
 }
 
