@@ -14,6 +14,20 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
+function isSubcategoryConstraintError(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+  return error?.code === "23514" && message.includes("valid_subcategories");
+}
+
+function getSubcategoryConstraintMessage() {
+  return "Your database subcategory rules are out of date. Run the latest ISMACONNECT subcategory migration in Supabase, then try posting again.";
+}
+
 function parseImageUrls(formData: FormData) {
   const raw = formData.get("imageUrls");
 
@@ -126,7 +140,11 @@ export async function createListingAction(formData: FormData) {
     redirectWithMessage(
       "/dashboard/listings/new",
       "error",
-      error?.message || "Could not create the listing."
+      error
+        ? isSubcategoryConstraintError(error)
+          ? getSubcategoryConstraintMessage()
+          : error.message
+        : "Could not create the listing."
     );
   }
 
@@ -207,7 +225,11 @@ export async function updateListingAction(listingId: string, formData: FormData)
     redirectWithMessage(
       `/dashboard/listings/${listingId}/edit`,
       "error",
-      error?.message || "Could not update the listing."
+      error
+        ? isSubcategoryConstraintError(error)
+          ? getSubcategoryConstraintMessage()
+          : error.message
+        : "Could not update the listing."
     );
   }
 
