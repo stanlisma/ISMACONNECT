@@ -3306,6 +3306,40 @@ code {
   gap: 0.75rem;
 }
 
+.account-quick-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.account-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.85rem 0.8rem;
+  border: 1px solid rgba(168, 200, 242, 0.65);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.account-quick-link-copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.account-quick-link-label {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.account-quick-link-copy small {
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
 .account-stat-card {
   padding: 0.95rem 0.9rem;
   border-radius: 18px;
@@ -3921,6 +3955,49 @@ code {
 .account-menu-pill.is-active {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
+}
+
+.settings-shell {
+  max-width: 600px !important;
+}
+
+.settings-overview-card,
+.settings-section-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.settings-overview-head {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.settings-overview-head .section-title,
+.settings-overview-head .section-copy {
+  margin: 0;
+}
+
+.settings-jump-row {
+  margin-top: 0.15rem;
+}
+
+.settings-inline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.settings-support-copy {
+  margin: 0.9rem 0 0;
+}
+
+.settings-block-stack {
+  margin-top: 1rem;
+}
+
+.settings-meta-list {
+  margin-top: 1rem;
 }
 
 .pill-row {
@@ -4826,6 +4903,23 @@ code {
     font-size: 1.15rem;
   }
 
+  .account-quick-links {
+    gap: 0.55rem;
+  }
+
+  .account-quick-link {
+    padding: 0.72rem 0.72rem 0.68rem;
+    border-radius: 16px;
+  }
+
+  .account-quick-link-label {
+    font-size: 0.88rem;
+  }
+
+  .account-quick-link-copy small {
+    font-size: 0.72rem;
+  }
+
   .account-menu {
     gap: 0.65rem;
   }
@@ -4847,6 +4941,15 @@ code {
 
   .account-menu-description {
     font-size: 0.84rem;
+  }
+
+  .settings-overview-card,
+  .settings-section-card {
+    gap: 0.8rem;
+  }
+
+  .settings-inline-toggle {
+    align-items: flex-start;
   }
 }
 
