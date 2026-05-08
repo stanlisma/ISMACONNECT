@@ -78,7 +78,7 @@ export default async function SettingsPage({
 
   return (
     <section className="section">
-      <div className="container" style={{ maxWidth: "600px" }}>
+      <div className="container settings-shell">
         <FlashMessage
           message={getSingleParam(resolvedSearchParams?.success)}
           tone="success"
@@ -89,18 +89,32 @@ export default async function SettingsPage({
           tone="error"
         />
 
-        <div className="surface">
-          <h2 style={{ marginBottom: "1rem" }}>Notification Settings</h2>
+        <div className="surface settings-overview-card">
+          <div className="settings-overview-head">
+            <h1 className="section-title">Settings</h1>
+            <p className="section-copy">
+              Keep notifications, business details, and seller verification easy to manage on your phone.
+            </p>
+          </div>
+
+          <div className="pill-row settings-jump-row">
+            <a className="account-menu-pill is-active" href="#notifications">
+              Notifications
+            </a>
+            <a className="account-menu-pill" href="#business">
+              Business
+            </a>
+            <a className="account-menu-pill" href="#verification">
+              Verification
+            </a>
+          </div>
+        </div>
+
+        <div className="surface settings-section-card" id="notifications">
+          <h2 style={{ marginBottom: "0.85rem" }}>Notification Settings</h2>
 
           <form action={updateNotificationSettingsAction}>
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                cursor: "pointer"
-              }}
-            >
+            <label className="settings-inline-toggle">
               <input
                 type="checkbox"
                 name="email_notifications"
@@ -110,25 +124,25 @@ export default async function SettingsPage({
               <span>Receive email notifications for new messages</span>
             </label>
 
-            <button className="button" type="submit" style={{ marginTop: "1.25rem" }}>
+            <button className="button" type="submit" style={{ marginTop: "1rem" }}>
               Save settings
             </button>
           </form>
 
           {!emailDeliveryReady ? (
-            <p className="section-copy" style={{ marginTop: "0.9rem", marginBottom: 0 }}>
+            <p className="section-copy settings-support-copy">
               Email delivery is not configured on this deployment yet. Turn on
               ` RESEND_API_KEY ` and ` EMAIL_FROM ` in the app environment to send
               message emails.
             </p>
           ) : null}
 
-          <div style={{ marginTop: "1.1rem" }}>
+          <div className="settings-block-stack">
             <BrowserNotificationSettings />
           </div>
         </div>
 
-        <div style={{ marginTop: "1rem" }}>
+        <div className="settings-block-stack" id="business">
           <BusinessProfileForm
             action={updateBusinessProfileAction}
             schemaReady={businessSchemaReady}
@@ -143,15 +157,15 @@ export default async function SettingsPage({
           />
         </div>
 
-        <div className="surface" style={{ marginTop: "1rem" }}>
+        <div className="surface settings-section-card" id="verification">
           <h2 style={{ marginBottom: "0.6rem" }}>Trust & Verification</h2>
-          <p className="section-copy" style={{ marginBottom: "1rem" }}>
+          <p className="section-copy settings-support-copy">
             Verified sellers and strong ratings appear as trust badges across listing cards and detail pages.
           </p>
 
           <TrustBadges summary={trustSummary} />
 
-          <div className="meta-list" style={{ marginTop: "1rem" }}>
+          <div className="meta-list settings-meta-list">
             <span>Status: {profile?.verification_status ?? "unverified"}</span>
             <span>
               Ratings: {trustSummary?.review_count ? `${trustSummary.average_rating?.toFixed(1)} from ${trustSummary.review_count} reviews` : "No ratings yet"}
@@ -159,12 +173,12 @@ export default async function SettingsPage({
           </div>
 
           {profile?.verification_status === "verified" ? (
-            <p className="section-copy" style={{ marginTop: "1rem" }}>
+            <p className="section-copy settings-support-copy">
               Your Stripe seller verification is active and visible on your listings.
             </p>
           ) : (
             <>
-              <p className="section-copy" style={{ marginTop: "1rem" }}>
+              <p className="section-copy settings-support-copy">
                 {identityProcessing || profile?.verification_status === "pending"
                   ? "Stripe is processing your identity verification now."
                   : identityNeedsRetry
@@ -185,11 +199,11 @@ export default async function SettingsPage({
               ) : null}
 
               {!stripeIdentityReady ? (
-                <p className="section-copy" style={{ marginTop: "1rem" }}>
+                <p className="section-copy settings-support-copy">
                   Stripe Identity is not configured in this environment yet.
                 </p>
               ) : (
-                <form action={requestSellerVerificationAction} style={{ marginTop: "1rem" }}>
+                <form action={requestSellerVerificationAction} className="settings-block-stack">
                   <button className="button" type="submit">
                     {identityNeedsRetry
                       ? "Retry Stripe ID verification"

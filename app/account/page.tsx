@@ -155,6 +155,48 @@ export default async function AccountPage() {
                 <strong>{unreadMessagesCount + unreadNotificationsCount + searchAlertsCount}</strong>
               </div>
             </div>
+
+            <div className="account-quick-links">
+              <Link href="/dashboard" className="account-quick-link">
+                <span className="account-menu-icon">
+                  <ListChecks aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-quick-link-copy">
+                  <span className="account-quick-link-label">Listings</span>
+                  <small>{listingsCount} live</small>
+                </span>
+              </Link>
+
+              <Link href="/messages" className="account-quick-link">
+                <span className="account-menu-icon">
+                  <MessageCircle aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-quick-link-copy">
+                  <span className="account-quick-link-label">Messages</span>
+                  <small>{unreadMessagesCount} unread</small>
+                </span>
+              </Link>
+
+              <Link href="/dashboard/searches" className="account-quick-link">
+                <span className="account-menu-icon">
+                  <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-quick-link-copy">
+                  <span className="account-quick-link-label">Alerts</span>
+                  <small>{searchAlertsCount} new</small>
+                </span>
+              </Link>
+
+              <Link href="/settings" className="account-quick-link">
+                <span className="account-menu-icon">
+                  <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-quick-link-copy">
+                  <span className="account-quick-link-label">Settings</span>
+                  <small>Manage account</small>
+                </span>
+              </Link>
+            </div>
           </div>
 
           <div className="surface account-section-card">
