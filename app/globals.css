@@ -5250,6 +5250,12 @@ code {
   margin: 0 0 1rem;
 }
 
+.saved-pill-active {
+  background: linear-gradient(135deg, #e8f2ff, #ffffff);
+  border-color: #bfd9ff;
+  color: var(--primary-dark);
+}
+
 .business-profile-card {
   display: grid;
   gap: 1rem;
