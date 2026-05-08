@@ -32,6 +32,10 @@ export function PwaShell() {
     }
 
     let activeRegistration: ServiceWorkerRegistration | null = null;
+    const shouldAutoApplyUpdate =
+      window.location.pathname === "/" ||
+      window.location.pathname === "/browse" ||
+      window.location.pathname.startsWith("/categories/");
 
     navigator.serviceWorker
       .register("/sw.js")
@@ -40,10 +44,16 @@ export function PwaShell() {
 
         const syncUpdateState = () => {
           if (registration.waiting) {
+            if (shouldAutoApplyUpdate) {
+              registration.waiting.postMessage({ type: "SKIP_WAITING" });
+              return;
+            }
+
             setUpdateReady(true);
           }
         };
 
+        registration.update().catch(() => undefined);
         syncUpdateState();
 
         registration.addEventListener("updatefound", () => {
@@ -58,7 +68,7 @@ export function PwaShell() {
               installingWorker.state === "installed" &&
               navigator.serviceWorker.controller
             ) {
-              setUpdateReady(true);
+              syncUpdateState();
             }
           });
         });

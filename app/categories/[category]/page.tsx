@@ -253,7 +253,7 @@ export default async function CategoryPage({
         </div>
 
         {isMapEligibleCategory ? (
-          <div className="listing-view-toggle" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <div className="listing-view-toggle browse-view-toggle" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
             <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
               List view
             </Link>
