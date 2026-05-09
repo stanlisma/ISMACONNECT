@@ -756,17 +756,13 @@ function CommunityMapExplorer({
     [exactBusinessCandidates, knownAreas, listingPoints]
   );
   const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? listingPoints[0]?.area ?? null);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(listingPoints[0]?.listing.id ?? null);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
   const canFilterArea = category === "rentals";
 
   useEffect(() => {
-    const nextSelectedListing =
-      activeArea
-        ? listingPoints.find((item) => item.area === activeArea)?.listing.id
-        : listingPoints[0]?.listing.id ?? null;
     setSelectedArea(activeArea ?? listingPoints[0]?.area ?? null);
-    setSelectedListingId(nextSelectedListing ?? null);
+    setSelectedListingId(null);
     setSelectedBusinessOwnerId(null);
   }, [activeArea, dataKey, listingPoints]);
 
@@ -879,7 +875,7 @@ function CommunityMapExplorer({
 
           marker.addListener("click", () => {
             setSelectedArea(area.value);
-            setSelectedListingId(representativeListing?.listing.id ?? null);
+            setSelectedListingId(null);
             setSelectedBusinessOwnerId(null);
             infoWindowRef.current?.setContent(
               createInfoContent(
@@ -1055,10 +1051,7 @@ function CommunityMapExplorer({
   const selectedBusinessPoint =
     exactBusinessPoints.find((point) => point.ownerId === selectedBusinessOwnerId) ?? null;
   const selectedListingPoint =
-    listingPoints.find((item) => item.listing.id === selectedListingId) ??
-    (selectedArea ? listingPoints.find((item) => item.area === selectedArea) : null) ??
-    listingPoints[0] ??
-    null;
+    selectedListingId ? listingPoints.find((item) => item.listing.id === selectedListingId) ?? null : null;
 
   function handleReset() {
     const map = mapRef.current;
@@ -1081,10 +1074,7 @@ function CommunityMapExplorer({
   function handleAreaSelection(areaValue: string | null) {
     setSelectedArea(areaValue);
     setSelectedBusinessOwnerId(null);
-    const nextListingId = areaValue
-      ? listingPoints.find((item) => item.area === areaValue)?.listing.id ?? null
-      : listingPoints[0]?.listing.id ?? null;
-    setSelectedListingId(nextListingId);
+    setSelectedListingId(null);
   }
 
   return (
