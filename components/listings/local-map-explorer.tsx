@@ -582,11 +582,16 @@ function CommunityMapExplorer({
     [category, listings]
   );
   const dataKey = useMemo(
-    () => listingPoints.map((item) => `${item.listing.id}:${item.lat}:${item.lng}`).join("|"),
-    [listingPoints]
+    () =>
+      knownAreas.map((area) => `${area.value}:${area.count}:${area.lat}:${area.lng}`).join("|") +
+      "|" +
+      listingPoints.map((item) => `${item.listing.id}:${item.area}`).join("|"),
+    [knownAreas, listingPoints]
   );
   const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? listingPoints[0]?.area ?? null);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(listingPoints[0]?.listing.id ?? null);
+  const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
+  const canFilterArea = category === "rentals";
 
   useEffect(() => {
     const nextSelectedListing =
@@ -654,45 +659,41 @@ function CommunityMapExplorer({
         Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
         markersRef.current = {};
 
-        listingPoints.forEach((item) => {
-          const area = { label: item.areaLabel, count: 1, value: item.area };
+        knownAreas.forEach((area) => {
+          const representativeListing = listingPoints.find((item) => item.area === area.value) ?? null;
           const marker = new googleMaps.Marker({
             map,
-            position: { lat: item.lat, lng: item.lng },
-            title: `${area.label} · ${area.count} rental${area.count === 1 ? "" : "s"}`,
+            position: { lat: area.lat, lng: area.lng },
+            title: `${area.label} listings`,
             label: {
-              text: "",
+              text: String(area.count),
               color: "#FFFFFF",
               fontWeight: "800",
-              fontSize: "12px"
+              fontSize: area.count > 9 ? "11px" : "12px"
             },
-            icon: createPillMarkerIcon(
-              googleMaps,
-              formatCompactPrice(item.listing.price),
-              selectedListingId === item.listing.id
-            )
+            icon: createCircleMarkerIcon(googleMaps, area.count, selectedArea === area.value)
           });
 
           marker.addListener("click", () => {
-            setSelectedArea(item.area);
-            setSelectedListingId(item.listing.id);
+            setSelectedArea(area.value);
+            setSelectedListingId(representativeListing?.listing.id ?? null);
             infoWindowRef.current?.setContent(
               createInfoContent(
-                item.listing.title,
-                `${formatCompactPrice(item.listing.price)} · ${item.areaLabel}`,
-                item.listing.location
+                area.label,
+                `${area.count} listing${area.count === 1 ? "" : "s"} in this community`,
+                representativeListing?.listing.title ?? "Use the area chips to narrow the list."
               )
             );
             infoWindowRef.current?.open({ anchor: marker, map });
           });
 
-          markersRef.current[item.listing.id] = marker;
+          markersRef.current[area.value] = marker;
         });
 
         fitMapToPoints(
           googleMaps,
           map,
-          listingPoints.map((item) => ({ lat: item.lat, lng: item.lng })),
+          knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
           FORT_MCMURRAY_CENTER,
           11
         );
@@ -725,7 +726,7 @@ function CommunityMapExplorer({
       cancelled = true;
       stopWatching?.();
     };
-  }, [authFailed, dataKey, listingPoints, selectedListingId]);
+  }, [authFailed, dataKey, knownAreas, listingPoints, selectedArea]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
       mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
@@ -739,40 +740,40 @@ function CommunityMapExplorer({
 
     const googleMaps = window.google.maps;
     const map = mapRef.current;
-    const selectedMarker = selectedListingId ? markersRef.current[selectedListingId] : null;
+    const selectedMarker = selectedArea ? markersRef.current[selectedArea] : null;
 
     Object.entries(markersRef.current).forEach(([value, marker]) => {
-      const point = listingPoints.find((item) => item.listing.id === value);
-      if (!point) {
+      const area = knownAreas.find((item) => item.value === value);
+      if (!area) {
         return;
       }
 
-      marker.setIcon(
-        createPillMarkerIcon(
-          googleMaps,
-          formatCompactPrice(point.listing.price),
-          selectedListingId === point.listing.id
-        )
-      );
-      marker.setZIndex(selectedListingId === point.listing.id ? 20 : 10);
+      marker.setIcon(createCircleMarkerIcon(googleMaps, area.count, selectedArea === area.value));
+      marker.setLabel({
+        text: String(area.count),
+        color: "#FFFFFF",
+        fontWeight: "800",
+        fontSize: area.count > 9 ? "11px" : "12px"
+      });
+      marker.setZIndex(selectedArea === area.value ? 20 : 10);
     });
 
     if (map && selectedMarker) {
       const position = selectedMarker.getPosition?.();
       if (position) {
         map.panTo(position);
+        if ((map.getZoom?.() ?? 0) < 12) {
+          map.setZoom(12);
+        }
       }
     }
-  }, [listingPoints, selectedListingId]);
+  }, [knownAreas, selectedArea]);
 
   const selectedListingPoint =
     listingPoints.find((item) => item.listing.id === selectedListingId) ??
     (selectedArea ? listingPoints.find((item) => item.area === selectedArea) : null) ??
     listingPoints[0] ??
     null;
-  const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
-  const canFilterArea = category === "rentals";
-
   function handleReset() {
     const map = mapRef.current;
     if (!map || !window.google?.maps) {
@@ -782,7 +783,7 @@ function CommunityMapExplorer({
     fitMapToPoints(
       window.google.maps,
       map,
-      listingPoints.map((item) => ({ lat: item.lat, lng: item.lng })),
+      knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
       FORT_MCMURRAY_CENTER,
       11
     );

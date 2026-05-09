@@ -50,6 +50,34 @@ const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 1800;
 const WEBP_QUALITY = 0.82;
 
+function getLocationPlaceholder(category: string) {
+  switch (category) {
+    case "ride-share":
+      return "Downtown, Fort McMurray";
+    case "jobs":
+      return "Thickwood, Fort McMurray or Site / camp";
+    default:
+      return "Thickwood, Fort McMurray";
+  }
+}
+
+function getLocationHint(category: string) {
+  switch (category) {
+    case "ride-share":
+      return "Use the pickup area, like Downtown, Fort McMurray. Departure and destination details belong in the ride-share fields below.";
+    case "jobs":
+      return "Use a community and city, like Thickwood, Fort McMurray. Camp-based jobs can use Site / camp instead of an exact address.";
+    case "services":
+      return "Use the main community you serve, like Thickwood, Fort McMurray. Keep it area-level unless you are a storefront business.";
+    case "buy-sell":
+      return "Use a meetup community, like Thickwood, Fort McMurray, instead of your exact home address.";
+    case "rentals":
+      return "Use the neighbourhood and city, like Thickwood, Fort McMurray. The map will place the listing by community, not street address.";
+    default:
+      return "Use a community and city, like Thickwood, Fort McMurray, instead of an exact street address.";
+  }
+}
+
 function formatFileSize(bytes: number) {
   if (bytes < 1024 * 1024) {
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -160,6 +188,8 @@ export function ListingForm({
   const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
   const structuredDefaults = defaults?.structuredData ?? null;
   const descriptionReady = description.trim().length >= 10;
+  const locationPlaceholder = useMemo(() => getLocationPlaceholder(category), [category]);
+  const locationHint = useMemo(() => getLocationHint(category), [category]);
   const stickyHint = isUploading
     ? "Uploading photos..."
     : `${imageUrls.length}/${MAX_IMAGE_COUNT} photos | ${description.length}/3000 chars`;
@@ -348,7 +378,13 @@ export function ListingForm({
 
           <label className="field">
             <span className="field-label">Location</span>
-            <input className="input" name="location" defaultValue={defaults?.location ?? ""} />
+            <p className="field-hint">{locationHint}</p>
+            <input
+              className="input"
+              name="location"
+              defaultValue={defaults?.location ?? ""}
+              placeholder={locationPlaceholder}
+            />
           </label>
         </div>
       </section>
