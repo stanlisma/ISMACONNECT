@@ -47,7 +47,7 @@ export default async function ListingBoostPage({
 
         <h2>{listing.title}</h2>
         <p className="section-copy">
-          {formatCurrency(listing.price)} â€¢ {listing.location} â€¢ Posted {formatDate(listing.created_at)}
+          {formatCurrency(listing.price)} • {listing.location} • Posted {formatDate(listing.created_at)}
         </p>
 
         <div className="boost-status-grid">
@@ -117,7 +117,7 @@ export default async function ListingBoostPage({
                 <div>
                   <h3>{order.product_name}</h3>
                   <p className="section-copy">
-                    {formatDate(order.created_at)} â€¢ {order.provider.toUpperCase()} â€¢ {order.currency.toUpperCase()}{" "}
+                    {formatDate(order.created_at)} • {order.provider.toUpperCase()} • {order.currency.toUpperCase()}{" "}
                     {(order.amount_cents / 100).toFixed(2)}
                   </p>
                 </div>

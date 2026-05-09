@@ -365,7 +365,7 @@ function MapSurface({
         {status === "error" ? (
           <div className="local-map-status is-warning">
             <strong>Map failed to load</strong>
-            <p>Double-check your Google Maps JavaScript API key and billing setup, then refresh.</p>
+            <p>Double-check your Maps JavaScript API setup, billing, and HTTP referrer restrictions, then refresh.</p>
           </div>
         ) : null}
       </div>
