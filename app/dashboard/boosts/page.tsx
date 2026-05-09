@@ -96,7 +96,7 @@ export default async function DashboardBoostsPage() {
 
                   <h3>{listing.title}</h3>
                   <p className="section-copy">
-                    {formatCurrency(listing.price)} â€¢ Posted {formatDate(listing.created_at)}
+                    {formatCurrency(listing.price)} • Posted {formatDate(listing.created_at)}
                   </p>
 
                   <div className="boost-listing-meta">
