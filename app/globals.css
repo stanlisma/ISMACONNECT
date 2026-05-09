@@ -1000,9 +1000,12 @@ code {
   min-height: 2.3rem;
   padding: 0.5rem 0.9rem;
   border-radius: 999px;
+  border: 0;
   background: var(--primary);
   color: #ffffff;
   font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .local-map-summary-link.is-secondary {
@@ -1066,6 +1069,8 @@ code {
   background: #ffffff;
   color: var(--text);
   font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .local-map-chip strong,
@@ -1092,8 +1097,11 @@ code {
 }
 
 .local-map-clear {
+  border: 0;
+  background: transparent;
   color: var(--primary-dark);
   font-weight: 800;
+  cursor: pointer;
 }
 
 .flash-message {

@@ -74,7 +74,7 @@ export default async function CategoryPage({
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
   const sort = getSingleParam(resolvedSearchParams?.sort);
   const requestedView = getSingleParam(resolvedSearchParams?.view);
-  const isMapEligibleCategory = category === "rentals" || category === "ride-share";
+  const isMapEligibleCategory = true;
   const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
   const subcategory = normalizeSubcategory(
     category,

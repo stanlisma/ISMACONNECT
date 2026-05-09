@@ -1,5 +1,6 @@
 import type {
   FortMcMurrayArea,
+  JobListingStructuredData,
   Listing,
   ListingCategory,
   RentalListingStructuredData,
@@ -11,6 +12,9 @@ export type LocalMarketplaceAreaOption<TValue extends string = string> = {
   value: TValue;
   label: string;
 };
+
+export type CommunityMapArea = FortMcMurrayArea | "fort-mcmurray" | "site-camp";
+type RideShareMapArea = RideShareArea | "fort-mcmurray";
 
 type LocalAreaDefinition = {
   value: string;
@@ -58,6 +62,26 @@ export const RIDE_SHARE_AREA_OPTIONS: Array<LocalMarketplaceAreaOption<RideShare
   { value: "edmonton", label: "Edmonton" },
   { value: "calgary", label: "Calgary" }
 ];
+
+const FORT_MCMURRAY_CITY_DEFINITION: LocalAreaDefinition = {
+  value: "fort-mcmurray",
+  label: "Fort McMurray",
+  x: 54,
+  y: 40,
+  lat: 56.7269,
+  lng: -111.3806,
+  aliases: ["fort mcmurray", "fortmac", "ymm", "wood buffalo"]
+};
+
+const SITE_CAMP_AREA_DEFINITION: LocalAreaDefinition = {
+  value: "site-camp",
+  label: "Site / camp",
+  x: 90,
+  y: 16,
+  lat: 57.148,
+  lng: -111.641,
+  aliases: ["site", "camp", "site-camp", "oil sands", "work site", "fly in fly out", "fifo", "dido"]
+};
 
 const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefinition> = {
   downtown: {
@@ -125,17 +149,14 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
   }
 };
 
-const RIDE_SHARE_AREA_DEFINITIONS: Record<RideShareArea, LocalAreaDefinition> = {
+const COMMUNITY_MAP_AREA_DEFINITIONS: Record<CommunityMapArea, LocalAreaDefinition> = {
   ...FORT_MCMURRAY_AREA_DEFINITIONS,
-  "site-camp": {
-    value: "site-camp",
-    label: "Site / camp",
-    x: 90,
-    y: 16,
-    lat: 57.148,
-    lng: -111.641,
-    aliases: ["site", "camp", "site-camp", "oil sands", "work site"]
-  },
+  "fort-mcmurray": FORT_MCMURRAY_CITY_DEFINITION,
+  "site-camp": SITE_CAMP_AREA_DEFINITION
+};
+
+const RIDE_SHARE_AREA_DEFINITIONS: Record<RideShareMapArea, LocalAreaDefinition> = {
+  ...COMMUNITY_MAP_AREA_DEFINITIONS,
   edmonton: {
     value: "edmonton",
     label: "Edmonton",
@@ -363,11 +384,15 @@ export function getCategoryLocalContent(category: ListingCategory) {
   return CATEGORY_LOCAL_CONTENT[category];
 }
 
+export function getCommunityMapAreaDefinition(area?: CommunityMapArea | null) {
+  return area ? COMMUNITY_MAP_AREA_DEFINITIONS[area] : null;
+}
+
 export function getFortMcmurrayAreaDefinition(area?: FortMcMurrayArea | null) {
   return area ? FORT_MCMURRAY_AREA_DEFINITIONS[area] : null;
 }
 
-export function getRideShareAreaDefinition(area?: RideShareArea | null) {
+export function getRideShareAreaDefinition(area?: RideShareMapArea | null) {
   return area ? RIDE_SHARE_AREA_DEFINITIONS[area] : null;
 }
 
@@ -395,8 +420,34 @@ export function inferRideShareAreaFromText(text?: string | null) {
   return (
     (Object.values(RIDE_SHARE_AREA_DEFINITIONS).find((definition) =>
       definition.aliases.some((alias) => normalized.includes(normalizeLookupText(alias)))
-    )?.value as RideShareArea | undefined) ?? null
+    )?.value as RideShareMapArea | undefined) ?? null
   );
+}
+
+function inferCommunityMapAreaFromText(text?: string | null, options?: { includeCamp?: boolean }) {
+  const normalized = normalizeLookupText(text);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const fortArea = inferFortMcmurrayAreaFromLocation(normalized);
+  if (fortArea) {
+    return fortArea;
+  }
+
+  if (
+    options?.includeCamp &&
+    SITE_CAMP_AREA_DEFINITION.aliases.some((alias) => normalized.includes(normalizeLookupText(alias)))
+  ) {
+    return "site-camp" as const;
+  }
+
+  if (FORT_MCMURRAY_CITY_DEFINITION.aliases.some((alias) => normalized.includes(normalizeLookupText(alias)))) {
+    return "fort-mcmurray" as const;
+  }
+
+  return null;
 }
 
 export function getRentalAreaFromListing(listing: Listing) {
@@ -404,8 +455,61 @@ export function getRentalAreaFromListing(listing: Listing) {
   return (
     structuredData.rentalArea ??
     inferFortMcmurrayAreaFromLocation(listing.location) ??
-    inferFortMcmurrayAreaFromLocation(`${listing.title} ${listing.description}`)
+    inferFortMcmurrayAreaFromLocation(`${listing.title} ${listing.description}`) ??
+    "fort-mcmurray"
   );
+}
+
+export function getCommunityMapAreaFromListing(listing: Listing): CommunityMapArea {
+  const combinedText = `${listing.location} ${listing.title} ${listing.description}`;
+
+  switch (listing.category) {
+    case "rentals": {
+      const rentalArea = getRentalAreaFromListing(listing);
+      return rentalArea === "fort-mcmurray" ? rentalArea : rentalArea ?? "fort-mcmurray";
+    }
+    case "jobs": {
+      const structuredData = (listing.structured_data ?? {}) as JobListingStructuredData;
+      if (structuredData.workSetup === "camp" || structuredData.workSetup === "fifo" || structuredData.workSetup === "dido") {
+        return "site-camp";
+      }
+
+      return (
+        inferCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
+        inferCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
+        "fort-mcmurray"
+      );
+    }
+    case "services":
+    case "buy-sell":
+      return (
+        inferCommunityMapAreaFromText(listing.location) ??
+        inferCommunityMapAreaFromText(combinedText) ??
+        "fort-mcmurray"
+      );
+    default:
+      return (
+        inferCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
+        inferCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
+        "fort-mcmurray"
+      );
+  }
+}
+
+export function getCommunityListingMapPoint(listing: Listing) {
+  const area = getCommunityMapAreaFromListing(listing);
+  const definition = getCommunityMapAreaDefinition(area);
+
+  if (!definition) {
+    return null;
+  }
+
+  return {
+    lat: offsetCoordinate(definition.lat, `${listing.id}-community-lat`, 0.012),
+    lng: offsetCoordinate(definition.lng, `${listing.id}-community-lng`, 0.018),
+    area: definition.value as CommunityMapArea,
+    areaLabel: definition.label
+  };
 }
 
 export function getRideShareAreasFromListing(listing: Listing) {
@@ -419,7 +523,7 @@ export function getRideShareAreasFromListing(listing: Listing) {
     structuredData.destinationArea ?? inferRideShareAreaFromText(`${listing.title} ${listing.description}`);
 
   return {
-    departureArea: departureArea ?? null,
+    departureArea: departureArea ?? destinationArea ?? "fort-mcmurray",
     destinationArea: destinationArea ?? null
   };
 }
@@ -441,7 +545,7 @@ function offsetCoordinate(base: number, seed: string, spread: number) {
 
 export function getRentalListingMapPoint(listing: Listing) {
   const area = getRentalAreaFromListing(listing);
-  const definition = getFortMcmurrayAreaDefinition(area);
+  const definition = getCommunityMapAreaDefinition(area);
 
   if (!definition) {
     return null;
@@ -452,6 +556,25 @@ export function getRentalListingMapPoint(listing: Listing) {
     lng: offsetCoordinate(definition.lng, `${listing.id}-rental-lng`, 0.015),
     area: definition.value,
     areaLabel: definition.label
+  };
+}
+
+export function getCommunityAreaCounts(listings: Listing[]) {
+  const counts = new Map<CommunityMapArea, number>();
+
+  for (const listing of listings) {
+    const area = getCommunityMapAreaFromListing(listing);
+    counts.set(area, (counts.get(area) ?? 0) + 1);
+  }
+
+  return {
+    knownAreas: (Object.values(COMMUNITY_MAP_AREA_DEFINITIONS) as LocalAreaDefinition[])
+      .map((definition) => ({
+        ...definition,
+        count: counts.get(definition.value as CommunityMapArea) ?? 0
+      }))
+      .filter((item) => item.count > 0)
+      .sort((left, right) => right.count - left.count)
   };
 }
 
@@ -483,34 +606,30 @@ export function getRideShareRouteMapPoints(listing: Listing) {
 }
 
 export function getRentalAreaCounts(listings: Listing[]) {
-  const counts = new Map<FortMcMurrayArea, number>();
-  let unknownCount = 0;
+  const counts = new Map<CommunityMapArea, number>();
 
   for (const listing of listings) {
     const area = getRentalAreaFromListing(listing);
-
-    if (!area) {
-      unknownCount += 1;
-      continue;
-    }
-
     counts.set(area, (counts.get(area) ?? 0) + 1);
   }
 
   return {
-    knownAreas: FORT_MCMURRAY_AREA_OPTIONS.map((option) => ({
-      ...FORT_MCMURRAY_AREA_DEFINITIONS[option.value],
-      count: counts.get(option.value) ?? 0
+    knownAreas: ([
+      FORT_MCMURRAY_CITY_DEFINITION,
+      ...FORT_MCMURRAY_AREA_OPTIONS.map((option) => COMMUNITY_MAP_AREA_DEFINITIONS[option.value])
+    ]).map((definition) => ({
+      ...definition,
+      count: counts.get(definition.value as CommunityMapArea) ?? 0
     }))
       .filter((item) => item.count > 0)
       .sort((left, right) => right.count - left.count),
-    unknownCount
+    unknownCount: 0
   };
 }
 
 export function getRideShareRouteCounts(listings: Listing[]) {
-  const routeCounts = new Map<string, { departure: RideShareArea; destination: RideShareArea; count: number }>();
-  const endpointCounts = new Map<RideShareArea, number>();
+  const routeCounts = new Map<string, { departure: RideShareMapArea; destination: RideShareMapArea; count: number }>();
+  const endpointCounts = new Map<RideShareMapArea, number>();
   let flexibleCount = 0;
 
   for (const listing of listings) {

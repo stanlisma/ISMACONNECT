@@ -46,7 +46,7 @@ export default async function BrowsePage({
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
   const sort = getSingleParam(resolvedSearchParams?.sort);
   const requestedView = getSingleParam(resolvedSearchParams?.view);
-  const isMapEligibleCategory = category === "rentals" || category === "ride-share";
+  const isMapEligibleCategory = Boolean(category);
   const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
   const structuredFilters = Object.fromEntries(
     getStructuredFilterDefinitions(category)
@@ -172,7 +172,7 @@ export default async function BrowsePage({
             <p>
               {totalCount > 0
                 ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
-                : "Fast filters and map view for rentals and rides"}
+                : "Fast filters and privacy-safe community map view across categories"}
             </p>
           </div>
 
@@ -320,7 +320,7 @@ export default async function BrowsePage({
           <>
             {view === "map" && isMapEligibleCategory ? (
               <LocalMapExplorer
-                category={category}
+                category={category!}
                 listings={listings}
                 actionPath="/browse"
                 search={search}
