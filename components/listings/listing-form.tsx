@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { trackMarketplaceEvent } from "@/lib/analytics";
 import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import type { ListingStructuredData } from "@/types/database";
@@ -272,8 +273,23 @@ export function ListingForm({
     );
   }
 
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const formData = new FormData(event.currentTarget);
+    const submittedCategory = String(formData.get("category") ?? category);
+    const submittedSubcategory = String(formData.get("subcategory") ?? subcategory ?? "");
+    const priceValue = String(formData.get("price") ?? "").trim();
+
+    trackMarketplaceEvent(defaults ? "listing_edit_submit_attempt" : "listing_publish_attempt", {
+      category: submittedCategory || "unknown",
+      subcategory: submittedSubcategory || "none",
+      image_count: imageUrls.length,
+      has_price: Boolean(priceValue),
+      has_location: Boolean(String(formData.get("location") ?? "").trim())
+    });
+  }
+
   return (
-    <form action={action} className="form-grid listing-editor-form">
+    <form action={action} className="form-grid listing-editor-form" onSubmit={handleSubmit}>
       <section className="field-full listing-form-section">
         <div className="listing-form-section-head">
           <div>

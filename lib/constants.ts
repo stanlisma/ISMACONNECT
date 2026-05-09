@@ -5,7 +5,7 @@ export const SITE_TAGLINE = "Fort McMurray's local marketplace for everyday need
 export const SITE_DESCRIPTION =
   "ISMACONNECT helps Fort McMurray residents discover rentals, ride shares, jobs, services, and local buy & sell listings in one place.";
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
-export const SITE_SUPPORT_EMAIL = "hello@ismaconnect.ca";
+export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";
 
 export const CATEGORIES: Array<{
   value: ListingCategory;

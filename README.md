@@ -294,6 +294,21 @@ Set these environment variables:
 
 `EMAIL_FROM` must be a sender address allowed by your Resend account, such as a verified domain sender like `hello@ismaconnect.ca`.
 
+## Analytics and client error monitoring
+
+ISMACONNECT now supports:
+
+- Google Analytics 4 page views and marketplace funnel events
+- client-side error capture into `app_error_logs` for admin review
+
+Set this environment variable to enable GA4:
+
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+
+Apply this migration to store client errors:
+
+- `202605080002_app_error_logs.sql`
+
 The listing model uses these promotion columns:
 
 - `is_featured`

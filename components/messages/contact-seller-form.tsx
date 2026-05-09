@@ -1,10 +1,21 @@
+"use client";
+
 import { sendListingMessageAction } from "@/lib/actions/messages";
+import { trackMarketplaceEvent } from "@/lib/analytics";
 
 export function ContactSellerForm({ listingId }: { listingId: string }) {
   const action = sendListingMessageAction.bind(null, listingId);
 
   return (
-    <form action={action} className="form-grid contact-seller-form">
+    <form
+      action={action}
+      className="form-grid contact-seller-form"
+      onSubmit={() =>
+        trackMarketplaceEvent("contact_seller_attempt", {
+          listing_id: listingId
+        })
+      }
+    >
       <label className="field contact-seller-field">
         <span className="field-label">Message seller</span>
         <textarea

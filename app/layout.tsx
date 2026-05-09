@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PwaShell } from "@/components/pwa/pwa-shell";
@@ -70,6 +71,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <AnalyticsProvider userId={viewer?.user.id ?? null} />
         <PwaShell />
         <MobileBottomNav />
         <div className="site-shell">

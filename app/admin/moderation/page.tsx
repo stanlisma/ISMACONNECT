@@ -5,8 +5,10 @@ import { UserReportActions } from "@/components/admin/user-report-actions";
 import { VerificationRequestActions } from "@/components/admin/verification-request-actions";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { EmptyState } from "@/components/ui/empty-state";
+import { requireAdminViewer } from "@/lib/auth";
 import { getFlaggedListings } from "@/lib/data";
 import { getOpenUserReports } from "@/lib/message-safety";
+import { getRecentAppErrorLogs } from "@/lib/monitoring";
 import { getPendingVerificationProfiles } from "@/lib/trust";
 import { excerpt, formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/lib/utils";
 
@@ -15,17 +17,46 @@ export default async function ModerationPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await requireAdminViewer();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const [flaggedListings, pendingProfiles, openUserReports] = await Promise.all([
+  const [flaggedListings, pendingProfiles, openUserReports, recentAppErrorLogs] = await Promise.all([
     getFlaggedListings(),
     getPendingVerificationProfiles(),
-    getOpenUserReports()
+    getOpenUserReports(),
+    getRecentAppErrorLogs()
   ]);
 
   return (
     <>
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
+
+      {recentAppErrorLogs.length ? (
+        <div className="dashboard-list" style={{ marginBottom: "1.25rem" }}>
+          {recentAppErrorLogs.map((errorLog) => (
+            <div className="dashboard-listing" key={errorLog.id}>
+              <div className="badge-row">
+                <span className="badge badge-soft">App error</span>
+                <span className="badge badge-danger">{errorLog.source}</span>
+              </div>
+
+              <h3>{errorLog.message}</h3>
+              <p>
+                {formatDate(errorLog.created_at)}
+                {errorLog.pathname ? ` · ${errorLog.pathname}` : ""}
+              </p>
+
+              <div className="meta-list">
+                {errorLog.name ? <span>Name: {errorLog.name}</span> : null}
+                {errorLog.user_id ? <span>User ID: {errorLog.user_id.slice(0, 8)}</span> : null}
+                {errorLog.metadata?.filename ? <span>Source: {String(errorLog.metadata.filename)}</span> : null}
+              </div>
+
+              {errorLog.stack ? <p>{excerpt(errorLog.stack, 220)}</p> : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       {pendingProfiles.length ? (
         <div className="dashboard-list" style={{ marginBottom: "1.25rem" }}>

@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 
 import { SubmitButton } from "@/components/ui/submit-button";
+import { trackMarketplaceEvent } from "@/lib/analytics";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
@@ -22,7 +25,15 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
         <h1>{title}</h1>
         <p>{description}</p>
 
-        <form action={action} className="form-grid">
+        <form
+          action={action}
+          className="form-grid"
+          onSubmit={() =>
+            trackMarketplaceEvent(isSignUp ? "sign_up_attempt" : "sign_in_attempt", {
+              surface: "auth"
+            })
+          }
+        >
           {isSignUp && (
             <label className="field">
               <span className="field-label">Full name</span>

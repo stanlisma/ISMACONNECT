@@ -248,6 +248,19 @@ export interface UserReport {
   updated_at: string;
 }
 
+export interface AppErrorLog {
+  id: string;
+  user_id: string | null;
+  source: string;
+  message: string;
+  name: string | null;
+  stack: string | null;
+  pathname: string | null;
+  user_agent: string | null;
+  metadata: Record<string, string | number | boolean | null> | null;
+  created_at: string;
+}
+
 export interface Viewer {
   user: User;
   profile: Profile;
