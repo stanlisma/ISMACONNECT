@@ -15,9 +15,11 @@ import {
   getCommunityMapAreaDefinition,
   getCommunityMapAreaFromText,
   getCommunityListingMapPoint,
+  getPublicListingLocationLabel,
   getRentalListingMapPoint,
   getRideShareRouteCounts,
-  getRideShareRouteMapPoints
+  getRideShareRouteMapPoints,
+  shouldShowExactListingAddressOnMap
 } from "@/lib/local-marketplace";
 import { buildPathWithQuery } from "@/lib/utils";
 import type { BusinessMapProfile, Listing, ListingCategory } from "@/types/database";
@@ -64,13 +66,14 @@ type CommunityListingPoint = {
   lng: number;
   businessName: string | null;
   businessAddress: string | null;
-  isExactBusinessLocation: boolean;
+  exactAddress: string | null;
 };
 type RideShareListingPoint = ReturnType<typeof getRideShareRouteMapPoints> & { listing: Listing };
-type ExactBusinessMapPoint = {
+type ExactAddressMapPoint = {
+  key: string;
   ownerId: string;
   businessName: string | null;
-  businessAddress: string;
+  exactAddress: string;
   lat: number;
   lng: number;
   area: string;
@@ -314,6 +317,18 @@ function buildBusinessMarkerLabel(name?: string | null) {
   }
 
   return trimmed.length > 14 ? `${trimmed.slice(0, 13).trimEnd()}...` : trimmed;
+}
+
+function buildExactAddressMarkerLabel(point: ExactAddressMapPoint) {
+  if (point.businessName) {
+    return buildBusinessMarkerLabel(point.businessName);
+  }
+
+  if (point.listings.length > 1) {
+    return `${point.listings.length} listings`;
+  }
+
+  return formatCompactPrice(point.representativeListing.price);
 }
 
 function buildBusinessGeocodeQuery(address: string) {
@@ -649,12 +664,12 @@ function CommunityMapExplorer({
   const mapRef = useRef<GoogleMapInstance | null>(null);
   const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
   const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
-  const businessMarkersRef = useRef<Record<string, GoogleMarkerInstance>>({});
+  const exactLocationMarkersRef = useRef<Record<string, GoogleMarkerInstance>>({});
   const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
   const authFailed = useGoogleMapsAuthFailure();
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
-  const [exactBusinessPoints, setExactBusinessPoints] = useState<ExactBusinessMapPoint[]>([]);
-  const [selectedBusinessOwnerId, setSelectedBusinessOwnerId] = useState<string | null>(null);
+  const [exactLocationPoints, setExactLocationPoints] = useState<ExactAddressMapPoint[]>([]);
+  const [selectedExactLocationKey, setSelectedExactLocationKey] = useState<string | null>(null);
   const mapContent = useMemo(() => getCommunityMapContent(category), [category]);
   const includeCampAreas = category === "jobs";
   const listingPoints = useMemo<CommunityListingPoint[]>(
@@ -690,7 +705,13 @@ function CommunityMapExplorer({
             lng: point.lng,
             businessName: businessProfile?.business_name ?? null,
             businessAddress,
-            isExactBusinessLocation: Boolean(businessProfile?.show_exact_business_location && businessAddress)
+            exactAddress: shouldShowExactListingAddressOnMap(listing)
+              ? listing.location.trim()
+              : listing.show_exact_address_on_map === null &&
+                  businessProfile?.show_exact_business_location &&
+                  businessAddress
+                ? businessAddress
+                : null
           };
         })
         .filter(Boolean) as CommunityListingPoint[],
@@ -719,24 +740,26 @@ function CommunityMapExplorer({
       .filter(Boolean)
       .sort((left, right) => right!.count - left!.count) as CommunityAreaSummary[];
   }, [listingPoints]);
-  const exactBusinessCandidates = useMemo<Array<Omit<ExactBusinessMapPoint, "lat" | "lng">>>(() => {
-    const byOwner = new Map<string, Omit<ExactBusinessMapPoint, "lat" | "lng">>();
+  const exactAddressCandidates = useMemo<Array<Omit<ExactAddressMapPoint, "lat" | "lng">>>(() => {
+    const byAddress = new Map<string, Omit<ExactAddressMapPoint, "lat" | "lng">>();
 
     for (const point of listingPoints) {
-      if (!point.isExactBusinessLocation || !point.businessAddress) {
+      if (!point.exactAddress) {
         continue;
       }
 
-      const existing = byOwner.get(point.ownerId);
+      const key = `${point.ownerId}:${point.exactAddress.toLowerCase()}`;
+      const existing = byAddress.get(key);
       if (existing) {
         existing.listings.push(point.listing);
         continue;
       }
 
-      byOwner.set(point.ownerId, {
+      byAddress.set(key, {
+        key,
         ownerId: point.ownerId,
         businessName: point.businessName,
-        businessAddress: point.businessAddress,
+        exactAddress: point.exactAddress,
         area: point.area,
         areaLabel: point.areaLabel,
         listings: [point.listing],
@@ -744,7 +767,7 @@ function CommunityMapExplorer({
       });
     }
 
-    return Array.from(byOwner.values());
+    return Array.from(byAddress.values());
   }, [listingPoints]);
   const dataKey = useMemo(
     () =>
@@ -752,25 +775,23 @@ function CommunityMapExplorer({
       "|" +
       listingPoints.map((item) => `${item.listing.id}:${item.area}`).join("|") +
       "|" +
-      exactBusinessCandidates.map((item) => `${item.ownerId}:${item.businessAddress}:${item.listings.length}`).join("|"),
-    [exactBusinessCandidates, knownAreas, listingPoints]
+      exactAddressCandidates.map((item) => `${item.key}:${item.listings.length}`).join("|"),
+    [exactAddressCandidates, knownAreas, listingPoints]
   );
   const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? listingPoints[0]?.area ?? null);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
   const canFilterArea = category === "rentals";
 
   useEffect(() => {
     setSelectedArea(activeArea ?? listingPoints[0]?.area ?? null);
-    setSelectedListingId(null);
-    setSelectedBusinessOwnerId(null);
+    setSelectedExactLocationKey(null);
   }, [activeArea, dataKey, listingPoints]);
 
   useEffect(() => {
-    if (selectedBusinessOwnerId && !exactBusinessPoints.some((point) => point.ownerId === selectedBusinessOwnerId)) {
-      setSelectedBusinessOwnerId(null);
+    if (selectedExactLocationKey && !exactLocationPoints.some((point) => point.key === selectedExactLocationKey)) {
+      setSelectedExactLocationKey(null);
     }
-  }, [exactBusinessPoints, selectedBusinessOwnerId]);
+  }, [exactLocationPoints, selectedExactLocationKey]);
 
   useEffect(() => {
     if (status === "error" || status === "missing-key") {
@@ -781,7 +802,7 @@ function CommunityMapExplorer({
   useEffect(() => {
     if (authFailed) {
       clearMapSurface(mapRootRef.current);
-      setExactBusinessPoints([]);
+      setExactLocationPoints([]);
       setStatus("error");
       return;
     }
@@ -792,14 +813,14 @@ function CommunityMapExplorer({
 
     if (configStatus === "missing-key") {
       clearMapSurface(mapRootRef.current);
-      setExactBusinessPoints([]);
+      setExactLocationPoints([]);
       setStatus("missing-key");
       return;
     }
 
     if (configStatus === "error") {
       clearMapSurface(mapRootRef.current);
-      setExactBusinessPoints([]);
+      setExactLocationPoints([]);
       setStatus("error");
       return;
     }
@@ -831,15 +852,15 @@ function CommunityMapExplorer({
 
         Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
         markersRef.current = {};
-        Object.values(businessMarkersRef.current).forEach((marker) => marker.setMap(null));
-        businessMarkersRef.current = {};
+        Object.values(exactLocationMarkersRef.current).forEach((marker) => marker.setMap(null));
+        exactLocationMarkersRef.current = {};
 
-        const geocoder = exactBusinessCandidates.length ? new googleMaps.Geocoder() : null;
-        const resolvedExactBusinesses = geocoder
+        const geocoder = exactAddressCandidates.length ? new googleMaps.Geocoder() : null;
+        const resolvedExactLocations = geocoder
           ? (
               await Promise.all(
-                exactBusinessCandidates.map(async (candidate) => {
-                  const resolvedPoint = await geocodeBusinessAddress(geocoder, candidate.businessAddress);
+                exactAddressCandidates.map(async (candidate) => {
+                  const resolvedPoint = await geocodeBusinessAddress(geocoder, candidate.exactAddress);
                   return resolvedPoint
                     ? {
                         ...candidate,
@@ -849,14 +870,14 @@ function CommunityMapExplorer({
                     : null;
                 })
               )
-            ).filter(Boolean) as ExactBusinessMapPoint[]
+            ).filter(Boolean) as ExactAddressMapPoint[]
           : [];
 
         if (cancelled) {
           return;
         }
 
-        setExactBusinessPoints(resolvedExactBusinesses);
+        setExactLocationPoints(resolvedExactLocations);
 
         knownAreas.forEach((area) => {
           const representativeListing = listingPoints.find((item) => item.area === area.value) ?? null;
@@ -875,8 +896,7 @@ function CommunityMapExplorer({
 
           marker.addListener("click", () => {
             setSelectedArea(area.value);
-            setSelectedListingId(null);
-            setSelectedBusinessOwnerId(null);
+            setSelectedExactLocationKey(null);
             infoWindowRef.current?.setContent(
               createInfoContent(
                 area.label,
@@ -890,39 +910,38 @@ function CommunityMapExplorer({
           markersRef.current[area.value] = marker;
         });
 
-        resolvedExactBusinesses.forEach((businessPoint) => {
+        resolvedExactLocations.forEach((exactPoint) => {
           const marker = new googleMaps.Marker({
             map,
-            position: { lat: businessPoint.lat, lng: businessPoint.lng },
-            title: `${businessPoint.businessName ?? "Business"} | ${businessPoint.listings.length} listing${
-              businessPoint.listings.length === 1 ? "" : "s"
+            position: { lat: exactPoint.lat, lng: exactPoint.lng },
+            title: `${exactPoint.businessName ?? exactPoint.representativeListing.title} | ${exactPoint.listings.length} listing${
+              exactPoint.listings.length === 1 ? "" : "s"
             }`,
             icon: createPillMarkerIcon(
               googleMaps,
-              buildBusinessMarkerLabel(businessPoint.businessName),
-              selectedBusinessOwnerId === businessPoint.ownerId,
-              "dark"
+              buildExactAddressMarkerLabel(exactPoint),
+              selectedExactLocationKey === exactPoint.key,
+              exactPoint.businessName ? "dark" : "primary"
             ),
-            zIndex: selectedBusinessOwnerId === businessPoint.ownerId ? 30 : 18
+            zIndex: selectedExactLocationKey === exactPoint.key ? 30 : 18
           });
 
           marker.addListener("click", () => {
-            setSelectedArea(businessPoint.area);
-            setSelectedListingId(businessPoint.representativeListing.id);
-            setSelectedBusinessOwnerId(businessPoint.ownerId);
+            setSelectedArea(exactPoint.area);
+            setSelectedExactLocationKey(exactPoint.key);
             infoWindowRef.current?.setContent(
               createInfoContent(
-                businessPoint.businessName ?? businessPoint.representativeListing.title,
-                businessPoint.businessAddress,
-                `${businessPoint.listings.length} active business listing${
-                  businessPoint.listings.length === 1 ? "" : "s"
+                exactPoint.businessName ?? exactPoint.representativeListing.title,
+                exactPoint.exactAddress,
+                `${exactPoint.listings.length} active listing${
+                  exactPoint.listings.length === 1 ? "" : "s"
                 } at this location.`
               )
             );
             infoWindowRef.current?.open({ anchor: marker, map });
           });
 
-          businessMarkersRef.current[businessPoint.ownerId] = marker;
+          exactLocationMarkersRef.current[exactPoint.key] = marker;
         });
 
         fitMapToPoints(
@@ -930,7 +949,7 @@ function CommunityMapExplorer({
           map,
           [
             ...knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
-            ...resolvedExactBusinesses.map((businessPoint) => ({ lat: businessPoint.lat, lng: businessPoint.lng }))
+            ...resolvedExactLocations.map((exactPoint) => ({ lat: exactPoint.lat, lng: exactPoint.lng }))
           ],
           FORT_MCMURRAY_CENTER,
           11
@@ -946,7 +965,7 @@ function CommunityMapExplorer({
           () => {
             if (!cancelled) {
               clearMapSurface(mapRootRef.current);
-              setExactBusinessPoints([]);
+              setExactLocationPoints([]);
               setStatus("error");
             }
           }
@@ -954,7 +973,7 @@ function CommunityMapExplorer({
       } catch {
         if (!cancelled) {
           clearMapSurface(mapRootRef.current);
-          setExactBusinessPoints([]);
+          setExactLocationPoints([]);
           setStatus("error");
         }
       }
@@ -970,12 +989,12 @@ function CommunityMapExplorer({
     authFailed,
     configStatus,
     dataKey,
-    exactBusinessCandidates,
+    exactAddressCandidates,
     googleMapsConfig,
     knownAreas,
     listingPoints,
     selectedArea,
-    selectedBusinessOwnerId
+    selectedExactLocationKey
   ]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
@@ -991,7 +1010,9 @@ function CommunityMapExplorer({
     const googleMaps = window.google.maps;
     const map = mapRef.current;
     const selectedAreaMarker = selectedArea ? markersRef.current[selectedArea] : null;
-    const selectedBusinessMarker = selectedBusinessOwnerId ? businessMarkersRef.current[selectedBusinessOwnerId] : null;
+    const selectedExactMarker = selectedExactLocationKey
+      ? exactLocationMarkersRef.current[selectedExactLocationKey]
+      : null;
 
     Object.entries(markersRef.current).forEach(([value, marker]) => {
       const area = knownAreas.find((item) => item.value === value);
@@ -1009,25 +1030,25 @@ function CommunityMapExplorer({
       marker.setZIndex(selectedArea === area.value ? 20 : 10);
     });
 
-    Object.entries(businessMarkersRef.current).forEach(([ownerId, marker]) => {
-      const businessPoint = exactBusinessPoints.find((item) => item.ownerId === ownerId);
-      if (!businessPoint) {
+    Object.entries(exactLocationMarkersRef.current).forEach(([key, marker]) => {
+      const exactPoint = exactLocationPoints.find((item) => item.key === key);
+      if (!exactPoint) {
         return;
       }
 
       marker.setIcon(
         createPillMarkerIcon(
           googleMaps,
-          buildBusinessMarkerLabel(businessPoint.businessName),
-          selectedBusinessOwnerId === ownerId,
-          "dark"
+          buildExactAddressMarkerLabel(exactPoint),
+          selectedExactLocationKey === key,
+          exactPoint.businessName ? "dark" : "primary"
         )
       );
-      marker.setZIndex(selectedBusinessOwnerId === ownerId ? 30 : 18);
+      marker.setZIndex(selectedExactLocationKey === key ? 30 : 18);
     });
 
-    if (map && selectedBusinessMarker) {
-      const position = selectedBusinessMarker.getPosition?.();
+    if (map && selectedExactMarker) {
+      const position = selectedExactMarker.getPosition?.();
       if (position) {
         map.panTo(position);
         if ((map.getZoom?.() ?? 0) < 13) {
@@ -1046,12 +1067,10 @@ function CommunityMapExplorer({
         }
       }
     }
-  }, [exactBusinessPoints, knownAreas, selectedArea, selectedBusinessOwnerId]);
+  }, [exactLocationPoints, knownAreas, selectedArea, selectedExactLocationKey]);
 
-  const selectedBusinessPoint =
-    exactBusinessPoints.find((point) => point.ownerId === selectedBusinessOwnerId) ?? null;
-  const selectedListingPoint =
-    selectedListingId ? listingPoints.find((item) => item.listing.id === selectedListingId) ?? null : null;
+  const selectedExactLocationPoint =
+    selectedExactLocationKey ? exactLocationPoints.find((point) => point.key === selectedExactLocationKey) ?? null : null;
 
   function handleReset() {
     const map = mapRef.current;
@@ -1064,7 +1083,7 @@ function CommunityMapExplorer({
       map,
       [
         ...knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
-        ...exactBusinessPoints.map((businessPoint) => ({ lat: businessPoint.lat, lng: businessPoint.lng }))
+        ...exactLocationPoints.map((exactPoint) => ({ lat: exactPoint.lat, lng: exactPoint.lng }))
       ],
       FORT_MCMURRAY_CENTER,
       11
@@ -1073,8 +1092,7 @@ function CommunityMapExplorer({
 
   function handleAreaSelection(areaValue: string | null) {
     setSelectedArea(areaValue);
-    setSelectedBusinessOwnerId(null);
-    setSelectedListingId(null);
+    setSelectedExactLocationKey(null);
   }
 
   return (
@@ -1108,51 +1126,48 @@ function CommunityMapExplorer({
           status={status}
           onReset={handleReset}
           summary={
-            selectedBusinessPoint ? (
+            selectedExactLocationPoint ? (
               <div className="local-map-summary-inner">
                 <div>
-                  <span className="local-map-summary-eyebrow">Selected business</span>
-                  <strong>{selectedBusinessPoint.businessName ?? selectedBusinessPoint.representativeListing.title}</strong>
+                  <span className="local-map-summary-eyebrow">
+                    {selectedExactLocationPoint.businessName
+                      ? "Selected business"
+                      : selectedExactLocationPoint.listings.length > 1
+                        ? "Selected address"
+                        : "Selected listing"}
+                  </span>
+                  <strong>
+                    {selectedExactLocationPoint.businessName ??
+                      selectedExactLocationPoint.representativeListing.title}
+                  </strong>
                   <p>
-                    {selectedBusinessPoint.businessAddress} | {selectedBusinessPoint.listings.length} active listing
-                    {selectedBusinessPoint.listings.length === 1 ? "" : "s"}
+                    {selectedExactLocationPoint.exactAddress} | {selectedExactLocationPoint.listings.length} active
+                    listing{selectedExactLocationPoint.listings.length === 1 ? "" : "s"}
                   </p>
                 </div>
                 <div className="local-map-summary-actions">
-                  <Link href={`/sellers/${selectedBusinessPoint.ownerId}`} className="local-map-summary-link">
-                    View storefront
-                    <ArrowRight size={15} strokeWidth={2.4} />
-                  </Link>
                   <Link
-                    href={`/listings/${selectedBusinessPoint.representativeListing.slug}`}
-                    className="local-map-summary-link is-secondary"
+                    href={`/listings/${selectedExactLocationPoint.representativeListing.slug}`}
+                    className="local-map-summary-link"
                   >
-                    Open listing
-                  </Link>
-                </div>
-              </div>
-            ) : selectedListingPoint ? (
-              <div className="local-map-summary-inner">
-                <div>
-                  <span className="local-map-summary-eyebrow">Selected listing</span>
-                  <strong>{selectedListingPoint.listing.title}</strong>
-                  <p>
-                    {formatCompactPrice(selectedListingPoint.listing.price)} | {selectedListingPoint.areaLabel}
-                  </p>
-                </div>
-                <div className="local-map-summary-actions">
-                  <Link href={`/listings/${selectedListingPoint.listing.slug}`} className="local-map-summary-link">
                     Open listing
                     <ArrowRight size={15} strokeWidth={2.4} />
                   </Link>
                   {canFilterArea ? (
                     <Link
-                      href={buildHref({ rentalArea: selectedListingPoint.area })}
+                      href={buildHref({ rentalArea: selectedExactLocationPoint.area })}
                       className="local-map-summary-link is-secondary"
                     >
                       View area
                     </Link>
-                  ) : null}
+                  ) : (
+                    <Link
+                      href={`/sellers/${selectedExactLocationPoint.ownerId}`}
+                      className="local-map-summary-link is-secondary"
+                    >
+                      View storefront
+                    </Link>
+                  )}
                 </div>
               </div>
             ) : selectedAreaData ? (

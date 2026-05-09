@@ -102,7 +102,7 @@ export default async function SellerStorefrontPage({
                 <p className="section-copy">{storefrontDescription}</p>
 
                 <div className="seller-storefront-meta">
-                  <span>{storefront.primary_location.split(",")[0]}</span>
+                  <span>{storefront.primary_location}</span>
                   <span>Member since {memberSinceLabel}</span>
                   <span>{ratingLabel}</span>
                   {storefront.is_business ? <span>Business account</span> : null}

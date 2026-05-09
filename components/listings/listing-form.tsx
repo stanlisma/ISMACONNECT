@@ -25,6 +25,7 @@ type ListingFormProps = {
     title?: string;
     price?: string;
     location?: string;
+    showExactAddressOnMap?: boolean;
     description?: string;
     contactName?: string;
     contactEmail?: string;
@@ -53,28 +54,28 @@ const WEBP_QUALITY = 0.82;
 function getLocationPlaceholder(category: string) {
   switch (category) {
     case "ride-share":
-      return "Downtown, Fort McMurray";
+      return "100 Snowbird Avenue, Fort McMurray";
     case "jobs":
-      return "Thickwood, Fort McMurray or Site / camp";
+      return "205 Powder Drive, Fort McMurray";
     default:
-      return "Thickwood, Fort McMurray";
+      return "205 Powder Drive, Fort McMurray";
   }
 }
 
 function getLocationHint(category: string) {
   switch (category) {
     case "ride-share":
-      return "Use the pickup area, like Downtown, Fort McMurray. Departure and destination details belong in the ride-share fields below.";
+      return "Use the pickup address or community. If you keep exact map display off, riders only see the community, like Downtown or Thickwood.";
     case "jobs":
-      return "Use a community and city, like Thickwood, Fort McMurray. Camp-based jobs can use Site / camp instead of an exact address.";
+      return "Use the worksite address or a community, like Thickwood, Fort McMurray. Camp-based jobs can use Site / camp.";
     case "services":
-      return "Use the main community you serve, like Thickwood, Fort McMurray. Keep it area-level unless you are a storefront business.";
+      return "Use your service address or base community. Leave exact map display off if you only want Thickwood, Downtown, or Fort McMurray shown publicly.";
     case "buy-sell":
-      return "Use a meetup community, like Thickwood, Fort McMurray, instead of your exact home address.";
+      return "Use your meetup address or a community. Leave exact map display off if you only want the community shown.";
     case "rentals":
-      return "Use the neighbourhood and city, like Thickwood, Fort McMurray. The map will place the listing by community, not street address.";
+      return "Use the rental address or community. Leave exact map display off if you only want the building area or community shown publicly.";
     default:
-      return "Use a community and city, like Thickwood, Fort McMurray, instead of an exact street address.";
+      return "Use the address you want tied to this listing. Leave exact map display off to show only the community publicly.";
   }
 }
 
@@ -314,7 +315,8 @@ export function ListingForm({
       subcategory: submittedSubcategory || "none",
       image_count: imageUrls.length,
       has_price: Boolean(priceValue),
-      has_location: Boolean(String(formData.get("location") ?? "").trim())
+      has_address: Boolean(String(formData.get("location") ?? "").trim()),
+      shows_exact_address_on_map: formData.get("show_exact_address_on_map") === "on"
     });
   }
 
@@ -377,7 +379,7 @@ export function ListingForm({
           </label>
 
           <label className="field">
-            <span className="field-label">Location</span>
+            <span className="field-label">Address</span>
             <p className="field-hint">{locationHint}</p>
             <input
               className="input"
@@ -386,6 +388,21 @@ export function ListingForm({
               placeholder={locationPlaceholder}
             />
           </label>
+
+          <div className="field listing-address-toggle-field">
+            <span className="field-label">Map privacy</span>
+            <label className="business-profile-toggle listing-address-toggle">
+              <input
+                type="checkbox"
+                name="show_exact_address_on_map"
+                defaultChecked={defaults?.showExactAddressOnMap ?? false}
+              />
+              <span>
+                <strong>Show exact address on the map</strong>
+                <small>Leave this off to show only the community, like Thickwood, Downtown, or Fort McMurray.</small>
+              </span>
+            </label>
+          </div>
         </div>
       </section>
 

@@ -28,6 +28,20 @@ function getSubcategoryConstraintMessage() {
   return "Your database subcategory rules are out of date. Run the latest ISMACONNECT subcategory migration in Supabase, then try posting again.";
 }
 
+function isAddressVisibilitySchemaError(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+  return message.includes("show_exact_address_on_map");
+}
+
+function getAddressVisibilitySchemaMessage() {
+  return "Your database address visibility rules are out of date. Run the latest ISMACONNECT address visibility migration in Supabase, then try posting again.";
+}
+
 function parseImageUrls(formData: FormData) {
   const raw = formData.get("imageUrls");
 
@@ -93,6 +107,7 @@ export async function createListingAction(formData: FormData) {
     description: formData.get("description"),
     price: formData.get("price"),
     location: formData.get("location"),
+    showExactAddressOnMap: formData.get("show_exact_address_on_map"),
     contactName: formData.get("contactName"),
     contactEmail: formData.get("contactEmail"),
     contactPhone: formData.get("contactPhone"),
@@ -126,6 +141,7 @@ export async function createListingAction(formData: FormData) {
       description: dataInput.description,
       price: dataInput.price,
       location: dataInput.location,
+      show_exact_address_on_map: dataInput.showExactAddressOnMap,
       contact_name: dataInput.contactName,
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
@@ -143,7 +159,9 @@ export async function createListingAction(formData: FormData) {
       error
         ? isSubcategoryConstraintError(error)
           ? getSubcategoryConstraintMessage()
-          : error.message
+          : isAddressVisibilitySchemaError(error)
+            ? getAddressVisibilitySchemaMessage()
+            : error.message
         : "Could not create the listing."
     );
   }
@@ -172,6 +190,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
     description: formData.get("description"),
     price: formData.get("price"),
     location: formData.get("location"),
+    showExactAddressOnMap: formData.get("show_exact_address_on_map"),
     contactName: formData.get("contactName"),
     contactEmail: formData.get("contactEmail"),
     contactPhone: formData.get("contactPhone"),
@@ -210,6 +229,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
       description: dataInput.description,
       price: dataInput.price,
       location: dataInput.location,
+      show_exact_address_on_map: dataInput.showExactAddressOnMap,
       contact_name: dataInput.contactName,
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
@@ -228,7 +248,9 @@ export async function updateListingAction(listingId: string, formData: FormData)
       error
         ? isSubcategoryConstraintError(error)
           ? getSubcategoryConstraintMessage()
-          : error.message
+          : isAddressVisibilitySchemaError(error)
+            ? getAddressVisibilitySchemaMessage()
+            : error.message
         : "Could not update the listing."
     );
   }

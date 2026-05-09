@@ -94,6 +94,7 @@ export interface Listing {
   description: string;
   price: number | null;
   location: string;
+  show_exact_address_on_map: boolean | null;
   contact_name: string;
   contact_email: string | null;
   contact_phone: string | null;
