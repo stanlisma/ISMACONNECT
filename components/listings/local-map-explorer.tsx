@@ -320,6 +320,65 @@ function fitMapToPoints(
   map.fitBounds(bounds, 48);
 }
 
+function clearMapSurface(root: HTMLDivElement | null) {
+  if (root) {
+    root.innerHTML = "";
+  }
+}
+
+function watchMapUntilReady(
+  googleMaps: GoogleMapsNamespace,
+  map: GoogleMapInstance,
+  onReady: () => void,
+  onError: () => void
+) {
+  let settled = false;
+  const listeners: Array<{ remove?: () => void }> = [];
+
+  const finalize = (callback: () => void) => {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    window.clearTimeout(timeoutId);
+
+    listeners.forEach((listener) => {
+      if (typeof listener.remove === "function") {
+        listener.remove();
+      } else if (googleMaps.event?.removeListener) {
+        googleMaps.event.removeListener(listener);
+      }
+    });
+
+    callback();
+  };
+
+  listeners.push(
+    googleMaps.event.addListenerOnce(map, "tilesloaded", () => finalize(onReady)),
+    googleMaps.event.addListenerOnce(map, "idle", () => finalize(onReady))
+  );
+
+  const timeoutId = window.setTimeout(() => finalize(onError), 10000);
+
+  return () => {
+    if (settled) {
+      return;
+    }
+
+    settled = true;
+    window.clearTimeout(timeoutId);
+
+    listeners.forEach((listener) => {
+      if (typeof listener.remove === "function") {
+        listener.remove();
+      } else if (googleMaps.event?.removeListener) {
+        googleMaps.event.removeListener(listener);
+      }
+    });
+  };
+}
+
 function MapSurface({
   badge,
   children,
@@ -469,7 +528,14 @@ function RentalMapExplorer({
   }, [activeArea, dataKey, listingPoints]);
 
   useEffect(() => {
+    if (status === "error" || status === "missing-key") {
+      clearMapSurface(mapRootRef.current);
+    }
+  }, [status]);
+
+  useEffect(() => {
     if (authFailed) {
+      clearMapSurface(mapRootRef.current);
       setStatus("error");
       return;
     }
@@ -479,11 +545,13 @@ function RentalMapExplorer({
     }
 
     if (configStatus === "missing-key") {
+      clearMapSurface(mapRootRef.current);
       setStatus("missing-key");
       return;
     }
 
     if (configStatus === "error") {
+      clearMapSurface(mapRootRef.current);
       setStatus("error");
       return;
     }
@@ -495,6 +563,7 @@ function RentalMapExplorer({
     const resolvedGoogleMapsConfig = googleMapsConfig;
 
     let cancelled = false;
+    let stopWatching: (() => void) | null = null;
 
     async function renderMap() {
       try {
@@ -557,9 +626,24 @@ function RentalMapExplorer({
           FORT_MCMURRAY_CENTER,
           11
         );
-        setStatus("ready");
+        stopWatching = watchMapUntilReady(
+          googleMaps,
+          map,
+          () => {
+            if (!cancelled) {
+              setStatus("ready");
+            }
+          },
+          () => {
+            if (!cancelled) {
+              clearMapSurface(mapRootRef.current);
+              setStatus("error");
+            }
+          }
+        );
       } catch {
         if (!cancelled) {
+          clearMapSurface(mapRootRef.current);
           setStatus("error");
         }
       }
@@ -569,6 +653,7 @@ function RentalMapExplorer({
 
     return () => {
       cancelled = true;
+      stopWatching?.();
     };
   }, [authFailed, dataKey, listingPoints, selectedListingId]);
   useEffect(() => {
@@ -795,7 +880,14 @@ function RideShareMapExplorer({
   }, [activeDeparture, activeDestination, endpointDataKey, endpoints]);
 
   useEffect(() => {
+    if (status === "error" || status === "missing-key") {
+      clearMapSurface(mapRootRef.current);
+    }
+  }, [status]);
+
+  useEffect(() => {
     if (authFailed) {
+      clearMapSurface(mapRootRef.current);
       setStatus("error");
       return;
     }
@@ -805,11 +897,13 @@ function RideShareMapExplorer({
     }
 
     if (configStatus === "missing-key") {
+      clearMapSurface(mapRootRef.current);
       setStatus("missing-key");
       return;
     }
 
     if (configStatus === "error") {
+      clearMapSurface(mapRootRef.current);
       setStatus("error");
       return;
     }
@@ -821,6 +915,7 @@ function RideShareMapExplorer({
     const resolvedGoogleMapsConfig = googleMapsConfig;
 
     let cancelled = false;
+    let stopWatching: (() => void) | null = null;
 
     async function renderMap() {
       try {
@@ -924,9 +1019,24 @@ function RideShareMapExplorer({
           ...endpoints.map((endpoint) => ({ lat: endpoint.lat, lng: endpoint.lng }))
         ];
         fitMapToPoints(googleMaps, map, routePoints, ALBERTA_CENTER, 6);
-        setStatus("ready");
+        stopWatching = watchMapUntilReady(
+          googleMaps,
+          map,
+          () => {
+            if (!cancelled) {
+              setStatus("ready");
+            }
+          },
+          () => {
+            if (!cancelled) {
+              clearMapSurface(mapRootRef.current);
+              setStatus("error");
+            }
+          }
+        );
       } catch {
         if (!cancelled) {
+          clearMapSurface(mapRootRef.current);
           setStatus("error");
         }
       }
@@ -936,6 +1046,7 @@ function RideShareMapExplorer({
 
     return () => {
       cancelled = true;
+      stopWatching?.();
     };
   }, [authFailed, endpointDataKey, mappedRouteListings, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
   useEffect(() => {
