@@ -11,16 +11,18 @@ import {
 } from "react";
 
 import {
+  getCommunityAreaCounts,
+  getCommunityListingMapPoint,
   getRentalAreaCounts,
   getRentalListingMapPoint,
   getRideShareRouteCounts,
   getRideShareRouteMapPoints
 } from "@/lib/local-marketplace";
 import { buildPathWithQuery } from "@/lib/utils";
-import type { Listing } from "@/types/database";
+import type { Listing, ListingCategory } from "@/types/database";
 
 type LocalMapExplorerProps = {
-  category: "rentals" | "ride-share";
+  category: ListingCategory;
   listings: Listing[];
   actionPath: string;
   search?: string;
@@ -31,6 +33,7 @@ type LocalMapExplorerProps = {
   structuredFilters?: Record<string, unknown>;
 };
 
+type CommunityAreaSummary = ReturnType<typeof getCommunityAreaCounts>["knownAreas"][number];
 type RentalAreaSummary = ReturnType<typeof getRentalAreaCounts>["knownAreas"][number];
 type RideShareEndpointSummary = ReturnType<typeof getRideShareRouteCounts>["endpoints"][number];
 type RideShareRouteSummary = ReturnType<typeof getRideShareRouteCounts>["routes"][number];
@@ -45,6 +48,7 @@ type GoogleMarkerInstance = any;
 type GooglePolylineInstance = any;
 type GoogleInfoWindowInstance = any;
 type LatLngLike = { lat: number; lng: number };
+type CommunityListingPoint = NonNullable<ReturnType<typeof getCommunityListingMapPoint>> & { listing: Listing };
 type RentalListingPoint = NonNullable<ReturnType<typeof getRentalListingMapPoint>> & { listing: Listing };
 type RideShareListingPoint = ReturnType<typeof getRideShareRouteMapPoints> & { listing: Listing };
 
@@ -439,6 +443,64 @@ function MapSurface({
   );
 }
 
+function getCommunityMapContent(category: ListingCategory) {
+  switch (category) {
+    case "rentals":
+      return {
+        title: "Rental listings by community",
+        description: "Scan privacy-safe area pins and compare neighbourhood coverage before opening listings.",
+        badge: "Live rental map",
+        statsLabel: "mapped rentals",
+        browseLabel: "Browse by area",
+        why: [
+          "Pins stay at the community level instead of exposing exact home addresses.",
+          "Area chips keep rental discovery fast for Timberlea, Thickwood, Downtown, and nearby zones.",
+          "Fort McMurray fallback keeps general rental posts visible even without a neighbourhood."
+        ]
+      };
+    case "jobs":
+      return {
+        title: "Jobs across Fort McMurray and site areas",
+        description: "See where local roles cluster, with camp and site-heavy jobs grouped safely away from exact addresses.",
+        badge: "Live jobs map",
+        statsLabel: "mapped jobs",
+        browseLabel: "Browse job areas",
+        why: [
+          "Area-level pins help job seekers compare openings without exposing sensitive employer details.",
+          "Camp, FIFO, and DIDO roles fall into a shared Site / camp zone instead of fake street pins.",
+          "City fallback keeps straightforward Fort McMurray job posts on the map."
+        ]
+      };
+    case "services":
+      return {
+        title: "Service listings across local communities",
+        description: "Compare service coverage by community and keep in-home or repeat services privacy-safe by default.",
+        badge: "Live services map",
+        statsLabel: "mapped services",
+        browseLabel: "Browse service areas",
+        why: [
+          "Services stay discoverable by community without publishing exact home-based addresses.",
+          "Business and independent providers still stand out through their storefront and listing quality.",
+          "City fallback keeps general Fort McMurray services visible when posters skip the neighbourhood."
+        ]
+      };
+    case "buy-sell":
+    default:
+      return {
+        title: "Local listings by community",
+        description: "Shop area-based pins instead of exact seller homes, with Fort McMurray fallback for general local posts.",
+        badge: "Live marketplace map",
+        statsLabel: "mapped listings",
+        browseLabel: "Browse local areas",
+        why: [
+          "Area-level pins protect peer-to-peer sellers while still making local browsing feel familiar.",
+          "Community clustering helps buyers scan Timberlea, Downtown, Thickwood, and the broader city faster.",
+          "General local listings fall back to Fort McMurray instead of disappearing from the map."
+        ]
+      };
+  }
+}
+
 export function LocalMapExplorer({
   category,
   listings,
@@ -464,9 +526,10 @@ export function LocalMapExplorer({
       ...overrides
     });
 
-  if (category === "rentals") {
+  if (category !== "ride-share") {
     return (
-      <RentalMapExplorer
+      <CommunityMapExplorer
+        category={category}
         activeArea={typeof structuredFilters?.rentalArea === "string" ? structuredFilters.rentalArea : null}
         buildHref={buildHref}
         listings={listings}
@@ -484,11 +547,13 @@ export function LocalMapExplorer({
   );
 }
 
-function RentalMapExplorer({
+function CommunityMapExplorer({
+  category,
   activeArea,
   buildHref,
   listings
 }: {
+  category: Exclude<ListingCategory, "ride-share">;
   activeArea: string | null;
   buildHref: (overrides: Record<string, string | number | boolean | null | undefined>) => string;
   listings: Listing[];
@@ -500,16 +565,21 @@ function RentalMapExplorer({
   const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
   const authFailed = useGoogleMapsAuthFailure();
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
-  const { knownAreas, unknownCount } = useMemo(() => getRentalAreaCounts(listings), [listings]);
-  const listingPoints = useMemo<RentalListingPoint[]>(
+  const mapContent = useMemo(() => getCommunityMapContent(category), [category]);
+  const { knownAreas } = useMemo(
+    () => (category === "rentals" ? getRentalAreaCounts(listings) : getCommunityAreaCounts(listings)),
+    [category, listings]
+  );
+  const listingPoints = useMemo<CommunityListingPoint[]>(
     () =>
       listings
         .map((listing) => {
-          const point = getRentalListingMapPoint(listing);
+          const point =
+            category === "rentals" ? getRentalListingMapPoint(listing) : getCommunityListingMapPoint(listing);
           return point ? { ...point, listing } : null;
         })
-        .filter(Boolean) as RentalListingPoint[],
-    [listings]
+        .filter(Boolean) as CommunityListingPoint[],
+    [category, listings]
   );
   const dataKey = useMemo(
     () => listingPoints.map((item) => `${item.listing.id}:${item.lat}:${item.lng}`).join("|"),
@@ -701,6 +771,7 @@ function RentalMapExplorer({
     listingPoints[0] ??
     null;
   const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
+  const canFilterArea = category === "rentals";
 
   function handleReset() {
     const map = mapRef.current;
@@ -717,18 +788,26 @@ function RentalMapExplorer({
     );
   }
 
+  function handleAreaSelection(areaValue: string | null) {
+    setSelectedArea(areaValue);
+    const nextListingId = areaValue
+      ? listingPoints.find((item) => item.area === areaValue)?.listing.id ?? null
+      : listingPoints[0]?.listing.id ?? null;
+    setSelectedListingId(nextListingId);
+  }
+
   return (
     <div className="local-map-shell surface">
       <div className="local-map-shell-head">
         <div>
           <span className="eyebrow">Map view</span>
-          <h3>Rental inventory by area</h3>
-          <p>Scan real rental pins, compare neighbourhoods, and open the right listing faster.</p>
+          <h3>{mapContent.title}</h3>
+          <p>{mapContent.description}</p>
         </div>
         <div className="local-map-mini-stats">
           <span>
             <strong>{listingPoints.length}</strong>
-            <span>mapped rentals</span>
+            <span>{mapContent.statsLabel}</span>
           </span>
           <span>
             <strong>{knownAreas.length}</strong>
@@ -742,7 +821,7 @@ function RentalMapExplorer({
           badge={
             <>
               <MapPinned aria-hidden="true" size={16} strokeWidth={2.3} />
-              <span>Live rental map</span>
+              <span>{mapContent.badge}</span>
             </>
           }
           status={status}
@@ -762,12 +841,14 @@ function RentalMapExplorer({
                     Open listing
                     <ArrowRight size={15} strokeWidth={2.4} />
                   </Link>
-                  <Link
-                    href={buildHref({ rentalArea: selectedListingPoint.area })}
-                    className="local-map-summary-link is-secondary"
-                  >
-                    View area
-                  </Link>
+                  {canFilterArea ? (
+                    <Link
+                      href={buildHref({ rentalArea: selectedListingPoint.area })}
+                      className="local-map-summary-link is-secondary"
+                    >
+                      View area
+                    </Link>
+                  ) : null}
                 </div>
               </div>
             ) : selectedAreaData ? (
@@ -776,14 +857,24 @@ function RentalMapExplorer({
                   <span className="local-map-summary-eyebrow">Selected area</span>
                   <strong>{selectedAreaData.label}</strong>
                   <p>
-                    {selectedAreaData.count} active rental{selectedAreaData.count === 1 ? "" : "s"} currently mapped
-                    in this neighbourhood.
+                    {selectedAreaData.count} active listing{selectedAreaData.count === 1 ? "" : "s"} currently mapped
+                    in this area.
                   </p>
                 </div>
-                <Link href={buildHref({ rentalArea: selectedAreaData.value })} className="local-map-summary-link">
-                  View area
-                  <ArrowRight size={15} strokeWidth={2.4} />
-                </Link>
+                {canFilterArea ? (
+                  <Link href={buildHref({ rentalArea: selectedAreaData.value })} className="local-map-summary-link">
+                    View area
+                    <ArrowRight size={15} strokeWidth={2.4} />
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="local-map-summary-link is-secondary"
+                    onClick={() => handleAreaSelection(selectedAreaData.value)}
+                  >
+                    Focus pins
+                  </button>
+                )}
               </div>
             ) : null
           }
@@ -795,41 +886,54 @@ function RentalMapExplorer({
           <div className="local-map-sidebar-card">
             <div className="local-map-sidebar-head">
               <Compass aria-hidden="true" size={16} strokeWidth={2.3} />
-              <strong>Browse by area</strong>
+              <strong>{mapContent.browseLabel}</strong>
             </div>
 
             <div className="local-map-chip-row">
-              {knownAreas.map((area) => (
-                <Link
-                  key={area.value}
-                  href={buildHref({ rentalArea: area.value })}
-                  className={`local-map-chip${activeArea === area.value ? " is-active" : ""}`}
-                >
-                  <span>{area.label}</span>
-                  <strong>{area.count}</strong>
-                </Link>
-              ))}
+              {knownAreas.map((area) =>
+                canFilterArea ? (
+                  <Link
+                    key={area.value}
+                    href={buildHref({ rentalArea: area.value })}
+                    className={`local-map-chip${activeArea === area.value ? " is-active" : ""}`}
+                  >
+                    <span>{area.label}</span>
+                    <strong>{area.count}</strong>
+                  </Link>
+                ) : (
+                  <button
+                    key={area.value}
+                    type="button"
+                    className={`local-map-chip${selectedArea === area.value ? " is-active" : ""}`}
+                    onClick={() => handleAreaSelection(area.value)}
+                  >
+                    <span>{area.label}</span>
+                    <strong>{area.count}</strong>
+                  </button>
+                )
+              )}
             </div>
 
-            {activeArea ? (
-              <Link href={buildHref({ rentalArea: undefined })} className="local-map-clear">
-                Clear area filter
-              </Link>
+            {canFilterArea ? (
+              activeArea ? (
+                <Link href={buildHref({ rentalArea: undefined })} className="local-map-clear">
+                  Clear area filter
+                </Link>
+              ) : null
+            ) : selectedArea ? (
+              <button type="button" className="local-map-clear" onClick={() => handleAreaSelection(null)}>
+                Clear selection
+              </button>
             ) : null}
           </div>
 
           <div className="local-map-sidebar-card">
             <strong>Why this is better</strong>
             <ul className="local-map-list">
-              <li>Rentals now behave like real listing pins instead of abstract neighbourhood dots.</li>
-              <li>Native Google pan and zoom feel familiar for Kijiji and Facebook Marketplace users.</li>
-              <li>Area chips still narrow the feed, but the map now helps people pick a listing faster.</li>
+              {mapContent.why.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
-            {unknownCount > 0 ? (
-              <p className="local-map-empty-copy">
-                {unknownCount} listing{unknownCount === 1 ? "" : "s"} still need a clearer area to land on the map.
-              </p>
-            ) : null}
           </div>
         </div>
       </div>
