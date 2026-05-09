@@ -34,6 +34,10 @@ type LocalMapExplorerProps = {
 type RentalAreaSummary = ReturnType<typeof getRentalAreaCounts>["knownAreas"][number];
 type RideShareEndpointSummary = ReturnType<typeof getRideShareRouteCounts>["endpoints"][number];
 type RideShareRouteSummary = ReturnType<typeof getRideShareRouteCounts>["routes"][number];
+type GoogleMapsConfig = {
+  apiKey: string;
+  mapId?: string | null;
+};
 
 type GoogleMapsNamespace = any;
 type GoogleMapInstance = any;
@@ -44,8 +48,8 @@ type LatLngLike = { lat: number; lng: number };
 type RentalListingPoint = NonNullable<ReturnType<typeof getRentalListingMapPoint>> & { listing: Listing };
 type RideShareListingPoint = ReturnType<typeof getRideShareRouteMapPoints> & { listing: Listing };
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
-const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || undefined;
+const EMBEDDED_GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
+const EMBEDDED_GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || undefined;
 const GOOGLE_MAPS_CALLBACK = "__ismaconnectGoogleMapsInit";
 const FORT_MCMURRAY_CENTER = { lat: 56.7269, lng: -111.3806 };
 const ALBERTA_CENTER = { lat: 54.9, lng: -112.6 };
@@ -112,11 +116,11 @@ function loadGoogleMapsApi(apiKey: string) {
   return googleMapsPromise;
 }
 
-function buildMapOptions(center: LatLngLike, zoom: number) {
+function buildMapOptions(center: LatLngLike, zoom: number, mapId?: string) {
   return {
     center,
     zoom,
-    mapId: GOOGLE_MAP_ID,
+    mapId,
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
@@ -124,6 +128,73 @@ function buildMapOptions(center: LatLngLike, zoom: number) {
     clickableIcons: false,
     gestureHandling: "greedy" as const
   };
+}
+
+function useGoogleMapsConfig() {
+  const [config, setConfig] = useState<GoogleMapsConfig | null>(() =>
+    EMBEDDED_GOOGLE_MAPS_API_KEY
+      ? {
+          apiKey: EMBEDDED_GOOGLE_MAPS_API_KEY,
+          mapId: EMBEDDED_GOOGLE_MAP_ID
+        }
+      : null
+  );
+  const [status, setStatus] = useState<"loading" | "ready" | "missing-key" | "error">(
+    EMBEDDED_GOOGLE_MAPS_API_KEY ? "ready" : "loading"
+  );
+
+  useEffect(() => {
+    if (EMBEDDED_GOOGLE_MAPS_API_KEY) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRuntimeConfig() {
+      try {
+        const response = await fetch("/api/maps/config", {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to load runtime Google Maps config.");
+        }
+
+        const payload = (await response.json()) as {
+          configured?: boolean;
+          apiKey?: string | null;
+          mapId?: string | null;
+        };
+
+        if (cancelled) {
+          return;
+        }
+
+        if (payload.configured && payload.apiKey) {
+          setConfig({
+            apiKey: payload.apiKey,
+            mapId: payload.mapId ?? undefined
+          });
+          setStatus("ready");
+          return;
+        }
+
+        setStatus("missing-key");
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      }
+    }
+
+    void loadRuntimeConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { config, status };
 }
 
 function createCircleMarkerIcon(
@@ -342,9 +413,8 @@ function RentalMapExplorer({
   const mapRef = useRef<GoogleMapInstance | null>(null);
   const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
   const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
-  const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">(
-    GOOGLE_MAPS_API_KEY ? "loading" : "missing-key"
-  );
+  const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
+  const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
   const { knownAreas, unknownCount } = useMemo(() => getRentalAreaCounts(listings), [listings]);
   const listingPoints = useMemo<RentalListingPoint[]>(
     () =>
@@ -373,23 +443,41 @@ function RentalMapExplorer({
   }, [activeArea, dataKey, listingPoints]);
 
   useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY || !mapRootRef.current) {
+    if (!mapRootRef.current) {
+      return;
+    }
+
+    if (configStatus === "missing-key") {
       setStatus("missing-key");
       return;
     }
+
+    if (configStatus === "error") {
+      setStatus("error");
+      return;
+    }
+
+    if (!googleMapsConfig?.apiKey) {
+      setStatus("loading");
+      return;
+    }
+    const resolvedGoogleMapsConfig = googleMapsConfig;
 
     let cancelled = false;
 
     async function renderMap() {
       try {
-        const googleMaps = await loadGoogleMapsApi(GOOGLE_MAPS_API_KEY);
+        const googleMaps = await loadGoogleMapsApi(resolvedGoogleMapsConfig.apiKey);
         if (cancelled || !mapRootRef.current) {
           return;
         }
 
         const map =
           mapRef.current ??
-          new googleMaps.Map(mapRootRef.current, buildMapOptions(FORT_MCMURRAY_CENTER, 11));
+          new googleMaps.Map(
+            mapRootRef.current,
+            buildMapOptions(FORT_MCMURRAY_CENTER, 11, resolvedGoogleMapsConfig.mapId ?? undefined)
+          );
         mapRef.current = map;
         infoWindowRef.current = infoWindowRef.current ?? new googleMaps.InfoWindow();
 
@@ -452,6 +540,11 @@ function RentalMapExplorer({
       cancelled = true;
     };
   }, [dataKey, listingPoints, selectedListingId]);
+  useEffect(() => {
+    if (mapRef.current && googleMapsConfig?.mapId) {
+      mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
+    }
+  }, [googleMapsConfig?.mapId]);
 
   useEffect(() => {
     if (!window.google?.maps) {
@@ -644,9 +737,8 @@ function RideShareMapExplorer({
   const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
   const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
   const routeRefs = useRef<Array<{ route: RideShareRouteSummary; polyline: GooglePolylineInstance }>>([]);
-  const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">(
-    GOOGLE_MAPS_API_KEY ? "loading" : "missing-key"
-  );
+  const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
+  const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
   const { routes, endpoints, flexibleCount } = useMemo(() => getRideShareRouteCounts(listings), [listings]);
   const mappedRouteListings = useMemo<RideShareListingPoint[]>(
     () =>
@@ -671,23 +763,41 @@ function RideShareMapExplorer({
   }, [activeDeparture, activeDestination, endpointDataKey, endpoints]);
 
   useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY || !mapRootRef.current) {
+    if (!mapRootRef.current) {
+      return;
+    }
+
+    if (configStatus === "missing-key") {
       setStatus("missing-key");
       return;
     }
+
+    if (configStatus === "error") {
+      setStatus("error");
+      return;
+    }
+
+    if (!googleMapsConfig?.apiKey) {
+      setStatus("loading");
+      return;
+    }
+    const resolvedGoogleMapsConfig = googleMapsConfig;
 
     let cancelled = false;
 
     async function renderMap() {
       try {
-        const googleMaps = await loadGoogleMapsApi(GOOGLE_MAPS_API_KEY);
+        const googleMaps = await loadGoogleMapsApi(resolvedGoogleMapsConfig.apiKey);
         if (cancelled || !mapRootRef.current) {
           return;
         }
 
         const map =
           mapRef.current ??
-          new googleMaps.Map(mapRootRef.current, buildMapOptions(ALBERTA_CENTER, 6));
+          new googleMaps.Map(
+            mapRootRef.current,
+            buildMapOptions(ALBERTA_CENTER, 6, resolvedGoogleMapsConfig.mapId ?? undefined)
+          );
         mapRef.current = map;
         infoWindowRef.current = infoWindowRef.current ?? new googleMaps.InfoWindow();
 
@@ -791,6 +901,11 @@ function RideShareMapExplorer({
       cancelled = true;
     };
   }, [endpointDataKey, mappedRouteListings, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
+  useEffect(() => {
+    if (mapRef.current && googleMapsConfig?.mapId) {
+      mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
+    }
+  }, [googleMapsConfig?.mapId]);
 
   useEffect(() => {
     if (!window.google?.maps) {
