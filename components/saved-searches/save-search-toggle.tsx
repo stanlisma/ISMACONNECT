@@ -99,6 +99,12 @@ export function SaveSearchToggle({
         <input type="hidden" name="extraFilters" value={JSON.stringify(extraFilters ?? {})} />
 
         <SubmitButton
+          analyticsEvent={isSaved ? "saved_search_remove_click" : "saved_search_save_click"}
+          analyticsParams={{
+            path: actionPath,
+            category: category ?? "all",
+            has_query: Boolean(search?.trim())
+          }}
           className={isSaved ? "button-secondary saved-search-submit" : "saved-search-submit"}
           pendingLabel={isSaved ? "Updating..." : "Saving..."}
         >

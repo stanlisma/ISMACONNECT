@@ -1,4 +1,5 @@
 const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "";
 const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() || "";
 const googleMapsMapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || "";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "";
@@ -15,6 +16,14 @@ const emailFrom = process.env.EMAIL_FROM?.trim() || "";
 
 export function getBaseUrl() {
   return appUrl.replace(/\/$/, "");
+}
+
+export function isAnalyticsConfigured() {
+  return Boolean(gaMeasurementId);
+}
+
+export function getAnalyticsMeasurementId() {
+  return gaMeasurementId || null;
 }
 
 export function isGoogleMapsConfigured() {

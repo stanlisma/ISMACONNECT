@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { trackMarketplaceEvent } from "@/lib/analytics";
 import { CATEGORIES } from "@/lib/constants";
 import {
   getStructuredFilterDefinitions,
@@ -102,6 +103,16 @@ export function BrowseFilters({
     view
   });
 
+  function trackFilterSubmit(surface: "mobile" | "desktop") {
+    trackMarketplaceEvent("browse_filters_apply", {
+      surface,
+      category: category ?? selectedCategory ?? "all",
+      has_query: Boolean((surface === "mobile" ? searchText : search)?.trim()),
+      has_subcategory: Boolean(subcategory || selectedSubcategory),
+      view: view ?? "list"
+    });
+  }
+
   function renderStructuredFilterFields() {
     if (!structuredFilterDefinitions.length) {
       return null;
@@ -146,7 +157,12 @@ export function BrowseFilters({
   return (
     <>
       {/* MOBILE COMPACT SEARCH */}
-      <form action={actionPath} className="mobile-filter-row" method="get">
+      <form
+        action={actionPath}
+        className="mobile-filter-row"
+        method="get"
+        onSubmit={() => trackFilterSubmit("mobile")}
+      >
         {view ? <input name="view" type="hidden" value={view} /> : null}
         {category ? <input name="category" type="hidden" value={category} /> : null}
         {subcategory ? <input name="subcategory" type="hidden" value={subcategory} /> : null}
@@ -193,7 +209,12 @@ export function BrowseFilters({
       ) : null}
 
       {/* DESKTOP FULL FILTERS */}
-      <form action={actionPath} className="surface filters-grid desktop-filters" method="get">
+      <form
+        action={actionPath}
+        className="surface filters-grid desktop-filters"
+        method="get"
+        onSubmit={() => trackFilterSubmit("desktop")}
+      >
         {view ? <input name="view" type="hidden" value={view} /> : null}
         <label className="field filter-search">
           <span className="field-label">Search</span>
