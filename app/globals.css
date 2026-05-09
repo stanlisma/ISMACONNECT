@@ -889,6 +889,20 @@ code {
   border-radius: inherit;
 }
 
+.local-map-google-stage img,
+.local-map-google-stage .gm-style img {
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+}
+
+.local-map-google-stage button,
+.local-map-google-stage input,
+.local-map-google-stage select {
+  width: auto;
+  max-width: none;
+}
+
 .local-map-google-stage .gm-style,
 .local-map-google-stage .gm-style > div {
   border-radius: inherit;

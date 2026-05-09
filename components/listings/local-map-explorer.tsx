@@ -59,6 +59,7 @@ let googleMapsPromise: Promise<GoogleMapsNamespace> | null = null;
 declare global {
   interface Window {
     google?: GoogleMapsNamespace;
+    gm_authFailure?: () => void;
     [GOOGLE_MAPS_CALLBACK]?: () => void;
   }
 }
@@ -195,6 +196,30 @@ function useGoogleMapsConfig() {
   }, []);
 
   return { config, status };
+}
+
+function useGoogleMapsAuthFailure() {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const previous = window.gm_authFailure;
+    window.gm_authFailure = () => {
+      setFailed(true);
+      if (typeof previous === "function") {
+        previous();
+      }
+    };
+
+    return () => {
+      window.gm_authFailure = previous;
+    };
+  }, []);
+
+  return failed;
 }
 
 function createCircleMarkerIcon(
@@ -414,6 +439,7 @@ function RentalMapExplorer({
   const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
   const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
   const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
+  const authFailed = useGoogleMapsAuthFailure();
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
   const { knownAreas, unknownCount } = useMemo(() => getRentalAreaCounts(listings), [listings]);
   const listingPoints = useMemo<RentalListingPoint[]>(
@@ -443,6 +469,11 @@ function RentalMapExplorer({
   }, [activeArea, dataKey, listingPoints]);
 
   useEffect(() => {
+    if (authFailed) {
+      setStatus("error");
+      return;
+    }
+
     if (!mapRootRef.current) {
       return;
     }
@@ -539,7 +570,7 @@ function RentalMapExplorer({
     return () => {
       cancelled = true;
     };
-  }, [dataKey, listingPoints, selectedListingId]);
+  }, [authFailed, dataKey, listingPoints, selectedListingId]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
       mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
@@ -738,6 +769,7 @@ function RideShareMapExplorer({
   const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
   const routeRefs = useRef<Array<{ route: RideShareRouteSummary; polyline: GooglePolylineInstance }>>([]);
   const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
+  const authFailed = useGoogleMapsAuthFailure();
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
   const { routes, endpoints, flexibleCount } = useMemo(() => getRideShareRouteCounts(listings), [listings]);
   const mappedRouteListings = useMemo<RideShareListingPoint[]>(
@@ -763,6 +795,11 @@ function RideShareMapExplorer({
   }, [activeDeparture, activeDestination, endpointDataKey, endpoints]);
 
   useEffect(() => {
+    if (authFailed) {
+      setStatus("error");
+      return;
+    }
+
     if (!mapRootRef.current) {
       return;
     }
@@ -900,7 +937,7 @@ function RideShareMapExplorer({
     return () => {
       cancelled = true;
     };
-  }, [endpointDataKey, mappedRouteListings, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
+  }, [authFailed, endpointDataKey, mappedRouteListings, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
       mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
