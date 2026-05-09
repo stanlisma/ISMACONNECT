@@ -424,7 +424,7 @@ export function inferRideShareAreaFromText(text?: string | null) {
   );
 }
 
-function inferCommunityMapAreaFromText(text?: string | null, options?: { includeCamp?: boolean }) {
+export function getCommunityMapAreaFromText(text?: string | null, options?: { includeCamp?: boolean }) {
   const normalized = normalizeLookupText(text);
 
   if (!normalized) {
@@ -474,23 +474,23 @@ export function getCommunityMapAreaFromListing(listing: Listing): CommunityMapAr
         return "site-camp";
       }
 
-      return (
-        inferCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
-        inferCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
+        return (
+        getCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
+        getCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
         "fort-mcmurray"
       );
     }
     case "services":
     case "buy-sell":
       return (
-        inferCommunityMapAreaFromText(listing.location) ??
-        inferCommunityMapAreaFromText(combinedText) ??
+        getCommunityMapAreaFromText(listing.location) ??
+        getCommunityMapAreaFromText(combinedText) ??
         "fort-mcmurray"
       );
     default:
       return (
-        inferCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
-        inferCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
+        getCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
+        getCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
         "fort-mcmurray"
       );
   }

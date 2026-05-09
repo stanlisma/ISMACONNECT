@@ -11,6 +11,8 @@ interface BusinessProfileFormProps {
     businessDescription: string;
     businessLogoUrl: string;
     businessWebsite: string;
+    businessAddress: string;
+    showExactBusinessLocation: boolean;
     serviceAreas: string;
   };
   schemaReady: boolean;
@@ -128,6 +130,22 @@ export function BusinessProfileForm({
             </label>
           </div>
 
+          <div className="business-profile-grid">
+            <label className="field">
+              <span className="field-label">Business address</span>
+              <input
+                className="input"
+                type="text"
+                name="business_address"
+                defaultValue={defaults.businessAddress}
+                placeholder="205 Powder Drive, Fort McMurray, AB"
+              />
+              <p className="field-hint">
+                Use your storefront or business address only. Home-based sellers should leave this blank.
+              </p>
+            </label>
+          </div>
+
           <label className="field">
             <span className="field-label">Business description</span>
             <textarea
@@ -148,6 +166,18 @@ export function BusinessProfileForm({
               defaultValue={defaults.serviceAreas}
               placeholder="Fort McMurray, Timberlea, Thickwood, Gregoire"
             />
+          </label>
+
+          <label className="business-profile-toggle">
+            <input
+              type="checkbox"
+              name="show_exact_business_location"
+              defaultChecked={defaults.showExactBusinessLocation}
+            />
+            <span>
+              <strong>Show exact business location on the map</strong>
+              <small>Only use this for real business or storefront addresses you want the public to see.</small>
+            </span>
           </label>
 
           <div className="business-logo-shell">

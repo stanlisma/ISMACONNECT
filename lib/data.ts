@@ -6,9 +6,12 @@ import {
 } from "@/lib/business-profile";
 import { getSubcategoryQueryValues } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { isSupabaseConfigured } from "@/lib/env";
+import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
 import type {
+  BusinessMapProfile,
   FlaggedListing,
   Listing,
   ListingCategory,
@@ -44,6 +47,40 @@ function logDataError(context: string, error: { message?: string | null } | null
   if (error) {
     console.error(`${context}:`, error.message || error);
   }
+}
+
+export async function getBusinessMapProfileMap(ownerIds: string[]) {
+  const uniqueOwnerIds = [...new Set(ownerIds.filter(Boolean))];
+
+  if (!uniqueOwnerIds.length || !isSupabaseServiceRoleConfigured()) {
+    return new Map<string, BusinessMapProfile>();
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, business_name, business_address, show_exact_business_location")
+    .in("id", uniqueOwnerIds)
+    .eq("show_exact_business_location", true);
+
+  if (error) {
+    logDataError("Business map profile query failed", error);
+    return new Map<string, BusinessMapProfile>();
+  }
+
+  return new Map(
+    ((data as Array<Record<string, unknown>> | null) ?? [])
+      .filter((row) => Boolean(row.id))
+      .map((row) => [
+        String(row.id),
+        {
+          owner_id: String(row.id),
+          business_name: typeof row.business_name === "string" ? row.business_name : null,
+          business_address: typeof row.business_address === "string" ? row.business_address : null,
+          show_exact_business_location: Boolean(row.show_exact_business_location)
+        } satisfies BusinessMapProfile
+      ])
+  );
 }
 
 export async function getHomepageData() {

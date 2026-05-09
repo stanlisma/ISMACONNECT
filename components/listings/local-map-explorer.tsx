@@ -11,19 +11,21 @@ import {
 } from "react";
 
 import {
-  getCommunityAreaCounts,
+  type CommunityMapArea,
+  getCommunityMapAreaDefinition,
+  getCommunityMapAreaFromText,
   getCommunityListingMapPoint,
-  getRentalAreaCounts,
   getRentalListingMapPoint,
   getRideShareRouteCounts,
   getRideShareRouteMapPoints
 } from "@/lib/local-marketplace";
 import { buildPathWithQuery } from "@/lib/utils";
-import type { Listing, ListingCategory } from "@/types/database";
+import type { BusinessMapProfile, Listing, ListingCategory } from "@/types/database";
 
 type LocalMapExplorerProps = {
   category: ListingCategory;
   listings: Listing[];
+  businessMapProfiles?: Record<string, BusinessMapProfile>;
   actionPath: string;
   search?: string;
   subcategory?: string | null;
@@ -33,10 +35,15 @@ type LocalMapExplorerProps = {
   structuredFilters?: Record<string, unknown>;
 };
 
-type CommunityAreaSummary = ReturnType<typeof getCommunityAreaCounts>["knownAreas"][number];
-type RentalAreaSummary = ReturnType<typeof getRentalAreaCounts>["knownAreas"][number];
 type RideShareEndpointSummary = ReturnType<typeof getRideShareRouteCounts>["endpoints"][number];
 type RideShareRouteSummary = ReturnType<typeof getRideShareRouteCounts>["routes"][number];
+type CommunityAreaSummary = {
+  value: CommunityMapArea;
+  label: string;
+  lat: number;
+  lng: number;
+  count: number;
+};
 type GoogleMapsConfig = {
   apiKey: string;
   mapId?: string | null;
@@ -48,9 +55,29 @@ type GoogleMarkerInstance = any;
 type GooglePolylineInstance = any;
 type GoogleInfoWindowInstance = any;
 type LatLngLike = { lat: number; lng: number };
-type CommunityListingPoint = NonNullable<ReturnType<typeof getCommunityListingMapPoint>> & { listing: Listing };
-type RentalListingPoint = NonNullable<ReturnType<typeof getRentalListingMapPoint>> & { listing: Listing };
+type CommunityListingPoint = {
+  listing: Listing;
+  ownerId: string;
+  area: CommunityMapArea;
+  areaLabel: string;
+  lat: number;
+  lng: number;
+  businessName: string | null;
+  businessAddress: string | null;
+  isExactBusinessLocation: boolean;
+};
 type RideShareListingPoint = ReturnType<typeof getRideShareRouteMapPoints> & { listing: Listing };
+type ExactBusinessMapPoint = {
+  ownerId: string;
+  businessName: string | null;
+  businessAddress: string;
+  lat: number;
+  lng: number;
+  area: string;
+  areaLabel: string;
+  listings: Listing[];
+  representativeListing: Listing;
+};
 
 const EMBEDDED_GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 const EMBEDDED_GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || undefined;
@@ -59,6 +86,7 @@ const FORT_MCMURRAY_CENTER = { lat: 56.7269, lng: -111.3806 };
 const ALBERTA_CENTER = { lat: 54.9, lng: -112.6 };
 
 let googleMapsPromise: Promise<GoogleMapsNamespace> | null = null;
+const geocodedBusinessAddressCache = new Map<string, LatLngLike | null>();
 
 declare global {
   interface Window {
@@ -277,6 +305,61 @@ function createPillMarkerIcon(
     scaledSize: new googleMaps.Size(width, height),
     anchor: new googleMaps.Point(width / 2, height / 2)
   };
+}
+
+function buildBusinessMarkerLabel(name?: string | null) {
+  const trimmed = name?.trim();
+  if (!trimmed) {
+    return "Business";
+  }
+
+  return trimmed.length > 14 ? `${trimmed.slice(0, 13).trimEnd()}...` : trimmed;
+}
+
+function buildBusinessGeocodeQuery(address: string) {
+  const normalized = address.toLowerCase();
+
+  if (
+    normalized.includes("fort mcmurray") ||
+    normalized.includes("alberta") ||
+    normalized.includes("canada")
+  ) {
+    return address;
+  }
+
+  return `${address}, Fort McMurray, Alberta, Canada`;
+}
+
+async function geocodeBusinessAddress(
+  geocoder: any,
+  address: string
+): Promise<LatLngLike | null> {
+  if (geocodedBusinessAddressCache.has(address)) {
+    return geocodedBusinessAddressCache.get(address) ?? null;
+  }
+
+  const result = await new Promise<LatLngLike | null>((resolve) => {
+    geocoder.geocode({ address: buildBusinessGeocodeQuery(address) }, (results: any[], status: string) => {
+      if (status !== "OK" || !results?.length) {
+        resolve(null);
+        return;
+      }
+
+      const location = results[0]?.geometry?.location;
+      if (!location) {
+        resolve(null);
+        return;
+      }
+
+      resolve({
+        lat: location.lat(),
+        lng: location.lng()
+      });
+    });
+  });
+
+  geocodedBusinessAddressCache.set(address, result);
+  return result;
 }
 
 function createInfoContent(title: string, body: string, caption?: string) {
@@ -504,6 +587,7 @@ function getCommunityMapContent(category: ListingCategory) {
 export function LocalMapExplorer({
   category,
   listings,
+  businessMapProfiles = {},
   actionPath,
   search,
   subcategory,
@@ -531,6 +615,7 @@ export function LocalMapExplorer({
       <CommunityMapExplorer
         category={category}
         activeArea={typeof structuredFilters?.rentalArea === "string" ? structuredFilters.rentalArea : null}
+        businessMapProfiles={businessMapProfiles}
         buildHref={buildHref}
         listings={listings}
       />
@@ -550,11 +635,13 @@ export function LocalMapExplorer({
 function CommunityMapExplorer({
   category,
   activeArea,
+  businessMapProfiles,
   buildHref,
   listings
 }: {
   category: Exclude<ListingCategory, "ride-share">;
   activeArea: string | null;
+  businessMapProfiles: Record<string, BusinessMapProfile>;
   buildHref: (overrides: Record<string, string | number | boolean | null | undefined>) => string;
   listings: Listing[];
 }) {
@@ -562,31 +649,111 @@ function CommunityMapExplorer({
   const mapRef = useRef<GoogleMapInstance | null>(null);
   const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
   const markersRef = useRef<Record<string, GoogleMarkerInstance>>({});
+  const businessMarkersRef = useRef<Record<string, GoogleMarkerInstance>>({});
   const { config: googleMapsConfig, status: configStatus } = useGoogleMapsConfig();
   const authFailed = useGoogleMapsAuthFailure();
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "missing-key">("loading");
+  const [exactBusinessPoints, setExactBusinessPoints] = useState<ExactBusinessMapPoint[]>([]);
+  const [selectedBusinessOwnerId, setSelectedBusinessOwnerId] = useState<string | null>(null);
   const mapContent = useMemo(() => getCommunityMapContent(category), [category]);
-  const { knownAreas } = useMemo(
-    () => (category === "rentals" ? getRentalAreaCounts(listings) : getCommunityAreaCounts(listings)),
-    [category, listings]
-  );
+  const includeCampAreas = category === "jobs";
   const listingPoints = useMemo<CommunityListingPoint[]>(
     () =>
       listings
         .map((listing) => {
           const point =
             category === "rentals" ? getRentalListingMapPoint(listing) : getCommunityListingMapPoint(listing);
-          return point ? { ...point, listing } : null;
+
+          if (!point) {
+            return null;
+          }
+
+          const businessProfile = businessMapProfiles[listing.owner_id];
+          const businessAddress = businessProfile?.business_address?.trim() || null;
+          const inferredBusinessArea = businessAddress
+            ? getCommunityMapAreaFromText(businessAddress, { includeCamp: includeCampAreas })
+            : null;
+          const resolvedArea = (inferredBusinessArea ?? point.area) as CommunityMapArea;
+          const resolvedDefinition =
+            getCommunityMapAreaDefinition(resolvedArea) ?? getCommunityMapAreaDefinition(point.area as CommunityMapArea);
+
+          if (!resolvedDefinition) {
+            return null;
+          }
+
+          return {
+            listing,
+            ownerId: listing.owner_id,
+            area: resolvedDefinition.value as CommunityMapArea,
+            areaLabel: resolvedDefinition.label,
+            lat: point.lat,
+            lng: point.lng,
+            businessName: businessProfile?.business_name ?? null,
+            businessAddress,
+            isExactBusinessLocation: Boolean(businessProfile?.show_exact_business_location && businessAddress)
+          };
         })
         .filter(Boolean) as CommunityListingPoint[],
-    [category, listings]
+    [businessMapProfiles, category, includeCampAreas, listings]
   );
+  const knownAreas = useMemo<CommunityAreaSummary[]>(() => {
+    const counts = new Map<CommunityMapArea, number>();
+
+    for (const point of listingPoints) {
+      counts.set(point.area, (counts.get(point.area) ?? 0) + 1);
+    }
+
+    return Array.from(counts.entries())
+      .map(([area, count]) => {
+        const definition = getCommunityMapAreaDefinition(area);
+        return definition
+          ? {
+              value: definition.value as CommunityMapArea,
+              label: definition.label,
+              lat: definition.lat,
+              lng: definition.lng,
+              count
+            }
+          : null;
+      })
+      .filter(Boolean)
+      .sort((left, right) => right!.count - left!.count) as CommunityAreaSummary[];
+  }, [listingPoints]);
+  const exactBusinessCandidates = useMemo<Array<Omit<ExactBusinessMapPoint, "lat" | "lng">>>(() => {
+    const byOwner = new Map<string, Omit<ExactBusinessMapPoint, "lat" | "lng">>();
+
+    for (const point of listingPoints) {
+      if (!point.isExactBusinessLocation || !point.businessAddress) {
+        continue;
+      }
+
+      const existing = byOwner.get(point.ownerId);
+      if (existing) {
+        existing.listings.push(point.listing);
+        continue;
+      }
+
+      byOwner.set(point.ownerId, {
+        ownerId: point.ownerId,
+        businessName: point.businessName,
+        businessAddress: point.businessAddress,
+        area: point.area,
+        areaLabel: point.areaLabel,
+        listings: [point.listing],
+        representativeListing: point.listing
+      });
+    }
+
+    return Array.from(byOwner.values());
+  }, [listingPoints]);
   const dataKey = useMemo(
     () =>
       knownAreas.map((area) => `${area.value}:${area.count}:${area.lat}:${area.lng}`).join("|") +
       "|" +
-      listingPoints.map((item) => `${item.listing.id}:${item.area}`).join("|"),
-    [knownAreas, listingPoints]
+      listingPoints.map((item) => `${item.listing.id}:${item.area}`).join("|") +
+      "|" +
+      exactBusinessCandidates.map((item) => `${item.ownerId}:${item.businessAddress}:${item.listings.length}`).join("|"),
+    [exactBusinessCandidates, knownAreas, listingPoints]
   );
   const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? listingPoints[0]?.area ?? null);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(listingPoints[0]?.listing.id ?? null);
@@ -600,7 +767,14 @@ function CommunityMapExplorer({
         : listingPoints[0]?.listing.id ?? null;
     setSelectedArea(activeArea ?? listingPoints[0]?.area ?? null);
     setSelectedListingId(nextSelectedListing ?? null);
+    setSelectedBusinessOwnerId(null);
   }, [activeArea, dataKey, listingPoints]);
+
+  useEffect(() => {
+    if (selectedBusinessOwnerId && !exactBusinessPoints.some((point) => point.ownerId === selectedBusinessOwnerId)) {
+      setSelectedBusinessOwnerId(null);
+    }
+  }, [exactBusinessPoints, selectedBusinessOwnerId]);
 
   useEffect(() => {
     if (status === "error" || status === "missing-key") {
@@ -611,6 +785,7 @@ function CommunityMapExplorer({
   useEffect(() => {
     if (authFailed) {
       clearMapSurface(mapRootRef.current);
+      setExactBusinessPoints([]);
       setStatus("error");
       return;
     }
@@ -621,12 +796,14 @@ function CommunityMapExplorer({
 
     if (configStatus === "missing-key") {
       clearMapSurface(mapRootRef.current);
+      setExactBusinessPoints([]);
       setStatus("missing-key");
       return;
     }
 
     if (configStatus === "error") {
       clearMapSurface(mapRootRef.current);
+      setExactBusinessPoints([]);
       setStatus("error");
       return;
     }
@@ -658,6 +835,32 @@ function CommunityMapExplorer({
 
         Object.values(markersRef.current).forEach((marker) => marker.setMap(null));
         markersRef.current = {};
+        Object.values(businessMarkersRef.current).forEach((marker) => marker.setMap(null));
+        businessMarkersRef.current = {};
+
+        const geocoder = exactBusinessCandidates.length ? new googleMaps.Geocoder() : null;
+        const resolvedExactBusinesses = geocoder
+          ? (
+              await Promise.all(
+                exactBusinessCandidates.map(async (candidate) => {
+                  const resolvedPoint = await geocodeBusinessAddress(geocoder, candidate.businessAddress);
+                  return resolvedPoint
+                    ? {
+                        ...candidate,
+                        lat: resolvedPoint.lat,
+                        lng: resolvedPoint.lng
+                      }
+                    : null;
+                })
+              )
+            ).filter(Boolean) as ExactBusinessMapPoint[]
+          : [];
+
+        if (cancelled) {
+          return;
+        }
+
+        setExactBusinessPoints(resolvedExactBusinesses);
 
         knownAreas.forEach((area) => {
           const representativeListing = listingPoints.find((item) => item.area === area.value) ?? null;
@@ -677,6 +880,7 @@ function CommunityMapExplorer({
           marker.addListener("click", () => {
             setSelectedArea(area.value);
             setSelectedListingId(representativeListing?.listing.id ?? null);
+            setSelectedBusinessOwnerId(null);
             infoWindowRef.current?.setContent(
               createInfoContent(
                 area.label,
@@ -690,10 +894,48 @@ function CommunityMapExplorer({
           markersRef.current[area.value] = marker;
         });
 
+        resolvedExactBusinesses.forEach((businessPoint) => {
+          const marker = new googleMaps.Marker({
+            map,
+            position: { lat: businessPoint.lat, lng: businessPoint.lng },
+            title: `${businessPoint.businessName ?? "Business"} | ${businessPoint.listings.length} listing${
+              businessPoint.listings.length === 1 ? "" : "s"
+            }`,
+            icon: createPillMarkerIcon(
+              googleMaps,
+              buildBusinessMarkerLabel(businessPoint.businessName),
+              selectedBusinessOwnerId === businessPoint.ownerId,
+              "dark"
+            ),
+            zIndex: selectedBusinessOwnerId === businessPoint.ownerId ? 30 : 18
+          });
+
+          marker.addListener("click", () => {
+            setSelectedArea(businessPoint.area);
+            setSelectedListingId(businessPoint.representativeListing.id);
+            setSelectedBusinessOwnerId(businessPoint.ownerId);
+            infoWindowRef.current?.setContent(
+              createInfoContent(
+                businessPoint.businessName ?? businessPoint.representativeListing.title,
+                businessPoint.businessAddress,
+                `${businessPoint.listings.length} active business listing${
+                  businessPoint.listings.length === 1 ? "" : "s"
+                } at this location.`
+              )
+            );
+            infoWindowRef.current?.open({ anchor: marker, map });
+          });
+
+          businessMarkersRef.current[businessPoint.ownerId] = marker;
+        });
+
         fitMapToPoints(
           googleMaps,
           map,
-          knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+          [
+            ...knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+            ...resolvedExactBusinesses.map((businessPoint) => ({ lat: businessPoint.lat, lng: businessPoint.lng }))
+          ],
           FORT_MCMURRAY_CENTER,
           11
         );
@@ -708,6 +950,7 @@ function CommunityMapExplorer({
           () => {
             if (!cancelled) {
               clearMapSurface(mapRootRef.current);
+              setExactBusinessPoints([]);
               setStatus("error");
             }
           }
@@ -715,6 +958,7 @@ function CommunityMapExplorer({
       } catch {
         if (!cancelled) {
           clearMapSurface(mapRootRef.current);
+          setExactBusinessPoints([]);
           setStatus("error");
         }
       }
@@ -726,7 +970,17 @@ function CommunityMapExplorer({
       cancelled = true;
       stopWatching?.();
     };
-  }, [authFailed, dataKey, knownAreas, listingPoints, selectedArea]);
+  }, [
+    authFailed,
+    configStatus,
+    dataKey,
+    exactBusinessCandidates,
+    googleMapsConfig,
+    knownAreas,
+    listingPoints,
+    selectedArea,
+    selectedBusinessOwnerId
+  ]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
       mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
@@ -740,7 +994,8 @@ function CommunityMapExplorer({
 
     const googleMaps = window.google.maps;
     const map = mapRef.current;
-    const selectedMarker = selectedArea ? markersRef.current[selectedArea] : null;
+    const selectedAreaMarker = selectedArea ? markersRef.current[selectedArea] : null;
+    const selectedBusinessMarker = selectedBusinessOwnerId ? businessMarkersRef.current[selectedBusinessOwnerId] : null;
 
     Object.entries(markersRef.current).forEach(([value, marker]) => {
       const area = knownAreas.find((item) => item.value === value);
@@ -758,8 +1013,36 @@ function CommunityMapExplorer({
       marker.setZIndex(selectedArea === area.value ? 20 : 10);
     });
 
-    if (map && selectedMarker) {
-      const position = selectedMarker.getPosition?.();
+    Object.entries(businessMarkersRef.current).forEach(([ownerId, marker]) => {
+      const businessPoint = exactBusinessPoints.find((item) => item.ownerId === ownerId);
+      if (!businessPoint) {
+        return;
+      }
+
+      marker.setIcon(
+        createPillMarkerIcon(
+          googleMaps,
+          buildBusinessMarkerLabel(businessPoint.businessName),
+          selectedBusinessOwnerId === ownerId,
+          "dark"
+        )
+      );
+      marker.setZIndex(selectedBusinessOwnerId === ownerId ? 30 : 18);
+    });
+
+    if (map && selectedBusinessMarker) {
+      const position = selectedBusinessMarker.getPosition?.();
+      if (position) {
+        map.panTo(position);
+        if ((map.getZoom?.() ?? 0) < 13) {
+          map.setZoom(13);
+        }
+      }
+      return;
+    }
+
+    if (map && selectedAreaMarker) {
+      const position = selectedAreaMarker.getPosition?.();
       if (position) {
         map.panTo(position);
         if ((map.getZoom?.() ?? 0) < 12) {
@@ -767,13 +1050,16 @@ function CommunityMapExplorer({
         }
       }
     }
-  }, [knownAreas, selectedArea]);
+  }, [exactBusinessPoints, knownAreas, selectedArea, selectedBusinessOwnerId]);
 
+  const selectedBusinessPoint =
+    exactBusinessPoints.find((point) => point.ownerId === selectedBusinessOwnerId) ?? null;
   const selectedListingPoint =
     listingPoints.find((item) => item.listing.id === selectedListingId) ??
     (selectedArea ? listingPoints.find((item) => item.area === selectedArea) : null) ??
     listingPoints[0] ??
     null;
+
   function handleReset() {
     const map = mapRef.current;
     if (!map || !window.google?.maps) {
@@ -783,7 +1069,10 @@ function CommunityMapExplorer({
     fitMapToPoints(
       window.google.maps,
       map,
-      knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+      [
+        ...knownAreas.map((area) => ({ lat: area.lat, lng: area.lng })),
+        ...exactBusinessPoints.map((businessPoint) => ({ lat: businessPoint.lat, lng: businessPoint.lng }))
+      ],
       FORT_MCMURRAY_CENTER,
       11
     );
@@ -791,6 +1080,7 @@ function CommunityMapExplorer({
 
   function handleAreaSelection(areaValue: string | null) {
     setSelectedArea(areaValue);
+    setSelectedBusinessOwnerId(null);
     const nextListingId = areaValue
       ? listingPoints.find((item) => item.area === areaValue)?.listing.id ?? null
       : listingPoints[0]?.listing.id ?? null;
@@ -828,13 +1118,36 @@ function CommunityMapExplorer({
           status={status}
           onReset={handleReset}
           summary={
-            selectedListingPoint ? (
+            selectedBusinessPoint ? (
+              <div className="local-map-summary-inner">
+                <div>
+                  <span className="local-map-summary-eyebrow">Selected business</span>
+                  <strong>{selectedBusinessPoint.businessName ?? selectedBusinessPoint.representativeListing.title}</strong>
+                  <p>
+                    {selectedBusinessPoint.businessAddress} | {selectedBusinessPoint.listings.length} active listing
+                    {selectedBusinessPoint.listings.length === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <div className="local-map-summary-actions">
+                  <Link href={`/sellers/${selectedBusinessPoint.ownerId}`} className="local-map-summary-link">
+                    View storefront
+                    <ArrowRight size={15} strokeWidth={2.4} />
+                  </Link>
+                  <Link
+                    href={`/listings/${selectedBusinessPoint.representativeListing.slug}`}
+                    className="local-map-summary-link is-secondary"
+                  >
+                    Open listing
+                  </Link>
+                </div>
+              </div>
+            ) : selectedListingPoint ? (
               <div className="local-map-summary-inner">
                 <div>
                   <span className="local-map-summary-eyebrow">Selected listing</span>
                   <strong>{selectedListingPoint.listing.title}</strong>
                   <p>
-                    {formatCompactPrice(selectedListingPoint.listing.price)} · {selectedListingPoint.areaLabel}
+                    {formatCompactPrice(selectedListingPoint.listing.price)} | {selectedListingPoint.areaLabel}
                   </p>
                 </div>
                 <div className="local-map-summary-actions">

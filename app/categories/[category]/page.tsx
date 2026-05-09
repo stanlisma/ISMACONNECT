@@ -12,7 +12,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
-import { getPublicListings, getSavedListingIds } from "@/lib/data";
+import { getBusinessMapProfileMap, getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import {
@@ -147,6 +147,9 @@ export default async function CategoryPage({
     limit: 24,
     page
   });
+  const businessMapProfiles = isMapEligibleCategory
+    ? await getBusinessMapProfileMap(listings.map((listing) => listing.owner_id))
+    : new Map();
   const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
   const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
@@ -369,6 +372,7 @@ export default async function CategoryPage({
               <LocalMapExplorer
                 category={category}
                 listings={listings}
+                businessMapProfiles={Object.fromEntries(businessMapProfiles)}
                 actionPath={categoryInfo.href}
                 search={search}
                 subcategory={subcategory}

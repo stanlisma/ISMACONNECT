@@ -70,6 +70,8 @@ export interface Profile {
   business_description?: string | null;
   business_logo_url?: string | null;
   business_website?: string | null;
+  business_address?: string | null;
+  show_exact_business_location?: boolean | null;
   service_areas?: string[] | null;
   email_notifications?: boolean | null;
   verification_status?: ProfileVerificationStatus;
@@ -206,11 +208,20 @@ export interface PublicSellerStorefront {
   business_description: string | null;
   business_logo_url: string | null;
   business_website: string | null;
+  business_address?: string | null;
+  show_exact_business_location?: boolean | null;
   service_areas: string[];
   primary_location: string;
   total_active_listings: number;
   active_categories: ListingCategory[];
   listings: Listing[];
+}
+
+export interface BusinessMapProfile {
+  owner_id: string;
+  business_name: string | null;
+  business_address: string | null;
+  show_exact_business_location: boolean;
 }
 
 export interface PushSubscriptionRecord {
