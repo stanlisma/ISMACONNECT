@@ -21,6 +21,7 @@ import {
   getRelatedListings,
   getSavedListingIds,
 } from "@/lib/data";
+import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getStructuredDetailItems } from "@/lib/listing-structured-fields";
 import {
   canViewerRateSeller,
@@ -103,6 +104,8 @@ export default async function ListingPage({
         : [];
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
+  const publicLocation = getPublicListingLocationLabel(listing);
+  const publicLocationLabel = listing.show_exact_address_on_map ? "Address" : "Community";
   const isOwner = viewer?.user.id === listing.owner_id;
   const canUseMobileActions = !isOwner;
   const mobilePrimaryHref = viewer
@@ -166,7 +169,7 @@ export default async function ListingPage({
                       {listing.title}
                     </h1>
                     <div className="detail-top-meta">
-                      <span>{listing.location}</span>
+                      <span>{publicLocation}</span>
                       <span aria-hidden="true">|</span>
                       <span>{formatDate(listing.created_at)}</span>
                     </div>
@@ -208,7 +211,7 @@ export default async function ListingPage({
 
                 <div className="meta-list">
                   <span>Category: {category.label}</span>
-                  <span>Location: {listing.location}</span>
+                  <span>{publicLocationLabel}: {publicLocation}</span>
                   <span>Posted: {formatDate(listing.created_at)}</span>
                   <span>Price: {formatCurrency(listing.price)}</span>
                   {structuredDetailItems.map((item) => (

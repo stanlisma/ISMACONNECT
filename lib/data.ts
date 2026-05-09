@@ -10,6 +10,7 @@ import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { isSupabaseConfigured } from "@/lib/env";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
+import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import type {
   BusinessMapProfile,
   FlaggedListing,
@@ -547,7 +548,7 @@ export async function getPublicSellerStorefront(
     business_logo_url: businessProfile.business_logo_url,
     business_website: businessProfile.business_website,
     service_areas: businessProfile.service_areas,
-    primary_location: firstListing.location,
+    primary_location: getPublicListingLocationLabel(firstListing),
     total_active_listings: response.count ?? listings.length,
     active_categories: activeCategories,
     listings

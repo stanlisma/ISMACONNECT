@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { getListingBoostState } from "@/lib/boost-products";
+import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryLabel } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
@@ -136,6 +137,7 @@ export function ListingCard({
       ? 0
       : Number(rawViews);
   const views = Number.isFinite(parsedViews) && parsedViews > 0 ? parsedViews : 0;
+  const publicLocation = getPublicListingLocationLabel(listing);
 
   const isNew = relativeInfo.isNew;
   const isPopular = views > 10;
@@ -309,7 +311,7 @@ export function ListingCard({
         <TrustBadges summary={trustSummary} compact />
 
         <div className="listing-card-signals">
-          <span className="listing-location">{listing.location.split(",")[0]}</span>
+          <span className="listing-location">{publicLocation}</span>
           <span style={{ opacity: 0.5 }}>|</span>
           <span>{timeAgo}</span>
 

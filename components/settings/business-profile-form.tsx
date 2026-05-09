@@ -175,8 +175,8 @@ export function BusinessProfileForm({
               defaultChecked={defaults.showExactBusinessLocation}
             />
             <span>
-              <strong>Show exact business location on the map</strong>
-              <small>Only use this for real business or storefront addresses you want the public to see.</small>
+              <strong>Default new listings to your exact business map location</strong>
+              <small>Only use this for real storefront or business addresses you want to prefill as exact map pins by default.</small>
             </span>
           </label>
 

@@ -39,9 +39,14 @@ export const listingSchema = z
     location: z
       .string()
       .trim()
-      .min(2, "Location is required.")
-      .max(80, "Location must be 80 characters or less.")
+      .min(2, "Address is required.")
+      .max(140, "Address must be 140 characters or less.")
       .default(DEFAULT_LOCATION),
+
+    showExactAddressOnMap: z.preprocess(
+      (value) => value === true || value === "true" || value === "on",
+      z.boolean()
+    ),
 
     contactName: z
       .string()
@@ -64,7 +69,10 @@ export const listingSchema = z
       "Enter a valid image URL."
     )
   })
-
+  .transform((value) => ({
+    ...value,
+    showExactAddressOnMap: value.showExactAddressOnMap
+  }));
 export const flagListingSchema = z.object({
   reason: z
     .string()

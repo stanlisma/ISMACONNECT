@@ -46,6 +46,11 @@ export type CategoryLocalContent = {
   faqs: CategoryFaqItem[];
 };
 
+type PublicLocationListing = Pick<
+  Listing,
+  "category" | "location" | "title" | "description" | "structured_data" | "show_exact_address_on_map"
+>;
+
 export const FORT_MCMURRAY_AREA_OPTIONS: Array<LocalMarketplaceAreaOption<FortMcMurrayArea>> = [
   { value: "downtown", label: "Downtown" },
   { value: "thickwood", label: "Thickwood" },
@@ -448,6 +453,37 @@ export function getCommunityMapAreaFromText(text?: string | null, options?: { in
   }
 
   return null;
+}
+
+export function shouldShowExactListingAddressOnMap(
+  listing: Pick<Listing, "location" | "show_exact_address_on_map">
+) {
+  return listing.show_exact_address_on_map === true && Boolean(listing.location?.trim());
+}
+
+function getRideSharePublicAreaLabel(listing: PublicLocationListing) {
+  const { departureArea, destinationArea } = getRideShareAreasFromListing(listing as Listing);
+  const primaryArea = departureArea ?? destinationArea ?? "fort-mcmurray";
+  return getRideShareAreaDefinition(primaryArea)?.label ?? FORT_MCMURRAY_CITY_DEFINITION.label;
+}
+
+export function getPublicListingLocationLabel(listing: PublicLocationListing) {
+  const rawAddress = listing.location?.trim();
+
+  if (!rawAddress) {
+    return FORT_MCMURRAY_CITY_DEFINITION.label;
+  }
+
+  if (shouldShowExactListingAddressOnMap(listing)) {
+    return rawAddress;
+  }
+
+  if (listing.category === "ride-share") {
+    return getRideSharePublicAreaLabel(listing);
+  }
+
+  const area = getCommunityMapAreaFromListing(listing as Listing);
+  return getCommunityMapAreaDefinition(area)?.label ?? FORT_MCMURRAY_CITY_DEFINITION.label;
 }
 
 export function getRentalAreaFromListing(listing: Listing) {

@@ -5678,6 +5678,14 @@ code {
   cursor: pointer;
 }
 
+.listing-address-toggle-field {
+  grid-column: 1 / -1;
+}
+
+.listing-address-toggle {
+  width: 100%;
+}
+
 .business-profile-toggle strong {
   display: block;
   color: var(--text);
