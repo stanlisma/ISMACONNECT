@@ -401,7 +401,11 @@ export function inferRideShareAreaFromText(text?: string | null) {
 
 export function getRentalAreaFromListing(listing: Listing) {
   const structuredData = (listing.structured_data ?? {}) as RentalListingStructuredData;
-  return structuredData.rentalArea ?? inferFortMcmurrayAreaFromLocation(listing.location);
+  return (
+    structuredData.rentalArea ??
+    inferFortMcmurrayAreaFromLocation(listing.location) ??
+    inferFortMcmurrayAreaFromLocation(`${listing.title} ${listing.description}`)
+  );
 }
 
 export function getRideShareAreasFromListing(listing: Listing) {
