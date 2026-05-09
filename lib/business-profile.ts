@@ -5,6 +5,8 @@ export interface BusinessProfileFields {
   business_description: string | null;
   business_logo_url: string | null;
   business_website: string | null;
+  business_address: string | null;
+  show_exact_business_location: boolean;
   service_areas: string[];
 }
 
@@ -15,6 +17,8 @@ export const EMPTY_BUSINESS_PROFILE: BusinessProfileFields = {
   business_description: null,
   business_logo_url: null,
   business_website: null,
+  business_address: null,
+  show_exact_business_location: false,
   service_areas: []
 };
 
@@ -31,6 +35,8 @@ export function isBusinessProfileSchemaError(error: {
     message.includes("business_description") ||
     message.includes("business_logo_url") ||
     message.includes("business_website") ||
+    message.includes("business_address") ||
+    message.includes("show_exact_business_location") ||
     message.includes("service_areas")
   );
 }
@@ -64,6 +70,11 @@ export function normalizeBusinessWebsite(value: string | null | undefined) {
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
+export function normalizeBusinessAddress(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
 export function normalizeBusinessProfileRow(row: any): BusinessProfileFields {
   return {
     full_name: row?.full_name ?? null,
@@ -72,6 +83,8 @@ export function normalizeBusinessProfileRow(row: any): BusinessProfileFields {
     business_description: row?.business_description?.trim() || null,
     business_logo_url: row?.business_logo_url?.trim() || null,
     business_website: normalizeBusinessWebsite(row?.business_website ?? null),
+    business_address: normalizeBusinessAddress(row?.business_address ?? null),
+    show_exact_business_location: Boolean(row?.show_exact_business_location),
     service_areas: normalizeServiceAreas(row?.service_areas)
   };
 }

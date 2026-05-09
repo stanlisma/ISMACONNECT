@@ -43,7 +43,7 @@ export default async function SettingsPage({
 
   const businessProfileResponse = await supabase
     .from("profiles")
-    .select("full_name, is_business, business_name, business_description, business_logo_url, business_website, service_areas")
+    .select("full_name, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas")
     .eq("id", viewer.user.id)
     .maybeSingle();
 
@@ -152,6 +152,8 @@ export default async function SettingsPage({
               businessDescription: businessProfile.business_description ?? "",
               businessLogoUrl: businessProfile.business_logo_url ?? "",
               businessWebsite: businessProfile.business_website ?? "",
+              businessAddress: businessProfile.business_address ?? "",
+              showExactBusinessLocation: businessProfile.show_exact_business_location,
               serviceAreas: businessProfile.service_areas.join(", ")
             }}
           />

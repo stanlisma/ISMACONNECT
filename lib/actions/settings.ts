@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireViewer } from "@/lib/auth";
 import {
   isBusinessProfileSchemaError,
+  normalizeBusinessAddress,
   normalizeBusinessWebsite,
   parseServiceAreasInput
 } from "@/lib/business-profile";
@@ -37,6 +38,8 @@ export async function updateBusinessProfileAction(formData: FormData) {
   const businessDescription = String(formData.get("business_description") ?? "").trim() || null;
   const businessLogoUrl = String(formData.get("business_logo_url") ?? "").trim() || null;
   const businessWebsite = normalizeBusinessWebsite(String(formData.get("business_website") ?? ""));
+  const businessAddress = normalizeBusinessAddress(String(formData.get("business_address") ?? ""));
+  const showExactBusinessLocation = formData.get("show_exact_business_location") === "on";
   const serviceAreas = parseServiceAreasInput(String(formData.get("service_areas") ?? ""));
 
   const payload = {
@@ -45,6 +48,8 @@ export async function updateBusinessProfileAction(formData: FormData) {
     business_description: isBusiness ? businessDescription : null,
     business_logo_url: isBusiness ? businessLogoUrl : null,
     business_website: isBusiness ? businessWebsite : null,
+    business_address: isBusiness ? businessAddress : null,
+    show_exact_business_location: isBusiness && businessAddress ? showExactBusinessLocation : false,
     service_areas: isBusiness ? serviceAreas : []
   };
 

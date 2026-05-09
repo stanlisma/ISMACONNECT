@@ -11,7 +11,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
-import { getPublicListings, getSavedListingIds } from "@/lib/data";
+import { getBusinessMapProfileMap, getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
@@ -70,6 +70,9 @@ export default async function BrowsePage({
   });
 
   const viewer = await getViewer();
+  const businessMapProfiles = isMapEligibleCategory
+    ? await getBusinessMapProfileMap(listings.map((listing) => listing.owner_id))
+    : new Map();
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
@@ -322,6 +325,7 @@ export default async function BrowsePage({
               <LocalMapExplorer
                 category={category!}
                 listings={listings}
+                businessMapProfiles={Object.fromEntries(businessMapProfiles)}
                 actionPath="/browse"
                 search={search}
                 subcategory={subcategory}
