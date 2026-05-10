@@ -163,23 +163,47 @@ export default async function CategoryPage({
           view: "map"
         })
       : null;
-
-  const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
+  const shouldSplitMapAndList = view === "map" && Boolean(communityArea) && category !== "ride-share";
+  const mapResultsPromise = getPublicListings({
     category,
     intent,
     requestWindow,
-    communityArea,
+    communityArea: shouldSplitMapAndList ? null : communityArea,
     subcategory,
     search,
     minPrice,
     maxPrice,
     sort,
     extraFilters: structuredFilters,
-    limit: 24,
-    page
+    limit: shouldSplitMapAndList ? 120 : 24,
+    page: shouldSplitMapAndList ? 1 : page
   });
+  const listResultsPromise = shouldSplitMapAndList
+    ? getPublicListings({
+        category,
+        intent,
+        requestWindow,
+        communityArea,
+        subcategory,
+        search,
+        minPrice,
+        maxPrice,
+        sort,
+        extraFilters: structuredFilters,
+        limit: 24,
+        page
+      })
+    : null;
+  const [mapResults, listResults] = await Promise.all([mapResultsPromise, listResultsPromise]);
+  const activeResults = listResults ?? mapResults;
+  const listings = activeResults.listings;
+  const isConfigured = activeResults.isConfigured;
+  const hasMore = activeResults.hasMore;
+  const totalCount = activeResults.totalCount;
+  const pageSize = activeResults.pageSize;
+  const mapListings = mapResults.listings;
   const businessMapProfiles = isMapEligibleCategory
-    ? await getBusinessMapProfileMap(listings.map((listing) => listing.owner_id))
+    ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.owner_id))
     : new Map();
   const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
@@ -437,7 +461,7 @@ export default async function CategoryPage({
             {view === "map" && isMapEligibleCategory ? (
               <LocalMapExplorer
                 category={category}
-                listings={listings}
+                listings={mapListings}
                 businessMapProfiles={Object.fromEntries(businessMapProfiles)}
                 actionPath={categoryInfo.href}
                 search={search}

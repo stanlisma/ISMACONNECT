@@ -77,25 +77,49 @@ export default async function BrowsePage({
     ...(intent ? { intent } : {}),
     ...(requestWindow ? { requestWindow } : {})
   };
-
-  const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
+  const shouldSplitMapAndList = view === "map" && Boolean(communityArea) && category && category !== "ride-share";
+  const mapResultsPromise = getPublicListings({
     search,
     category,
     intent,
     requestWindow,
-    communityArea,
+    communityArea: shouldSplitMapAndList ? null : communityArea,
     subcategory,
     minPrice,
     maxPrice,
     sort,
     extraFilters: structuredFilters,
-    limit: 24,
-    page
+    limit: shouldSplitMapAndList ? 120 : 24,
+    page: shouldSplitMapAndList ? 1 : page
   });
+  const listResultsPromise = shouldSplitMapAndList
+    ? getPublicListings({
+        search,
+        category,
+        intent,
+        requestWindow,
+        communityArea,
+        subcategory,
+        minPrice,
+        maxPrice,
+        sort,
+        extraFilters: structuredFilters,
+        limit: 24,
+        page
+      })
+    : null;
+  const [mapResults, listResults] = await Promise.all([mapResultsPromise, listResultsPromise]);
+  const activeResults = listResults ?? mapResults;
+  const listings = activeResults.listings;
+  const isConfigured = activeResults.isConfigured;
+  const hasMore = activeResults.hasMore;
+  const totalCount = activeResults.totalCount;
+  const pageSize = activeResults.pageSize;
+  const mapListings = mapResults.listings;
 
   const viewer = await getViewer();
   const businessMapProfiles = isMapEligibleCategory
-    ? await getBusinessMapProfileMap(listings.map((listing) => listing.owner_id))
+    ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.owner_id))
     : new Map();
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
@@ -396,7 +420,7 @@ export default async function BrowsePage({
             {view === "map" && isMapEligibleCategory ? (
               <LocalMapExplorer
                 category={category!}
-                listings={listings}
+                listings={mapListings}
                 businessMapProfiles={Object.fromEntries(businessMapProfiles)}
                 actionPath="/browse"
                 search={search}
