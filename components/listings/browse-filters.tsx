@@ -9,6 +9,7 @@ import {
   getStructuredFilterDefinitions,
   serializeStructuredFilterValue
 } from "@/lib/listing-structured-fields";
+import { getCommunityMapAreaDefinition } from "@/lib/local-marketplace";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildPathWithQuery } from "@/lib/utils";
 
@@ -16,6 +17,9 @@ export function BrowseFilters({
   actionPath,
   search,
   category,
+  intent,
+  requestWindow,
+  communityArea,
   subcategory,
   minPrice,
   maxPrice,
@@ -26,6 +30,8 @@ export function BrowseFilters({
 }: any) {
   const [searchText, setSearchText] = useState(search ?? "");
   const [selectedCategory, setSelectedCategory] = useState(category ?? "");
+  const [selectedIntent, setSelectedIntent] = useState(intent ?? "");
+  const [selectedRequestWindow, setSelectedRequestWindow] = useState(requestWindow ?? "");
   const [selectedSubcategory, setSelectedSubcategory] = useState(
     normalizeSubcategory(category ?? "", subcategory ?? "") ?? ""
   );
@@ -47,6 +53,34 @@ export function BrowseFilters({
       if (categoryLabel) {
         labels.push(categoryLabel);
       }
+    }
+
+    const activeIntent = intent === "need" || intent === "offer" ? intent : null;
+    const intentLabel =
+      activeIntent === "need" ? "Need" : activeIntent === "offer" ? "Offer" : null;
+    if (intentLabel) {
+      labels.push(activeIntent === "need" ? "Needs only" : "Offers only");
+    }
+
+    const activeRequestWindow =
+      requestWindow === "today" || requestWindow === "this-week" || requestWindow === "flexible"
+        ? requestWindow
+        : null;
+    const requestWindowLabel =
+      activeRequestWindow === "today"
+        ? "Today"
+        : activeRequestWindow === "this-week"
+          ? "This week"
+          : activeRequestWindow === "flexible"
+            ? "Flexible"
+            : null;
+    if (requestWindowLabel) {
+      labels.push(`Timing: ${requestWindowLabel}`);
+    }
+
+    if (communityArea) {
+      const communityAreaLabel = getCommunityMapAreaDefinition(communityArea as any)?.label ?? communityArea;
+      labels.push(`Area: ${communityAreaLabel}`);
     }
 
     if (subcategory) {
@@ -89,8 +123,11 @@ export function BrowseFilters({
     return labels;
   }, [
     category,
+    intent,
     maxPrice,
     minPrice,
+    communityArea,
+    requestWindow,
     selectedCategory,
     showCategorySelect,
     sort,
@@ -107,6 +144,7 @@ export function BrowseFilters({
     trackMarketplaceEvent("browse_filters_apply", {
       surface,
       category: category ?? selectedCategory ?? "all",
+      intent: intent ?? selectedIntent ?? "all",
       has_query: Boolean((surface === "mobile" ? searchText : search)?.trim()),
       has_subcategory: Boolean(subcategory || selectedSubcategory),
       view: view ?? "list"
@@ -165,6 +203,9 @@ export function BrowseFilters({
       >
         {view ? <input name="view" type="hidden" value={view} /> : null}
         {category ? <input name="category" type="hidden" value={category} /> : null}
+        {intent ? <input name="intent" type="hidden" value={intent} /> : null}
+        {requestWindow ? <input name="requestWindow" type="hidden" value={requestWindow} /> : null}
+        {communityArea ? <input name="communityArea" type="hidden" value={communityArea} /> : null}
         {subcategory ? <input name="subcategory" type="hidden" value={subcategory} /> : null}
         {minPrice ? <input name="minPrice" type="hidden" value={minPrice} /> : null}
         {maxPrice ? <input name="maxPrice" type="hidden" value={maxPrice} /> : null}
@@ -216,6 +257,7 @@ export function BrowseFilters({
         onSubmit={() => trackFilterSubmit("desktop")}
       >
         {view ? <input name="view" type="hidden" value={view} /> : null}
+        {communityArea ? <input name="communityArea" type="hidden" value={communityArea} /> : null}
         <label className="field filter-search">
           <span className="field-label">Search</span>
           <input
@@ -244,6 +286,43 @@ export function BrowseFilters({
                   {c.label}
                 </option>
               ))}
+            </select>
+          </label>
+        ) : null}
+
+        <label className="field">
+          <span className="field-label">Post type</span>
+          <select
+            className="select"
+            name="intent"
+            value={selectedIntent}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setSelectedIntent(nextValue);
+              if (nextValue !== "need") {
+                setSelectedRequestWindow("");
+              }
+            }}
+          >
+            <option value="">All posts</option>
+            <option value="offer">Offers only</option>
+            <option value="need">Needs only</option>
+          </select>
+        </label>
+
+        {selectedIntent === "need" ? (
+          <label className="field">
+            <span className="field-label">Need timing</span>
+            <select
+              className="select"
+              name="requestWindow"
+              value={selectedRequestWindow}
+              onChange={(event) => setSelectedRequestWindow(event.target.value)}
+            >
+              <option value="">Any timing</option>
+              <option value="today">Today</option>
+              <option value="this-week">This week</option>
+              <option value="flexible">Flexible</option>
             </select>
           </label>
         ) : null}
@@ -351,6 +430,43 @@ export function BrowseFilters({
               ) : (
                 <input type="hidden" name="category" value={category ?? ""} />
               )}
+
+              <label className="field">
+                <span className="field-label">Post type</span>
+                <select
+                  className="select"
+                  name="intent"
+                  value={selectedIntent}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setSelectedIntent(nextValue);
+                    if (nextValue !== "need") {
+                      setSelectedRequestWindow("");
+                    }
+                  }}
+                >
+                  <option value="">All posts</option>
+                  <option value="offer">Offers only</option>
+                  <option value="need">Needs only</option>
+                </select>
+              </label>
+
+              {selectedIntent === "need" ? (
+                <label className="field">
+                  <span className="field-label">Need timing</span>
+                  <select
+                    className="select"
+                    name="requestWindow"
+                    value={selectedRequestWindow}
+                    onChange={(event) => setSelectedRequestWindow(event.target.value)}
+                  >
+                    <option value="">Any timing</option>
+                    <option value="today">Today</option>
+                    <option value="this-week">This week</option>
+                    <option value="flexible">Flexible</option>
+                  </select>
+                </label>
+              ) : null}
 
               {subcategories.length > 0 ? (
                 <label className="field">

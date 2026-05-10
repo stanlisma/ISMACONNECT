@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Compass, MapPinned, RotateCcw, Route } from "lucide-react";
 import {
   useEffect,
@@ -616,6 +617,7 @@ export function LocalMapExplorer({
   const buildHref = (overrides: Record<string, string | number | boolean | null | undefined>) =>
     buildPathWithQuery(actionPath, {
       q: search,
+      category,
       subcategory,
       minPrice,
       maxPrice,
@@ -629,7 +631,13 @@ export function LocalMapExplorer({
     return (
       <CommunityMapExplorer
         category={category}
-        activeArea={typeof structuredFilters?.rentalArea === "string" ? structuredFilters.rentalArea : null}
+        activeArea={
+          typeof structuredFilters?.communityArea === "string"
+            ? structuredFilters.communityArea
+            : typeof structuredFilters?.rentalArea === "string"
+              ? structuredFilters.rentalArea
+              : null
+        }
         businessMapProfiles={businessMapProfiles}
         buildHref={buildHref}
         listings={listings}
@@ -660,6 +668,7 @@ function CommunityMapExplorer({
   buildHref: (overrides: Record<string, string | number | boolean | null | undefined>) => string;
   listings: Listing[];
 }) {
+  const router = useRouter();
   const mapRootRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
   const infoWindowRef = useRef<GoogleInfoWindowInstance | null>(null);
@@ -780,7 +789,6 @@ function CommunityMapExplorer({
   );
   const [selectedArea, setSelectedArea] = useState<string | null>(activeArea ?? listingPoints[0]?.area ?? null);
   const selectedAreaData = knownAreas.find((area) => area.value === selectedArea) ?? null;
-  const canFilterArea = category === "rentals";
 
   useEffect(() => {
     setSelectedArea(activeArea ?? listingPoints[0]?.area ?? null);
@@ -901,10 +909,11 @@ function CommunityMapExplorer({
               createInfoContent(
                 area.label,
                 `${area.count} listing${area.count === 1 ? "" : "s"} in this community`,
-                representativeListing?.listing.title ?? "Use the area chips to narrow the list."
+                representativeListing?.listing.title ?? "Filtering mapped listings in this area."
               )
             );
             infoWindowRef.current?.open({ anchor: marker, map });
+            router.replace(buildHref({ communityArea: area.value }));
           });
 
           markersRef.current[area.value] = marker;
@@ -1093,6 +1102,10 @@ function CommunityMapExplorer({
   function handleAreaSelection(areaValue: string | null) {
     setSelectedArea(areaValue);
     setSelectedExactLocationKey(null);
+
+    if (activeArea !== areaValue) {
+      router.replace(buildHref({ communityArea: areaValue ?? undefined }));
+    }
   }
 
   return (
@@ -1153,21 +1166,13 @@ function CommunityMapExplorer({
                     Open listing
                     <ArrowRight size={15} strokeWidth={2.4} />
                   </Link>
-                  {canFilterArea ? (
-                    <Link
-                      href={buildHref({ rentalArea: selectedExactLocationPoint.area })}
-                      className="local-map-summary-link is-secondary"
-                    >
-                      View area
-                    </Link>
-                  ) : (
-                    <Link
-                      href={`/sellers/${selectedExactLocationPoint.ownerId}`}
-                      className="local-map-summary-link is-secondary"
-                    >
-                      View storefront
-                    </Link>
-                  )}
+                  <Link
+                    href={buildHref({ communityArea: selectedExactLocationPoint.area })}
+                    className="local-map-summary-link is-secondary"
+                  >
+                    View area
+                    <ArrowRight size={15} strokeWidth={2.4} />
+                  </Link>
                 </div>
               </div>
             ) : selectedAreaData ? (
@@ -1180,20 +1185,10 @@ function CommunityMapExplorer({
                     in this area.
                   </p>
                 </div>
-                {canFilterArea ? (
-                  <Link href={buildHref({ rentalArea: selectedAreaData.value })} className="local-map-summary-link">
-                    View area
-                    <ArrowRight size={15} strokeWidth={2.4} />
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    className="local-map-summary-link is-secondary"
-                    onClick={() => handleAreaSelection(selectedAreaData.value)}
-                  >
-                    Focus pins
-                  </button>
-                )}
+                <Link href={buildHref({ communityArea: selectedAreaData.value })} className="local-map-summary-link">
+                  View area
+                  <ArrowRight size={15} strokeWidth={2.4} />
+                </Link>
               </div>
             ) : null
           }
@@ -1209,36 +1204,22 @@ function CommunityMapExplorer({
             </div>
 
             <div className="local-map-chip-row">
-              {knownAreas.map((area) =>
-                canFilterArea ? (
-                  <Link
-                    key={area.value}
-                    href={buildHref({ rentalArea: area.value })}
-                    className={`local-map-chip${activeArea === area.value ? " is-active" : ""}`}
-                  >
-                    <span>{area.label}</span>
-                    <strong>{area.count}</strong>
-                  </Link>
-                ) : (
-                  <button
-                    key={area.value}
-                    type="button"
-                    className={`local-map-chip${selectedArea === area.value ? " is-active" : ""}`}
-                    onClick={() => handleAreaSelection(area.value)}
-                  >
-                    <span>{area.label}</span>
-                    <strong>{area.count}</strong>
-                  </button>
-                )
-              )}
+              {knownAreas.map((area) => (
+                <Link
+                  key={area.value}
+                  href={buildHref({ communityArea: area.value })}
+                  className={`local-map-chip${activeArea === area.value ? " is-active" : ""}`}
+                >
+                  <span>{area.label}</span>
+                  <strong>{area.count}</strong>
+                </Link>
+              ))}
             </div>
 
-            {canFilterArea ? (
-              activeArea ? (
-                <Link href={buildHref({ rentalArea: undefined })} className="local-map-clear">
-                  Clear area filter
-                </Link>
-              ) : null
+            {activeArea ? (
+              <Link href={buildHref({ communityArea: undefined })} className="local-map-clear">
+                Clear area filter
+              </Link>
             ) : selectedArea ? (
               <button type="button" className="local-map-clear" onClick={() => handleAreaSelection(null)}>
                 Clear selection

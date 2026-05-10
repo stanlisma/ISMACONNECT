@@ -1,4 +1,5 @@
 import type {
+  BusinessMapProfile,
   FortMcMurrayArea,
   JobListingStructuredData,
   Listing,
@@ -393,6 +394,14 @@ export function getCommunityMapAreaDefinition(area?: CommunityMapArea | null) {
   return area ? COMMUNITY_MAP_AREA_DEFINITIONS[area] : null;
 }
 
+export function resolveCommunityMapArea(value?: string | null) {
+  if (!value) {
+    return undefined;
+  }
+
+  return value in COMMUNITY_MAP_AREA_DEFINITIONS ? (value as CommunityMapArea) : undefined;
+}
+
 export function getFortMcmurrayAreaDefinition(area?: FortMcMurrayArea | null) {
   return area ? FORT_MCMURRAY_AREA_DEFINITIONS[area] : null;
 }
@@ -530,6 +539,34 @@ export function getCommunityMapAreaFromListing(listing: Listing): CommunityMapAr
         "fort-mcmurray"
       );
   }
+}
+
+export function getMappedCommunityAreaForListing(
+  listing: Listing,
+  businessProfile?: BusinessMapProfile | null
+): CommunityMapArea {
+  const includeCampAreas = listing.category === "jobs";
+  const businessAddress = businessProfile?.business_address?.trim();
+  const inferredBusinessArea = businessAddress
+    ? getCommunityMapAreaFromText(businessAddress, { includeCamp: includeCampAreas })
+    : null;
+
+  return inferredBusinessArea ?? getCommunityMapAreaFromListing(listing);
+}
+
+export function filterListingsByCommunityArea(
+  listings: Listing[],
+  area: CommunityMapArea,
+  businessMapProfiles?: Record<string, BusinessMapProfile> | Map<string, BusinessMapProfile>
+) {
+  return listings.filter((listing) => {
+    const businessProfile =
+      businessMapProfiles instanceof Map
+        ? businessMapProfiles.get(listing.owner_id)
+        : businessMapProfiles?.[listing.owner_id];
+
+    return getMappedCommunityAreaForListing(listing, businessProfile) === area;
+  });
 }
 
 export function getCommunityListingMapPoint(listing: Listing) {

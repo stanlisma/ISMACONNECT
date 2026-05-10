@@ -17,11 +17,19 @@ import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields"
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import {
   getCategoryLocalContent,
-  getCategorySeoTitle
+  getCategorySeoTitle,
+  resolveCommunityMapArea
 } from "@/lib/local-marketplace";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
-import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
+import {
+  buildPathWithQuery,
+  getPositiveIntParam,
+  getSingleParam,
+  resolveCategory,
+  resolveListingIntent,
+  resolveRequestWindow
+} from "@/lib/utils";
 
 export function generateStaticParams() {
   return CATEGORIES.map((category) => ({
@@ -66,6 +74,9 @@ export default async function CategoryPage({
   }
 
   const search = getSingleParam(resolvedSearchParams?.q);
+  const intent = resolveListingIntent(getSingleParam(resolvedSearchParams?.intent));
+  const requestWindow =
+    intent === "need" ? resolveRequestWindow(getSingleParam(resolvedSearchParams?.requestWindow)) : undefined;
   const minPriceParam = getSingleParam(resolvedSearchParams?.minPrice);
   const maxPriceParam = getSingleParam(resolvedSearchParams?.maxPrice);
   const page = getPositiveIntParam(resolvedSearchParams?.page, 1);
@@ -76,6 +87,10 @@ export default async function CategoryPage({
   const requestedView = getSingleParam(resolvedSearchParams?.view);
   const isMapEligibleCategory = true;
   const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
+  const communityArea =
+    category !== "ride-share"
+      ? resolveCommunityMapArea(getSingleParam(resolvedSearchParams?.communityArea)) ?? null
+      : null;
   const subcategory = normalizeSubcategory(
     category,
     getSingleParam(resolvedSearchParams?.subcategory)
@@ -88,23 +103,30 @@ export default async function CategoryPage({
       })
       .filter(Boolean) as Array<readonly [string, string]>
   );
+  const searchExtraFilters = {
+    ...structuredFilters,
+    ...(communityArea ? { communityArea } : {}),
+    ...(intent ? { intent } : {}),
+    ...(requestWindow ? { requestWindow } : {})
+  };
 
   const categoryInfo = CATEGORY_MAP[category];
+  const pageTitle = `${categoryInfo.label} ${intent === "need" ? "Needs" : "Listings"}`;
   const localContent = getCategoryLocalContent(category);
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const savedSearch = viewer
     ? await getSavedSearchByFilters(viewer.user.id, {
-        path: categoryInfo.href,
-        search,
-        category,
-        subcategory,
-        minPrice,
-        maxPrice,
-        sort,
-        extraFilters: structuredFilters
-      })
-    : null;
+      path: categoryInfo.href,
+      search,
+      category,
+      subcategory,
+      minPrice,
+      maxPrice,
+      sort,
+      extraFilters: searchExtraFilters
+    })
+  : null;
   const returnTo = buildSavedSearchHref({
     path: categoryInfo.href,
     search,
@@ -113,10 +135,13 @@ export default async function CategoryPage({
     minPrice,
     maxPrice,
     sort,
-    extraFilters: structuredFilters
+    extraFilters: searchExtraFilters
   });
   const listViewHref = buildPathWithQuery(categoryInfo.href, {
     q: search,
+    intent,
+    requestWindow,
+    communityArea,
     subcategory,
     minPrice,
     maxPrice,
@@ -127,6 +152,9 @@ export default async function CategoryPage({
     isMapEligibleCategory
       ? buildPathWithQuery(categoryInfo.href, {
           q: search,
+          intent,
+          requestWindow,
+          communityArea,
           subcategory,
           minPrice,
           maxPrice,
@@ -138,6 +166,9 @@ export default async function CategoryPage({
 
   const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
     category,
+    intent,
+    requestWindow,
+    communityArea,
     subcategory,
     search,
     minPrice,
@@ -157,6 +188,9 @@ export default async function CategoryPage({
     page > 1
       ? buildPathWithQuery(categoryInfo.href, {
           q: search,
+          intent,
+          requestWindow,
+          communityArea,
           subcategory,
           minPrice,
           maxPrice,
@@ -169,6 +203,9 @@ export default async function CategoryPage({
   const nextPageHref = hasMore
     ? buildPathWithQuery(categoryInfo.href, {
         q: search,
+        intent,
+        requestWindow,
+        communityArea,
         subcategory,
         minPrice,
         maxPrice,
@@ -188,13 +225,29 @@ export default async function CategoryPage({
   };
   const subcategoryLinks = getSubcategories(category);
   const recoveryLinks = [
-    { href: categoryInfo.href, label: `All ${categoryInfo.label}` },
-    { href: "/browse", label: "Browse every category" },
+    {
+      href: buildPathWithQuery(categoryInfo.href, { intent, requestWindow }),
+      label: `All ${categoryInfo.label}`
+    },
+    { href: buildPathWithQuery("/browse", { intent, requestWindow }), label: "Browse every category" },
     ...subcategoryLinks.slice(0, 4).map((item) => ({
-      href: buildPathWithQuery(categoryInfo.href, { subcategory: item.value }),
+      href: buildPathWithQuery(categoryInfo.href, {
+        intent,
+        requestWindow,
+        communityArea,
+        subcategory: item.value
+      }),
       label: item.label
     }))
   ];
+  const emptyActionHref = buildPathWithQuery("/dashboard/listings/new", {
+    intent: "need",
+    category
+  });
+  const emptyActionLabel = intent === "need" ? `Post a ${categoryInfo.label.toLowerCase()} need` : "Post a need";
+  const emptyDescription = intent === "need"
+    ? `No ${categoryInfo.label.toLowerCase()} requests are live yet. Post yours and let locals respond.`
+    : `No ${categoryInfo.label.toLowerCase()} listings are live yet. Post what you need or add the first local listing.`;
 
   return (
     <section className="section listing-feed-section">
@@ -202,7 +255,7 @@ export default async function CategoryPage({
         <div className="browse-mobile-overview category-mobile-overview surface">
           <div className="browse-mobile-overview-copy">
             <span className="eyebrow">Category</span>
-            <h1>{categoryInfo.label}</h1>
+            <h1>{pageTitle}</h1>
             <p>
               {totalCount > 0
                 ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
@@ -227,7 +280,7 @@ export default async function CategoryPage({
         <div className="category-desktop-heading">
           <SectionHeading
             eyebrow="Category"
-            title={categoryInfo.label}
+            title={pageTitle}
             description={localContent.heroDescription}
           />
         </div>
@@ -272,6 +325,9 @@ export default async function CategoryPage({
           actionPath={categoryInfo.href}
           search={search}
           category={category}
+          intent={intent}
+          requestWindow={requestWindow}
+          communityArea={communityArea}
           subcategory={subcategory}
           minPrice={minPrice}
           maxPrice={maxPrice}
@@ -291,7 +347,7 @@ export default async function CategoryPage({
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort}
-          extraFilters={structuredFilters}
+          extraFilters={searchExtraFilters}
           isSaved={Boolean(savedSearch)}
           compactOnMobile
         />
@@ -303,12 +359,16 @@ export default async function CategoryPage({
         </p>
 
         <div className="pill-links">
-          <Link className="pill-link" href="/browse">
+          <Link className="pill-link" href={buildPathWithQuery("/browse", { intent, requestWindow })}>
             All listings
           </Link>
 
           {CATEGORIES.map((item) => (
-            <Link className="pill-link" href={item.href} key={item.value}>
+            <Link
+              className="pill-link"
+              href={buildPathWithQuery(item.href, { intent, requestWindow })}
+              key={item.value}
+            >
               {item.label}
             </Link>
           ))}
@@ -320,6 +380,9 @@ export default async function CategoryPage({
               className={`subcategory-link-pill${!subcategory ? " is-active" : ""}`}
               href={buildPathWithQuery(categoryInfo.href, {
                 q: search,
+                intent,
+                requestWindow,
+                communityArea,
                 minPrice,
                 maxPrice,
                 sort,
@@ -336,6 +399,9 @@ export default async function CategoryPage({
                 className={`subcategory-link-pill${subcategory === item.value ? " is-active" : ""}`}
                 href={buildPathWithQuery(categoryInfo.href, {
                   q: search,
+                  intent,
+                  requestWindow,
+                  communityArea,
                   subcategory: item.value,
                   minPrice,
                   maxPrice,
@@ -355,9 +421,9 @@ export default async function CategoryPage({
         ) : listings.length === 0 ? (
           <>
             <EmptyState
-              actionHref="/auth/sign-up"
-              actionLabel="Post in this category"
-              description={`No ${categoryInfo.label.toLowerCase()} listings are live yet. Add the first one.`}
+              actionHref={emptyActionHref}
+              actionLabel={emptyActionLabel}
+              description={emptyDescription}
               title={`No ${categoryInfo.label.toLowerCase()} listings found`}
             />
             <SearchRecoveryPanel
@@ -379,7 +445,7 @@ export default async function CategoryPage({
                 minPrice={minPrice}
                 maxPrice={maxPrice}
                 sort={sort}
-                structuredFilters={structuredFilters}
+                structuredFilters={searchExtraFilters}
               />
             ) : null}
 

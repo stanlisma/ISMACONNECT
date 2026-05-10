@@ -10,17 +10,24 @@ import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { isSupabaseConfigured } from "@/lib/env";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
-import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
+import {
+  filterListingsByCommunityArea,
+  getPublicListingLocationLabel,
+  type CommunityMapArea
+} from "@/lib/local-marketplace";
 import type {
   BusinessMapProfile,
   FlaggedListing,
   Listing,
   ListingCategory,
+  ListingIntent,
   PublicSellerStorefront
 } from "@/types/database";
 
 interface ListingFilters {
   category?: ListingCategory;
+  intent?: ListingIntent;
+  requestWindow?: string | null;
   subcategory?: string | null;
   search?: string;
   limit?: number;
@@ -167,6 +174,9 @@ export async function getHomepageData() {
 
 export async function getPublicListings(filters: {
   category?: ListingCategory;
+  intent?: ListingIntent;
+  requestWindow?: string | null;
+  communityArea?: CommunityMapArea | null;
   subcategory?: string | null;
   search?: string;
   minPrice?: number | null;
@@ -204,6 +214,14 @@ export async function getPublicListings(filters: {
       query = query.eq("category", filters.category);
     }
 
+    if (filters.intent) {
+      query = query.eq("listing_intent", filters.intent);
+    }
+
+    if (filters.requestWindow) {
+      query = query.eq("request_window", filters.requestWindow);
+    }
+
     if (filters.subcategory) {
       const subcategoryValues = getSubcategoryQueryValues(filters.category, filters.subcategory);
 
@@ -232,7 +250,7 @@ export async function getPublicListings(filters: {
     return applyStructuredListingFilters(query, filters.category, filters.extraFilters);
   };
 
-  const applySort = (query: any, includePromotionOrdering: boolean) => {
+  const applySortOrder = (query: any, includePromotionOrdering: boolean) => {
     switch (filters.sort) {
       case "price_asc":
         if (includePromotionOrdering) {
@@ -270,15 +288,48 @@ export async function getPublicListings(filters: {
         query = query.order("created_at", { ascending: false });
     }
 
-    query = query.range(offset, offset + pageSize);
-
     return query;
   };
 
-  let primaryResponse = await applySort(buildBaseQuery(), true);
+  const applyPageRange = (query: any) => query.range(offset, offset + pageSize);
+
+  if (filters.communityArea && filters.category && filters.category !== "ride-share") {
+    const areaQuery = applySortOrder(buildBaseQuery(), true).range(0, 499);
+    let areaResponse = await areaQuery;
+
+    if (areaResponse.error && isPromotionSchemaError(areaResponse.error)) {
+      areaResponse = await applySortOrder(buildBaseQuery(), false).range(0, 499);
+    }
+
+    if (areaResponse.error) {
+      logDataError("Community area listings query failed", areaResponse.error);
+    }
+
+    const areaListings = (areaResponse.data || []) as Listing[];
+    const businessMapProfiles = Object.fromEntries(
+      await getBusinessMapProfileMap(areaListings.map((listing) => listing.owner_id))
+    );
+    const filteredListings = filterListingsByCommunityArea(
+      areaListings,
+      filters.communityArea,
+      businessMapProfiles
+    );
+    const pagedListings = filteredListings.slice(offset, offset + pageSize);
+
+    return {
+      isConfigured: true,
+      listings: pagedListings,
+      hasMore: offset + pageSize < filteredListings.length,
+      totalCount: filteredListings.length,
+      page,
+      pageSize
+    };
+  }
+
+  let primaryResponse = await applyPageRange(applySortOrder(buildBaseQuery(), true));
 
   if (primaryResponse.error && isPromotionSchemaError(primaryResponse.error)) {
-    primaryResponse = await applySort(buildBaseQuery(), false);
+    primaryResponse = await applyPageRange(applySortOrder(buildBaseQuery(), false));
   }
 
   if (primaryResponse.error) {

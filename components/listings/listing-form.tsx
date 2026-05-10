@@ -13,13 +13,16 @@ import {
 import { useMemo, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
+import { LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS } from "@/lib/constants";
 import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
-import type { ListingStructuredData } from "@/types/database";
+import type { ListingIntent, ListingStructuredData, RequestWindow } from "@/types/database";
 
 type ListingFormProps = {
   action: (formData: FormData) => void | Promise<void>;
   defaults?: {
+    listingIntent?: ListingIntent;
+    requestWindow?: RequestWindow | null;
     category?: string;
     subcategory?: string;
     title?: string;
@@ -77,6 +80,28 @@ function getLocationHint(category: string) {
     default:
       return "Use the address you want tied to this listing. Leave exact map display off to show only the community publicly.";
   }
+}
+
+function getListingIntentTitle(listingIntent: ListingIntent) {
+  return listingIntent === "need" ? "Post what you need" : "Create listing";
+}
+
+function getDescriptionHint(listingIntent: ListingIntent) {
+  return listingIntent === "need"
+    ? "Explain what you need, when you need it, and any details responders should know."
+    : "A little detail helps buyers trust the listing quickly.";
+}
+
+function getContactHint(listingIntent: ListingIntent) {
+  return listingIntent === "need"
+    ? "Use the contact details providers, riders, or landlords should reply to."
+    : "Use the contact details you want replies to go to.";
+}
+
+function getPhotoPanelCopy(listingIntent: ListingIntent) {
+  return listingIntent === "need"
+    ? "Upload reference photos only if they help explain the job, item, or location. We optimize them before upload."
+    : `Upload up to ${MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.`;
 }
 
 function formatFileSize(bytes: number) {
@@ -169,6 +194,8 @@ export function ListingForm({
   defaults,
   submitLabel = "Publish listing"
 }: ListingFormProps) {
+  const [listingIntent, setListingIntent] = useState<ListingIntent>(defaults?.listingIntent ?? "offer");
+  const [requestWindow, setRequestWindow] = useState<RequestWindow | "">(defaults?.requestWindow ?? "");
   const [category, setCategory] = useState(defaults?.category ?? "buy-sell");
   const [subcategory, setSubcategory] = useState(
     normalizeSubcategory(defaults?.category ?? "buy-sell", defaults?.subcategory) ?? ""
@@ -191,9 +218,21 @@ export function ListingForm({
   const descriptionReady = description.trim().length >= 10;
   const locationPlaceholder = useMemo(() => getLocationPlaceholder(category), [category]);
   const locationHint = useMemo(() => getLocationHint(category), [category]);
+  const titleText = useMemo(() => getListingIntentTitle(listingIntent), [listingIntent]);
+  const descriptionHint = useMemo(() => getDescriptionHint(listingIntent), [listingIntent]);
+  const contactHint = useMemo(() => getContactHint(listingIntent), [listingIntent]);
+  const photoPanelCopy = useMemo(() => getPhotoPanelCopy(listingIntent), [listingIntent]);
+  const displayedSubmitLabel = useMemo(() => {
+    const isEditing = submitLabel.toLowerCase().includes("save");
+    if (listingIntent === "need") {
+      return isEditing ? "Save need" : "Post need";
+    }
+
+    return isEditing ? "Save changes" : "Publish listing";
+  }, [listingIntent, submitLabel]);
   const stickyHint = isUploading
     ? "Uploading photos..."
-    : `${imageUrls.length}/${MAX_IMAGE_COUNT} photos | ${description.length}/3000 chars`;
+    : `${listingIntent === "need" ? "Need" : "Listing"} | ${imageUrls.length}/${MAX_IMAGE_COUNT} photos | ${description.length}/3000 chars`;
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -311,6 +350,8 @@ export function ListingForm({
     const priceValue = String(formData.get("price") ?? "").trim();
 
     trackMarketplaceEvent(defaults ? "listing_edit_submit_attempt" : "listing_publish_attempt", {
+      listing_intent: String(formData.get("listingIntent") ?? listingIntent),
+      request_window: String(formData.get("requestWindow") ?? ""),
       category: submittedCategory || "unknown",
       subcategory: submittedSubcategory || "none",
       image_count: imageUrls.length,
@@ -331,6 +372,59 @@ export function ListingForm({
         </div>
 
         <div className="listing-form-section-grid">
+          <div className="field field-full listing-intent-field">
+            <span className="field-label">Post type</span>
+            <div className="listing-intent-toggle" role="radiogroup" aria-label="Choose post type">
+              {(["offer", "need"] as ListingIntent[]).map((value) => (
+                <label
+                  key={value}
+                  className={`listing-intent-option${listingIntent === value ? " is-active" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="listingIntent"
+                    value={value}
+                    checked={listingIntent === value}
+                    onChange={() => {
+                      setListingIntent(value);
+                      if (value !== "need") {
+                        setRequestWindow("");
+                      }
+                    }}
+                  />
+                  <span>{LISTING_INTENT_LABELS[value]}</span>
+                </label>
+              ))}
+            </div>
+            <p className="field-hint">
+              {listingIntent === "need"
+                ? "Use Need when you are asking the market for help, a ride, a rental, or a worker."
+                : "Use Offer when you already have the ride, service, rental, job, or item available."}
+            </p>
+          </div>
+
+          {listingIntent === "need" ? (
+            <label className="field">
+              <span className="field-label">When do you need this?</span>
+              <select
+                className="input"
+                name="requestWindow"
+                value={requestWindow}
+                onChange={(event) => setRequestWindow(event.target.value as RequestWindow | "")}
+                required
+              >
+                <option value="">Choose timing</option>
+                {(["today", "this-week", "flexible"] as RequestWindow[]).map((value) => (
+                  <option key={value} value={value}>
+                    {REQUEST_WINDOW_LABELS[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <input type="hidden" name="requestWindow" value="" />
+          )}
+
           <label className="field">
             <span className="field-label">Category</span>
             <select
@@ -370,7 +464,13 @@ export function ListingForm({
 
           <label className="field listing-form-title-field">
             <span className="field-label">Title</span>
-            <input className="input" name="title" defaultValue={defaults?.title ?? ""} required />
+            <input
+              className="input"
+              name="title"
+              defaultValue={defaults?.title ?? ""}
+              placeholder={listingIntent === "need" ? "Need a ride to site tomorrow at 5 AM" : ""}
+              required
+            />
           </label>
 
           <label className="field">
@@ -410,7 +510,7 @@ export function ListingForm({
         <div className="listing-form-section-head">
           <div>
             <span className="field-label">Description</span>
-            <p className="field-hint">A little detail helps buyers trust the listing quickly.</p>
+            <p className="field-hint">{descriptionHint}</p>
           </div>
         </div>
 
@@ -512,7 +612,7 @@ export function ListingForm({
         <div className="listing-form-section-head">
           <div>
             <span className="field-label">Contact</span>
-            <p className="field-hint">Use the contact details you want replies to go to.</p>
+            <p className="field-hint">{contactHint}</p>
           </div>
         </div>
 
@@ -549,15 +649,15 @@ export function ListingForm({
         <div className="listing-media-panel">
           <div className="listing-media-panel-head">
             <div>
-              <span className="field-label">Listing photos</span>
+              <span className="field-label">{listingIntent === "need" ? "Reference photos" : "Listing photos"}</span>
               <p className="field-hint listing-media-panel-copy">
-                Upload up to {MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.
+                {photoPanelCopy}
               </p>
             </div>
 
             <div className="listing-media-panel-meta">
               <span>{imageUrls.length}/{MAX_IMAGE_COUNT} photos</span>
-              <span>First image becomes the cover</span>
+              <span>{listingIntent === "need" ? "First image appears first in replies" : "First image becomes the cover"}</span>
             </div>
           </div>
 
@@ -570,8 +670,10 @@ export function ListingForm({
               )}
             </div>
             <div className="listing-upload-dropzone-copy">
-              <strong>{isUploading ? "Uploading your photos..." : "Add listing photos"}</strong>
-              <span>JPG, PNG, or WebP. We compress them automatically and keep the sharpest cover photo first.</span>
+              <strong>{isUploading ? "Uploading your photos..." : listingIntent === "need" ? "Add reference photos" : "Add listing photos"}</strong>
+              <span>
+                JPG, PNG, or WebP. We compress them automatically and keep the sharpest first image at the front.
+              </span>
             </div>
             <span className="listing-upload-dropzone-action">
               <ImagePlus aria-hidden="true" size={16} strokeWidth={2.2} />
@@ -679,7 +781,11 @@ export function ListingForm({
           ) : (
             <div className="listing-image-empty-state">
               <Sparkles aria-hidden="true" size={18} strokeWidth={2.2} />
-              <span>Add at least one clear photo so your listing feels trustworthy and complete.</span>
+              <span>
+                {listingIntent === "need"
+                  ? "Add a photo if it helps explain the request faster."
+                  : "Add at least one clear photo so your listing feels trustworthy and complete."}
+              </span>
             </div>
           )}
         </div>
@@ -687,17 +793,17 @@ export function ListingForm({
 
       <div className="field-full listing-form-desktop-actions">
         <button className="button" type="submit" disabled={isUploading || !descriptionReady}>
-          {isUploading ? "Uploading..." : submitLabel}
+          {isUploading ? "Uploading..." : displayedSubmitLabel}
         </button>
       </div>
 
       <div className="listing-form-sticky-bar">
         <div className="listing-form-sticky-meta">
-          <strong>{submitLabel}</strong>
+          <strong>{titleText}</strong>
           <span>{stickyHint}</span>
         </div>
         <button className="button" type="submit" disabled={isUploading || !descriptionReady}>
-          {isUploading ? "Uploading..." : submitLabel}
+          {isUploading ? "Uploading..." : displayedSubmitLabel}
         </button>
       </div>
     </form>

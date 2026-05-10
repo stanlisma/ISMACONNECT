@@ -52,6 +52,11 @@ export default async function HomePage() {
         </div>
 
         <div className="home-mobile-support-row">
+          <span className="home-support-label">Need help quickly?</span>
+          <Link href="/dashboard/listings/new?intent=need" className="home-mobile-support-link">Post a need</Link>
+        </div>
+
+        <div className="home-mobile-support-row">
           <span className="home-support-label">Also available</span>
           <Link href="/categories/buy-sell" className="home-mobile-support-link">Buy &amp; Sell</Link>
         </div>
@@ -95,6 +100,13 @@ export default async function HomePage() {
               Create account
             </Link>
           )}
+
+          <div className="home-secondary-link-row">
+            <span className="home-support-label">Need help fast?</span>
+            <Link href="/dashboard/listings/new?intent=need" className="home-secondary-link">
+              Post a need
+            </Link>
+          </div>
         </div>
 
         <div style={pillWrapStyle}>

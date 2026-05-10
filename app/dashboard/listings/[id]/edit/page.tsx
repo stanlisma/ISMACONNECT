@@ -25,24 +25,28 @@ export default async function EditListingPage({
     notFound();
   }
 
+  const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
+
   return (
     <>
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
-      <div className="surface listing-editor-page-head">
-        <div className="action-row listing-editor-page-actions">
-          <div className="listing-editor-page-copy">
-            <h2>Edit listing</h2>
+        <div className="surface listing-editor-page-head">
+          <div className="action-row listing-editor-page-actions">
+            <div className="listing-editor-page-copy">
+              <h2>{listingIntent === "need" ? "Edit need" : "Edit listing"}</h2>
+            </div>
+            <DeleteListingForm listingId={listing.id} />
           </div>
-          <DeleteListingForm listingId={listing.id} />
         </div>
-      </div>
 
       <ListingForm
         action={updateListingAction.bind(null, listing.id)}
         defaults={{
           category: listing.category ?? undefined,
           subcategory: listing.subcategory ?? undefined,
+          listingIntent,
+          requestWindow: listing.request_window ?? undefined,
           contactEmail: listing.contact_email ?? undefined,
           contactName: listing.contact_name ?? undefined,
           contactPhone: listing.contact_phone ?? undefined,
@@ -56,7 +60,7 @@ export default async function EditListingPage({
           structuredData: listing.structured_data ?? undefined,
           title: listing.title ?? undefined
         }}
-        submitLabel="Save changes"
+        submitLabel={listingIntent === "need" ? "Save need" : "Save changes"}
       />
     </>
   );

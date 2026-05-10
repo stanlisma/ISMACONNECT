@@ -1,4 +1,4 @@
-import type { ListingCategory, ListingStatus } from "@/types/database";
+import type { ListingCategory, ListingIntent, ListingStatus, RequestWindow } from "@/types/database";
 
 export const SITE_NAME = "ISMACONNECT";
 export const SITE_TAGLINE = "Fort McMurray rides, rentals, services, jobs, and worker logistics.";
@@ -57,6 +57,24 @@ export const CATEGORY_OPTIONS = CATEGORIES.map((category) => category.value) as 
   ListingCategory,
   ...ListingCategory[]
 ];
+
+export const LISTING_INTENT_OPTIONS = ["offer", "need"] as [ListingIntent, ...ListingIntent[]];
+
+export const LISTING_INTENT_LABELS: Record<ListingIntent, string> = {
+  offer: "Offer",
+  need: "Need"
+};
+
+export const REQUEST_WINDOW_OPTIONS = ["today", "this-week", "flexible"] as [
+  RequestWindow,
+  ...RequestWindow[]
+];
+
+export const REQUEST_WINDOW_LABELS: Record<RequestWindow, string> = {
+  today: "Today",
+  "this-week": "This week",
+  flexible: "Flexible"
+};
 
 export const CATEGORY_MAP = Object.fromEntries(
   CATEGORIES.map((category) => [category.value, category])

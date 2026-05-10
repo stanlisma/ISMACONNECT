@@ -13,10 +13,18 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getBusinessMapProfileMap, getPublicListings, getSavedListingIds } from "@/lib/data";
 import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
+import { resolveCommunityMapArea } from "@/lib/local-marketplace";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
-import { buildPathWithQuery, getPositiveIntParam, getSingleParam, resolveCategory } from "@/lib/utils";
+import {
+  buildPathWithQuery,
+  getPositiveIntParam,
+  getSingleParam,
+  resolveCategory,
+  resolveListingIntent,
+  resolveRequestWindow
+} from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Browse Listings",
@@ -33,6 +41,9 @@ export default async function BrowsePage({
 
   const search = getSingleParam(resolvedSearchParams?.q);
   const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
+  const intent = resolveListingIntent(getSingleParam(resolvedSearchParams?.intent));
+  const requestWindow =
+    intent === "need" ? resolveRequestWindow(getSingleParam(resolvedSearchParams?.requestWindow)) : undefined;
   const subcategory = normalizeSubcategory(
     category,
     getSingleParam(resolvedSearchParams?.subcategory)
@@ -48,6 +59,10 @@ export default async function BrowsePage({
   const requestedView = getSingleParam(resolvedSearchParams?.view);
   const isMapEligibleCategory = Boolean(category);
   const view = requestedView === "map" && isMapEligibleCategory ? "map" : "list";
+  const communityArea =
+    category && category !== "ride-share"
+      ? resolveCommunityMapArea(getSingleParam(resolvedSearchParams?.communityArea)) ?? null
+      : null;
   const structuredFilters = Object.fromEntries(
     getStructuredFilterDefinitions(category)
       .map((field) => {
@@ -56,10 +71,19 @@ export default async function BrowsePage({
       })
       .filter(Boolean) as Array<readonly [string, string]>
   );
+  const searchExtraFilters = {
+    ...structuredFilters,
+    ...(communityArea ? { communityArea } : {}),
+    ...(intent ? { intent } : {}),
+    ...(requestWindow ? { requestWindow } : {})
+  };
 
   const { listings, isConfigured, hasMore, totalCount, pageSize } = await getPublicListings({
     search,
     category,
+    intent,
+    requestWindow,
+    communityArea,
     subcategory,
     minPrice,
     maxPrice,
@@ -85,7 +109,7 @@ export default async function BrowsePage({
         minPrice,
         maxPrice,
         sort,
-        extraFilters: structuredFilters
+        extraFilters: searchExtraFilters
       })
     : null;
   const returnTo = buildSavedSearchHref({
@@ -96,15 +120,23 @@ export default async function BrowsePage({
     minPrice,
     maxPrice,
     sort,
-    extraFilters: structuredFilters
+    extraFilters: searchExtraFilters
   });
 
   const categoryLabel = category
     ? CATEGORIES.find((item) => item.value === category)?.label
     : null;
+  const browseTitle = categoryLabel
+    ? `${categoryLabel} ${intent === "need" ? "Needs" : "Listings"}`
+    : intent === "need"
+      ? "Search local needs"
+      : "Search local listings";
   const listViewHref = buildPathWithQuery("/browse", {
     q: search,
     category,
+    intent,
+    requestWindow,
+    communityArea,
     subcategory,
     minPrice,
     maxPrice,
@@ -116,6 +148,9 @@ export default async function BrowsePage({
       ? buildPathWithQuery("/browse", {
           q: search,
           category,
+          intent,
+          requestWindow,
+          communityArea,
           subcategory,
           minPrice,
           maxPrice,
@@ -131,6 +166,9 @@ export default async function BrowsePage({
       ? buildPathWithQuery("/browse", {
           q: search,
           category,
+          intent,
+          requestWindow,
+          communityArea,
           subcategory,
           minPrice,
           maxPrice,
@@ -144,6 +182,9 @@ export default async function BrowsePage({
     ? buildPathWithQuery("/browse", {
         q: search,
         category,
+        intent,
+        requestWindow,
+        communityArea,
         subcategory,
         minPrice,
         maxPrice,
@@ -159,11 +200,28 @@ export default async function BrowsePage({
         { href: "/browse", label: "Browse all listings" },
         { href: CATEGORY_MAP[category].href, label: `Open ${CATEGORY_MAP[category].label}` },
         ...subcategoryLinks.slice(0, 3).map((item) => ({
-          href: `/browse?category=${category}&subcategory=${item.value}`,
+          href: buildPathWithQuery("/browse", {
+            category,
+            intent,
+            requestWindow,
+            communityArea,
+            subcategory: item.value
+          }),
           label: item.label
         }))
       ]
-    : CATEGORIES.map((item) => ({ href: item.href, label: item.label }));
+    : CATEGORIES.map((item) => ({
+        href: buildPathWithQuery(item.href, { intent, requestWindow }),
+        label: item.label
+      }));
+  const emptyActionHref = buildPathWithQuery("/dashboard/listings/new", {
+    intent: "need",
+    category
+  });
+  const emptyActionLabel = intent === "need" ? "Post this need" : "Post a need";
+  const emptyDescription = intent === "need"
+    ? "No matching needs are live yet. Post yours and let local providers or riders respond."
+    : "Try broadening the search or post what you need so the right locals can reply.";
 
   return (
     <section className="section listing-feed-section">
@@ -171,7 +229,7 @@ export default async function BrowsePage({
         <div className="browse-mobile-overview surface">
           <div className="browse-mobile-overview-copy">
             <span className="eyebrow">{category ? "Category" : "Browse"}</span>
-            <h1>{categoryLabel ? `${categoryLabel} Listings` : "Search local listings"}</h1>
+            <h1>{browseTitle}</h1>
             <p>
               {totalCount > 0
                 ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
@@ -196,7 +254,7 @@ export default async function BrowsePage({
         <div className="browse-desktop-heading">
           <SectionHeading
             eyebrow={category ? "Category" : "Browse"}
-            title={categoryLabel ? `${categoryLabel} Listings` : "Search every local listing"}
+            title={browseTitle}
             description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
           />
         </div>
@@ -217,6 +275,9 @@ export default async function BrowsePage({
         <BrowseFilters
           actionPath="/browse"
           category={category}
+          intent={intent}
+          requestWindow={requestWindow}
+          communityArea={communityArea}
           subcategory={subcategory}
           search={search}
           minPrice={minPrice}
@@ -236,7 +297,7 @@ export default async function BrowsePage({
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort}
-          extraFilters={structuredFilters}
+          extraFilters={searchExtraFilters}
           isSaved={Boolean(savedSearch)}
           compactOnMobile
         />
@@ -250,14 +311,19 @@ export default async function BrowsePage({
         </div>
 
         <div className="pill-links">
-          <Link className="pill-link" href="/browse">
+          <Link className="pill-link" href={buildPathWithQuery("/browse", { intent, requestWindow })}>
             All listings
           </Link>
 
           {CATEGORIES.map((item) => (
             <Link
               className="pill-link"
-              href={`/browse?category=${item.value}`}
+              href={buildPathWithQuery("/browse", {
+                category: item.value,
+                intent,
+                requestWindow,
+                communityArea
+              })}
               key={item.value}
             >
               {item.label}
@@ -272,6 +338,9 @@ export default async function BrowsePage({
               href={buildPathWithQuery("/browse", {
                 q: search,
                 category,
+                intent,
+                requestWindow,
+                communityArea,
                 minPrice,
                 maxPrice,
                 sort,
@@ -289,6 +358,9 @@ export default async function BrowsePage({
                 href={buildPathWithQuery("/browse", {
                   q: search,
                   category,
+                  intent,
+                  requestWindow,
+                  communityArea,
                   subcategory: item.value,
                   minPrice,
                   maxPrice,
@@ -308,9 +380,9 @@ export default async function BrowsePage({
         ) : listings.length === 0 ? (
           <>
             <EmptyState
-              actionHref="/auth/sign-up"
-              actionLabel="Post the first listing"
-              description="Try broadening the search or create the listing yourself."
+              actionHref={emptyActionHref}
+              actionLabel={emptyActionLabel}
+              description={emptyDescription}
               title="No listings match this search"
             />
             <SearchRecoveryPanel
@@ -332,7 +404,7 @@ export default async function BrowsePage({
                 minPrice={minPrice}
                 maxPrice={maxPrice}
                 sort={sort}
-                structuredFilters={structuredFilters}
+                structuredFilters={searchExtraFilters}
               />
             ) : null}
 

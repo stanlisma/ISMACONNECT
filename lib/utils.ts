@@ -1,5 +1,10 @@
-import { CATEGORY_MAP, DEFAULT_LOCATION } from "@/lib/constants";
-import type { ListingCategory } from "@/types/database";
+import {
+  CATEGORY_MAP,
+  DEFAULT_LOCATION,
+  LISTING_INTENT_LABELS,
+  REQUEST_WINDOW_LABELS
+} from "@/lib/constants";
+import type { ListingCategory, ListingIntent, RequestWindow } from "@/types/database";
 
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -49,6 +54,22 @@ export function resolveCategory(value?: string | null): ListingCategory | undefi
   }
 
   return value in CATEGORY_MAP ? (value as ListingCategory) : undefined;
+}
+
+export function resolveListingIntent(value?: string | null): ListingIntent | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  return value in LISTING_INTENT_LABELS ? (value as ListingIntent) : undefined;
+}
+
+export function resolveRequestWindow(value?: string | null): RequestWindow | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  return value in REQUEST_WINDOW_LABELS ? (value as RequestWindow) : undefined;
 }
 
 export function getCategoryLabel(value: ListingCategory) {
