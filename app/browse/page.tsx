@@ -257,7 +257,7 @@ export default async function BrowsePage({
             <p>
               {totalCount > 0
                 ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
-                : "Fast filters and privacy-safe community map view across categories"}
+                : "Browse local listings and needs"}
             </p>
           </div>
 

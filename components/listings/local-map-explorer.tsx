@@ -513,7 +513,7 @@ function MapSurface({
         {status === "loading" ? (
           <div className="local-map-status">
             <strong>Loading Google Maps</strong>
-            <p>Pulling in the live map tiles and interactive controls.</p>
+            <p>Loading live map.</p>
           </div>
         ) : null}
 
@@ -532,11 +532,6 @@ function MapSurface({
         ) : null}
       </div>
 
-      <div className="local-map-stage-meta">
-        <span>Google Maps with native pan and zoom</span>
-        <span>Tap markers or route chips to narrow results faster</span>
-      </div>
-
       {summary ? <div className="local-map-summary-card">{summary}</div> : null}
     </div>
   );
@@ -547,55 +542,35 @@ function getCommunityMapContent(category: ListingCategory) {
     case "rentals":
       return {
         title: "Rental listings by community",
-        description: "Scan privacy-safe area pins and compare neighbourhood coverage before opening listings.",
+        description: "See rental activity by community.",
         badge: "Live rental map",
         statsLabel: "mapped rentals",
-        browseLabel: "Browse by area",
-        why: [
-          "Pins stay at the community level instead of exposing exact home addresses.",
-          "Area chips keep rental discovery fast for Timberlea, Thickwood, Downtown, and nearby zones.",
-          "Fort McMurray fallback keeps general rental posts visible even without a neighbourhood."
-        ]
+        browseLabel: "Browse by area"
       };
     case "jobs":
       return {
         title: "Jobs across Fort McMurray and site areas",
-        description: "See where local roles cluster, with camp and site-heavy jobs grouped safely away from exact addresses.",
+        description: "See job activity by community and site area.",
         badge: "Live jobs map",
         statsLabel: "mapped jobs",
-        browseLabel: "Browse job areas",
-        why: [
-          "Area-level pins help job seekers compare openings without exposing sensitive employer details.",
-          "Camp, FIFO, and DIDO roles fall into a shared Site / camp zone instead of fake street pins.",
-          "City fallback keeps straightforward Fort McMurray job posts on the map."
-        ]
+        browseLabel: "Browse job areas"
       };
     case "services":
       return {
         title: "Service listings across local communities",
-        description: "Compare service coverage by community and keep in-home or repeat services privacy-safe by default.",
+        description: "See service coverage by community.",
         badge: "Live services map",
         statsLabel: "mapped services",
-        browseLabel: "Browse service areas",
-        why: [
-          "Services stay discoverable by community without publishing exact home-based addresses.",
-          "Business and independent providers still stand out through their storefront and listing quality.",
-          "City fallback keeps general Fort McMurray services visible when posters skip the neighbourhood."
-        ]
+        browseLabel: "Browse service areas"
       };
     case "buy-sell":
     default:
       return {
         title: "Local listings by community",
-        description: "Shop area-based pins instead of exact seller homes, with Fort McMurray fallback for general local posts.",
+        description: "See local listings by community.",
         badge: "Live marketplace map",
         statsLabel: "mapped listings",
-        browseLabel: "Browse local areas",
-        why: [
-          "Area-level pins protect peer-to-peer sellers while still making local browsing feel familiar.",
-          "Community clustering helps buyers scan Timberlea, Downtown, Thickwood, and the broader city faster.",
-          "General local listings fall back to Fort McMurray instead of disappearing from the map."
-        ]
+        browseLabel: "Browse local areas"
       };
   }
 }
@@ -1227,14 +1202,6 @@ function CommunityMapExplorer({
             ) : null}
           </div>
 
-          <div className="local-map-sidebar-card">
-            <strong>Why this is better</strong>
-            <ul className="local-map-list">
-              {mapContent.why.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
         </div>
       </div>
     </div>
@@ -1621,7 +1588,7 @@ function RideShareMapExplorer({
                 ))
               ) : (
                 <p className="local-map-empty-copy">
-                  Route chips become more precise as riders and drivers fill in departure and destination fields.
+                  No route groups yet.
                 </p>
               )}
             </div>
@@ -1636,14 +1603,6 @@ function RideShareMapExplorer({
             ) : null}
           </div>
 
-          <div className="local-map-sidebar-card">
-            <strong>Why this is better</strong>
-            <ul className="local-map-list">
-              <li>The map now behaves like a real marketplace map with native Google zoom and pan.</li>
-              <li>Endpoint markers and route lines stay familiar for users coming from Kijiji or Facebook.</li>
-              <li>Route chips still refine the list, but the map now carries real browsing weight.</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>
