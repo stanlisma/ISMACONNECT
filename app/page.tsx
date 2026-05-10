@@ -3,16 +3,16 @@ import { getViewer } from "@/lib/auth";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
-import { CATEGORIES } from "@/lib/constants";
+import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 const POPULAR_QUERIES = [
-  { label: "2 bedroom rentals", href: "/browse?category=rentals&q=2+bedroom" },
-  { label: "Airport rides", href: "/browse?category=ride-share&q=airport" },
+  { label: "Timberlea rentals", href: "/browse?category=rentals&q=timberlea" },
+  { label: "Camp rides", href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map" },
   { label: "Camp jobs", href: "/browse?category=jobs&q=camp" },
-  { label: "Cleaners", href: "/browse?category=services&q=cleaning" },
-  { label: "Furniture", href: "/browse?category=buy-sell&subcategory=furniture" }
+  { label: "Move-out cleaners", href: "/browse?category=services&q=move-out+cleaning" },
+  { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
 ];
 
 export default async function HomePage() {
@@ -21,14 +21,18 @@ export default async function HomePage() {
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const visibleListings = latestListings.slice(0, 8);
   const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));
+  const priorityCategories = HERO_CATEGORY_VALUES.map(
+    (value) => CATEGORIES.find((category) => category.value === value)!
+  );
+  const supportCategory = CATEGORIES.find((category) => category.value === "buy-sell");
 
   return (
     <main className="homepage-main" style={pageStyle}>
       <section className="home-mobile-hero surface">
         <div className="home-mobile-hero-copy">
           <span className="eyebrow">Fort McMurray</span>
-          <h1>Everything local in one marketplace</h1>
-          <p>Find rentals, rides, jobs, services, and everyday deals fast.</p>
+          <h1>Rides, rentals, services, and jobs for Fort McMurray</h1>
+          <p>Built first for camp commutes, move-outs, local work, and worker logistics.</p>
         </div>
 
         <form action="/browse" className="home-mobile-search-form">
@@ -41,11 +45,15 @@ export default async function HomePage() {
         </form>
 
         <div className="home-mobile-category-row">
-          <Link href="/categories/rentals" className="home-mobile-category-pill">Rentals</Link>
           <Link href="/categories/ride-share" className="home-mobile-category-pill">Ride Share</Link>
-          <Link href="/categories/jobs" className="home-mobile-category-pill">Jobs</Link>
           <Link href="/categories/services" className="home-mobile-category-pill">Services</Link>
-          <Link href="/categories/buy-sell" className="home-mobile-category-pill">Buy & Sell</Link>
+          <Link href="/categories/rentals" className="home-mobile-category-pill">Rentals</Link>
+          <Link href="/categories/jobs" className="home-mobile-category-pill">Jobs</Link>
+        </div>
+
+        <div className="home-mobile-support-row">
+          <span className="home-support-label">Also available</span>
+          <Link href="/categories/buy-sell" className="home-mobile-support-link">Buy &amp; Sell</Link>
         </div>
 
         <div className="home-mobile-query-row">
@@ -58,26 +66,27 @@ export default async function HomePage() {
       </section>
 
       <section className="home-hero-section" style={heroCardStyle}>
-        <span style={badgeStyle}>LOCAL FIRST</span>
+        <span style={badgeStyle}>FORT MCMURRAY FIRST</span>
 
         <h1 style={titleStyle}>
-          Buy, sell, hire, and move around Fort McMurray faster.
+          Find rides, rentals, services, and local work without chasing Facebook threads.
         </h1>
 
         <p style={subtitleStyle}>
-          Fort McMurray&apos;s local marketplace for everyday needs.
+          ISMACONNECT is built around Fort McMurray logistics: camp transport, move-out help, local jobs,
+          rentals, and trusted service providers. Buy &amp; Sell stays available when you need it.
         </p>
 
         <div style={searchBoxStyle}>
           <form action="/browse" style={searchFormStyle}>
             <input
               name="q"
-              placeholder="Rentals, airport rides, tools, cleaning, jobs..."
+              placeholder="Camp rides, dump runs, rentals, cleaners, jobs..."
               style={inputStyle}
             />
 
             <button type="submit" style={primaryButtonStyle}>
-              Explore listings
+              Explore local activity
             </button>
           </form>
 
@@ -89,11 +98,17 @@ export default async function HomePage() {
         </div>
 
         <div style={pillWrapStyle}>
-          <Link href="/categories/rentals" style={pillStyle}>Rentals</Link>
           <Link href="/categories/ride-share" style={pillStyle}>Ride Share</Link>
-          <Link href="/categories/jobs" style={pillStyle}>Jobs</Link>
           <Link href="/categories/services" style={pillStyle}>Services</Link>
-          <Link href="/categories/buy-sell" style={pillStyle}>Buy & Sell</Link>
+          <Link href="/categories/rentals" style={pillStyle}>Rentals</Link>
+          <Link href="/categories/jobs" style={pillStyle}>Jobs</Link>
+        </div>
+
+        <div className="home-secondary-link-row">
+          <span className="home-support-label">Also available</span>
+          <Link href="/categories/buy-sell" className="home-secondary-link">
+            Browse Buy &amp; Sell
+          </Link>
         </div>
       </section>
 
@@ -112,7 +127,7 @@ export default async function HomePage() {
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
           <div className="home-section-head">
-            <h2>Latest Listings</h2>
+            <h2>Fresh local activity</h2>
             <Link href="/browse" className="home-section-link">
               See all
             </Link>
@@ -141,18 +156,18 @@ export default async function HomePage() {
       </section>
 
       <section style={categoriesSectionStyle}>
-        <span style={badgeStyle}>CATEGORIES</span>
+        <span style={badgeStyle}>LOCAL PRIORITIES</span>
 
         <h2 style={sectionTitleStyle}>
-          Everything locals need in one marketplace
+          Start with the categories Fort McMurray checks most
         </h2>
 
         <p style={sectionTextStyle}>
-          Each category has its own SEO-friendly landing page so listings can rank and stay easy to browse.
+          We are leading with rides, services, rentals, and worker logistics because those are the highest-friction local needs.
         </p>
 
         <div style={cardGridStyle}>
-          {CATEGORIES.map((category) => (
+          {priorityCategories.map((category) => (
             <article key={category.value} style={cardStyle}>
               <h3 style={cardTitleStyle}>{category.label}</h3>
               <p style={cardTextStyle}>{category.description}</p>
@@ -162,6 +177,21 @@ export default async function HomePage() {
             </article>
           ))}
         </div>
+
+        {supportCategory ? (
+          <div className="home-support-note surface">
+            <div>
+              <strong>Buy &amp; Sell is still available.</strong>
+              <p>
+                We support everyday local items too, but the marketplace is being optimized first for rides,
+                rentals, services, and worker logistics.
+              </p>
+            </div>
+            <Link href={supportCategory.href} className="home-secondary-link">
+              Open Buy &amp; Sell
+            </Link>
+          </div>
+        ) : null}
 
         <div className="home-desktop-query-row">
           {POPULAR_QUERIES.map((query) => (

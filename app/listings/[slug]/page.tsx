@@ -29,6 +29,7 @@ import {
   getSellerTrustSummaryMap,
   getViewerSellerReview
 } from "@/lib/trust";
+import { getSellerReviewSummary } from "@/lib/trust-presentation";
 import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -339,10 +340,7 @@ export default async function ListingPage({
 
               <div className="meta-list" style={{ marginTop: "1rem" }}>
                 <span>
-                  Rating:{" "}
-                  {sellerTrustSummary?.review_count
-                    ? `${sellerTrustSummary.average_rating?.toFixed(1)} from ${sellerTrustSummary.review_count} reviews`
-                    : "No ratings yet"}
+                  Rating: {getSellerReviewSummary(sellerTrustSummary)}
                 </span>
                 <span>
                   Verification:{" "}

@@ -11,6 +11,10 @@ import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP } from "@/lib/constants";
 import { getPublicSellerStorefront, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummary, getSellerTrustSummaryMap } from "@/lib/trust";
+import {
+  getSellerReviewSummary,
+  hasPublicSellerRating
+} from "@/lib/trust-presentation";
 import { buildPathWithQuery, formatDate, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -73,10 +77,11 @@ export default async function SellerStorefrontPage({
   const memberSinceLabel = trustSummary?.member_since
     ? formatDate(trustSummary.member_since)
     : "Recently joined";
-  const ratingLabel =
-    trustSummary?.review_count && trustSummary.average_rating !== null
-      ? `${trustSummary.average_rating.toFixed(1)} / 5`
-      : "No ratings yet";
+  const ratingLabel = hasPublicSellerRating(trustSummary)
+    ? `${trustSummary?.average_rating?.toFixed(1)} / 5`
+    : trustSummary?.review_count
+      ? "Early reviews"
+      : "No public rating yet";
   const storefrontDescription = storefront.is_business
     ? storefront.business_description ||
       "Browse this business storefront, review trust signals, and explore active local listings."
@@ -205,6 +210,11 @@ export default async function SellerStorefrontPage({
             }
             description="These listings are currently visible across browse and category feeds."
           />
+
+          <p className="section-copy seller-storefront-trust-note">
+            {getSellerReviewSummary(trustSummary)}
+            {trustSummary?.verification_status === "verified" ? " Verified badge active." : ""}
+          </p>
 
           {filteredListings.length ? (
             <div className="listing-grid listing-feed-grid">
