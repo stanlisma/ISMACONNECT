@@ -3,6 +3,8 @@ import type { User } from "@supabase/supabase-js";
 export type AppRole = "user" | "admin";
 export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "buy-sell";
 export type ListingStatus = "active" | "flagged" | "removed";
+export type ListingIntent = "offer" | "need";
+export type RequestWindow = "today" | "this-week" | "flexible";
 export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
 export type BoostOrderStatus = "pending" | "active" | "expired" | "canceled" | "failed";
 export type IdentityVerificationOrderStatus = "pending" | "paid" | "canceled" | "failed";
@@ -91,6 +93,8 @@ export interface Listing {
   title: string;
   slug: string;
   category: ListingCategory;
+  listing_intent: ListingIntent;
+  request_window: RequestWindow | null;
   description: string;
   price: number | null;
   location: string;

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { getListingBoostState } from "@/lib/boost-products";
+import { LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS } from "@/lib/constants";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryLabel } from "@/lib/utils";
@@ -138,6 +139,9 @@ export function ListingCard({
       : Number(rawViews);
   const views = Number.isFinite(parsedViews) && parsedViews > 0 ? parsedViews : 0;
   const publicLocation = getPublicListingLocationLabel(listing);
+  const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
+  const isNeed = listingIntent === "need";
+  const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
 
   const isNew = relativeInfo.isNew;
   const isPopular = views > 10;
@@ -251,7 +255,10 @@ export function ListingCard({
             ) : null}
 
             <div className="mobile-marketplace-overlay">
-              <span className="mobile-marketplace-price">{formatCurrency(listing.price)}</span>
+              <span className="mobile-marketplace-price">
+                {isNeed ? "Budget " : ""}
+                {formatCurrency(listing.price)}
+              </span>
               <span className="mobile-marketplace-title">{listing.title}</span>
             </div>
           </div>
@@ -270,6 +277,11 @@ export function ListingCard({
           style={{ justifyContent: "space-between", alignItems: "center" }}
         >
           <div className="badge-row">
+            {isNeed ? (
+              <span className="badge badge-soft">
+                {LISTING_INTENT_LABELS[listingIntent]}
+              </span>
+            ) : null}
             {listing.subcategory ? (
               <span className="badge badge-subcategory">
                 {getSubcategoryLabel(listing.category, listing.subcategory)}
@@ -300,9 +312,13 @@ export function ListingCard({
 
           <div style={{ textAlign: "right" }}>
             <span className="listing-price">
+              {isNeed ? "Budget " : ""}
               {formatCurrency(listing.price)}
               {isPopular ? <span className="listing-urgency-inline"> Hot</span> : null}
             </span>
+            {isNeed && requestWindowLabel ? (
+              <div className="listing-request-window">{requestWindowLabel}</div>
+            ) : null}
           </div>
         </div>
 

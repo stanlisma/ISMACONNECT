@@ -11,8 +11,8 @@ import {
 } from "@/lib/subcategories";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { resolveCategory } from "@/lib/utils";
-import type { Listing, ListingCategory, SavedSearch } from "@/types/database";
+import { resolveCategory, resolveListingIntent, resolveRequestWindow } from "@/lib/utils";
+import type { Listing, ListingCategory, ListingIntent, RequestWindow, SavedSearch } from "@/types/database";
 
 const VALID_SORTS = new Set(["price_asc", "price_desc"]);
 
@@ -80,6 +80,38 @@ function normalizeSort(value?: string | null) {
   return trimmed && VALID_SORTS.has(trimmed) ? trimmed : null;
 }
 
+function normalizeIntentFilterValue(value?: unknown) {
+  return typeof value === "string" ? resolveListingIntent(value) ?? null : null;
+}
+
+function normalizeRequestWindowFilterValue(value?: unknown) {
+  return typeof value === "string" ? resolveRequestWindow(value) ?? null : null;
+}
+
+function getIntentFilterLabel(value: ListingIntent | null) {
+  switch (value) {
+    case "need":
+      return "Needs only";
+    case "offer":
+      return "Offers only";
+    default:
+      return null;
+  }
+}
+
+function getRequestWindowLabel(value: RequestWindow | null) {
+  switch (value) {
+    case "today":
+      return "Needed today";
+    case "this-week":
+      return "Needed this week";
+    case "flexible":
+      return "Flexible timing";
+    default:
+      return null;
+  }
+}
+
 function formatSavedSearchValue(value: string) {
   return value
     .split("-")
@@ -102,6 +134,17 @@ function getSubcategoryLabel(category: ListingCategory | null, subcategory: stri
 
 export function normalizeSavedSearchFilters(filters: SavedSearchFilters): NormalizedSavedSearchFilters {
   const category = resolveCategory(filters.category ?? null) ?? null;
+  const structuredFilters = normalizeStructuredFilterValues(category, filters.extraFilters);
+  const intentFilter = normalizeIntentFilterValue(filters.extraFilters?.intent);
+  const requestWindowFilter = normalizeRequestWindowFilterValue(filters.extraFilters?.requestWindow);
+
+  if (intentFilter) {
+    structuredFilters.intent = intentFilter;
+  }
+
+  if (requestWindowFilter) {
+    structuredFilters.requestWindow = requestWindowFilter;
+  }
 
   return {
     path: normalizePath(filters.path),
@@ -111,7 +154,7 @@ export function normalizeSavedSearchFilters(filters: SavedSearchFilters): Normal
     minPrice: normalizeNumber(filters.minPrice),
     maxPrice: normalizeNumber(filters.maxPrice),
     sort: normalizeSort(filters.sort),
-    extraFilters: normalizeStructuredFilterValues(category, filters.extraFilters)
+    extraFilters: structuredFilters
   };
 }
 
@@ -185,6 +228,7 @@ export function getSavedSearchLabel(filters: SavedSearchFilters) {
   const normalized = normalizeSavedSearchFilters(filters);
   const categoryLabel = normalized.category ? CATEGORY_MAP[normalized.category].label : "All listings";
   const subcategoryLabel = getSubcategoryLabel(normalized.category, normalized.subcategory);
+  const intentFilter = normalizeIntentFilterValue(normalized.extraFilters.intent);
 
   if (normalized.search && subcategoryLabel) {
     return `${normalized.search} in ${subcategoryLabel}`;
@@ -196,6 +240,14 @@ export function getSavedSearchLabel(filters: SavedSearchFilters) {
 
   if (subcategoryLabel) {
     return `${subcategoryLabel} in ${categoryLabel}`;
+  }
+
+  if (intentFilter === "need" && categoryLabel === "All listings") {
+    return "Local needs";
+  }
+
+  if (intentFilter === "offer" && categoryLabel === "All listings") {
+    return "Local offers";
   }
 
   return categoryLabel;
@@ -225,6 +277,11 @@ export function getSavedSearchDescription(filters: SavedSearchFilters) {
   if (normalized.sort === "price_desc") {
     details.push("Price: High to Low");
   }
+
+  details.push(...[
+    getIntentFilterLabel(normalizeIntentFilterValue(normalized.extraFilters.intent)),
+    getRequestWindowLabel(normalizeRequestWindowFilterValue(normalized.extraFilters.requestWindow))
+  ].filter(Boolean) as string[]);
 
   details.push(...getStructuredFilterSummaryItems(normalized.category, normalized.extraFilters));
 
@@ -275,6 +332,17 @@ function applyListingFilters(query: any, filters: SavedSearchFilters) {
 
   if (normalized.maxPrice !== null) {
     nextQuery = nextQuery.lte("price", normalized.maxPrice);
+  }
+
+  const intentFilter = normalizeIntentFilterValue(normalized.extraFilters.intent);
+  const requestWindowFilter = normalizeRequestWindowFilterValue(normalized.extraFilters.requestWindow);
+
+  if (intentFilter) {
+    nextQuery = nextQuery.eq("listing_intent", intentFilter);
+  }
+
+  if (requestWindowFilter) {
+    nextQuery = nextQuery.eq("request_window", requestWindowFilter);
   }
 
   return applyStructuredListingFilters(nextQuery, normalized.category, normalized.extraFilters);

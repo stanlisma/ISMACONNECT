@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { CATEGORY_OPTIONS, DEFAULT_LOCATION } from "@/lib/constants";
+import {
+  CATEGORY_OPTIONS,
+  DEFAULT_LOCATION,
+  LISTING_INTENT_OPTIONS,
+  REQUEST_WINDOW_OPTIONS
+} from "@/lib/constants";
 
 const optionalString = z
   .string()
@@ -9,6 +14,22 @@ const optionalString = z
 
 export const listingSchema = z
   .object({
+    listingIntent: z.enum(LISTING_INTENT_OPTIONS, {
+      errorMap: () => ({ message: "Choose whether this is an offer or a need." })
+    }),
+
+    requestWindow: z.preprocess(
+      (value) => {
+        if (typeof value !== "string") {
+          return null;
+        }
+
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+      },
+      z.enum(REQUEST_WINDOW_OPTIONS).nullable()
+    ),
+
     category: z.enum(CATEGORY_OPTIONS, {
       errorMap: () => ({ message: "Choose a valid category." })
     }),
@@ -69,8 +90,18 @@ export const listingSchema = z
       "Enter a valid image URL."
     )
   })
+  .superRefine((value, context) => {
+    if (value.listingIntent === "need" && !value.requestWindow) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["requestWindow"],
+        message: "Choose when you need this."
+      });
+    }
+  })
   .transform((value) => ({
     ...value,
+    requestWindow: value.listingIntent === "need" ? value.requestWindow : null,
     showExactAddressOnMap: value.showExactAddressOnMap
   }));
 export const flagListingSchema = z.object({

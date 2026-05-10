@@ -2720,6 +2720,13 @@ code {
   cursor: pointer;
 }
 
+.listing-request-window {
+  margin-top: 0.18rem;
+  color: var(--primary-dark);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
 /* Mobile/PWA marketplace-style listing cards */
 .mobile-marketplace-badge,
 .mobile-marketplace-overlay {
@@ -6525,6 +6532,47 @@ code {
 .listing-form-section-grid {
   display: grid;
   gap: 1rem;
+}
+
+.listing-intent-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.listing-intent-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.listing-intent-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.listing-intent-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.listing-intent-option.is-active {
+  border-color: rgba(18, 94, 219, 0.28);
+  background: linear-gradient(180deg, rgba(30, 107, 255, 0.12), rgba(232, 241, 255, 0.9));
+  color: var(--primary-dark);
+  box-shadow: 0 10px 24px rgba(18, 94, 219, 0.12);
 }
 
 .listing-form-title-field {

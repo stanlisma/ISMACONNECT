@@ -9,6 +9,7 @@ import { normalizeSubcategory } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
+import type { ListingIntent } from "@/types/database";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -40,6 +41,20 @@ function isAddressVisibilitySchemaError(error: {
 
 function getAddressVisibilitySchemaMessage() {
   return "Your database address visibility rules are out of date. Run the latest ISMACONNECT address visibility migration in Supabase, then try posting again.";
+}
+
+function isListingIntentSchemaError(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+  return message.includes("listing_intent") || message.includes("request_window");
+}
+
+function getListingIntentSchemaMessage() {
+  return "Your database listing request fields are out of date. Run the latest ISMACONNECT listing-request migration in Supabase, then try posting again.";
 }
 
 function parseImageUrls(formData: FormData) {
@@ -97,10 +112,22 @@ async function loadListingForMutation(listingId: string) {
   return data;
 }
 
+function parseListingIntent(formData: FormData): ListingIntent {
+  return formData.get("listingIntent") === "need" ? "need" : "offer";
+}
+
+function getCreateListingReturnPath(intent: ListingIntent) {
+  return intent === "need" ? "/dashboard/listings/new?intent=need" : "/dashboard/listings/new";
+}
+
 export async function createListingAction(formData: FormData) {
   const viewer = await requireViewer();
+  const listingIntent = parseListingIntent(formData);
+  const returnPath = getCreateListingReturnPath(listingIntent);
 
   const parsed = listingSchema.safeParse({
+    listingIntent: formData.get("listingIntent"),
+    requestWindow: formData.get("requestWindow"),
     category: formData.get("category"),
     subcategory: formData.get("subcategory"),
     title: formData.get("title"),
@@ -115,7 +142,7 @@ export async function createListingAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirectWithMessage("/dashboard/listings/new", "error", firstMessage(parsed.error));
+    redirectWithMessage(returnPath, "error", firstMessage(parsed.error));
   }
 
   const dataInput = parsed.data;
@@ -124,7 +151,7 @@ export async function createListingAction(formData: FormData) {
   const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
 
   if (!structuredDataResult.success) {
-    redirectWithMessage("/dashboard/listings/new", "error", firstMessage(structuredDataResult.error));
+    redirectWithMessage(returnPath, "error", firstMessage(structuredDataResult.error));
   }
 
   const supabase = await createServerSupabaseClient();
@@ -136,6 +163,8 @@ export async function createListingAction(formData: FormData) {
       owner_id: viewer.user.id,
       slug,
       category: dataInput.category,
+      listing_intent: dataInput.listingIntent,
+      request_window: dataInput.requestWindow,
       subcategory: normalizedSubcategory,
       title: dataInput.title,
       description: dataInput.description,
@@ -154,13 +183,15 @@ export async function createListingAction(formData: FormData) {
 
   if (error || !data) {
     redirectWithMessage(
-      "/dashboard/listings/new",
+      returnPath,
       "error",
       error
         ? isSubcategoryConstraintError(error)
           ? getSubcategoryConstraintMessage()
           : isAddressVisibilitySchemaError(error)
             ? getAddressVisibilitySchemaMessage()
+            : isListingIntentSchemaError(error)
+              ? getListingIntentSchemaMessage()
             : error.message
         : "Could not create the listing."
     );
@@ -184,6 +215,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
   }
 
   const parsed = listingSchema.safeParse({
+    listingIntent: formData.get("listingIntent"),
+    requestWindow: formData.get("requestWindow"),
     category: formData.get("category"),
     subcategory: formData.get("subcategory"),
     title: formData.get("title"),
@@ -224,6 +257,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
     .from("listings")
     .update({
       category: dataInput.category,
+      listing_intent: dataInput.listingIntent,
+      request_window: dataInput.requestWindow,
       subcategory: normalizedSubcategory,
       title: dataInput.title,
       description: dataInput.description,
@@ -250,6 +285,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
           ? getSubcategoryConstraintMessage()
           : isAddressVisibilitySchemaError(error)
             ? getAddressVisibilitySchemaMessage()
+            : isListingIntentSchemaError(error)
+              ? getListingIntentSchemaMessage()
             : error.message
         : "Could not update the listing."
     );

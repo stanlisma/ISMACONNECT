@@ -14,7 +14,7 @@ import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { getListingBoostState } from "@/lib/boost-products";
-import { CATEGORY_MAP, SITE_NAME } from "@/lib/constants";
+import { CATEGORY_MAP, LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS, SITE_NAME } from "@/lib/constants";
 import {
   getConversationForListing,
   getPublicListingBySlug,
@@ -107,6 +107,9 @@ export default async function ListingPage({
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
   const publicLocation = getPublicListingLocationLabel(listing);
   const publicLocationLabel = listing.show_exact_address_on_map ? "Address" : "Community";
+  const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
+  const isNeed = listingIntent === "need";
+  const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
   const isOwner = viewer?.user.id === listing.owner_id;
   const canUseMobileActions = !isOwner;
   const mobilePrimaryHref = viewer
@@ -117,8 +120,25 @@ export default async function ListingPage({
   const mobilePrimaryLabel = viewer
     ? existingConversation
       ? "Open chat"
-      : "Message seller"
+      : isNeed
+        ? "Respond now"
+        : "Message seller"
     : "Sign in to unlock";
+  const contactEyebrow = isNeed ? "Respond" : "Contact Seller";
+  const contactTitle = isNeed ? "Respond to this request" : "Send a message";
+  const contactDescription = isNeed
+    ? "Let them know if you can help, what you can offer, and when you are available."
+    : "Ask if this listing is still available or request more details.";
+  const ownerTitle = isNeed ? "You posted this request" : "You own this listing";
+  const ownerDescription = isNeed
+    ? "Use My Listings to update the request, close it once you get help, or boost it for faster replies."
+    : "Use My Listings to edit details, upload images, remove the post, or run paid boosts.";
+  const unlockTitle = isNeed ? "Unlock requester details" : "Unlock seller details";
+  const unlockButton = isNeed ? "Unlock contact details" : "Unlock Contact Info";
+  const unlockText = isNeed ? "This request is drawing local attention" : "This listing is getting attention";
+  const trustDescription = isNeed
+    ? "Verification and ratings help locals decide who to reply to first."
+    : "Verification and ratings help locals choose who to message first.";
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -156,6 +176,8 @@ export default async function ListingPage({
                   <Link className="badge badge-soft" href={category.href}>
                     {category.label}
                   </Link>
+                  <span className="badge badge-soft">{LISTING_INTENT_LABELS[listingIntent]}</span>
+                  {requestWindowLabel ? <span className="badge badge-subcategory">{requestWindowLabel}</span> : null}
 
                   {featuredActive ? (
                     <span className="badge badge-featured">Featured</span>
@@ -212,9 +234,11 @@ export default async function ListingPage({
 
                 <div className="meta-list">
                   <span>Category: {category.label}</span>
+                  <span>Post type: {LISTING_INTENT_LABELS[listingIntent]}</span>
+                  {requestWindowLabel ? <span>Need timing: {requestWindowLabel}</span> : null}
                   <span>{publicLocationLabel}: {publicLocation}</span>
                   <span>Posted: {formatDate(listing.created_at)}</span>
-                  <span>Price: {formatCurrency(listing.price)}</span>
+                  <span>{isNeed ? "Budget" : "Price"}: {formatCurrency(listing.price)}</span>
                   {structuredDetailItems.map((item) => (
                     <span key={item}>{item}</span>
                   ))}
@@ -234,7 +258,11 @@ export default async function ListingPage({
                     <SectionHeading
                       eyebrow="Conversation"
                       title="Continue your chat"
-                      description="You already contacted this seller about this listing."
+                      description={
+                        isNeed
+                          ? "You already replied to this request. Jump back into the thread."
+                          : "You already contacted this seller about this listing."
+                      }
                     />
 
                     <Link href={`/messages/${existingConversation.id}`} className="button">
@@ -244,19 +272,19 @@ export default async function ListingPage({
                 ) : (
                   <div className="detail-card detail-contact-card" id="message-seller">
                     <SectionHeading
-                      eyebrow="Contact Seller"
-                      title="Send a message"
-                      description="Ask if this listing is still available or request more details."
+                      eyebrow={contactEyebrow}
+                      title={contactTitle}
+                      description={contactDescription}
                     />
-                    <ContactSellerForm listingId={listing.id} />
+                    <ContactSellerForm listingId={listing.id} listingIntent={listingIntent} />
                   </div>
                 )
               ) : (
                 <div className="detail-card">
                   <SectionHeading
                     eyebrow="Your Listing"
-                    title="You own this listing"
-                    description="Use My Listings to edit details, upload images, remove the post, or run paid boosts."
+                    title={ownerTitle}
+                    description={ownerDescription}
                   />
                   <div className="action-row">
                     <Link href="/dashboard" className="button button-secondary">
@@ -272,7 +300,7 @@ export default async function ListingPage({
               <div className="detail-card detail-guest-unlock-card">
                 <SectionHeading
                   eyebrow="Contact"
-                  title="Unlock seller details"
+                  title={unlockTitle}
                   description="Join ISMACONNECT to instantly message sellers and get faster responses."
                 />
 
@@ -290,14 +318,14 @@ export default async function ListingPage({
                 </div>
 
                 <div className="unlock-box">
-                  <p className="unlock-text">This listing is getting attention</p>
+                  <p className="unlock-text">{unlockText}</p>
 
                   <p style={{ fontSize: "0.85rem", color: "#667085" }}>
                     {(listing as any).views ?? 0} people viewed this listing
                   </p>
 
                   <Link href="/auth/sign-in" className="button unlock-button">
-                    Unlock Contact Info
+                    {unlockButton}
                   </Link>
 
                   <p className="unlock-sub">Takes less than 10 seconds | No spam</p>
@@ -325,9 +353,9 @@ export default async function ListingPage({
           <aside className="detail-side">
             <div className="detail-card">
               <SectionHeading
-                eyebrow="Seller Trust"
+                eyebrow={isNeed ? "Poster Trust" : "Seller Trust"}
                 title={listing.contact_name}
-                description="Verification and ratings help locals choose who to message first."
+                description={trustDescription}
               />
 
               <div className="action-row" style={{ marginBottom: "1rem" }}>
