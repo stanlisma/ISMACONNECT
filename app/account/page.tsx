@@ -18,6 +18,7 @@ import { requireViewer } from "@/lib/auth";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
+import { getSellerTrustSummaryCopy } from "@/lib/trust-presentation";
 
 function getInitials(name: string, email?: string) {
   const source = name.trim() || email?.trim() || "IS";
@@ -125,7 +126,7 @@ export default async function AccountPage() {
                   <TrustBadges summary={trustSummary} />
                   <p className="section-copy">
                     {trustSummary?.review_count
-                      ? `${trustSummary.average_rating?.toFixed(1)} average rating from ${trustSummary.review_count} reviews.`
+                      ? getSellerTrustSummaryCopy(trustSummary)
                       : viewer.profile.stripe_identity_session_status === "processing" ||
                           viewer.profile.verification_status === "pending"
                         ? "Stripe is processing your seller verification."

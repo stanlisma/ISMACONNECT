@@ -7,6 +7,7 @@ import { FlashMessage } from "@/components/ui/flash-message";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireAdminViewer } from "@/lib/auth";
 import { getFlaggedListings } from "@/lib/data";
+import { getSoftLaunchSnapshot } from "@/lib/launch-metrics";
 import { getOpenUserReports } from "@/lib/message-safety";
 import { getRecentAppErrorLogs } from "@/lib/monitoring";
 import { getPendingVerificationProfiles } from "@/lib/trust";
@@ -19,17 +20,73 @@ export default async function ModerationPage({
 }) {
   await requireAdminViewer();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const [flaggedListings, pendingProfiles, openUserReports, recentAppErrorLogs] = await Promise.all([
+  const [flaggedListings, pendingProfiles, openUserReports, recentAppErrorLogs, softLaunchSnapshot] = await Promise.all([
     getFlaggedListings(),
     getPendingVerificationProfiles(),
     getOpenUserReports(),
-    getRecentAppErrorLogs()
+    getRecentAppErrorLogs(),
+    getSoftLaunchSnapshot()
   ]);
 
   return (
     <>
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
+
+      <div className="surface launch-metrics-shell">
+        <div className="launch-metrics-head">
+          <div>
+            <span className="eyebrow">Soft Launch Snapshot</span>
+            <h2 className="section-title">Are locals getting value back?</h2>
+            <p className="section-copy">
+              Watch replies, repeat posting, and saved-search behavior before spending harder on marketing.
+            </p>
+          </div>
+        </div>
+
+        <div className="dashboard-stats-grid launch-metrics-grid">
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Recent listings</span>
+            <strong>{softLaunchSnapshot.recentListingCount}</strong>
+            <p>Non-removed posts created in the last 30 days.</p>
+          </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Response rate</span>
+            <strong>{softLaunchSnapshot.responseRate}%</strong>
+            <p>
+              {softLaunchSnapshot.respondedListingCount} of {softLaunchSnapshot.recentListingCount} recent listings
+              received at least one conversation.
+            </p>
+          </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Repeat posters</span>
+            <strong>{softLaunchSnapshot.repeatPosterRate}%</strong>
+            <p>
+              {softLaunchSnapshot.repeatPosterCount} of {softLaunchSnapshot.uniquePosterCount} recent posters created
+              more than one listing.
+            </p>
+          </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Saved-search activity</span>
+            <strong>{softLaunchSnapshot.activeSavedSearchUserCount}</strong>
+            <p>
+              {softLaunchSnapshot.activeSavedSearchUserCount} users checked alerts across{" "}
+              {softLaunchSnapshot.savedSearchCount} saved searches.
+            </p>
+          </div>
+        </div>
+
+        <div className="launch-metrics-breakdown">
+          {softLaunchSnapshot.heroCategoryCounts.map((item) => (
+            <span key={item.category} className="badge badge-soft">
+              {getCategoryLabel(item.category)}: {item.count}
+            </span>
+          ))}
+        </div>
+      </div>
 
       {recentAppErrorLogs.length ? (
         <div className="dashboard-list" style={{ marginBottom: "1.25rem" }}>

@@ -17,6 +17,7 @@ import { requireViewer } from "@/lib/auth";
 import { isEmailConfigured, isStripeWebhookConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
+import { getSellerReviewSummary } from "@/lib/trust-presentation";
 import { getSingleParam } from "@/lib/utils";
 
 export default async function SettingsPage({
@@ -170,7 +171,7 @@ export default async function SettingsPage({
           <div className="meta-list settings-meta-list">
             <span>Status: {profile?.verification_status ?? "unverified"}</span>
             <span>
-              Ratings: {trustSummary?.review_count ? `${trustSummary.average_rating?.toFixed(1)} from ${trustSummary.review_count} reviews` : "No ratings yet"}
+              Ratings: {getSellerReviewSummary(trustSummary)}
             </span>
           </div>
 

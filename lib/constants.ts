@@ -1,11 +1,13 @@
 import type { ListingCategory, ListingStatus } from "@/types/database";
 
 export const SITE_NAME = "ISMACONNECT";
-export const SITE_TAGLINE = "Fort McMurray's local marketplace for everyday needs.";
+export const SITE_TAGLINE = "Fort McMurray rides, rentals, services, jobs, and worker logistics.";
 export const SITE_DESCRIPTION =
-  "ISMACONNECT helps Fort McMurray residents discover rentals, ride shares, jobs, services, and local buy & sell listings in one place.";
+  "ISMACONNECT helps Fort McMurray locals find rentals, ride shares, jobs, services, and worker logistics first, with local buy and sell available when needed.";
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
 export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";
+export const HERO_CATEGORY_VALUES: ListingCategory[] = ["ride-share", "services", "rentals", "jobs"];
+export const SUPPORT_CATEGORY_VALUES: ListingCategory[] = ["buy-sell"];
 
 export const CATEGORIES: Array<{
   value: ListingCategory;
@@ -45,7 +47,7 @@ export const CATEGORIES: Array<{
   {
     value: "buy-sell",
     label: "Buy & Sell",
-    description: "Furniture, electronics, phones, computers, home goods, tools, and everyday items from local sellers.",
+    description: "Furniture, electronics, tools, and everyday items from local sellers when you need them.",
     href: "/categories/buy-sell",
     seoTitle: "Fort McMurray buy and sell"
   }

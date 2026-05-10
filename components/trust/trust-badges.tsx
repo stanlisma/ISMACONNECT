@@ -1,5 +1,9 @@
 import { ShieldCheck, Star } from "lucide-react";
 
+import {
+  hasPublicSellerRating,
+  hasPublicTopRatedSeller
+} from "@/lib/trust-presentation";
 import type { SellerTrustSummary } from "@/types/database";
 
 interface TrustBadgesProps {
@@ -13,8 +17,8 @@ export function TrustBadges({ summary, compact = false }: TrustBadgesProps) {
   }
 
   const showVerified = summary.verification_status === "verified";
-  const showTopRated = Boolean(summary.top_rated);
-  const showRating = summary.review_count > 0 && summary.average_rating !== null;
+  const showTopRated = hasPublicTopRatedSeller(summary);
+  const showRating = hasPublicSellerRating(summary);
 
   if (!showVerified && !showTopRated && !showRating) {
     return null;
