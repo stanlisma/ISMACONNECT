@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Building2, ExternalLink } from "lucide-react";
+import { Building2, Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 
+import { getBusinessHoursRows, getBusinessHoursStatus } from "@/lib/business-profile";
 import { ListingCard } from "@/components/listings/listing-card";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -86,6 +87,12 @@ export default async function SellerStorefrontPage({
     ? storefront.business_description ||
       "Browse this business storefront, review trust signals, and explore active local listings."
     : "Review this seller's live listings, local category footprint, and trust signals before you message.";
+  const businessHoursStatus = storefront.is_business
+    ? getBusinessHoursStatus(storefront.business_hours)
+    : null;
+  const businessHoursRows = storefront.is_business && businessHoursStatus
+    ? getBusinessHoursRows(storefront.business_hours)
+    : [];
 
   return (
     <section className="section">
@@ -111,6 +118,11 @@ export default async function SellerStorefrontPage({
                   <span>Member since {memberSinceLabel}</span>
                   <span>{ratingLabel}</span>
                   {storefront.is_business ? <span>Business account</span> : null}
+                  {businessHoursStatus ? (
+                    <span className={`seller-storefront-status-pill ${businessHoursStatus.isOpen ? "is-open" : ""}`}>
+                      {businessHoursStatus.label}
+                    </span>
+                  ) : null}
                 </div>
 
                 {storefront.service_areas.length ? (
@@ -127,6 +139,16 @@ export default async function SellerStorefrontPage({
                   <div className="seller-storefront-business-badge">
                     <Building2 aria-hidden="true" size={16} strokeWidth={2.1} />
                     <span>Verified business storefront</span>
+                  </div>
+                ) : null}
+
+                {storefront.business_services.length ? (
+                  <div className="seller-storefront-specialties">
+                    {storefront.business_services.map((service) => (
+                      <span key={service} className="seller-storefront-specialty-chip">
+                        {service}
+                      </span>
+                    ))}
                   </div>
                 ) : null}
 
@@ -151,9 +173,15 @@ export default async function SellerStorefrontPage({
               </div>
 
               <div className="seller-storefront-actions">
+                {storefront.phone ? (
+                  <a className="button" href={`tel:${storefront.phone}`}>
+                    <Phone aria-hidden="true" size={15} strokeWidth={2.2} />
+                    <span>Call business</span>
+                  </a>
+                ) : null}
                 {storefront.business_website ? (
                   <a
-                    className="button"
+                    className={`button ${storefront.phone ? "button-secondary" : ""}`}
                     href={storefront.business_website}
                     target="_blank"
                     rel="noreferrer"
@@ -162,7 +190,7 @@ export default async function SellerStorefrontPage({
                     <ExternalLink aria-hidden="true" size={15} strokeWidth={2.2} />
                   </a>
                 ) : (
-                  <Link className="button" href="/browse">
+                  <Link className={`button ${storefront.phone ? "button-secondary" : ""}`} href="/browse">
                     Browse all listings
                   </Link>
                 )}
@@ -173,6 +201,51 @@ export default async function SellerStorefrontPage({
                   Explore similar listings
                 </Link>
               </div>
+
+              {storefront.is_business ? (
+                <div className="seller-storefront-detail-grid">
+                  <div className="seller-storefront-detail-card">
+                    <h3>Business details</h3>
+                    <ul className="seller-storefront-detail-list">
+                      {storefront.phone ? (
+                        <li>
+                          <Phone aria-hidden="true" size={15} strokeWidth={2.1} />
+                          <a href={`tel:${storefront.phone}`}>{storefront.phone}</a>
+                        </li>
+                      ) : null}
+                      {storefront.business_website ? (
+                        <li>
+                          <ExternalLink aria-hidden="true" size={15} strokeWidth={2.1} />
+                          <a href={storefront.business_website} target="_blank" rel="noreferrer">
+                            {storefront.business_website.replace(/^https?:\/\//i, "")}
+                          </a>
+                        </li>
+                      ) : null}
+                      <li>
+                        <MapPin aria-hidden="true" size={15} strokeWidth={2.1} />
+                        <span>{storefront.business_address || storefront.primary_location}</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {businessHoursRows.length ? (
+                    <div className="seller-storefront-detail-card">
+                      <h3>
+                        <Clock3 aria-hidden="true" size={15} strokeWidth={2.1} />
+                        <span>Hours</span>
+                      </h3>
+                      <ul className="seller-storefront-hours-list">
+                        {businessHoursRows.map((row) => (
+                          <li key={row.dayKey}>
+                            <span>{row.label}</span>
+                            <strong className={row.closed ? "is-closed" : ""}>{row.range}</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
 

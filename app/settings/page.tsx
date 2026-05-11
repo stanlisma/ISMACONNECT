@@ -44,7 +44,7 @@ export default async function SettingsPage({
 
   const businessProfileResponse = await supabase
     .from("profiles")
-    .select("full_name, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas")
+    .select("full_name, phone, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours")
     .eq("id", viewer.user.id)
     .maybeSingle();
 
@@ -57,13 +57,14 @@ export default async function SettingsPage({
 
       const fallbackProfile = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, phone")
         .eq("id", viewer.user.id)
         .maybeSingle();
 
       businessProfile = {
         ...EMPTY_BUSINESS_PROFILE,
-        full_name: fallbackProfile.data?.full_name ?? null
+        full_name: fallbackProfile.data?.full_name ?? null,
+        phone: fallbackProfile.data?.phone ?? null
       };
     } else {
       console.error("Business profile load failed:", businessProfileResponse.error.message);
@@ -155,7 +156,10 @@ export default async function SettingsPage({
               businessWebsite: businessProfile.business_website ?? "",
               businessAddress: businessProfile.business_address ?? "",
               showExactBusinessLocation: businessProfile.show_exact_business_location,
-              serviceAreas: businessProfile.service_areas.join(", ")
+              serviceAreas: businessProfile.service_areas.join(", "),
+              businessServices: businessProfile.business_services.join(", "),
+              businessHours: businessProfile.business_hours,
+              profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
             }}
           />
         </div>

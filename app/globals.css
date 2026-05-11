@@ -5793,6 +5793,70 @@ code {
   min-height: 8rem;
 }
 
+.business-hours-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+
+.business-hours-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.business-hours-phone-note {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.business-hours-phone-note strong {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--text);
+}
+
+.business-hours-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.business-hours-row {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: minmax(52px, 72px) minmax(86px, 112px) minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.business-hours-day {
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.business-hours-closed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.business-hours-separator {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .business-logo-shell {
   display: grid;
   gap: 0.75rem;
@@ -5923,6 +5987,42 @@ code {
   font-weight: 800;
 }
 
+.seller-storefront-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.22rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(245, 166, 35, 0.12);
+  color: #8f5a00;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.seller-storefront-status-pill.is-open {
+  background: rgba(14, 159, 110, 0.12);
+  color: #0d6a4b;
+}
+
+.seller-storefront-specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.seller-storefront-specialty-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.28rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(47, 109, 246, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .seller-storefront-summary {
   display: grid;
   gap: 1rem;
@@ -5968,6 +6068,77 @@ code {
 
 .seller-storefront-actions .button {
   flex: 1 1 180px;
+}
+
+.seller-storefront-detail-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.seller-storefront-detail-card {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+}
+
+.seller-storefront-detail-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--text);
+  font-size: 0.96rem;
+}
+
+.seller-storefront-detail-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seller-storefront-detail-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.seller-storefront-detail-list a {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.seller-storefront-hours-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seller-storefront-hours-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.seller-storefront-hours-list strong {
+  color: var(--text);
+  font-weight: 800;
+  text-align: right;
+}
+
+.seller-storefront-hours-list strong.is-closed {
+  color: var(--text-soft);
 }
 
 .seller-storefront-category-row {
@@ -6086,6 +6257,21 @@ code {
     font-size: 0.78rem;
   }
 
+  .seller-storefront-specialties {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .seller-storefront-specialties::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seller-storefront-specialty-chip {
+    white-space: nowrap;
+  }
+
   .seller-storefront-stats {
     gap: 0.55rem;
   }
@@ -6115,6 +6301,40 @@ code {
     min-height: 2.55rem;
     padding: 0.65rem 0.8rem;
     font-size: 0.9rem;
+  }
+
+  .seller-storefront-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .business-hours-head {
+    grid-template-columns: 1fr;
+  }
+
+  .business-hours-phone-note {
+    text-align: left;
+  }
+
+  .business-hours-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .business-hours-day {
+    grid-column: 1 / -1;
+  }
+
+  .business-hours-separator {
+    display: none;
+  }
+
+  .seller-storefront-hours-list li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.18rem;
+  }
+
+  .seller-storefront-hours-list strong {
+    text-align: left;
   }
 
   .seller-storefront-category-row {

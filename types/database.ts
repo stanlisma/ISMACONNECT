@@ -63,6 +63,15 @@ export type RideShareSiteCamp =
   | "fort-hills"
   | "syncrude"
   | "other";
+export type BusinessDayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export interface BusinessHoursDay {
+  closed?: boolean;
+  open?: string | null;
+  close?: string | null;
+}
+
+export type BusinessHours = Partial<Record<BusinessDayKey, BusinessHoursDay>>;
 
 export interface JobListingStructuredData {
   shiftPattern?: JobShiftPattern | null;
@@ -121,6 +130,8 @@ export interface Profile {
   business_address?: string | null;
   show_exact_business_location?: boolean | null;
   service_areas?: string[] | null;
+  business_services?: string[] | null;
+  business_hours?: BusinessHours | null;
   email_notifications?: boolean | null;
   verification_status?: ProfileVerificationStatus;
   verification_requested_at?: string | null;
@@ -262,6 +273,9 @@ export interface PublicSellerStorefront {
   business_address?: string | null;
   show_exact_business_location?: boolean | null;
   service_areas: string[];
+  business_services: string[];
+  business_hours: BusinessHours;
+  phone: string | null;
   primary_location: string;
   total_active_listings: number;
   active_categories: ListingCategory[];
