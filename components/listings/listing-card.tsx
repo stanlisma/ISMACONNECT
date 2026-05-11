@@ -144,7 +144,6 @@ export function ListingCard({
   const structuredHighlights = getStructuredCardHighlights(listing.category, listing.structured_data);
 
   const isNew = relativeInfo.isNew;
-  const isPopular = views > 10;
   const timeAgo = relativeInfo.timeLabel;
   const { featuredActive, urgentActive } = getListingBoostState(listing);
 
@@ -312,7 +311,6 @@ export function ListingCard({
           <div style={{ textAlign: "right" }}>
             <span className="listing-price">
               {formatListingPrice(listing.price, listing.price_type, listingIntent)}
-              {isPopular ? <span className="listing-urgency-inline"> Hot</span> : null}
             </span>
             {isNeed && requestWindowLabel ? (
               <div className="listing-request-window">{requestWindowLabel}</div>
