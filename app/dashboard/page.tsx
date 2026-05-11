@@ -121,9 +121,6 @@ export default async function DashboardPage({
         <div className="dashboard-controls-head">
           <div>
             <h2 style={{ marginBottom: "0.5rem" }}>Listing controls</h2>
-            <p className="section-copy dashboard-controls-copy">
-              Filter your inventory fast, keep an eye on promotions, and jump back into the right listing.
-            </p>
           </div>
         </div>
 

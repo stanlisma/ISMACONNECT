@@ -3,11 +3,9 @@ export default function Loading() {
     <div className="section">
       <div className="container">
         <div className="setup-notice">
-          <h3>Loading marketplace data...</h3>
-          <p>The page is rendering your latest listings and marketplace content.</p>
+          <h3>Loading...</h3>
         </div>
       </div>
     </div>
   );
 }
-

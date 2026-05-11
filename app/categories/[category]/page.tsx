@@ -309,29 +309,6 @@ export default async function CategoryPage({
           />
         </div>
 
-        <div className="category-local-strip category-local-strip-desktop surface">
-          <div className="category-local-strip-copy">
-            <p>{localContent.supportingCopy}</p>
-          </div>
-
-          <div className="category-local-highlight-grid">
-            {localContent.localHighlights.map((highlight) => (
-              <div key={highlight} className="category-local-highlight">
-                <span className="category-local-highlight-dot" aria-hidden="true" />
-                <p>{highlight}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="category-local-links">
-            {localContent.quickLinks.map((item) => (
-              <Link key={item.href} href={item.href} className="category-local-link">
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
         {isMapEligibleCategory ? (
           <div className="listing-view-toggle browse-view-toggle" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
             <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
@@ -510,39 +487,6 @@ export default async function CategoryPage({
             ) : null}
           </>
         )}
-
-        <div className="category-guide-grid" style={{ marginTop: "1.5rem" }}>
-          <div className="surface category-guide-card">
-            <SectionHeading
-              eyebrow="Local tips"
-              title={`What locals usually care about in ${categoryInfo.label.toLowerCase()}`}
-              description="Use the structured fields and filters to cut down the back-and-forth before you message."
-            />
-
-            <ul className="category-guide-list">
-              {localContent.buyerTips.map((tip) => (
-                <li key={tip}>{tip}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="surface category-guide-card">
-            <SectionHeading
-              eyebrow="FAQ"
-              title={`${categoryInfo.label} questions people actually ask`}
-              description="These quick answers help buyers and sellers use the category more effectively."
-            />
-
-            <div className="category-faq-list">
-              {localContent.faqs.map((item) => (
-                <article key={item.question} className="category-faq-item">
-                  <h3>{item.question}</h3>
-                  <p>{item.answer}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
 
         <script
           dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionStructuredData) }}

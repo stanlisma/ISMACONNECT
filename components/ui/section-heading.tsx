@@ -1,7 +1,7 @@
 interface SectionHeadingProps {
   eyebrow?: string;
   title: string;
-  description: string;
+  description?: string;
 }
 
 export function SectionHeading({ eyebrow, title, description }: SectionHeadingProps) {
@@ -9,8 +9,7 @@ export function SectionHeading({ eyebrow, title, description }: SectionHeadingPr
     <div className="section-heading">
       {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
       <h2 className="section-title">{title}</h2>
-      <p className="section-copy">{description}</p>
+      {description ? <p className="section-copy">{description}</p> : null}
     </div>
   );
 }
-

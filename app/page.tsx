@@ -24,7 +24,6 @@ export default async function HomePage() {
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
-  const supportCategory = CATEGORIES.find((category) => category.value === "buy-sell");
 
   return (
     <main className="homepage-main" style={pageStyle}>
@@ -32,7 +31,6 @@ export default async function HomePage() {
         <div className="home-mobile-hero-copy">
           <span className="eyebrow">Fort McMurray</span>
           <h1>Rides, rentals, services, and jobs for Fort McMurray</h1>
-          <p>Built first for camp commutes, move-outs, local work, and worker logistics.</p>
         </div>
 
         <form action="/browse" className="home-mobile-search-form">
@@ -52,12 +50,7 @@ export default async function HomePage() {
         </div>
 
         <div className="home-mobile-support-row">
-          <span className="home-support-label">Need help quickly?</span>
           <Link href="/dashboard/listings/new?intent=need" className="home-mobile-support-link">Post a need</Link>
-        </div>
-
-        <div className="home-mobile-support-row">
-          <span className="home-support-label">Also available</span>
           <Link href="/categories/buy-sell" className="home-mobile-support-link">Buy &amp; Sell</Link>
         </div>
 
@@ -78,8 +71,7 @@ export default async function HomePage() {
         </h1>
 
         <p style={subtitleStyle}>
-          ISMACONNECT is built around Fort McMurray logistics: camp transport, move-out help, local jobs,
-          rentals, and trusted service providers. Buy &amp; Sell stays available when you need it.
+          Local listings for rides, rentals, services, jobs, and worker logistics across Fort McMurray.
         </p>
 
         <div style={searchBoxStyle}>
@@ -102,9 +94,11 @@ export default async function HomePage() {
           )}
 
           <div className="home-secondary-link-row">
-            <span className="home-support-label">Need help fast?</span>
             <Link href="/dashboard/listings/new?intent=need" className="home-secondary-link">
               Post a need
+            </Link>
+            <Link href="/categories/buy-sell" className="home-secondary-link">
+              Browse Buy &amp; Sell
             </Link>
           </div>
         </div>
@@ -116,12 +110,6 @@ export default async function HomePage() {
           <Link href="/categories/jobs" style={pillStyle}>Jobs</Link>
         </div>
 
-        <div className="home-secondary-link-row">
-          <span className="home-support-label">Also available</span>
-          <Link href="/categories/buy-sell" className="home-secondary-link">
-            Browse Buy &amp; Sell
-          </Link>
-        </div>
       </section>
 
       <div className="home-mobile-browse-controls">
@@ -174,10 +162,6 @@ export default async function HomePage() {
           Start with the categories Fort McMurray checks most
         </h2>
 
-        <p style={sectionTextStyle}>
-          We are leading with rides, services, rentals, and worker logistics because those are the highest-friction local needs.
-        </p>
-
         <div style={cardGridStyle}>
           {priorityCategories.map((category) => (
             <article key={category.value} style={cardStyle}>
@@ -189,21 +173,6 @@ export default async function HomePage() {
             </article>
           ))}
         </div>
-
-        {supportCategory ? (
-          <div className="home-support-note surface">
-            <div>
-              <strong>Buy &amp; Sell is still available.</strong>
-              <p>
-                We support everyday local items too, but the marketplace is being optimized first for rides,
-                rentals, services, and worker logistics.
-              </p>
-            </div>
-            <Link href={supportCategory.href} className="home-secondary-link">
-              Open Buy &amp; Sell
-            </Link>
-          </div>
-        ) : null}
 
         <div className="home-desktop-query-row">
           {POPULAR_QUERIES.map((query) => (
@@ -322,10 +291,6 @@ const sectionTitleStyle = {
   color: "#172554",
   fontSize: "32px",
   fontWeight: 900,
-};
-
-const sectionTextStyle = {
-  color: "#5b6f99",
 };
 
 const cardGridStyle = {

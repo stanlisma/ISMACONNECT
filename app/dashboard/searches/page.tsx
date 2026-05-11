@@ -36,9 +36,6 @@ export default async function DashboardSavedSearchesPage({
       <div className="saved-searches-summary surface">
         <div>
           <h2 style={{ marginBottom: "0.35rem" }}>Saved searches</h2>
-          <p className="section-copy">
-            Keep your best browse filters ready and jump back in when new local listings match.
-          </p>
         </div>
 
         <div className="saved-search-summary-stats">
