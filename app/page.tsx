@@ -5,6 +5,7 @@ import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
+import { getSoftLaunchSnapshot } from "@/lib/launch-metrics";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 const POPULAR_QUERIES = [
@@ -33,12 +34,14 @@ const CAMP_TRANSPORT_LINKS = [
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
+  const activitySnapshot = await getSoftLaunchSnapshot();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const visibleListings = latestListings.slice(0, 8);
   const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
+  const activeCategoryCounts = activitySnapshot.heroCategoryCounts.filter((item) => item.count > 0);
 
   return (
     <main className="homepage-main" style={pageStyle}>
@@ -178,6 +181,51 @@ export default async function HomePage() {
           sort={undefined}
         />
       </div>
+
+      {isConfigured && activitySnapshot.recentListingCount > 0 ? (
+        <section className="home-activity-strip surface">
+          <div className="home-activity-copy">
+            <span className="eyebrow">Recent local movement</span>
+            <h2>Locals are already posting and replying here</h2>
+          </div>
+
+          <div className="dashboard-stats-grid home-activity-grid">
+            <div className="surface dashboard-stat-card home-activity-card">
+              <span>Recent posts</span>
+              <strong>{activitySnapshot.recentListingCount}</strong>
+              <p>Live offers and needs posted in the last 30 days.</p>
+            </div>
+
+            <div className="surface dashboard-stat-card home-activity-card">
+              <span>Conversations started</span>
+              <strong>{activitySnapshot.conversationCount}</strong>
+              <p>{activitySnapshot.responseRate}% of recent posts received at least one reply.</p>
+            </div>
+
+            <div className="surface dashboard-stat-card home-activity-card">
+              <span>Need posts</span>
+              <strong>{activitySnapshot.recentNeedCount}</strong>
+              <p>Urgent local asks that can turn into fast replies.</p>
+            </div>
+
+            <div className="surface dashboard-stat-card home-activity-card">
+              <span>Saved-search locals</span>
+              <strong>{activitySnapshot.activeSavedSearchUserCount}</strong>
+              <p>People watching for new Fort McMurray matches right now.</p>
+            </div>
+          </div>
+
+          {activeCategoryCounts.length ? (
+            <div className="home-activity-chip-row">
+              {activeCategoryCounts.map((item) => (
+                <span key={item.category} className="badge badge-soft">
+                  {CATEGORIES.find((category) => category.value === item.category)?.label}: {item.count}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">

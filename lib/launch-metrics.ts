@@ -9,15 +9,24 @@ type MetricsSupabase =
 
 export interface SoftLaunchSnapshot {
   recentListingCount: number;
+  recentNeedCount: number;
+  recentOfferCount: number;
   respondedListingCount: number;
+  conversationCount: number;
   responseRate: number;
+  averageConversationsPerRespondedListing: number;
   uniquePosterCount: number;
   repeatPosterCount: number;
   repeatPosterRate: number;
   savedSearchCount: number;
   savedSearchUserCount: number;
   activeSavedSearchUserCount: number;
+  unansweredNeedCount: number;
   heroCategoryCounts: Array<{
+    category: ListingCategory;
+    count: number;
+  }>;
+  heroCategoryResponseCounts: Array<{
     category: ListingCategory;
     count: number;
   }>;
@@ -51,15 +60,21 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
   if (!isSupabaseConfigured()) {
     return {
       recentListingCount: 0,
+      recentNeedCount: 0,
+      recentOfferCount: 0,
       respondedListingCount: 0,
+      conversationCount: 0,
       responseRate: 0,
+      averageConversationsPerRespondedListing: 0,
       uniquePosterCount: 0,
       repeatPosterCount: 0,
       repeatPosterRate: 0,
       savedSearchCount: 0,
       savedSearchUserCount: 0,
       activeSavedSearchUserCount: 0,
-      heroCategoryCounts: HERO_CATEGORY_ORDER.map((category) => ({ category, count: 0 }))
+      unansweredNeedCount: 0,
+      heroCategoryCounts: HERO_CATEGORY_ORDER.map((category) => ({ category, count: 0 })),
+      heroCategoryResponseCounts: HERO_CATEGORY_ORDER.map((category) => ({ category, count: 0 }))
     };
   }
 
@@ -70,7 +85,7 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
   const [recentListingsResult, savedSearchesResult] = await Promise.all([
     supabase
       .from("listings")
-      .select("id, owner_id, category, created_at, status")
+      .select("id, owner_id, category, created_at, status, listing_intent")
       .gte("created_at", listingsWindowStart),
     supabase
       .from("saved_searches")
@@ -92,6 +107,7 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
       category: ListingCategory;
       created_at: string;
       status: string;
+      listing_intent: "offer" | "need" | null;
     }>).filter((listing) => listing.status !== "removed");
 
   const conversationsResult = recentListings.length
@@ -110,6 +126,8 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
       .map((conversation) => conversation.listing_id)
       .filter(Boolean) as string[]
   );
+  const conversationCount = (conversationsResult.data ?? []).length;
+  const respondedListings = recentListings.filter((listing) => respondedListingIds.has(listing.id));
 
   const posterCounts = new Map<string, number>();
   recentListings.forEach((listing) => {
@@ -133,17 +151,30 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
 
   return {
     recentListingCount: recentListings.length,
+    recentNeedCount: recentListings.filter((listing) => listing.listing_intent === "need").length,
+    recentOfferCount: recentListings.filter((listing) => listing.listing_intent !== "need").length,
     respondedListingCount: respondedListingIds.size,
+    conversationCount,
     responseRate: asPercent(respondedListingIds.size, recentListings.length),
+    averageConversationsPerRespondedListing: respondedListingIds.size
+      ? Number((conversationCount / respondedListingIds.size).toFixed(1))
+      : 0,
     uniquePosterCount: posterCounts.size,
     repeatPosterCount,
     repeatPosterRate: asPercent(repeatPosterCount, posterCounts.size),
     savedSearchCount: savedSearchRows.length,
     savedSearchUserCount: new Set(savedSearchRows.map((savedSearch) => savedSearch.user_id)).size,
     activeSavedSearchUserCount,
+    unansweredNeedCount: recentListings.filter(
+      (listing) => listing.listing_intent === "need" && !respondedListingIds.has(listing.id)
+    ).length,
     heroCategoryCounts: HERO_CATEGORY_ORDER.map((category) => ({
       category,
       count: recentListings.filter((listing) => listing.category === category).length
+    })),
+    heroCategoryResponseCounts: HERO_CATEGORY_ORDER.map((category) => ({
+      category,
+      count: respondedListings.filter((listing) => listing.category === category).length
     }))
   };
 }
