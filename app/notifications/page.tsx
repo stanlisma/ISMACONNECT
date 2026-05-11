@@ -142,9 +142,6 @@ export default async function NotificationsPage() {
           <div className="notifications-hero-copy">
             <span className="eyebrow">Notification center</span>
             <h1 className="section-title">Notifications</h1>
-            <p className="section-copy">
-              Track replies, saved-search matches, boost updates, and seller account activity in one place.
-            </p>
           </div>
 
           <div className="notifications-summary-grid">
@@ -174,9 +171,6 @@ export default async function NotificationsPage() {
                 <div>
                   <span className="notifications-section-label">Priority</span>
                   <h2>Saved search alerts</h2>
-                  <p className="section-copy">
-                    New listings have matched the searches you asked ISMACONNECT to keep an eye on.
-                  </p>
                 </div>
 
                 <div className="notifications-section-count">
@@ -226,9 +220,6 @@ export default async function NotificationsPage() {
                 <div>
                   <span className="notifications-section-label">Activity feed</span>
                   <h2>Recent updates</h2>
-                  <p className="section-copy">
-                    Replies, verification changes, promotions, and trust updates appear here.
-                  </p>
                 </div>
 
                 <div className="notifications-section-count">

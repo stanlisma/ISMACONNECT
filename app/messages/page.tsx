@@ -142,9 +142,6 @@ export default async function MessagesPage({
             <div className="messages-overview-copy">
               <span className="eyebrow">Inbox</span>
               <h1 className="section-title">Messages</h1>
-              <p className="section-copy">
-                Keep track of buyers, sellers, and listing conversations from one place.
-              </p>
             </div>
 
             <form action="/messages" method="get" className="messages-toolbar-form">
@@ -212,11 +209,6 @@ export default async function MessagesPage({
             <div className="messages-list-head">
               <div>
                 <h2>Conversation list</h2>
-                <p>
-                  {activeFilter === "unread"
-                    ? "Showing unread threads only."
-                    : "Open any thread to reply, send images, or follow up."}
-                </p>
               </div>
             </div>
 

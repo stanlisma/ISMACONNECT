@@ -279,7 +279,6 @@ export default async function BrowsePage({
           <SectionHeading
             eyebrow={category ? "Category" : "Browse"}
             title={browseTitle}
-            description="Explore the newest rentals, rides, jobs, services, and community listings across Fort McMurray."
           />
         </div>
 
@@ -411,7 +410,7 @@ export default async function BrowsePage({
             />
             <SearchRecoveryPanel
               title="Try a faster recovery path"
-              description="Broaden the search or jump into one of the most active sections instead of starting over."
+              description="Broaden the search or jump into a different active section."
               links={recoveryLinks}
             />
           </>
