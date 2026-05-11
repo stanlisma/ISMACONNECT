@@ -197,15 +197,18 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
     ],
     quickLinks: [
       { label: "Apartments & condos", href: "/categories/rentals?subcategory=apartments" },
-      { label: "Short-term friendly", href: "/categories/rentals?shortTerm=true" },
+      { label: "Available now", href: "/categories/rentals?availabilityType=immediate" },
+      { label: "Rotation-friendly", href: "/categories/rentals?availabilityType=rotation-friendly" },
+      { label: "Worker stays", href: "/categories/rentals?availabilityType=short-term-worker-stay" },
+      { label: "Weekly stays", href: "/categories/rentals?leasePattern=weekly" },
       { label: "Truck-friendly parking", href: "/categories/rentals?parkingType=truck" },
       { label: "Timberlea rentals", href: "/categories/rentals?rentalArea=timberlea&view=map" }
     ],
     buyerTips: [
-      "Use the map view to scan neighbourhood coverage before you start messaging.",
-      "Check furnished and short-term filters first if you are moving for shift work or camp rotations.",
-      "Listings with clear parking details tend to get more useful replies faster."
-    ],
+        "Use the map view to scan neighbourhood coverage before you start messaging.",
+        "Check availability, lease pattern, and best-for filters first if you are moving for shift work or camp rotations.",
+        "Listings with clear parking details tend to get more useful replies faster."
+      ],
     faqs: [
       {
         question: "Can I find short-term rentals for shift work?",
