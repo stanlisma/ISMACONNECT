@@ -56,7 +56,8 @@ export default async function ModerationPage({
             <strong>{softLaunchSnapshot.responseRate}%</strong>
             <p>
               {softLaunchSnapshot.respondedListingCount} of {softLaunchSnapshot.recentListingCount} recent listings
-              received at least one conversation.
+              received at least one conversation. Avg replies on responded posts:{" "}
+              {softLaunchSnapshot.averageConversationsPerRespondedListing}.
             </p>
           </div>
 
@@ -77,14 +78,35 @@ export default async function ModerationPage({
               {softLaunchSnapshot.savedSearchCount} saved searches.
             </p>
           </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Need posts</span>
+            <strong>{softLaunchSnapshot.recentNeedCount}</strong>
+            <p>
+              {softLaunchSnapshot.unansweredNeedCount} still have no conversation yet. Offers in the same window:{" "}
+              {softLaunchSnapshot.recentOfferCount}.
+            </p>
+          </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Conversations started</span>
+            <strong>{softLaunchSnapshot.conversationCount}</strong>
+            <p>Use this with response rate to tell whether supply is actually turning into contact.</p>
+          </div>
         </div>
 
         <div className="launch-metrics-breakdown">
-          {softLaunchSnapshot.heroCategoryCounts.map((item) => (
-            <span key={item.category} className="badge badge-soft">
-              {getCategoryLabel(item.category)}: {item.count}
-            </span>
-          ))}
+          {softLaunchSnapshot.heroCategoryCounts.map((item) => {
+            const responseCount =
+              softLaunchSnapshot.heroCategoryResponseCounts.find((responseItem) => responseItem.category === item.category)
+                ?.count ?? 0;
+
+            return (
+              <span key={item.category} className="badge badge-soft">
+                {getCategoryLabel(item.category)}: {item.count} posts • {responseCount} replied
+              </span>
+            );
+          })}
         </div>
       </div>
 
