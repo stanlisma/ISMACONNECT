@@ -15,6 +15,21 @@ const POPULAR_QUERIES = [
   { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
 ];
 
+const CAMP_TRANSPORT_LINKS = [
+  {
+    label: "14 on / 7 off rides",
+    href: "/browse?category=ride-share&schedulePattern=14-on-7-off&view=map"
+  },
+  {
+    label: "Horizon pickups",
+    href: "/browse?category=ride-share&siteCamp=cnrl-horizon&view=map"
+  },
+  {
+    label: "Post a ride need",
+    href: "/dashboard/listings/new?intent=need&category=ride-share"
+  }
+];
+
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -52,6 +67,26 @@ export default async function HomePage() {
         <div className="home-mobile-support-row">
           <Link href="/dashboard/listings/new?intent=need" className="home-mobile-support-link">Post a need</Link>
           <Link href="/categories/buy-sell" className="home-mobile-support-link">Buy &amp; Sell</Link>
+        </div>
+
+        <p className="home-support-note">
+          Post what you need and let local drivers, landlords, or providers reply to you.
+        </p>
+
+        <div className="home-camp-focus">
+          <div className="home-camp-focus-copy">
+            <span className="eyebrow">Camp Transport</span>
+            <h2>Find site rides by route and rotation</h2>
+            <p>Browse camp transport by schedule, pickup window, and site instead of digging through Facebook threads.</p>
+          </div>
+
+          <div className="home-camp-link-row">
+            {CAMP_TRANSPORT_LINKS.map((link) => (
+              <Link key={link.label} href={link.href} className="home-camp-link">
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
 
         <div className="home-mobile-query-row">
@@ -101,6 +136,10 @@ export default async function HomePage() {
               Browse Buy &amp; Sell
             </Link>
           </div>
+
+          <p className="home-support-note">
+            Post what you need and let local drivers, landlords, or providers reply to you.
+          </p>
         </div>
 
         <div style={pillWrapStyle}>
@@ -108,6 +147,22 @@ export default async function HomePage() {
           <Link href="/categories/services" style={pillStyle}>Services</Link>
           <Link href="/categories/rentals" style={pillStyle}>Rentals</Link>
           <Link href="/categories/jobs" style={pillStyle}>Jobs</Link>
+        </div>
+
+        <div className="home-camp-focus">
+          <div className="home-camp-focus-copy">
+            <span className="eyebrow">Camp Transport</span>
+            <h2>Find site rides by route and rotation</h2>
+            <p>ISMACONNECT is built for camp transport. Filter by schedule, pickup window, and site before you message.</p>
+          </div>
+
+          <div className="home-camp-link-row">
+            {CAMP_TRANSPORT_LINKS.map((link) => (
+              <Link key={link.label} href={link.href} className="home-camp-link">
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
 
       </section>
