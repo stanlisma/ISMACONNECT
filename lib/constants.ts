@@ -5,9 +5,10 @@ export const SITE_TAGLINE = "Fort McMurray rides, rentals, services, jobs, and w
 export const SITE_DESCRIPTION =
   "ISMACONNECT helps Fort McMurray locals find rentals, ride shares, jobs, services, and worker logistics first, with local buy and sell available when needed.";
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
+export const DEFAULT_MARKETPLACE_CATEGORY: ListingCategory = "services";
 export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";
 export const HERO_CATEGORY_VALUES: ListingCategory[] = ["ride-share", "services", "rentals", "jobs"];
-export const SUPPORT_CATEGORY_VALUES: ListingCategory[] = ["buy-sell"];
+export const SUPPORT_CATEGORY_VALUES: ListingCategory[] = [DEFAULT_MARKETPLACE_CATEGORY];
 
 export const CATEGORIES: Array<{
   value: ListingCategory;

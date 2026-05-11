@@ -8,7 +8,7 @@ import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
-import { CATEGORY_MAP } from "@/lib/constants";
+import { CATEGORY_MAP, DEFAULT_MARKETPLACE_CATEGORY } from "@/lib/constants";
 import { getPublicSellerStorefront, getSavedListingIds } from "@/lib/data";
 import { getSellerTrustSummary, getSellerTrustSummaryMap } from "@/lib/trust";
 import {
@@ -166,7 +166,10 @@ export default async function SellerStorefrontPage({
                     Browse all listings
                   </Link>
                 )}
-                <Link className="button button-secondary" href={`/categories/${storefront.active_categories[0] ?? "buy-sell"}`}>
+                <Link
+                  className="button button-secondary"
+                  href={`/categories/${storefront.active_categories[0] ?? DEFAULT_MARKETPLACE_CATEGORY}`}
+                >
                   Explore similar listings
                 </Link>
               </div>
