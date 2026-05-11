@@ -7,7 +7,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireViewer } from "@/lib/auth";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
-import { buildPathWithQuery, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
+import { buildPathWithQuery, formatDate, formatListingPrice, getSingleParam } from "@/lib/utils";
 
 export default async function DashboardSavedSearchesPage({
   searchParams
@@ -101,7 +101,7 @@ export default async function DashboardSavedSearchesPage({
                   {savedSearch.latestMatches.map((listing) => (
                     <Link key={listing.id} href={`/listings/${listing.slug}`} className="saved-search-match-link">
                       <span>{listing.title}</span>
-                      <strong>{formatCurrency(listing.price)}</strong>
+                      <strong>{formatListingPrice(listing.price, listing.price_type, listing.listing_intent)}</strong>
                     </Link>
                   ))}
                 </div>

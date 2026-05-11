@@ -11,8 +11,8 @@ import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { getUserListings } from "@/lib/data";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import {
-  formatCurrency,
   formatDate,
+  formatListingPrice,
   getCategoryLabel,
   getSingleParam,
   resolveCategory
@@ -244,7 +244,9 @@ export default async function DashboardPage({
 
                   <div className="dashboard-listing-headline">
                     <h3>{listing.title}</h3>
-                    <strong className="dashboard-listing-price">{formatCurrency(listing.price)}</strong>
+                    <strong className="dashboard-listing-price">
+                      {formatListingPrice(listing.price, listing.price_type, listing.listing_intent)}
+                    </strong>
                   </div>
 
                   <p className="dashboard-listing-meta">

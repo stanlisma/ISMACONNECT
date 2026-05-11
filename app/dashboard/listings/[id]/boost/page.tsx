@@ -6,9 +6,9 @@ import { FlashMessage } from "@/components/ui/flash-message";
 import { requireViewer } from "@/lib/auth";
 import { BOOST_PRODUCTS, getListingBoostState } from "@/lib/boost-products";
 import { getListingBoostOrders } from "@/lib/boosts";
-import { isStripeConfigured, canUseDemoPayments } from "@/lib/env";
 import { getEditableListing } from "@/lib/data";
-import { formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/lib/utils";
+import { isStripeConfigured, canUseDemoPayments } from "@/lib/env";
+import { formatDate, formatListingPrice, getCategoryLabel, getSingleParam } from "@/lib/utils";
 
 export default async function ListingBoostPage({
   params,
@@ -47,7 +47,8 @@ export default async function ListingBoostPage({
 
         <h2>{listing.title}</h2>
         <p className="section-copy">
-          {formatCurrency(listing.price)} • {listing.location} • Posted {formatDate(listing.created_at)}
+          {formatListingPrice(listing.price, listing.price_type, listing.listing_intent)} • {listing.location} •
+          {" "}Posted {formatDate(listing.created_at)}
         </p>
 
         <div className="boost-status-grid">

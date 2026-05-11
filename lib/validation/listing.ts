@@ -4,6 +4,7 @@ import {
   CATEGORY_OPTIONS,
   DEFAULT_LOCATION,
   LISTING_INTENT_OPTIONS,
+  LISTING_PRICE_TYPE_OPTIONS,
   REQUEST_WINDOW_OPTIONS
 } from "@/lib/constants";
 
@@ -57,6 +58,10 @@ export const listingSchema = z
         message: "Price must be a positive number."
       }),
 
+    priceType: z.enum(LISTING_PRICE_TYPE_OPTIONS, {
+      errorMap: () => ({ message: "Choose how this price should be shown." })
+    }),
+
     location: z
       .string()
       .trim()
@@ -96,6 +101,14 @@ export const listingSchema = z
         code: z.ZodIssueCode.custom,
         path: ["requestWindow"],
         message: "Choose when you need this."
+      });
+    }
+
+    if (value.priceType !== "contact" && value.price === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["price"],
+        message: "Enter an amount or switch the price type to Contact for price."
       });
     }
   })

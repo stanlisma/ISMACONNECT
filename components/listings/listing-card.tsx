@@ -12,7 +12,7 @@ import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
 import { getPublicListingImages } from "@/lib/listing-media";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
-import { excerpt, formatCurrency, getCategoryLabel } from "@/lib/utils";
+import { excerpt, formatListingPrice, getCategoryLabel } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
 
 interface ListingCardProps {
@@ -256,8 +256,7 @@ export function ListingCard({
 
             <div className="mobile-marketplace-overlay">
               <span className="mobile-marketplace-price">
-                {isNeed ? "Budget " : ""}
-                {formatCurrency(listing.price)}
+                {formatListingPrice(listing.price, listing.price_type, listingIntent)}
               </span>
               <span className="mobile-marketplace-title">{listing.title}</span>
             </div>
@@ -312,8 +311,7 @@ export function ListingCard({
 
           <div style={{ textAlign: "right" }}>
             <span className="listing-price">
-              {isNeed ? "Budget " : ""}
-              {formatCurrency(listing.price)}
+              {formatListingPrice(listing.price, listing.price_type, listingIntent)}
               {isPopular ? <span className="listing-urgency-inline"> Hot</span> : null}
             </span>
             {isNeed && requestWindowLabel ? (
