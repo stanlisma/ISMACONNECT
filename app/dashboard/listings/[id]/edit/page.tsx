@@ -47,9 +47,13 @@ export default async function EditListingPage({
           subcategory: listing.subcategory ?? undefined,
           listingIntent,
           requestWindow: listing.request_window ?? undefined,
-          contactEmail: listing.contact_email ?? undefined,
-          contactName: listing.contact_name ?? undefined,
-          contactPhone: listing.contact_phone ?? undefined,
+          contactEmail: listing.contact_email ?? viewer.user.email ?? undefined,
+          contactName:
+            listing.contact_name ??
+            (viewer.profile.is_business
+              ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
+              : viewer.profile.full_name ?? undefined),
+          contactPhone: listing.contact_phone ?? viewer.profile.phone ?? undefined,
           description: listing.description ?? undefined,
           imageUrl: listing.image_url ?? undefined,
           imageUrls: listing.image_urls ?? undefined,

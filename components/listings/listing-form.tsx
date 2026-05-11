@@ -94,8 +94,8 @@ function getDescriptionHint(listingIntent: ListingIntent) {
 
 function getContactHint(listingIntent: ListingIntent) {
   return listingIntent === "need"
-    ? "Use the contact details providers, riders, or landlords should reply to."
-    : "Use the contact details you want replies to go to.";
+    ? "Add the best details for riders, landlords, employers, or providers to reply to."
+    : "Add the details buyers or responders should use to reach you.";
 }
 
 function getPhotoPanelCopy(listingIntent: ListingIntent) {
@@ -611,36 +611,57 @@ export function ListingForm({
       <section className="field-full listing-form-section">
         <div className="listing-form-section-head">
           <div>
-            <span className="field-label">Contact</span>
+            <span className="field-label">Contact details</span>
             <p className="field-hint">{contactHint}</p>
           </div>
         </div>
 
-        <div className="listing-form-section-grid">
-          <label className="field">
-            <span className="field-label">Contact name</span>
+        <div className="listing-contact-note">
+          <strong>Name and email are required.</strong>
+          <span>Phone is optional. Business accounts can use a business name instead of a personal name.</span>
+        </div>
+
+        <div className="listing-form-section-grid listing-contact-grid">
+          <label className="field listing-contact-field">
+            <span className="field-label">Contact or business name</span>
             <input
               className="input"
               name="contactName"
               defaultValue={defaults?.contactName ?? ""}
+              placeholder="Stanley Ismaillar or North Side Property Services"
+              autoComplete="name"
+              autoCapitalize="words"
               required
             />
+            <span className="field-hint">This is the name shown to people replying to your post.</span>
           </label>
 
-          <label className="field">
-            <span className="field-label">Contact email</span>
+          <label className="field listing-contact-field">
+            <span className="field-label">Reply email</span>
             <input
               className="input"
               name="contactEmail"
               type="email"
               defaultValue={defaults?.contactEmail ?? ""}
+              placeholder="you@example.com"
+              autoComplete="email"
               required
             />
+            <span className="field-hint">Replies and message follow-ups will use this email.</span>
           </label>
 
-          <label className="field">
-            <span className="field-label">Contact phone</span>
-            <input className="input" name="contactPhone" defaultValue={defaults?.contactPhone ?? ""} />
+          <label className="field listing-contact-field">
+            <span className="field-label">Phone number</span>
+            <input
+              className="input"
+              name="contactPhone"
+              type="tel"
+              inputMode="tel"
+              defaultValue={defaults?.contactPhone ?? ""}
+              placeholder="(780) 555-0123"
+              autoComplete="tel"
+            />
+            <span className="field-hint">Optional. Add a number if you want calls or texts.</span>
           </label>
         </div>
       </section>
