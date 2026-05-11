@@ -9,6 +9,7 @@ import { TrustBadges } from "@/components/trust/trust-badges";
 import { getListingBoostState } from "@/lib/boost-products";
 import { LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS } from "@/lib/constants";
 import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
+import { getPublicListingImages } from "@/lib/listing-media";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryLabel } from "@/lib/utils";
@@ -66,12 +67,7 @@ export function ListingCard({
 }: ListingCardProps) {
   const router = useRouter();
 
-  const images =
-    listing.image_urls && listing.image_urls.length > 0
-      ? listing.image_urls
-      : listing.image_url
-        ? [listing.image_url]
-        : [];
+  const images = getPublicListingImages(listing);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [relativeInfo, setRelativeInfo] = useState(() => ({

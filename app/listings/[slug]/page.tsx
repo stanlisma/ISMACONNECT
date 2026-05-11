@@ -22,6 +22,7 @@ import {
   getSavedListingIds,
 } from "@/lib/data";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
+import { getPublicListingImages } from "@/lib/listing-media";
 import {
   getStructuredCrossListingMatchHints,
   getStructuredDetailItems
@@ -100,12 +101,7 @@ export default async function ListingPage({
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
 
-  const images =
-    listing.image_urls && listing.image_urls.length > 0
-      ? listing.image_urls
-      : listing.image_url
-        ? [listing.image_url]
-        : [];
+  const images = getPublicListingImages(listing);
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
   const publicLocation = getPublicListingLocationLabel(listing);
