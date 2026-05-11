@@ -617,6 +617,21 @@ export function ListingForm({
                   );
                 }
 
+                if (field.kind === "date") {
+                  return (
+                    <label key={field.name} className="field">
+                      <span className="field-label">{field.label}</span>
+                      <input
+                        className="input"
+                        type="date"
+                        name={field.name}
+                        defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
+                      />
+                      {field.helpText ? <span className="field-hint">{field.helpText}</span> : null}
+                    </label>
+                  );
+                }
+
                 return (
                   <label key={field.name} className="field">
                     <span className="field-label">{field.label}</span>
