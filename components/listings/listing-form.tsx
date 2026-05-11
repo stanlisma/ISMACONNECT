@@ -15,12 +15,19 @@ import { useMemo, useState } from "react";
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import {
   DEFAULT_MARKETPLACE_CATEGORY,
+  getDefaultPriceType,
   LISTING_INTENT_LABELS,
+  LISTING_PRICE_TYPE_LABELS,
   REQUEST_WINDOW_LABELS
 } from "@/lib/constants";
 import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
-import type { ListingIntent, ListingStructuredData, RequestWindow } from "@/types/database";
+import type {
+  ListingIntent,
+  ListingPriceType,
+  ListingStructuredData,
+  RequestWindow
+} from "@/types/database";
 
 type ListingFormProps = {
   action: (formData: FormData) => void | Promise<void>;
@@ -37,6 +44,7 @@ type ListingFormProps = {
     subcategory?: string;
     title?: string;
     price?: string;
+    priceType?: ListingPriceType;
     location?: string;
     showExactAddressOnMap?: boolean;
     description?: string;
@@ -89,6 +97,27 @@ function getLocationHint(category: string) {
       return "Use the rental address or community. Leave exact map display off if you only want the building area or community shown publicly.";
     default:
       return "Use the address you want tied to this listing. Leave exact map display off to show only the community publicly.";
+  }
+}
+
+function getPriceTypeHint(category: string, listingIntent: ListingIntent, priceType: ListingPriceType) {
+  if (priceType === "contact") {
+    return listingIntent === "need"
+      ? "Use this when your budget depends on the route, timing, or details you get back."
+      : "Use this when you want replies before sharing a number.";
+  }
+
+  switch (category) {
+    case "ride-share":
+      return "Per trip works best for most camp rides, airport runs, and one-time routes.";
+    case "rentals":
+      return "Most rentals should use per month, unless this is a short worker stay.";
+    case "jobs":
+      return "Hourly is best for shift-based work. Use contact for price if pay depends on experience.";
+    case "services":
+      return "Use hourly for labour-based work or flat rate for packaged services like move-out cleaning.";
+    default:
+      return "Pick the price style that matches how locals normally expect this type of listing to be quoted.";
   }
 }
 
@@ -217,6 +246,9 @@ export function ListingForm({
     normalizeSubcategory(defaults?.category ?? DEFAULT_MARKETPLACE_CATEGORY, defaults?.subcategory) ?? ""
   );
   const [description, setDescription] = useState(defaults?.description ?? "");
+  const [priceType, setPriceType] = useState<ListingPriceType>(
+    defaults?.priceType ?? getDefaultPriceType(defaults?.category as any)
+  );
   const [imageUrls, setImageUrls] = useState<string[]>(
     defaults?.imageUrls?.length
       ? defaults.imageUrls
@@ -255,6 +287,10 @@ export function ListingForm({
   const descriptionHint = useMemo(() => getDescriptionHint(listingIntent), [listingIntent]);
   const contactHint = useMemo(() => getContactHint(listingIntent), [listingIntent]);
   const photoPanelCopy = useMemo(() => getPhotoPanelCopy(listingIntent), [listingIntent]);
+  const priceTypeHint = useMemo(
+    () => getPriceTypeHint(category, listingIntent, priceType),
+    [category, listingIntent, priceType]
+  );
   const displayedSubmitLabel = useMemo(() => {
     const isEditing = submitLabel.toLowerCase().includes("save");
     if (listingIntent === "need") {
@@ -421,9 +457,9 @@ export function ListingForm({
                     onChange={() => {
                       setListingIntent(value);
                       if (value !== "need") {
-                        setRequestWindow("");
-                      }
-                    }}
+                      setRequestWindow("");
+                    }
+                  }}
                   />
                   <span>{LISTING_INTENT_LABELS[value]}</span>
                 </label>
@@ -465,8 +501,10 @@ export function ListingForm({
               name="category"
               value={category}
               onChange={(event) => {
-                setCategory(event.target.value);
+                const nextCategory = event.target.value;
+                setCategory(nextCategory);
                 setSubcategory("");
+                setPriceType(getDefaultPriceType(nextCategory as any));
               }}
               required
             >
@@ -507,8 +545,31 @@ export function ListingForm({
           </label>
 
           <label className="field">
-            <span className="field-label">Price</span>
-            <input className="input" name="price" defaultValue={defaults?.price ?? ""} />
+            <span className="field-label">{listingIntent === "need" ? "Budget type" : "Price type"}</span>
+            <select
+              className="input"
+              name="priceType"
+              value={priceType}
+              onChange={(event) => setPriceType(event.target.value as ListingPriceType)}
+            >
+              {Object.entries(LISTING_PRICE_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <span className="field-hint">{priceTypeHint}</span>
+          </label>
+
+          <label className="field">
+            <span className="field-label">{listingIntent === "need" ? "Budget amount" : "Price amount"}</span>
+            <input
+              className="input"
+              name="price"
+              defaultValue={defaults?.price ?? ""}
+              placeholder={priceType === "contact" ? "Optional when using Contact for price" : "Enter amount"}
+              disabled={priceType === "contact"}
+            />
           </label>
 
           <label className="field">

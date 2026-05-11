@@ -83,6 +83,7 @@ export default async function EditListingPage({
           showExactAddressOnMap:
             listing.show_exact_address_on_map ?? viewer.profile.show_exact_business_location ?? false,
           price: listing.price != null ? String(listing.price) : undefined,
+          priceType: listing.price_type ?? undefined,
           structuredData: listing.structured_data ?? undefined,
           title: listing.title ?? undefined
         }}

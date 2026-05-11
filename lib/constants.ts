@@ -1,4 +1,10 @@
-import type { ListingCategory, ListingIntent, ListingStatus, RequestWindow } from "@/types/database";
+import type {
+  ListingCategory,
+  ListingIntent,
+  ListingPriceType,
+  ListingStatus,
+  RequestWindow
+} from "@/types/database";
 
 export const SITE_NAME = "ISMACONNECT";
 export const SITE_TAGLINE = "Fort McMurray rides, rentals, services, jobs, and worker logistics.";
@@ -60,10 +66,29 @@ export const CATEGORY_OPTIONS = CATEGORIES.map((category) => category.value) as 
 ];
 
 export const LISTING_INTENT_OPTIONS = ["offer", "need"] as [ListingIntent, ...ListingIntent[]];
+export const LISTING_PRICE_TYPE_OPTIONS = [
+  "flat-rate",
+  "hourly",
+  "per-trip",
+  "per-day",
+  "per-week",
+  "per-month",
+  "contact"
+] as [ListingPriceType, ...ListingPriceType[]];
 
 export const LISTING_INTENT_LABELS: Record<ListingIntent, string> = {
   offer: "Offer",
   need: "Need"
+};
+
+export const LISTING_PRICE_TYPE_LABELS: Record<ListingPriceType, string> = {
+  "flat-rate": "Flat rate",
+  hourly: "Hourly",
+  "per-trip": "Per trip",
+  "per-day": "Per day",
+  "per-week": "Per week",
+  "per-month": "Per month",
+  contact: "Contact for price"
 };
 
 export const REQUEST_WINDOW_OPTIONS = ["today", "this-week", "flexible"] as [
@@ -76,6 +101,22 @@ export const REQUEST_WINDOW_LABELS: Record<RequestWindow, string> = {
   "this-week": "This week",
   flexible: "Flexible"
 };
+
+export function getDefaultPriceType(category?: ListingCategory | null): ListingPriceType {
+  switch (category) {
+    case "rentals":
+      return "per-month";
+    case "ride-share":
+      return "per-trip";
+    case "jobs":
+      return "hourly";
+    case "services":
+      return "flat-rate";
+    case "buy-sell":
+    default:
+      return "flat-rate";
+  }
+}
 
 export const CATEGORY_MAP = Object.fromEntries(
   CATEGORIES.map((category) => [category.value, category])

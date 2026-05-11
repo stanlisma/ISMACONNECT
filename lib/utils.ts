@@ -2,9 +2,15 @@ import {
   CATEGORY_MAP,
   DEFAULT_LOCATION,
   LISTING_INTENT_LABELS,
+  LISTING_PRICE_TYPE_LABELS,
   REQUEST_WINDOW_LABELS
 } from "@/lib/constants";
-import type { ListingCategory, ListingIntent, RequestWindow } from "@/types/database";
+import type {
+  ListingCategory,
+  ListingIntent,
+  ListingPriceType,
+  RequestWindow
+} from "@/types/database";
 
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -30,6 +36,45 @@ export function formatCurrency(value: number | null) {
     currency: "CAD",
     maximumFractionDigits: value % 1 === 0 ? 0 : 2
   }).format(value);
+}
+
+export function formatListingPrice(
+  value: number | null,
+  priceType: ListingPriceType | null | undefined,
+  intent?: ListingIntent
+) {
+  const resolvedPriceType = priceType ?? "flat-rate";
+  const budgetPrefix = intent === "need" ? "Budget " : "";
+
+  if (resolvedPriceType === "contact" || value === null || Number.isNaN(value)) {
+    return intent === "need" ? "Budget on request" : "Contact for price";
+  }
+
+  if (value === 0) {
+    return "Free";
+  }
+
+  const amount = formatCurrency(value);
+
+  switch (resolvedPriceType) {
+    case "hourly":
+      return `${budgetPrefix}${amount} / hr`;
+    case "per-trip":
+      return `${budgetPrefix}${amount} / trip`;
+    case "per-day":
+      return `${budgetPrefix}${amount} / day`;
+    case "per-week":
+      return `${budgetPrefix}${amount} / week`;
+    case "per-month":
+      return `${budgetPrefix}${amount} / month`;
+    case "flat-rate":
+    default:
+      return `${budgetPrefix}${amount}${intent === "need" ? "" : " flat rate"}`;
+  }
+}
+
+export function getListingPriceTypeLabel(priceType: ListingPriceType | null | undefined) {
+  return LISTING_PRICE_TYPE_LABELS[priceType ?? "flat-rate"];
 }
 
 export function formatDate(value: string) {

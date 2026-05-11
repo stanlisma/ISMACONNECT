@@ -34,7 +34,13 @@ import {
   getViewerSellerReview
 } from "@/lib/trust";
 import { getSellerReviewSummary } from "@/lib/trust-presentation";
-import { excerpt, formatCurrency, formatDate, getSingleParam } from "@/lib/utils";
+import {
+  excerpt,
+  formatDate,
+  formatListingPrice,
+  getListingPriceTypeLabel,
+  getSingleParam
+} from "@/lib/utils";
 
 export async function generateMetadata({
   params
@@ -206,7 +212,9 @@ export default async function ListingPage({
                 </div>
 
                 <div className="detail-summary-row">
-                  <span className="detail-price">{formatCurrency(listing.price)}</span>
+                  <span className="detail-price">
+                    {formatListingPrice(listing.price, listing.price_type, listingIntent)}
+                  </span>
                   <div className="detail-summary-meta">
                     <ListingViewTracker listingId={listing.id} />
                   </div>
@@ -237,7 +245,10 @@ export default async function ListingPage({
                   {requestWindowLabel ? <span>Need timing: {requestWindowLabel}</span> : null}
                   <span>{publicLocationLabel}: {publicLocation}</span>
                   <span>Posted: {formatDate(listing.created_at)}</span>
-                  <span>{isNeed ? "Budget" : "Price"}: {formatCurrency(listing.price)}</span>
+                  <span>
+                    {isNeed ? "Budget" : "Price"}: {formatListingPrice(listing.price, listing.price_type, listingIntent)}
+                  </span>
+                  <span>Pricing: {getListingPriceTypeLabel(listing.price_type)}</span>
                   {structuredDetailItems.map((item) => (
                     <span key={item}>{item}</span>
                   ))}

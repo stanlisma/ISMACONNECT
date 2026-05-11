@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { requireViewer } from "@/lib/auth";
 import { BOOST_PRODUCTS, getListingBoostState } from "@/lib/boost-products";
 import { getBoostListingOverview, getBoostProductPriceLabel } from "@/lib/boosts";
-import { formatCurrency, formatDate, getCategoryLabel } from "@/lib/utils";
+import { formatDate, formatListingPrice, getCategoryLabel } from "@/lib/utils";
 
 export default async function DashboardBoostsPage() {
   const viewer = await requireViewer();
@@ -96,7 +96,8 @@ export default async function DashboardBoostsPage() {
 
                   <h3>{listing.title}</h3>
                   <p className="section-copy">
-                    {formatCurrency(listing.price)} • Posted {formatDate(listing.created_at)}
+                    {formatListingPrice(listing.price, listing.price_type, listing.listing_intent)} • Posted{" "}
+                    {formatDate(listing.created_at)}
                   </p>
 
                   <div className="boost-listing-meta">

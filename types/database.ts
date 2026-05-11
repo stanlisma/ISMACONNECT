@@ -5,6 +5,14 @@ export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "
 export type ListingStatus = "active" | "flagged" | "removed";
 export type ListingIntent = "offer" | "need";
 export type RequestWindow = "today" | "this-week" | "flexible";
+export type ListingPriceType =
+  | "flat-rate"
+  | "hourly"
+  | "per-trip"
+  | "per-day"
+  | "per-week"
+  | "per-month"
+  | "contact";
 export type ProfileVerificationStatus = "unverified" | "pending" | "verified";
 export type BoostOrderStatus = "pending" | "active" | "expired" | "canceled" | "failed";
 export type IdentityVerificationOrderStatus = "pending" | "paid" | "canceled" | "failed";
@@ -154,6 +162,7 @@ export interface Listing {
   request_window: RequestWindow | null;
   description: string;
   price: number | null;
+  price_type: ListingPriceType;
   location: string;
   show_exact_address_on_map: boolean | null;
   contact_name: string;
