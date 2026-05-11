@@ -32,6 +32,24 @@ export function getSellerReviewSummary(summary?: SellerTrustSummary | null) {
   return `${summary.review_count} early ${summary.review_count === 1 ? "review" : "reviews"}`;
 }
 
+export function getSellerReviewBadgeLabel(summary?: SellerTrustSummary | null, compact = false) {
+  if (!summary || summary.review_count <= 0) {
+    return null;
+  }
+
+  if (hasPublicSellerRating(summary)) {
+    return compact
+      ? `${summary.average_rating?.toFixed(1)} (${summary.review_count})`
+      : `${summary.average_rating?.toFixed(1)} stars (${summary.review_count})`;
+  }
+
+  if (summary.review_count === 1) {
+    return compact ? "1 review" : "1 early review";
+  }
+
+  return compact ? `${summary.review_count} reviews` : `${summary.review_count} early reviews`;
+}
+
 export function getSellerTrustSummaryCopy(summary?: SellerTrustSummary | null) {
   if (!summary) {
     return "No public rating yet.";
