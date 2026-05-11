@@ -237,14 +237,16 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
     ],
     quickLinks: [
       { label: "Airport rides", href: "/categories/ride-share?subcategory=airport-ride&view=map" },
-      { label: "Camp / site transport", href: "/categories/ride-share?subcategory=camp-site-transport&view=map" },
-      { label: "Edmonton trips", href: "/categories/ride-share?subcategory=long-distance-ride&destinationArea=edmonton&view=map" },
+      { label: "Camp / site transport", href: "/categories/ride-share?subcategory=camp-site-transport&siteCamp=cnrl-horizon&view=map" },
+      { label: "7 on / 7 off", href: "/categories/ride-share?schedulePattern=7-on-7-off" },
+      { label: "14 on / 7 off", href: "/categories/ride-share?schedulePattern=14-on-7-off" },
+      { label: "Morning pickups", href: "/categories/ride-share?pickupWindow=early-morning&view=map" },
       { label: "Tools / luggage space", href: "/categories/ride-share?toolSpace=true&view=map" }
     ],
     buyerTips: [
       "Use the map view to spot the most active pickup and destination areas before you message.",
-      "If you need room for work gear, use the tool-space filter before checking one-off rides.",
-      "Airport and camp categories are the fastest way to narrow high-intent travel listings."
+      "Start with schedule pattern and pickup window if you are matching around shift work or airport timing.",
+      "If you need room for work gear, use the tool-space filter before checking one-off rides."
     ],
     faqs: [
       {
