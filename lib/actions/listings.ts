@@ -202,6 +202,7 @@ export async function createListingAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath(`/categories/${data.category}`);
   revalidatePath(`/listings/${data.slug}`);
+  revalidatePath(`/sellers/${viewer.user.id}`);
 
   redirectWithMessage("/dashboard", "success", "Listing published successfully.");
 }
@@ -299,6 +300,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
   revalidatePath(`/categories/${data.category}`);
   revalidatePath(`/listings/${existing.slug}`);
   revalidatePath(`/listings/${data.slug}`);
+  revalidatePath(`/sellers/${existing.owner_id}`);
 
   redirectWithMessage("/dashboard", "success", "Listing updated successfully.");
 }
@@ -323,6 +325,7 @@ export async function deleteListingAction(listingId: string) {
   revalidatePath("/dashboard");
   revalidatePath(`/categories/${existing.category}`);
   revalidatePath(`/listings/${existing.slug}`);
+  revalidatePath(`/sellers/${existing.owner_id}`);
 
   redirectWithMessage("/dashboard", "success", "Listing deleted successfully.");
 }
@@ -406,6 +409,7 @@ export async function reviewFlaggedListingAction(
   revalidatePath("/admin/moderation");
   revalidatePath(`/categories/${existing.category}`);
   revalidatePath(`/listings/${existing.slug}`);
+  revalidatePath(`/sellers/${existing.owner_id}`);
 
   redirectWithMessage(
     "/admin/moderation",
