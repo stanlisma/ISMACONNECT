@@ -8,6 +8,8 @@ import {
   isBusinessProfileSchemaError,
   normalizeBusinessAddress,
   normalizeBusinessWebsite,
+  parseBusinessHoursFormData,
+  parseBusinessServicesInput,
   parseServiceAreasInput
 } from "@/lib/business-profile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -41,6 +43,8 @@ export async function updateBusinessProfileAction(formData: FormData) {
   const businessAddress = normalizeBusinessAddress(String(formData.get("business_address") ?? ""));
   const showExactBusinessLocation = formData.get("show_exact_business_location") === "on";
   const serviceAreas = parseServiceAreasInput(String(formData.get("service_areas") ?? ""));
+  const businessServices = parseBusinessServicesInput(String(formData.get("business_services") ?? ""));
+  const businessHours = parseBusinessHoursFormData(formData);
 
   const payload = {
     is_business: isBusiness,
@@ -50,7 +54,9 @@ export async function updateBusinessProfileAction(formData: FormData) {
     business_website: isBusiness ? businessWebsite : null,
     business_address: isBusiness ? businessAddress : null,
     show_exact_business_location: isBusiness && businessAddress ? showExactBusinessLocation : false,
-    service_areas: isBusiness ? serviceAreas : []
+    service_areas: isBusiness ? serviceAreas : [],
+    business_services: isBusiness ? businessServices : [],
+    business_hours: isBusiness ? businessHours : {}
   };
 
   const { error } = await supabase

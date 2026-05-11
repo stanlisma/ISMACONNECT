@@ -564,7 +564,7 @@ export async function getPublicSellerStorefront(
 
   const businessProfileResponse = await supabase
     .from("profiles")
-    .select("full_name, is_business, business_name, business_description, business_logo_url, business_website, service_areas")
+    .select("full_name, phone, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours")
     .eq("id", sellerId)
     .maybeSingle();
 
@@ -572,13 +572,14 @@ export async function getPublicSellerStorefront(
     if (isBusinessProfileSchemaError(businessProfileResponse.error)) {
       const fallbackProfile = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, phone")
         .eq("id", sellerId)
         .maybeSingle();
 
       businessProfile = {
         ...EMPTY_BUSINESS_PROFILE,
-        full_name: fallbackProfile.data?.full_name ?? null
+        full_name: fallbackProfile.data?.full_name ?? null,
+        phone: fallbackProfile.data?.phone ?? null
       };
     } else {
       logDataError("Public seller business profile query failed", businessProfileResponse.error);
@@ -598,7 +599,12 @@ export async function getPublicSellerStorefront(
     business_description: businessProfile.business_description,
     business_logo_url: businessProfile.business_logo_url,
     business_website: businessProfile.business_website,
+    business_address: businessProfile.business_address,
+    show_exact_business_location: businessProfile.show_exact_business_location,
     service_areas: businessProfile.service_areas,
+    business_services: businessProfile.business_services,
+    business_hours: businessProfile.business_hours,
+    phone: businessProfile.phone,
     primary_location: getPublicListingLocationLabel(firstListing),
     total_active_listings: response.count ?? listings.length,
     active_categories: activeCategories,

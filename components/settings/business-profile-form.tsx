@@ -3,6 +3,9 @@
 import { Building2, ImagePlus, X } from "lucide-react";
 import { useState } from "react";
 
+import { BUSINESS_DAY_ORDER } from "@/lib/business-profile";
+import type { BusinessHours } from "@/types/database";
+
 interface BusinessProfileFormProps {
   action: (formData: FormData) => void | Promise<void>;
   defaults: {
@@ -14,6 +17,9 @@ interface BusinessProfileFormProps {
     businessAddress: string;
     showExactBusinessLocation: boolean;
     serviceAreas: string;
+    businessServices: string;
+    businessHours: BusinessHours;
+    profilePhone: string;
   };
   schemaReady: boolean;
 }
@@ -85,7 +91,7 @@ export function BusinessProfileForm({
         </div>
         <div>
           <h2>Business profile</h2>
-          <p>Turn your seller account into a branded storefront with a business name, logo, website, and local service areas.</p>
+          <p>Turn your seller account into a branded storefront with services, hours, contact actions, and local service areas.</p>
         </div>
       </div>
 
@@ -167,6 +173,70 @@ export function BusinessProfileForm({
               placeholder="Fort McMurray, Timberlea, Thickwood, Gregoire"
             />
           </label>
+
+          <label className="field">
+            <span className="field-label">Business services</span>
+            <input
+              className="input"
+              type="text"
+              name="business_services"
+              defaultValue={defaults.businessServices}
+              placeholder="Cleaning, move-out services, dump runs, handyman work"
+            />
+            <p className="field-hint">
+              Separate specialties with commas so your storefront reads more like a real local business page.
+            </p>
+          </label>
+
+          <div className="business-hours-card">
+            <div className="business-hours-head">
+              <div>
+                <span className="field-label">Business hours</span>
+                <p className="field-hint">Show weekly hours so customers know when to call or message.</p>
+              </div>
+              <p className="business-hours-phone-note">
+                Call button uses your profile phone:
+                <strong>{defaults.profilePhone || "Add a phone number in your account profile"}</strong>
+              </p>
+            </div>
+
+            <div className="business-hours-list">
+              {BUSINESS_DAY_ORDER.map((day) => {
+                const defaultsForDay = defaults.businessHours?.[day.key];
+
+                return (
+                  <div key={day.key} className="business-hours-row">
+                    <span className="business-hours-day">{day.label}</span>
+
+                    <label className="business-hours-closed">
+                      <input
+                        type="checkbox"
+                        name={`business_hours_${day.key}_closed`}
+                        defaultChecked={Boolean(defaultsForDay?.closed)}
+                      />
+                      <span>Closed</span>
+                    </label>
+
+                    <input
+                      className="input"
+                      type="time"
+                      name={`business_hours_${day.key}_open`}
+                      defaultValue={defaultsForDay?.open ?? ""}
+                    />
+
+                    <span className="business-hours-separator">to</span>
+
+                    <input
+                      className="input"
+                      type="time"
+                      name={`business_hours_${day.key}_close`}
+                      defaultValue={defaultsForDay?.close ?? ""}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           <label className="business-profile-toggle">
             <input
