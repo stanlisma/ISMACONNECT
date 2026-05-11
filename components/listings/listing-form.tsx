@@ -20,6 +20,12 @@ import type { ListingIntent, ListingStructuredData, RequestWindow } from "@/type
 
 type ListingFormProps = {
   action: (formData: FormData) => void | Promise<void>;
+  profileContact?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  defaultContactSource?: "profile" | "custom";
   defaults?: {
     listingIntent?: ListingIntent;
     requestWindow?: RequestWindow | null;
@@ -102,6 +108,10 @@ function getPhotoPanelCopy(listingIntent: ListingIntent) {
   return listingIntent === "need"
     ? "Upload reference photos only if they help explain the job, item, or location. We optimize them before upload."
     : `Upload up to ${MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.`;
+}
+
+function normalizeContactValue(value?: string | null) {
+  return value?.trim() ?? "";
 }
 
 function formatFileSize(bytes: number) {
@@ -191,6 +201,8 @@ async function optimizeImage(file: File) {
 
 export function ListingForm({
   action,
+  profileContact,
+  defaultContactSource = "custom",
   defaults,
   submitLabel = "Publish listing"
 }: ListingFormProps) {
@@ -211,10 +223,27 @@ export function ListingForm({
   const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const [uploadError, setUploadError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [contactName, setContactName] = useState(defaults?.contactName ?? "");
+  const [contactEmail, setContactEmail] = useState(defaults?.contactEmail ?? "");
+  const [contactPhone, setContactPhone] = useState(defaults?.contactPhone ?? "");
 
   const subcategories = useMemo(() => getSubcategories(category), [category]);
   const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
   const structuredDefaults = defaults?.structuredData ?? null;
+  const normalizedProfileContact = useMemo(
+    () => ({
+      name: normalizeContactValue(profileContact?.name),
+      email: normalizeContactValue(profileContact?.email),
+      phone: normalizeContactValue(profileContact?.phone)
+    }),
+    [profileContact?.email, profileContact?.name, profileContact?.phone]
+  );
+  const hasProfileContact = Boolean(
+    normalizedProfileContact.name.length && normalizedProfileContact.email.length
+  );
+  const [useProfileContact, setUseProfileContact] = useState(
+    hasProfileContact && defaultContactSource === "profile"
+  );
   const descriptionReady = description.trim().length >= 10;
   const locationPlaceholder = useMemo(() => getLocationPlaceholder(category), [category]);
   const locationHint = useMemo(() => getLocationHint(category), [category]);
@@ -616,54 +645,120 @@ export function ListingForm({
           </div>
         </div>
 
-        <div className="listing-contact-note">
-          <strong>Name and email are required.</strong>
-          <span>Phone is optional. Business accounts can use a business name instead of a personal name.</span>
-        </div>
+        {hasProfileContact ? (
+          <div className="listing-contact-mode" role="radiogroup" aria-label="Choose contact source">
+            <label
+              className={`listing-contact-mode-option${useProfileContact ? " is-active" : ""}`}
+            >
+              <input
+                type="radio"
+                name="contactSource"
+                value="profile"
+                checked={useProfileContact}
+                onChange={() => setUseProfileContact(true)}
+              />
+              <span>Use profile contact</span>
+            </label>
 
-        <div className="listing-form-section-grid listing-contact-grid">
-          <label className="field listing-contact-field">
-            <span className="field-label">Contact or business name</span>
-            <input
-              className="input"
-              name="contactName"
-              defaultValue={defaults?.contactName ?? ""}
-              placeholder="Stanley Ismaillar or North Side Property Services"
-              autoComplete="name"
-              autoCapitalize="words"
-              required
-            />
-            <span className="field-hint">This is the name shown to people replying to your post.</span>
-          </label>
+            <label
+              className={`listing-contact-mode-option${!useProfileContact ? " is-active" : ""}`}
+            >
+              <input
+                type="radio"
+                name="contactSource"
+                value="custom"
+                checked={!useProfileContact}
+                onChange={() => setUseProfileContact(false)}
+              />
+              <span>Use different contact for this listing</span>
+            </label>
+          </div>
+        ) : null}
 
-          <label className="field listing-contact-field">
-            <span className="field-label">Reply email</span>
-            <input
-              className="input"
-              name="contactEmail"
-              type="email"
-              defaultValue={defaults?.contactEmail ?? ""}
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-            />
-            <span className="field-hint">Replies and message follow-ups will use this email.</span>
-          </label>
+        {useProfileContact && hasProfileContact ? (
+          <>
+            <div className="listing-contact-summary">
+              <strong>Using your profile contact</strong>
+              <dl>
+                <div>
+                  <dt>Name</dt>
+                  <dd>{normalizedProfileContact.name}</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd>{normalizedProfileContact.email}</dd>
+                </div>
+                <div>
+                  <dt>Phone</dt>
+                  <dd>{normalizedProfileContact.phone || "Not added"}</dd>
+                </div>
+              </dl>
+            </div>
 
-          <label className="field listing-contact-field">
-            <span className="field-label">Phone number</span>
-            <input
-              className="input"
-              name="contactPhone"
-              type="tel"
-              inputMode="tel"
-              defaultValue={defaults?.contactPhone ?? ""}
-              placeholder="(780) 555-0123"
-              autoComplete="tel"
-            />
-            <span className="field-hint">Optional. Add a number if you want calls or texts.</span>
-          </label>
-        </div>
+            <input type="hidden" name="contactName" value={normalizedProfileContact.name} />
+            <input type="hidden" name="contactEmail" value={normalizedProfileContact.email} />
+            <input type="hidden" name="contactPhone" value={normalizedProfileContact.phone} />
+          </>
+        ) : (
+          <>
+            <div className="listing-contact-note">
+              <strong>Name and email are required.</strong>
+              <span>
+                Phone is optional. Business accounts can use a business name instead of a personal
+                name.
+              </span>
+            </div>
+
+            <div className="listing-form-section-grid listing-contact-grid">
+              <label className="field listing-contact-field">
+                <span className="field-label">Contact or business name</span>
+                <input
+                  className="input"
+                  name="contactName"
+                  value={contactName}
+                  onChange={(event) => setContactName(event.target.value)}
+                  placeholder="Stanley Ismaillar or North Side Property Services"
+                  autoComplete="name"
+                  autoCapitalize="words"
+                  required
+                />
+                <span className="field-hint">
+                  This is the name shown to people replying to your post.
+                </span>
+              </label>
+
+              <label className="field listing-contact-field">
+                <span className="field-label">Reply email</span>
+                <input
+                  className="input"
+                  name="contactEmail"
+                  type="email"
+                  value={contactEmail}
+                  onChange={(event) => setContactEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                />
+                <span className="field-hint">Replies and message follow-ups will use this email.</span>
+              </label>
+
+              <label className="field listing-contact-field">
+                <span className="field-label">Phone number</span>
+                <input
+                  className="input"
+                  name="contactPhone"
+                  type="tel"
+                  inputMode="tel"
+                  value={contactPhone}
+                  onChange={(event) => setContactPhone(event.target.value)}
+                  placeholder="(780) 555-0123"
+                  autoComplete="tel"
+                />
+                <span className="field-hint">Optional. Add a number if you want calls or texts.</span>
+              </label>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="field-full listing-form-section">

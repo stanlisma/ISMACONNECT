@@ -26,6 +26,26 @@ export default async function EditListingPage({
   }
 
   const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
+  const profileContactName = viewer.profile.is_business
+    ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
+    : viewer.profile.full_name ?? undefined;
+  const profileContactEmail = viewer.user.email ?? undefined;
+  const profileContactPhone = viewer.profile.phone ?? undefined;
+  const normalizedListingContact = {
+    name: listing.contact_name?.trim() ?? "",
+    email: listing.contact_email?.trim() ?? "",
+    phone: listing.contact_phone?.trim() ?? ""
+  };
+  const normalizedProfileContact = {
+    name: profileContactName?.trim() ?? "",
+    email: profileContactEmail?.trim() ?? "",
+    phone: profileContactPhone?.trim() ?? ""
+  };
+  const usesProfileContactByDefault =
+    Boolean(normalizedProfileContact.name && normalizedProfileContact.email) &&
+    normalizedListingContact.name === normalizedProfileContact.name &&
+    normalizedListingContact.email === normalizedProfileContact.email &&
+    normalizedListingContact.phone === normalizedProfileContact.phone;
 
   return (
     <>
@@ -42,18 +62,20 @@ export default async function EditListingPage({
 
       <ListingForm
         action={updateListingAction.bind(null, listing.id)}
+        profileContact={{
+          name: profileContactName,
+          email: profileContactEmail,
+          phone: profileContactPhone
+        }}
+        defaultContactSource={usesProfileContactByDefault ? "profile" : "custom"}
         defaults={{
           category: listing.category ?? undefined,
           subcategory: listing.subcategory ?? undefined,
           listingIntent,
           requestWindow: listing.request_window ?? undefined,
-          contactEmail: listing.contact_email ?? viewer.user.email ?? undefined,
-          contactName:
-            listing.contact_name ??
-            (viewer.profile.is_business
-              ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
-              : viewer.profile.full_name ?? undefined),
-          contactPhone: listing.contact_phone ?? viewer.profile.phone ?? undefined,
+          contactEmail: listing.contact_email ?? profileContactEmail,
+          contactName: listing.contact_name ?? profileContactName,
+          contactPhone: listing.contact_phone ?? profileContactPhone,
           description: listing.description ?? undefined,
           imageUrl: listing.image_url ?? undefined,
           imageUrls: listing.image_urls ?? undefined,

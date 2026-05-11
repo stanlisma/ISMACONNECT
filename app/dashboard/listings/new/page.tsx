@@ -13,6 +13,11 @@ export default async function NewListingPage({
   const viewer = await requireViewer();
   const listingIntent = resolveListingIntent(getSingleParam(resolvedSearchParams?.intent)) ?? "offer";
   const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
+  const profileContactName = viewer.profile.is_business
+    ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
+    : viewer.profile.full_name ?? undefined;
+  const profileContactEmail = viewer.user.email ?? undefined;
+  const profileContactPhone = viewer.profile.phone ?? undefined;
 
   return (
     <>
@@ -27,15 +32,18 @@ export default async function NewListingPage({
 
       <ListingForm
         action={createListingAction}
+        profileContact={{
+          name: profileContactName,
+          email: profileContactEmail,
+          phone: profileContactPhone
+        }}
+        defaultContactSource="profile"
         defaults={{
           category,
           listingIntent,
-          contactName:
-            viewer.profile.is_business
-              ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
-              : viewer.profile.full_name ?? undefined,
-          contactEmail: viewer.user.email ?? undefined,
-          contactPhone: viewer.profile.phone ?? undefined,
+          contactName: profileContactName,
+          contactEmail: profileContactEmail,
+          contactPhone: profileContactPhone,
           location:
             viewer.profile.is_business && viewer.profile.business_address
               ? viewer.profile.business_address
