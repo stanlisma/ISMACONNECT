@@ -229,6 +229,10 @@ export function getSavedSearchLabel(filters: SavedSearchFilters) {
   const categoryLabel = normalized.category ? CATEGORY_MAP[normalized.category].label : "All listings";
   const subcategoryLabel = getSubcategoryLabel(normalized.category, normalized.subcategory);
   const intentFilter = normalizeIntentFilterValue(normalized.extraFilters.intent);
+  const structuredSummaryItems = getStructuredFilterSummaryItems(
+    normalized.category,
+    normalized.extraFilters
+  );
 
   if (normalized.search && subcategoryLabel) {
     return `${normalized.search} in ${subcategoryLabel}`;
@@ -240,6 +244,10 @@ export function getSavedSearchLabel(filters: SavedSearchFilters) {
 
   if (subcategoryLabel) {
     return `${subcategoryLabel} in ${categoryLabel}`;
+  }
+
+  if (normalized.category && structuredSummaryItems.length > 0) {
+    return `${categoryLabel}: ${structuredSummaryItems.slice(0, 2).join(" • ")}`;
   }
 
   if (intentFilter === "need" && categoryLabel === "All listings") {
