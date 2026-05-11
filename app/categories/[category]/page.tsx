@@ -275,6 +275,29 @@ export default async function CategoryPage({
   const emptyDescription = intent === "need"
     ? `No ${categoryInfo.label.toLowerCase()} requests are live yet. Post yours and let locals respond.`
     : `No ${categoryInfo.label.toLowerCase()} listings are live yet. Post what you need or add the first local listing.`;
+  const hasThinResults = totalCount > 0 && totalCount <= 3;
+  const lowResultsLinks = [
+    { href: emptyActionHref, label: emptyActionLabel },
+    {
+      href: buildPathWithQuery(categoryInfo.href, { intent, requestWindow }),
+      label: `Broaden back to all ${categoryInfo.label.toLowerCase()}`
+    },
+    ...(category === "ride-share"
+      ? [
+          {
+            href: `${categoryInfo.href}?subcategory=camp-site-transport&view=map`,
+            label: "Browse camp transport"
+          }
+        ]
+      : category === "rentals"
+        ? [
+            {
+              href: `${categoryInfo.href}?availabilityType=rotation-friendly`,
+              label: "Rotation-friendly rentals"
+            }
+          ]
+        : [])
+  ];
 
   return (
     <section className="section listing-feed-section">
@@ -450,6 +473,14 @@ export default async function CategoryPage({
                 maxPrice={maxPrice}
                 sort={sort}
                 structuredFilters={searchExtraFilters}
+              />
+            ) : null}
+
+            {hasThinResults ? (
+              <SearchRecoveryPanel
+                title="Only a few matches are live right now"
+                description="Broaden the category or post what you need so locals can reply when supply is thin."
+                links={lowResultsLinks}
               />
             ) : null}
 

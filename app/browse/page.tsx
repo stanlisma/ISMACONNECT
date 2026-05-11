@@ -249,6 +249,33 @@ export default async function BrowsePage({
   const emptyDescription = intent === "need"
     ? "No matching needs are live yet. Post yours and let local providers or riders respond."
     : "Try broadening the search or post what you need so the right locals can reply.";
+  const hasThinResults = totalCount > 0 && totalCount <= 3;
+  const lowResultsLinks = [
+    { href: emptyActionHref, label: emptyActionLabel },
+    {
+      href: buildPathWithQuery("/browse", {
+        category,
+        intent,
+        requestWindow
+      }),
+      label: category ? `Broaden back to ${CATEGORY_MAP[category].label}` : "Clear extra filters"
+    },
+    ...(category === "ride-share"
+      ? [
+          {
+            href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map",
+            label: "Browse camp transport"
+          }
+        ]
+      : category === "rentals"
+        ? [
+            {
+              href: "/browse?category=rentals&availabilityType=rotation-friendly",
+              label: "Rotation-friendly rentals"
+            }
+          ]
+        : [])
+  ];
 
   return (
     <section className="section listing-feed-section">
@@ -431,6 +458,14 @@ export default async function BrowsePage({
                 maxPrice={maxPrice}
                 sort={sort}
                 structuredFilters={searchExtraFilters}
+              />
+            ) : null}
+
+            {hasThinResults ? (
+              <SearchRecoveryPanel
+                title="Only a few matches are live right now"
+                description="Widen the search or post what you need so locals can reply when inventory is thin."
+                links={lowResultsLinks}
               />
             ) : null}
 
