@@ -62,6 +62,27 @@ const RENTAL_PARKING_OPTIONS = [
   { value: "truck", label: "Truck-friendly parking" }
 ] as const satisfies StructuredFieldOption[];
 
+const RENTAL_AVAILABILITY_OPTIONS = [
+  { value: "immediate", label: "Available now" },
+  { value: "from-date", label: "Available from a date" },
+  { value: "short-term-worker-stay", label: "Short-term worker stay" },
+  { value: "rotation-friendly", label: "Rotation-friendly" }
+] as const satisfies StructuredFieldOption[];
+
+const RENTAL_LEASE_PATTERN_OPTIONS = [
+  { value: "month-to-month", label: "Month-to-month" },
+  { value: "weekly", label: "Weekly" },
+  { value: "rotation-stay", label: "Rotation stay" },
+  { value: "flexible", label: "Flexible" }
+] as const satisfies StructuredFieldOption[];
+
+const RENTAL_BEST_FOR_OPTIONS = [
+  { value: "fifo-worker", label: "FIFO worker" },
+  { value: "shift-worker", label: "Shift worker" },
+  { value: "crew-housing", label: "Crew housing" },
+  { value: "single-occupant", label: "Single occupant" }
+] as const satisfies StructuredFieldOption[];
+
 const RIDE_SHARE_TRIP_TYPE_OPTIONS = [
   { value: "one-time", label: "One-time trip" },
   { value: "recurring", label: "Recurring trip" }
@@ -105,6 +126,18 @@ const JOB_WORK_SETUP_VALUES = JOB_WORK_SETUP_OPTIONS.map((option) => option.valu
   ...string[]
 ];
 const JOB_PAY_BAND_VALUES = JOB_PAY_BAND_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RENTAL_AVAILABILITY_VALUES = RENTAL_AVAILABILITY_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RENTAL_LEASE_PATTERN_VALUES = RENTAL_LEASE_PATTERN_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RENTAL_BEST_FOR_VALUES = RENTAL_BEST_FOR_OPTIONS.map((option) => option.value) as [
   string,
   ...string[]
 ];
@@ -175,6 +208,47 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
       kind: "select",
       options: [...RENTAL_AREA_OPTIONS],
       helpText: "Help renters spot where the place sits in Fort McMurray.",
+      showInFilters: true
+    },
+    {
+      name: "availabilityType",
+      label: "Availability",
+      kind: "select",
+      options: [...RENTAL_AVAILABILITY_OPTIONS],
+      helpText: "Tell workers and short-term renters whether the place is ready now, date-based, or rotation-friendly.",
+      showInFilters: true
+    },
+    {
+      name: "availableFrom",
+      label: "Available from",
+      kind: "date"
+    },
+    {
+      name: "availableTo",
+      label: "Available to",
+      kind: "date",
+      helpText: "Leave empty if the rental is open-ended."
+    },
+    {
+      name: "leasePattern",
+      label: "Lease pattern",
+      kind: "select",
+      options: [...RENTAL_LEASE_PATTERN_OPTIONS],
+      showInFilters: true
+    },
+    {
+      name: "bestFor",
+      label: "Best for",
+      kind: "select",
+      options: [...RENTAL_BEST_FOR_OPTIONS],
+      showInFilters: true
+    },
+    {
+      name: "nearbySite",
+      label: "Nearby site / camp",
+      kind: "select",
+      options: [...RIDE_SHARE_SITE_CAMP_OPTIONS],
+      helpText: "Optional. Useful when a rental mainly serves one worksite or camp corridor.",
       showInFilters: true
     },
     {
@@ -341,6 +415,12 @@ const jobsStructuredDataSchema = z.object({
 
 const rentalsStructuredDataSchema = z.object({
   rentalArea: toOptionalEnum(RENTAL_AREA_VALUES),
+  availabilityType: toOptionalEnum(RENTAL_AVAILABILITY_VALUES),
+  availableFrom: toOptionalDateString(),
+  availableTo: toOptionalDateString(),
+  leasePattern: toOptionalEnum(RENTAL_LEASE_PATTERN_VALUES),
+  bestFor: toOptionalEnum(RENTAL_BEST_FOR_VALUES),
+  nearbySite: toOptionalEnum(RIDE_SHARE_SITE_CAMP_VALUES),
   furnished: z.boolean().default(false),
   utilitiesIncluded: z.boolean().default(false),
   shortTerm: z.boolean().default(false),
@@ -413,6 +493,12 @@ export function parseStructuredListingData(category: ListingCategory, formData: 
     case "rentals":
       return rentalsStructuredDataSchema.safeParse({
         rentalArea: getFormValue(formData, "rentalArea"),
+        availabilityType: getFormValue(formData, "availabilityType"),
+        availableFrom: getFormValue(formData, "availableFrom"),
+        availableTo: getFormValue(formData, "availableTo"),
+        leasePattern: getFormValue(formData, "leasePattern"),
+        bestFor: getFormValue(formData, "bestFor"),
+        nearbySite: getFormValue(formData, "nearbySite"),
         furnished: formData.has("furnished"),
         utilitiesIncluded: formData.has("utilitiesIncluded"),
         shortTerm: formData.has("shortTerm"),
@@ -608,6 +694,20 @@ export function getStructuredDetailItems(
         optionLabel(RENTAL_AREA_OPTIONS, data.rentalArea)
           ? `Area: ${optionLabel(RENTAL_AREA_OPTIONS, data.rentalArea)}`
           : null,
+        optionLabel(RENTAL_AVAILABILITY_OPTIONS, data.availabilityType)
+          ? `Availability: ${optionLabel(RENTAL_AVAILABILITY_OPTIONS, data.availabilityType)}`
+          : null,
+        dateLabel(data.availableFrom) ? `Available from: ${dateLabel(data.availableFrom)}` : null,
+        dateLabel(data.availableTo) ? `Available to: ${dateLabel(data.availableTo)}` : null,
+        optionLabel(RENTAL_LEASE_PATTERN_OPTIONS, data.leasePattern)
+          ? `Lease pattern: ${optionLabel(RENTAL_LEASE_PATTERN_OPTIONS, data.leasePattern)}`
+          : null,
+        optionLabel(RENTAL_BEST_FOR_OPTIONS, data.bestFor)
+          ? `Best for: ${optionLabel(RENTAL_BEST_FOR_OPTIONS, data.bestFor)}`
+          : null,
+        optionLabel(RIDE_SHARE_SITE_CAMP_OPTIONS, data.nearbySite)
+          ? `Nearby site / camp: ${optionLabel(RIDE_SHARE_SITE_CAMP_OPTIONS, data.nearbySite)}`
+          : null,
         typeof data.furnished === "boolean" ? `Furnished: ${booleanLabel(data.furnished)}` : null,
         typeof data.utilitiesIncluded === "boolean"
           ? `Utilities included: ${booleanLabel(data.utilitiesIncluded)}`
@@ -672,6 +772,24 @@ export function getStructuredCardHighlights(
   }
 
   switch (category) {
+    case "rentals": {
+      const data = rentalsStructuredDataSchema.safeParse(structuredData);
+
+      if (!data.success) {
+        return [] as string[];
+      }
+
+      const highlights = [
+        optionLabel(RENTAL_AVAILABILITY_OPTIONS, data.data.availabilityType),
+        dateLabel(data.data.availableFrom),
+        optionLabel(RENTAL_LEASE_PATTERN_OPTIONS, data.data.leasePattern),
+        optionLabel(RENTAL_BEST_FOR_OPTIONS, data.data.bestFor),
+        optionLabel(RIDE_SHARE_SITE_CAMP_OPTIONS, data.data.nearbySite),
+        data.data.shortTerm ? "Short-term" : null
+      ].filter(Boolean) as string[];
+
+      return highlights.slice(0, 3);
+    }
     case "ride-share": {
       const data = rideShareStructuredDataSchema.safeParse(structuredData);
 

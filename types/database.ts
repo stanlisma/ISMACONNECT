@@ -19,6 +19,13 @@ export type JobShiftPattern =
 export type JobWorkSetup = "local" | "camp" | "fifo" | "dido" | "hybrid";
 export type JobPayBand = "under-25" | "25-35" | "35-50" | "50-plus" | "salary";
 export type RentalParkingType = "none" | "street" | "stall" | "truck";
+export type RentalAvailabilityType =
+  | "immediate"
+  | "from-date"
+  | "short-term-worker-stay"
+  | "rotation-friendly";
+export type RentalLeasePattern = "month-to-month" | "weekly" | "rotation-stay" | "flexible";
+export type RentalBestFor = "fifo-worker" | "shift-worker" | "crew-housing" | "single-occupant";
 export type RideShareTripType = "one-time" | "recurring";
 export type RideShareSchedulePattern =
   | "daily"
@@ -66,6 +73,12 @@ export interface JobListingStructuredData {
 
 export interface RentalListingStructuredData {
   rentalArea?: FortMcMurrayArea | null;
+  availabilityType?: RentalAvailabilityType | null;
+  availableFrom?: string | null;
+  availableTo?: string | null;
+  leasePattern?: RentalLeasePattern | null;
+  bestFor?: RentalBestFor | null;
+  nearbySite?: RideShareSiteCamp | null;
   furnished?: boolean;
   utilitiesIncluded?: boolean;
   shortTerm?: boolean;
