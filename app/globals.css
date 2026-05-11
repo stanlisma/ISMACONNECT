@@ -6534,6 +6534,39 @@ code {
   gap: 1rem;
 }
 
+.listing-contact-note {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(170, 198, 241, 0.72);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(244, 248, 255, 0.92), rgba(255, 255, 255, 0.98));
+}
+
+.listing-contact-note strong {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.listing-contact-note span {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.listing-contact-grid {
+  align-items: start;
+}
+
+.listing-contact-field {
+  gap: 0.4rem;
+}
+
+.listing-contact-field .field-hint {
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .listing-intent-field {
   display: grid;
   gap: 0.55rem;
@@ -6610,6 +6643,10 @@ code {
 @media (min-width: 761px) {
   .listing-form-section-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .listing-contact-grid {
+    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -7283,6 +7320,20 @@ code {
 
   .listing-form-section-grid {
     gap: 0.75rem;
+  }
+
+  .listing-contact-note {
+    padding: 0.75rem 0.8rem;
+    border-radius: 14px;
+  }
+
+  .listing-contact-note strong {
+    font-size: 0.9rem;
+  }
+
+  .listing-contact-note span,
+  .listing-contact-field .field-hint {
+    font-size: 0.8rem;
   }
 
   .listing-form-section-head .field-hint {

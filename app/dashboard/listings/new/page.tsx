@@ -30,6 +30,16 @@ export default async function NewListingPage({
         defaults={{
           category,
           listingIntent,
+          contactName:
+            viewer.profile.is_business
+              ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
+              : viewer.profile.full_name ?? undefined,
+          contactEmail: viewer.user.email ?? undefined,
+          contactPhone: viewer.profile.phone ?? undefined,
+          location:
+            viewer.profile.is_business && viewer.profile.business_address
+              ? viewer.profile.business_address
+              : undefined,
           showExactAddressOnMap: viewer.profile.show_exact_business_location ?? false
         }}
         submitLabel={listingIntent === "need" ? "Post need" : "Publish listing"}
