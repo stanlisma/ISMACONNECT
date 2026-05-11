@@ -12,7 +12,10 @@ import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
 import { getBusinessMapProfileMap, getPublicListings, getSavedListingIds } from "@/lib/data";
-import { getStructuredFilterDefinitions } from "@/lib/listing-structured-fields";
+import {
+  getStructuredFilterDefinitions,
+  getStructuredFilterMatchHints
+} from "@/lib/listing-structured-fields";
 import { resolveCommunityMapArea } from "@/lib/local-marketplace";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
@@ -442,6 +445,7 @@ export default async function BrowsePage({
                   isSaved={savedIds.has(listing.id)}
                   canSave
                   pathToRevalidate="/browse"
+                  matchHints={category ? getStructuredFilterMatchHints(category, listing.structured_data, structuredFilters) : []}
                   trustSummary={trustMap.get(listing.owner_id)}
                 />
               ))}

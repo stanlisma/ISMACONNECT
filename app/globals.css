@@ -2665,6 +2665,34 @@ code {
   color: var(--text);
 }
 
+.listing-match-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+}
+
+.listing-match-badge,
+.listing-match-hint {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.listing-match-badge {
+  background: rgba(18, 104, 206, 0.12);
+  color: #0f58ad;
+}
+
+.listing-match-hint {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text);
+}
+
 .listing-card {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }

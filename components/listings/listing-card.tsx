@@ -20,6 +20,7 @@ interface ListingCardProps {
   canSave?: boolean;
   pathToRevalidate?: string;
   trustSummary?: SellerTrustSummary | null;
+  matchHints?: string[];
 }
 
 function formatStaticDateLabel(dateString: string) {
@@ -60,7 +61,8 @@ export function ListingCard({
   isSaved = false,
   canSave = false,
   pathToRevalidate,
-  trustSummary
+  trustSummary,
+  matchHints = []
 }: ListingCardProps) {
   const router = useRouter();
 
@@ -331,6 +333,17 @@ export function ListingCard({
             {structuredHighlights.map((item, index) => (
               <span key={item}>
                 {index > 0 ? <span style={{ opacity: 0.5 }}>•</span> : null} {item}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {matchHints.length ? (
+          <div className="listing-match-hints">
+            <span className="listing-match-badge">Schedule match</span>
+            {matchHints.map((hint) => (
+              <span key={hint} className="listing-match-hint">
+                {hint}
               </span>
             ))}
           </div>
