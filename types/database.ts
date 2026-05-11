@@ -19,6 +19,22 @@ export type JobShiftPattern =
 export type JobWorkSetup = "local" | "camp" | "fifo" | "dido" | "hybrid";
 export type JobPayBand = "under-25" | "25-35" | "35-50" | "50-plus" | "salary";
 export type RentalParkingType = "none" | "street" | "stall" | "truck";
+export type RideShareTripType = "one-time" | "recurring";
+export type RideShareSchedulePattern =
+  | "daily"
+  | "weekdays"
+  | "weekends"
+  | "7-on-7-off"
+  | "14-on-7-off"
+  | "14-on-14-off"
+  | "custom";
+export type RideShareTimeWindow =
+  | "early-morning"
+  | "morning"
+  | "midday"
+  | "afternoon"
+  | "evening"
+  | "night";
 export type FortMcMurrayArea =
   | "downtown"
   | "thickwood"
@@ -32,6 +48,14 @@ export type RideShareArea =
   | "site-camp"
   | "edmonton"
   | "calgary";
+export type RideShareSiteCamp =
+  | "cnrl-horizon"
+  | "suncor-base-plant"
+  | "mildred-lake"
+  | "albian"
+  | "fort-hills"
+  | "syncrude"
+  | "other";
 
 export interface JobListingStructuredData {
   shiftPattern?: JobShiftPattern | null;
@@ -49,8 +73,17 @@ export interface RentalListingStructuredData {
 }
 
 export interface RideShareListingStructuredData {
+  tripType?: RideShareTripType | null;
   departureArea?: RideShareArea | null;
   destinationArea?: RideShareArea | null;
+  tripDate?: string | null;
+  pickupWindow?: RideShareTimeWindow | null;
+  returnWindow?: RideShareTimeWindow | null;
+  schedulePattern?: RideShareSchedulePattern | null;
+  siteCamp?: RideShareSiteCamp | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  ongoing?: boolean;
   seatsAvailable?: number | null;
   toolSpace?: boolean;
 }

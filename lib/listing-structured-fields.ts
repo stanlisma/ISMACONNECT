@@ -20,7 +20,7 @@ type StructuredFieldOption = {
 export type StructuredFieldDefinition = {
   name: string;
   label: string;
-  kind: "select" | "checkbox" | "number";
+  kind: "select" | "checkbox" | "number" | "date";
   helpText?: string;
   options?: StructuredFieldOption[];
   showInFilters?: boolean;
@@ -62,6 +62,40 @@ const RENTAL_PARKING_OPTIONS = [
   { value: "truck", label: "Truck-friendly parking" }
 ] as const satisfies StructuredFieldOption[];
 
+const RIDE_SHARE_TRIP_TYPE_OPTIONS = [
+  { value: "one-time", label: "One-time trip" },
+  { value: "recurring", label: "Recurring trip" }
+] as const satisfies StructuredFieldOption[];
+
+const RIDE_SHARE_TIME_WINDOW_OPTIONS = [
+  { value: "early-morning", label: "Early morning" },
+  { value: "morning", label: "Morning" },
+  { value: "midday", label: "Midday" },
+  { value: "afternoon", label: "Afternoon" },
+  { value: "evening", label: "Evening" },
+  { value: "night", label: "Night" }
+] as const satisfies StructuredFieldOption[];
+
+const RIDE_SHARE_SCHEDULE_OPTIONS = [
+  { value: "daily", label: "Daily" },
+  { value: "weekdays", label: "Weekdays" },
+  { value: "weekends", label: "Weekends" },
+  { value: "7-on-7-off", label: "7 on / 7 off" },
+  { value: "14-on-7-off", label: "14 on / 7 off" },
+  { value: "14-on-14-off", label: "14 on / 14 off" },
+  { value: "custom", label: "Custom rotation" }
+] as const satisfies StructuredFieldOption[];
+
+const RIDE_SHARE_SITE_CAMP_OPTIONS = [
+  { value: "cnrl-horizon", label: "CNRL Horizon" },
+  { value: "suncor-base-plant", label: "Suncor Base Plant" },
+  { value: "mildred-lake", label: "Mildred Lake" },
+  { value: "albian", label: "Albian" },
+  { value: "fort-hills", label: "Fort Hills" },
+  { value: "syncrude", label: "Syncrude" },
+  { value: "other", label: "Other site / camp" }
+] as const satisfies StructuredFieldOption[];
+
 const JOB_SHIFT_VALUES = JOB_SHIFT_OPTIONS.map((option) => option.value) as [
   string,
   ...string[]
@@ -79,6 +113,22 @@ const RENTAL_AREA_VALUES = RENTAL_AREA_OPTIONS.map((option) => option.value) as 
   ...string[]
 ];
 const RENTAL_PARKING_VALUES = RENTAL_PARKING_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RIDE_SHARE_TRIP_TYPE_VALUES = RIDE_SHARE_TRIP_TYPE_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RIDE_SHARE_TIME_WINDOW_VALUES = RIDE_SHARE_TIME_WINDOW_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RIDE_SHARE_SCHEDULE_VALUES = RIDE_SHARE_SCHEDULE_OPTIONS.map((option) => option.value) as [
+  string,
+  ...string[]
+];
+const RIDE_SHARE_SITE_CAMP_VALUES = RIDE_SHARE_SITE_CAMP_OPTIONS.map((option) => option.value) as [
   string,
   ...string[]
 ];
@@ -155,6 +205,14 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
   ],
   "ride-share": [
     {
+      name: "tripType",
+      label: "Trip type",
+      kind: "select",
+      options: [...RIDE_SHARE_TRIP_TYPE_OPTIONS],
+      helpText: "Use one-time for a single trip and recurring for rides that repeat around a shift or work pattern.",
+      showInFilters: true
+    },
+    {
       name: "departureArea",
       label: "Departure area",
       kind: "select",
@@ -166,6 +224,60 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
       label: "Destination area",
       kind: "select",
       options: [...RIDE_SHARE_AREA_OPTIONS],
+      showInFilters: true
+    },
+    {
+      name: "tripDate",
+      label: "Trip date",
+      kind: "date",
+      helpText: "Best for one-time rides that happen on a specific day."
+    },
+    {
+      name: "pickupWindow",
+      label: "Pickup window",
+      kind: "select",
+      options: [...RIDE_SHARE_TIME_WINDOW_OPTIONS],
+      showInFilters: true
+    },
+    {
+      name: "returnWindow",
+      label: "Return window",
+      kind: "select",
+      options: [...RIDE_SHARE_TIME_WINDOW_OPTIONS],
+      showInFilters: true
+    },
+    {
+      name: "schedulePattern",
+      label: "Schedule pattern",
+      kind: "select",
+      options: [...RIDE_SHARE_SCHEDULE_OPTIONS],
+      showInFilters: true
+    },
+    {
+      name: "siteCamp",
+      label: "Site / camp",
+      kind: "select",
+      options: [...RIDE_SHARE_SITE_CAMP_OPTIONS],
+      helpText: "Choose the main site or camp if this ride mainly serves shift workers.",
+      showInFilters: true
+    },
+    {
+      name: "startDate",
+      label: "Start date",
+      kind: "date",
+      helpText: "Useful for recurring rides or ongoing shift coverage."
+    },
+    {
+      name: "endDate",
+      label: "End date",
+      kind: "date",
+      helpText: "Leave empty if the ride stays open-ended."
+    },
+    {
+      name: "ongoing",
+      label: "Ongoing schedule",
+      kind: "checkbox",
+      helpText: "Use this if the ride repeats and does not have a fixed end date.",
       showInFilters: true
     },
     {
@@ -210,6 +322,16 @@ function toOptionalInteger(label: string, min = 1, max = 8) {
     });
 }
 
+function toOptionalDateString() {
+  return z
+    .string()
+    .trim()
+    .transform((value) => (value.length > 0 ? value : null))
+    .refine((value) => value === null || /^\d{4}-\d{2}-\d{2}$/.test(value), {
+      message: "Choose a valid date."
+    });
+}
+
 const jobsStructuredDataSchema = z.object({
   shiftPattern: toOptionalEnum(JOB_SHIFT_VALUES),
   workSetup: toOptionalEnum(JOB_WORK_SETUP_VALUES),
@@ -226,8 +348,17 @@ const rentalsStructuredDataSchema = z.object({
 });
 
 const rideShareStructuredDataSchema = z.object({
+  tripType: toOptionalEnum(RIDE_SHARE_TRIP_TYPE_VALUES),
   departureArea: toOptionalEnum(RIDE_SHARE_AREA_VALUES),
   destinationArea: toOptionalEnum(RIDE_SHARE_AREA_VALUES),
+  tripDate: toOptionalDateString(),
+  pickupWindow: toOptionalEnum(RIDE_SHARE_TIME_WINDOW_VALUES),
+  returnWindow: toOptionalEnum(RIDE_SHARE_TIME_WINDOW_VALUES),
+  schedulePattern: toOptionalEnum(RIDE_SHARE_SCHEDULE_VALUES),
+  siteCamp: toOptionalEnum(RIDE_SHARE_SITE_CAMP_VALUES),
+  startDate: toOptionalDateString(),
+  endDate: toOptionalDateString(),
+  ongoing: z.boolean().default(false),
   seatsAvailable: toOptionalInteger("Seats available"),
   toolSpace: z.boolean().default(false)
 });
@@ -289,8 +420,17 @@ export function parseStructuredListingData(category: ListingCategory, formData: 
       });
     case "ride-share":
       return rideShareStructuredDataSchema.safeParse({
+        tripType: getFormValue(formData, "tripType"),
         departureArea: getFormValue(formData, "departureArea"),
         destinationArea: getFormValue(formData, "destinationArea"),
+        tripDate: getFormValue(formData, "tripDate"),
+        pickupWindow: getFormValue(formData, "pickupWindow"),
+        returnWindow: getFormValue(formData, "returnWindow"),
+        schedulePattern: getFormValue(formData, "schedulePattern"),
+        siteCamp: getFormValue(formData, "siteCamp"),
+        startDate: getFormValue(formData, "startDate"),
+        endDate: getFormValue(formData, "endDate"),
+        ongoing: formData.has("ongoing"),
         seatsAvailable: getFormValue(formData, "seatsAvailable"),
         toolSpace: formData.has("toolSpace")
       });
@@ -412,6 +552,25 @@ function booleanLabel(value: boolean) {
   return value ? "Yes" : "No";
 }
 
+function dateLabel(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+}
+
 export function getStructuredDetailItems(
   category: ListingCategory,
   structuredData?: ListingStructuredData | null
@@ -466,12 +625,31 @@ export function getStructuredDetailItems(
     case "ride-share": {
       const data = getStructuredSchema(category).parse(structuredData) as RideShareListingStructuredData;
       const details = [
+        optionLabel(RIDE_SHARE_TRIP_TYPE_OPTIONS, data.tripType)
+          ? `Trip type: ${optionLabel(RIDE_SHARE_TRIP_TYPE_OPTIONS, data.tripType)}`
+          : null,
         optionLabel(RIDE_SHARE_AREA_OPTIONS, data.departureArea)
           ? `Departure: ${optionLabel(RIDE_SHARE_AREA_OPTIONS, data.departureArea)}`
           : null,
         optionLabel(RIDE_SHARE_AREA_OPTIONS, data.destinationArea)
           ? `Destination: ${optionLabel(RIDE_SHARE_AREA_OPTIONS, data.destinationArea)}`
           : null,
+        dateLabel(data.tripDate) ? `Trip date: ${dateLabel(data.tripDate)}` : null,
+        optionLabel(RIDE_SHARE_TIME_WINDOW_OPTIONS, data.pickupWindow)
+          ? `Pickup window: ${optionLabel(RIDE_SHARE_TIME_WINDOW_OPTIONS, data.pickupWindow)}`
+          : null,
+        optionLabel(RIDE_SHARE_TIME_WINDOW_OPTIONS, data.returnWindow)
+          ? `Return window: ${optionLabel(RIDE_SHARE_TIME_WINDOW_OPTIONS, data.returnWindow)}`
+          : null,
+        optionLabel(RIDE_SHARE_SCHEDULE_OPTIONS, data.schedulePattern)
+          ? `Schedule: ${optionLabel(RIDE_SHARE_SCHEDULE_OPTIONS, data.schedulePattern)}`
+          : null,
+        optionLabel(RIDE_SHARE_SITE_CAMP_OPTIONS, data.siteCamp)
+          ? `Site / camp: ${optionLabel(RIDE_SHARE_SITE_CAMP_OPTIONS, data.siteCamp)}`
+          : null,
+        dateLabel(data.startDate) ? `Start date: ${dateLabel(data.startDate)}` : null,
+        dateLabel(data.endDate) ? `End date: ${dateLabel(data.endDate)}` : null,
+        typeof data.ongoing === "boolean" ? `Ongoing: ${booleanLabel(data.ongoing)}` : null,
         typeof data.seatsAvailable === "number" ? `Seats available: ${data.seatsAvailable}` : null,
         typeof data.toolSpace === "boolean"
           ? `Room for tools or luggage: ${booleanLabel(data.toolSpace)}`
@@ -479,6 +657,38 @@ export function getStructuredDetailItems(
       ];
 
       return details.filter(Boolean) as string[];
+    }
+    default:
+      return [] as string[];
+  }
+}
+
+export function getStructuredCardHighlights(
+  category: ListingCategory,
+  structuredData?: ListingStructuredData | null
+) {
+  if (!structuredData) {
+    return [] as string[];
+  }
+
+  switch (category) {
+    case "ride-share": {
+      const data = rideShareStructuredDataSchema.safeParse(structuredData);
+
+      if (!data.success) {
+        return [] as string[];
+      }
+
+      const highlights = [
+        optionLabel(RIDE_SHARE_TRIP_TYPE_OPTIONS, data.data.tripType),
+        dateLabel(data.data.tripDate),
+        optionLabel(RIDE_SHARE_SCHEDULE_OPTIONS, data.data.schedulePattern),
+        optionLabel(RIDE_SHARE_SITE_CAMP_OPTIONS, data.data.siteCamp),
+        optionLabel(RIDE_SHARE_TIME_WINDOW_OPTIONS, data.data.pickupWindow),
+        data.data.ongoing ? "Ongoing" : null
+      ].filter(Boolean) as string[];
+
+      return highlights.slice(0, 3);
     }
     default:
       return [] as string[];

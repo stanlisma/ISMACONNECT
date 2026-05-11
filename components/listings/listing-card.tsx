@@ -8,6 +8,7 @@ import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { getListingBoostState } from "@/lib/boost-products";
 import { LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS } from "@/lib/constants";
+import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
 import { excerpt, formatCurrency, getCategoryLabel } from "@/lib/utils";
@@ -142,6 +143,7 @@ export function ListingCard({
   const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
   const isNeed = listingIntent === "need";
   const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
+  const structuredHighlights = getStructuredCardHighlights(listing.category, listing.structured_data);
 
   const isNew = relativeInfo.isNew;
   const isPopular = views > 10;
@@ -323,6 +325,16 @@ export function ListingCard({
         </div>
 
         <p className="listing-description">{excerpt(listing.description)}</p>
+
+        {structuredHighlights.length ? (
+          <div className="listing-card-signals listing-card-structured-signals">
+            {structuredHighlights.map((item, index) => (
+              <span key={item}>
+                {index > 0 ? <span style={{ opacity: 0.5 }}>•</span> : null} {item}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         <TrustBadges summary={trustSummary} compact />
 
