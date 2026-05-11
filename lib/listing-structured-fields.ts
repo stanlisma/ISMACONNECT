@@ -481,6 +481,10 @@ function getStructuredSchema(category: ListingCategory) {
   }
 }
 
+function safeParseStructuredData(category: ListingCategory, structuredData?: ListingStructuredData | null) {
+  return getStructuredSchema(category).safeParse(structuredData ?? {});
+}
+
 export function parseStructuredListingData(category: ListingCategory, formData: FormData) {
   switch (category) {
     case "jobs":
@@ -811,4 +815,141 @@ export function getStructuredCardHighlights(
     default:
       return [] as string[];
   }
+}
+
+function getScheduleRelevantKeys(category: ListingCategory) {
+  switch (category) {
+    case "ride-share":
+      return [
+        "tripType",
+        "tripDate",
+        "pickupWindow",
+        "returnWindow",
+        "schedulePattern",
+        "siteCamp",
+        "ongoing"
+      ] as const;
+    case "rentals":
+      return [
+        "availabilityType",
+        "availableFrom",
+        "availableTo",
+        "leasePattern",
+        "bestFor",
+        "nearbySite",
+        "shortTerm"
+      ] as const;
+    default:
+      return [] as const;
+  }
+}
+
+function formatMatchValue(
+  field: StructuredFieldDefinition | undefined,
+  value: unknown
+) {
+  if (!field || value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (field.kind === "checkbox") {
+    return value === true ? field.label : null;
+  }
+
+  if (field.kind === "date" && typeof value === "string") {
+    return dateLabel(value);
+  }
+
+  if (typeof value === "string") {
+    return optionLabel(field.options, value) ?? value;
+  }
+
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  return null;
+}
+
+export function getStructuredFilterMatchHints(
+  category: ListingCategory,
+  structuredData?: ListingStructuredData | null,
+  filters?: Record<string, unknown> | null
+) {
+  const parsed = safeParseStructuredData(category, structuredData);
+
+  if (!parsed.success) {
+    return [] as string[];
+  }
+
+  const normalizedFilters = normalizeStructuredFilterValues(category, filters);
+  const definitions = getStructuredFieldDefinitions(category);
+  const relevantKeys = getScheduleRelevantKeys(category);
+  const hints: string[] = [];
+
+  for (const key of relevantKeys) {
+    const filterValue = normalizedFilters[key];
+
+    if (filterValue === undefined) {
+      continue;
+    }
+
+    const listingValue = (parsed.data as Record<string, unknown>)[key];
+
+    if (listingValue !== filterValue) {
+      continue;
+    }
+
+    const field = definitions.find((item) => item.name === key);
+    const label = formatMatchValue(field, listingValue);
+
+    if (label) {
+      hints.push(label);
+    }
+  }
+
+  return hints.slice(0, 2);
+}
+
+export function getStructuredCrossListingMatchHints(
+  category: ListingCategory,
+  sourceStructuredData?: ListingStructuredData | null,
+  targetStructuredData?: ListingStructuredData | null
+) {
+  const source = safeParseStructuredData(category, sourceStructuredData);
+  const target = safeParseStructuredData(category, targetStructuredData);
+
+  if (!source.success || !target.success) {
+    return [] as string[];
+  }
+
+  const definitions = getStructuredFieldDefinitions(category);
+  const relevantKeys = getScheduleRelevantKeys(category);
+  const hints: string[] = [];
+
+  for (const key of relevantKeys) {
+    const sourceValue = (source.data as Record<string, unknown>)[key];
+    const targetValue = (target.data as Record<string, unknown>)[key];
+
+    if (
+      sourceValue === null ||
+      sourceValue === undefined ||
+      sourceValue === "" ||
+      targetValue === null ||
+      targetValue === undefined ||
+      targetValue === "" ||
+      sourceValue !== targetValue
+    ) {
+      continue;
+    }
+
+    const field = definitions.find((item) => item.name === key);
+    const label = formatMatchValue(field, targetValue);
+
+    if (label) {
+      hints.push(label);
+    }
+  }
+
+  return hints.slice(0, 2);
 }

@@ -22,7 +22,10 @@ import {
   getSavedListingIds,
 } from "@/lib/data";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
-import { getStructuredDetailItems } from "@/lib/listing-structured-fields";
+import {
+  getStructuredCrossListingMatchHints,
+  getStructuredDetailItems
+} from "@/lib/listing-structured-fields";
 import {
   canViewerRateSeller,
   getSellerTrustSummary,
@@ -453,6 +456,11 @@ export default async function ListingPage({
                   isSaved={savedIds.has(relatedListing.id)}
                   canSave
                   pathToRevalidate={`/listings/${listing.slug}`}
+                  matchHints={getStructuredCrossListingMatchHints(
+                    listing.category,
+                    listing.structured_data,
+                    relatedListing.structured_data
+                  )}
                   trustSummary={relatedTrustMap.get(relatedListing.owner_id)}
                 />
               ))}
