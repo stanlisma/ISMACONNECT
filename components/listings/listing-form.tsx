@@ -13,7 +13,11 @@ import {
 import { useMemo, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
-import { LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS } from "@/lib/constants";
+import {
+  DEFAULT_MARKETPLACE_CATEGORY,
+  LISTING_INTENT_LABELS,
+  REQUEST_WINDOW_LABELS
+} from "@/lib/constants";
 import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import type { ListingIntent, ListingStructuredData, RequestWindow } from "@/types/database";
@@ -208,9 +212,9 @@ export function ListingForm({
 }: ListingFormProps) {
   const [listingIntent, setListingIntent] = useState<ListingIntent>(defaults?.listingIntent ?? "offer");
   const [requestWindow, setRequestWindow] = useState<RequestWindow | "">(defaults?.requestWindow ?? "");
-  const [category, setCategory] = useState(defaults?.category ?? "buy-sell");
+  const [category, setCategory] = useState(defaults?.category ?? DEFAULT_MARKETPLACE_CATEGORY);
   const [subcategory, setSubcategory] = useState(
-    normalizeSubcategory(defaults?.category ?? "buy-sell", defaults?.subcategory) ?? ""
+    normalizeSubcategory(defaults?.category ?? DEFAULT_MARKETPLACE_CATEGORY, defaults?.subcategory) ?? ""
   );
   const [description, setDescription] = useState(defaults?.description ?? "");
   const [imageUrls, setImageUrls] = useState<string[]>(
