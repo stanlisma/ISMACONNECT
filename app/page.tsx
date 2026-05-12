@@ -67,15 +67,6 @@ export default async function HomePage() {
           <Link href="/categories/jobs" className="home-mobile-category-pill">Jobs</Link>
         </div>
 
-        <div className="home-mobile-support-row">
-          <Link href="/dashboard/listings/new?intent=need" className="home-mobile-support-link">Post a need</Link>
-          <Link href="/categories/buy-sell" className="home-mobile-support-link">Buy &amp; Sell</Link>
-        </div>
-
-        <p className="home-support-note">
-          Post what you need and let local drivers, landlords, or providers reply to you.
-        </p>
-
         <div className="home-camp-focus">
           <div className="home-camp-focus-copy">
             <span className="eyebrow">Camp Transport</span>
@@ -131,18 +122,6 @@ export default async function HomePage() {
             </Link>
           )}
 
-          <div className="home-secondary-link-row">
-            <Link href="/dashboard/listings/new?intent=need" className="home-secondary-link">
-              Post a need
-            </Link>
-            <Link href="/categories/buy-sell" className="home-secondary-link">
-              Browse Buy &amp; Sell
-            </Link>
-          </div>
-
-          <p className="home-support-note">
-            Post what you need and let local drivers, landlords, or providers reply to you.
-          </p>
         </div>
 
         <div style={pillWrapStyle}>
