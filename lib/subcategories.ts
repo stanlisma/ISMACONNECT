@@ -44,6 +44,7 @@ export const SUBCATEGORY_MAP: Record<SubcategoryCategory, SubcategoryItem[]> = {
     { value: "beauty-wellness", label: "Beauty & Wellness" },
     { value: "lessons-tutoring", label: "Lessons & Tutoring" },
     { value: "business-services", label: "Business Services" },
+    { value: "childcare-family-care", label: "Childcare & Family Care" },
     { value: "senior-care", label: "Senior Care" },
     { value: "other-services", label: "Other Services" }
   ],
@@ -88,7 +89,10 @@ const LEGACY_SUBCATEGORY_MAP: Record<SubcategoryCategory, Record<string, string>
     moving: "moving-hauling",
     "repairs-handyman": "home-services",
     tutoring: "lessons-tutoring",
-    "beauty-personal-care": "beauty-wellness"
+    "beauty-personal-care": "beauty-wellness",
+    childcare: "childcare-family-care",
+    babysitting: "childcare-family-care",
+    "family-care": "childcare-family-care"
   },
   "buy-sell": {
     appliances: "home",

@@ -47,7 +47,7 @@ export const CATEGORIES: Array<{
   {
     value: "services",
     label: "Services",
-    description: "Trusted local help for trades, cleaning, moving, tutoring, beauty, and business services.",
+    description: "Trusted local help for trades, cleaning, moving, childcare, senior care, tutoring, beauty, and business services.",
     href: "/categories/services",
     seoTitle: "Fort McMurray services"
   },

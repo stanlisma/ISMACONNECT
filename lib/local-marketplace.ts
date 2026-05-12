@@ -312,16 +312,17 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
   services: {
     heroTitle: "Find trusted Fort McMurray services without scrolling generic directories",
     heroDescription:
-      "Browse cleaning, repairs, moving help, senior care, tutoring, and more from local service providers and businesses.",
+      "Browse cleaning, repairs, moving help, childcare, senior care, tutoring, and more from local service providers and businesses.",
     supportingCopy:
       "Service listings work best when they feel local and credible, especially for repeat or in-home jobs. ISMACONNECT pairs those listings with seller trust and business storefronts.",
     localHighlights: [
-      "Designed for repeat local services like cleaning, repairs, and senior care.",
+      "Designed for repeat local services like cleaning, repairs, childcare, and senior care.",
       "Business storefronts and trust badges help people decide who to contact first.",
       "Subcategories stay focused on the services locals actually search for."
     ],
     quickLinks: [
       { label: "Cleaning services", href: "/categories/services?subcategory=cleaning" },
+      { label: "Childcare & family care", href: "/categories/services?subcategory=childcare-family-care" },
       { label: "Senior care", href: "/categories/services?subcategory=senior-care" },
       { label: "Automotive services", href: "/categories/services?subcategory=automotive-services" },
       { label: "Lessons & tutoring", href: "/categories/services?subcategory=lessons-tutoring" }
