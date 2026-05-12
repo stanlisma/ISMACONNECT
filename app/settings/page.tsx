@@ -164,7 +164,7 @@ export default async function SettingsPage({
         <div className="surface settings-section-card" id="verification">
           <h2 style={{ marginBottom: "0.6rem" }}>Trust & Verification</h2>
           <p className="section-copy settings-support-copy">
-            Verified sellers and strong ratings appear as trust badges across listing cards and detail pages.
+            ID-verified sellers and strong ratings appear as trust badges across listing cards and detail pages.
           </p>
 
           <TrustBadges summary={trustSummary} />

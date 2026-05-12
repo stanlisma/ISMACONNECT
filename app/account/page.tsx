@@ -131,7 +131,7 @@ export default async function AccountPage() {
                           viewer.profile.verification_status === "pending"
                         ? "Stripe is processing your seller verification."
                         : viewer.profile.verification_status === "verified"
-                          ? "Your listings show a verified seller badge."
+                          ? "Your listings show an ID-verified badge."
                           : viewer.profile.stripe_identity_session_status === "requires_input"
                             ? "Stripe needs one more verification attempt before your badge can be approved."
                             : "Start Stripe ID verification and collect ratings to build trust faster."}

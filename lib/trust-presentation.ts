@@ -66,7 +66,7 @@ export function getSellerTrustSummaryCopy(summary?: SellerTrustSummary | null) {
   }
 
   if (summary.verification_status === "verified") {
-    return "Your listings show a verified seller badge.";
+    return "Your listings show an ID-verified badge.";
   }
 
   return "No public rating yet.";

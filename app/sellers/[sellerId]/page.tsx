@@ -138,7 +138,7 @@ export default async function SellerStorefrontPage({
                 {storefront.is_business && trustSummary?.verification_status === "verified" ? (
                   <div className="seller-storefront-business-badge">
                     <Building2 aria-hidden="true" size={16} strokeWidth={2.1} />
-                    <span>Verified business storefront</span>
+                    <span>ID-verified business storefront</span>
                   </div>
                 ) : null}
 
@@ -289,7 +289,7 @@ export default async function SellerStorefrontPage({
 
           <p className="section-copy seller-storefront-trust-note">
             {getSellerReviewSummary(trustSummary)}
-            {trustSummary?.verification_status === "verified" ? " Verified badge active." : ""}
+            {trustSummary?.verification_status === "verified" ? " ID verification active." : ""}
           </p>
 
           {filteredListings.length ? (
