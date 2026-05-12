@@ -7478,13 +7478,11 @@ code {
   }
 
   .home-support-note {
-    font-size: 0.86rem;
+    display: none;
   }
 
   .home-camp-focus {
-    margin-top: 0.85rem;
-    padding: 0.95rem;
-    border-radius: 16px;
+    display: none;
   }
 
   .home-camp-focus-copy h2 {
@@ -7507,9 +7505,7 @@ code {
   }
 
   .home-activity-strip {
-    margin: 0.8rem 0.75rem 0.95rem;
-    padding: 1rem;
-    border-radius: 20px;
+    display: none;
   }
 
   .home-activity-copy h2 {
