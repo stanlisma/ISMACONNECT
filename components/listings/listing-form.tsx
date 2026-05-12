@@ -125,6 +125,38 @@ function getListingIntentTitle(listingIntent: ListingIntent) {
   return listingIntent === "need" ? "Post what you need" : "Create listing";
 }
 
+function getTitlePlaceholder(category: string, listingIntent: ListingIntent) {
+  if (listingIntent === "need") {
+    switch (category) {
+      case "ride-share":
+        return "Need a ride to site tomorrow at 5 AM";
+      case "rentals":
+        return "Need a room in Timberlea starting June 1";
+      case "jobs":
+        return "Looking for Class 1 driver shifts in Fort McMurray";
+      case "services":
+        return "Need move-out cleaning this weekend";
+      case "buy-sell":
+      default:
+        return "Looking for an iPhone 14 in Fort McMurray";
+    }
+  }
+
+  switch (category) {
+    case "ride-share":
+      return "Daily rides to Horizon from Thickwood";
+    case "rentals":
+      return "Furnished room in Timberlea, available June 1";
+    case "jobs":
+      return "Hiring Class 1 driver for 14/7 camp shift";
+    case "services":
+      return "Move-out cleaning available across Fort McMurray";
+    case "buy-sell":
+    default:
+      return "iPhone 14 Pro, unlocked and clean";
+  }
+}
+
 function getDescriptionHint(listingIntent: ListingIntent) {
   return listingIntent === "need"
     ? "Explain what you need, when you need it, and any details responders should know."
@@ -284,6 +316,10 @@ export function ListingForm({
   const locationPlaceholder = useMemo(() => getLocationPlaceholder(category), [category]);
   const locationHint = useMemo(() => getLocationHint(category), [category]);
   const titleText = useMemo(() => getListingIntentTitle(listingIntent), [listingIntent]);
+  const titlePlaceholder = useMemo(
+    () => getTitlePlaceholder(category, listingIntent),
+    [category, listingIntent]
+  );
   const descriptionHint = useMemo(() => getDescriptionHint(listingIntent), [listingIntent]);
   const contactHint = useMemo(() => getContactHint(listingIntent), [listingIntent]);
   const photoPanelCopy = useMemo(() => getPhotoPanelCopy(listingIntent), [listingIntent]);
@@ -539,7 +575,7 @@ export function ListingForm({
               className="input"
               name="title"
               defaultValue={defaults?.title ?? ""}
-              placeholder={listingIntent === "need" ? "Need a ride to site tomorrow at 5 AM" : ""}
+              placeholder={titlePlaceholder}
               required
             />
           </label>
@@ -561,11 +597,15 @@ export function ListingForm({
             <span className="field-hint">{priceTypeHint}</span>
           </label>
 
-          <label className="field">
+          <label className="field listing-price-amount-field">
             <span className="field-label">{listingIntent === "need" ? "Budget amount" : "Price amount"}</span>
             <input
-              className="input"
+              className="input listing-price-amount-input"
               name="price"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
               defaultValue={defaults?.price ?? ""}
               placeholder={priceType === "contact" ? "Optional when using Contact for price" : "Enter amount"}
               disabled={priceType === "contact"}
