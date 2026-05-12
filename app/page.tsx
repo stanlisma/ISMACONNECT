@@ -60,13 +60,6 @@ export default async function HomePage() {
           </button>
         </form>
 
-        <div className="home-mobile-category-row">
-          <Link href="/categories/ride-share" className="home-mobile-category-pill">Ride Share</Link>
-          <Link href="/categories/services" className="home-mobile-category-pill">Services</Link>
-          <Link href="/categories/rentals" className="home-mobile-category-pill">Rentals</Link>
-          <Link href="/categories/jobs" className="home-mobile-category-pill">Jobs</Link>
-        </div>
-
         <div className="home-camp-focus">
           <div className="home-camp-focus-copy">
             <span className="eyebrow">Camp Transport</span>
@@ -122,13 +115,6 @@ export default async function HomePage() {
             </Link>
           )}
 
-        </div>
-
-        <div style={pillWrapStyle}>
-          <Link href="/categories/ride-share" style={pillStyle}>Ride Share</Link>
-          <Link href="/categories/services" style={pillStyle}>Services</Link>
-          <Link href="/categories/rentals" style={pillStyle}>Rentals</Link>
-          <Link href="/categories/jobs" style={pillStyle}>Jobs</Link>
         </div>
 
         <div className="home-camp-focus">
@@ -345,23 +331,6 @@ const secondaryButtonStyle = {
   color: "#0a2540",
   textDecoration: "none",
   fontWeight: 800,
-};
-
-const pillWrapStyle = {
-  marginTop: "18px",
-  display: "flex",
-  justifyContent: "center",
-  gap: "10px",
-  flexWrap: "wrap" as const,
-};
-
-const pillStyle = {
-  border: "1px solid #c7d7f5",
-  borderRadius: "999px",
-  padding: "10px 16px",
-  color: "#0a2540",
-  textDecoration: "none",
-  fontWeight: 700,
 };
 
 const categoriesSectionStyle = {
