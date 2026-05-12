@@ -22,12 +22,7 @@ export default async function SavedPage({
         <div className="container listing-feed-container">
           <div className="surface saved-page-overview">
             <div className="saved-page-copy">
-              <span className="eyebrow">Favourites</span>
               <h1>Saved listings</h1>
-              <p className="section-copy">
-                Keep the best rentals, rides, jobs, services, and deals in one place so you can come back fast on
-                your phone.
-              </p>
             </div>
 
             <div className="saved-page-actions">
@@ -62,26 +57,7 @@ export default async function SavedPage({
       <div className="container listing-feed-container">
         <div className="surface saved-page-overview">
           <div className="saved-page-copy">
-            <span className="eyebrow">Favourites</span>
             <h1>Saved listings</h1>
-            <p className="section-copy">
-              Everything you bookmarked, ready to revisit without digging through search again.
-            </p>
-          </div>
-
-          <div className="saved-page-stats">
-            <div className="saved-page-stat">
-              <span>Saved</span>
-              <strong>{filteredListings.length}</strong>
-            </div>
-            <div className="saved-page-stat">
-              <span>Categories</span>
-              <strong>{categoryCounts.length}</strong>
-            </div>
-            <div className="saved-page-stat">
-              <span>Filter</span>
-              <strong>{categoryFilter ? CATEGORY_MAP[categoryFilter].label : "All"}</strong>
-            </div>
           </div>
         </div>
 
