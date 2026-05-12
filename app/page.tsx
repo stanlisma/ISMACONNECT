@@ -11,12 +11,16 @@ import { getSellerTrustSummaryMap } from "@/lib/trust";
 const POPULAR_QUERIES = [
   { label: "Timberlea rentals", href: "/browse?category=rentals&q=timberlea" },
   { label: "Camp rides", href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map" },
-  { label: "Camp jobs", href: "/browse?category=jobs&q=camp" },
+  { label: "Airport rides", href: "/browse?category=ride-share&subcategory=airport-ride&view=map" },
   { label: "Move-out cleaners", href: "/browse?category=services&q=move-out+cleaning" },
   { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
 ];
 
 const CAMP_TRANSPORT_LINKS = [
+  {
+    label: "Browse camp rides",
+    href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map"
+  },
   {
     label: "14 on / 7 off rides",
     href: "/browse?category=ride-share&schedulePattern=14-on-7-off&view=map"
@@ -24,19 +28,27 @@ const CAMP_TRANSPORT_LINKS = [
   {
     label: "Horizon pickups",
     href: "/browse?category=ride-share&siteCamp=cnrl-horizon&view=map"
-  },
-  {
-    label: "Post a ride need",
-    href: "/dashboard/listings/new?intent=need&category=ride-share"
   }
 ];
+
+const HOMEPAGE_FRESH_DAYS = 14;
+
+function isFreshHomepageListing(createdAt: string) {
+  const listingDate = new Date(createdAt);
+  const freshnessCutoff = new Date();
+  freshnessCutoff.setDate(freshnessCutoff.getDate() - HOMEPAGE_FRESH_DAYS);
+
+  return listingDate >= freshnessCutoff;
+}
 
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
   const activitySnapshot = await getSoftLaunchSnapshot();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
-  const visibleListings = latestListings.slice(0, 8);
+  const freshListings = latestListings.filter((listing) => isFreshHomepageListing(listing.created_at));
+  const hasFreshListings = freshListings.length > 0;
+  const visibleListings = (hasFreshListings ? freshListings : latestListings).slice(0, 8);
   const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
@@ -48,7 +60,7 @@ export default async function HomePage() {
       <section className="home-mobile-hero surface">
         <div className="home-mobile-hero-copy">
           <span className="eyebrow">Fort McMurray</span>
-          <h1>Rides, rentals, services, and jobs for Fort McMurray</h1>
+          <h1>Camp rides, rentals, services, and jobs for Fort McMurray</h1>
         </div>
 
         <form action="/browse" className="home-mobile-search-form">
@@ -64,7 +76,7 @@ export default async function HomePage() {
           <div className="home-camp-focus-copy">
             <span className="eyebrow">Camp Transport</span>
             <h2>Find site rides by route and rotation</h2>
-            <p>Browse camp transport by schedule, pickup window, and site instead of digging through Facebook threads.</p>
+            <p>Filter by site, shift pattern, and pickup window instead of digging through Facebook threads.</p>
           </div>
 
           <div className="home-camp-link-row">
@@ -89,7 +101,7 @@ export default async function HomePage() {
         <span style={badgeStyle}>FORT MCMURRAY FIRST</span>
 
         <h1 style={titleStyle}>
-          Find rides, rentals, services, and local work without chasing Facebook threads.
+          Find camp rides, rentals, services, and local work without chasing Facebook threads.
         </h1>
 
         <p style={subtitleStyle}>
@@ -105,7 +117,7 @@ export default async function HomePage() {
             />
 
             <button type="submit" style={primaryButtonStyle}>
-              Explore local activity
+              Search local listings
             </button>
           </form>
 
@@ -120,8 +132,8 @@ export default async function HomePage() {
         <div className="home-camp-focus">
           <div className="home-camp-focus-copy">
             <span className="eyebrow">Camp Transport</span>
-            <h2>Find site rides by route and rotation</h2>
-            <p>ISMACONNECT is built for camp transport. Filter by schedule, pickup window, and site before you message.</p>
+            <h2>Camp rides by site, route, and rotation</h2>
+            <p>Browse worker transport by site, shift pattern, and pickup window before you message.</p>
           </div>
 
           <div className="home-camp-link-row">
@@ -195,7 +207,7 @@ export default async function HomePage() {
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
           <div className="home-section-head">
-            <h2>Fresh local activity</h2>
+            <h2>{hasFreshListings ? "Fresh local activity" : "Latest local posts"}</h2>
             <Link href="/browse" className="home-section-link">
               See all
             </Link>
