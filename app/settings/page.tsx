@@ -94,9 +94,6 @@ export default async function SettingsPage({
         <div className="surface settings-overview-card">
           <div className="settings-overview-head">
             <h1 className="section-title">Settings</h1>
-            <p className="section-copy">
-              Keep notifications, business details, and seller verification easy to manage on your phone.
-            </p>
           </div>
 
           <div className="pill-row settings-jump-row">

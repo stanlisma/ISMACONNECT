@@ -129,38 +129,12 @@ export default async function NotificationsPage() {
   }
 
   const notificationItems = (notifications ?? []) as NotificationRecord[];
-  const totalItems = notificationItems.length + savedSearchAlerts.length;
-  const messageCount = notificationItems.filter((notification) => notification.type === "message").length;
-  const accountUpdateCount = notificationItems.filter(
-    (notification) => notification.type && notification.type !== "message"
-  ).length;
-
   return (
     <section className="section notifications-page">
       <div className="container notifications-page-container">
         <div className="notifications-hero surface">
           <div className="notifications-hero-copy">
-            <span className="eyebrow">Notification center</span>
             <h1 className="section-title">Notifications</h1>
-          </div>
-
-          <div className="notifications-summary-grid">
-            <div className="notifications-summary-card">
-              <span>Total updates</span>
-              <strong>{totalItems}</strong>
-            </div>
-            <div className="notifications-summary-card">
-              <span>Saved search matches</span>
-              <strong>{savedSearchAlerts.length}</strong>
-            </div>
-            <div className="notifications-summary-card">
-              <span>Message replies</span>
-              <strong>{messageCount}</strong>
-            </div>
-            <div className="notifications-summary-card">
-              <span>Account activity</span>
-              <strong>{accountUpdateCount}</strong>
-            </div>
           </div>
         </div>
 

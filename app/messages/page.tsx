@@ -120,27 +120,12 @@ export default async function MessagesPage({
       .includes(normalizedQuery);
   });
 
-  const totalUnreadCount = conversationEntries.reduce(
-    (total, conversation) => total + (conversation.unreadCount ?? 0),
-    0
-  );
-
-  const latestConversationAt = conversationEntries[0]?.last_message_at
-    ? new Intl.DateTimeFormat("en-CA", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
-      }).format(new Date(conversationEntries[0].last_message_at))
-    : "No activity yet";
-
   return (
     <section className="section">
       <div className="container messages-page-container">
         <div className="surface messages-overview-card">
           <div className="messages-overview-head">
             <div className="messages-overview-copy">
-              <span className="eyebrow">Inbox</span>
               <h1 className="section-title">Messages</h1>
             </div>
 
@@ -169,25 +154,6 @@ export default async function MessagesPage({
             </form>
           </div>
 
-          <div className="messages-stats-grid">
-            <div className="stat-card messages-stat-card">
-              <span>Total conversations</span>
-              <strong>{conversationEntries.length}</strong>
-            </div>
-            <div className="stat-card messages-stat-card">
-              <span>Unread messages</span>
-              <strong>{totalUnreadCount}</strong>
-            </div>
-            <div className="stat-card messages-stat-card is-secondary">
-              <span>Filtered results</span>
-              <strong>{filteredConversations.length}</strong>
-            </div>
-            <div className="stat-card messages-stat-card is-secondary">
-              <span>Latest activity</span>
-              <strong className="messages-stat-meta">{latestConversationAt}</strong>
-            </div>
-          </div>
-
           <div className="pill-row messages-filter-pills">
             <Link
               className={`account-menu-pill ${activeFilter === "all" ? "is-active" : ""}`}
@@ -206,12 +172,6 @@ export default async function MessagesPage({
 
         <div className="surface messages-shell">
           <div className="messages-list-pane">
-            <div className="messages-list-head">
-              <div>
-                <h2>Conversation list</h2>
-              </div>
-            </div>
-
             <div className="messages-list">
               {filteredConversations.length ? (
                 filteredConversations.map((conversation) => (

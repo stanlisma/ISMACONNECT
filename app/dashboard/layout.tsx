@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { requireViewer } from "@/lib/auth";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -9,36 +9,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <section className="dashboard-shell">
       <div className="container">
-        <div className="dashboard-header">
-          <span className="eyebrow">My Listings</span>
-          <h1>Manage your marketplace presence</h1>
-          <p className="section-copy">
-            Signed in as <strong>{viewer.profile.full_name}</strong>. Create listings, edit existing posts,
-            and keep your public information current.
-          </p>
-          <div className="dashboard-nav">
-            <Link className="button button-secondary" href="/dashboard">
-              Overview
-            </Link>
-            <Link className="button button-secondary" href="/saved">
-              Favourites
-            </Link>
-            <Link className="button button-secondary" href="/dashboard/searches">
-              Saved searches
-            </Link>
-            <Link className="button button-secondary" href="/dashboard/boosts">
-              Boost products
-            </Link>
-            <Link className="button" href="/dashboard/listings/new">
-              New listing
-            </Link>
-            {viewer.profile.role === "admin" ? (
-              <Link className="button button-ghost" href="/admin/moderation">
-                Review flags
-              </Link>
-            ) : null}
-          </div>
-        </div>
+        <DashboardHeader fullName={viewer.profile.full_name} isAdmin={viewer.profile.role === "admin"} />
 
         {children}
       </div>
