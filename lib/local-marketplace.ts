@@ -55,11 +55,25 @@ type PublicLocationListing = Pick<
 export const FORT_MCMURRAY_AREA_OPTIONS: Array<LocalMarketplaceAreaOption<FortMcMurrayArea>> = [
   { value: "downtown", label: "Downtown" },
   { value: "thickwood", label: "Thickwood" },
+  { value: "dickinsfield", label: "Dickinsfield" },
   { value: "timberlea", label: "Timberlea" },
+  { value: "eagle-ridge", label: "Eagle Ridge" },
+  { value: "stonecreek", label: "Stonecreek" },
+  { value: "parsons-creek", label: "Parsons North / Parsons Creek" },
+  { value: "taiganova", label: "TaigaNova" },
+  { value: "wood-buffalo", label: "Wood Buffalo" },
+  { value: "abasand", label: "Abasand" },
+  { value: "beacon-hill", label: "Beacon Hill" },
+  { value: "grayling-terrace", label: "Grayling Terrace" },
+  { value: "waterways", label: "Waterways" },
+  { value: "prairie-creek", label: "Prairie Creek" },
   { value: "gregoire", label: "Gregoire" },
   { value: "airport", label: "Airport" },
-  { value: "abasand", label: "Abasand" },
-  { value: "eagle-ridge", label: "Eagle Ridge" }
+  { value: "draper", label: "Draper" },
+  { value: "saprae-creek-estates", label: "Saprae Creek Estates" },
+  { value: "anzac", label: "Anzac" },
+  { value: "fort-mckay", label: "Fort McKay" },
+  { value: "gregoire-lake-estates", label: "Gregoire Lake Estates" }
 ];
 
 export const RIDE_SHARE_AREA_OPTIONS: Array<LocalMarketplaceAreaOption<RideShareArea>> = [
@@ -76,7 +90,7 @@ const FORT_MCMURRAY_CITY_DEFINITION: LocalAreaDefinition = {
   y: 40,
   lat: 56.7269,
   lng: -111.3806,
-  aliases: ["fort mcmurray", "fortmac", "ymm", "wood buffalo"]
+  aliases: ["fort mcmurray", "fortmac", "ymm"]
 };
 
 const SITE_CAMP_AREA_DEFINITION: LocalAreaDefinition = {
@@ -106,7 +120,16 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     y: 28,
     lat: 56.7468,
     lng: -111.4125,
-    aliases: ["thickwood", "thickwood heights"]
+    aliases: ["thickwood", "thickwood heights", "furber", "signal road", "silin forest road"]
+  },
+  dickinsfield: {
+    value: "dickinsfield",
+    label: "Dickinsfield",
+    x: 44,
+    y: 30,
+    lat: 56.7422,
+    lng: -111.4236,
+    aliases: ["dickinsfield", "dickensfield"]
   },
   timberlea: {
     value: "timberlea",
@@ -115,7 +138,52 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     y: 16,
     lat: 56.7582,
     lng: -111.4321,
-    aliases: ["timberlea", "parsons creek"]
+    aliases: ["timberlea", "timber line drive", "timberline", "blanchett road"]
+  },
+  "eagle-ridge": {
+    value: "eagle-ridge",
+    label: "Eagle Ridge",
+    x: 40,
+    y: 18,
+    lat: 56.7514,
+    lng: -111.4039,
+    aliases: ["eagle ridge", "eagleridge", "powder drive", "confederation way", "eagle ridge boulevard"]
+  },
+  stonecreek: {
+    value: "stonecreek",
+    label: "Stonecreek",
+    x: 48,
+    y: 22,
+    lat: 56.7519,
+    lng: -111.3928,
+    aliases: ["stonecreek", "stone creek"]
+  },
+  "parsons-creek": {
+    value: "parsons-creek",
+    label: "Parsons North / Parsons Creek",
+    x: 32,
+    y: 10,
+    lat: 56.7704,
+    lng: -111.4096,
+    aliases: ["parsons creek", "parsons north", "parsons"]
+  },
+  taiganova: {
+    value: "taiganova",
+    label: "TaigaNova",
+    x: 44,
+    y: 8,
+    lat: 56.7775,
+    lng: -111.3934,
+    aliases: ["taiganova", "taiga nova"]
+  },
+  "wood-buffalo": {
+    value: "wood-buffalo",
+    label: "Wood Buffalo",
+    x: 22,
+    y: 36,
+    lat: 56.7269,
+    lng: -111.4388,
+    aliases: ["wood buffalo", "woodbuffalo", "wood buffalo estates"]
   },
   gregoire: {
     value: "gregoire",
@@ -133,7 +201,7 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     y: 30,
     lat: 56.6546,
     lng: -111.2218,
-    aliases: ["airport", "ymm"]
+    aliases: ["airport", "ymm", "fort mcmurray airport"]
   },
   abasand: {
     value: "abasand",
@@ -144,14 +212,86 @@ const FORT_MCMURRAY_AREA_DEFINITIONS: Record<FortMcMurrayArea, LocalAreaDefiniti
     lng: -111.4011,
     aliases: ["abasand"]
   },
-  "eagle-ridge": {
-    value: "eagle-ridge",
-    label: "Eagle Ridge",
-    x: 40,
-    y: 18,
-    lat: 56.7514,
-    lng: -111.4039,
-    aliases: ["eagle ridge", "eagleridge"]
+  "beacon-hill": {
+    value: "beacon-hill",
+    label: "Beacon Hill",
+    x: 57,
+    y: 62,
+    lat: 56.6896,
+    lng: -111.3923,
+    aliases: ["beacon hill", "beaconhill"]
+  },
+  "grayling-terrace": {
+    value: "grayling-terrace",
+    label: "Grayling Terrace",
+    x: 64,
+    y: 40,
+    lat: 56.7238,
+    lng: -111.3654,
+    aliases: ["grayling terrace", "grayling"]
+  },
+  waterways: {
+    value: "waterways",
+    label: "Waterways",
+    x: 67,
+    y: 28,
+    lat: 56.7385,
+    lng: -111.3472,
+    aliases: ["waterways", "water ways"]
+  },
+  "prairie-creek": {
+    value: "prairie-creek",
+    label: "Prairie Creek",
+    x: 76,
+    y: 48,
+    lat: 56.6753,
+    lng: -111.3051,
+    aliases: ["prairie creek", "quarry ridge"]
+  },
+  draper: {
+    value: "draper",
+    label: "Draper",
+    x: 76,
+    y: 12,
+    lat: 56.7724,
+    lng: -111.2898,
+    aliases: ["draper", "draper road"]
+  },
+  "saprae-creek-estates": {
+    value: "saprae-creek-estates",
+    label: "Saprae Creek Estates",
+    x: 90,
+    y: 58,
+    lat: 56.6409,
+    lng: -111.2718,
+    aliases: ["saprae creek", "saprae creek estates", "saprae"]
+  },
+  anzac: {
+    value: "anzac",
+    label: "Anzac",
+    x: 97,
+    y: 88,
+    lat: 56.4423,
+    lng: -111.0381,
+    aliases: ["anzac"]
+  },
+  "fort-mckay": {
+    value: "fort-mckay",
+    label: "Fort McKay",
+    x: 92,
+    y: 4,
+    lat: 57.1783,
+    lng: -111.6412,
+    aliases: ["fort mckay", "fort mckay first nation", "mckay"]
+  },
+  "gregoire-lake-estates": {
+    value: "gregoire-lake-estates",
+    label: "Gregoire Lake Estates",
+    x: 58,
+    y: 96,
+    lat: 55.9862,
+    lng: -111.4661,
+    aliases: ["gregoire lake estates", "gregoire estates", "gle"]
   }
 };
 
@@ -192,7 +332,7 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       "Renters in Fort McMurray usually care about commute time, parking, furnished setups, and whether a place works for shift schedules. ISMACONNECT highlights those details directly in the listing filters.",
     localHighlights: [
       "Worker-friendly filters for furnished, short-term, and parking-sensitive rentals.",
-      "Neighbourhood-aware browsing for Timberlea, Thickwood, Downtown, Gregoire, and nearby areas.",
+      "Neighbourhood-aware browsing for Timberlea, Thickwood, Downtown, Parsons North, Draper, Anzac, Fort McKay, and nearby areas.",
       "Shorter back-and-forth because listings can surface utilities, parking, and furnished status up front."
     ],
     quickLinks: [
@@ -223,7 +363,7 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       {
         question: "What makes the rental map useful?",
         answer:
-          "The map groups active rentals by area so you can immediately see whether current inventory is concentrated in Timberlea, Thickwood, Downtown, Gregoire, and nearby areas."
+          "The map groups active rentals by area so you can immediately see whether current inventory is concentrated in Timberlea, Thickwood, Downtown, Parsons North, Draper, Gregoire, or nearby communities."
       }
     ]
   },
