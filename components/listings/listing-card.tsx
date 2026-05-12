@@ -131,12 +131,6 @@ export function ListingCard({
     }
   }
 
-  const rawViews = (listing as any).views;
-  const parsedViews =
-    rawViews === null || rawViews === undefined || rawViews === ""
-      ? 0
-      : Number(rawViews);
-  const views = Number.isFinite(parsedViews) && parsedViews > 0 ? parsedViews : 0;
   const publicLocation = getPublicListingLocationLabel(listing);
   const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
   const isNeed = listingIntent === "need";
@@ -347,13 +341,6 @@ export function ListingCard({
           <span className="listing-location">{publicLocation}</span>
           <span style={{ opacity: 0.5 }}>|</span>
           <span>{timeAgo}</span>
-
-          {views > 0 ? (
-            <>
-              <span style={{ opacity: 0.5 }}>|</span>
-              <span>{views > 0 ? `${views} views` : "New"}</span>
-            </>
-          ) : null}
         </div>
       </div>
     </article>

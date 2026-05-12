@@ -330,10 +330,6 @@ export default async function ListingPage({
                 <div className="unlock-box">
                   <p className="unlock-text">{unlockText}</p>
 
-                  <p style={{ fontSize: "0.85rem", color: "#667085" }}>
-                    {(listing as any).views ?? 0} people viewed this listing
-                  </p>
-
                   <Link href="/auth/sign-in" className="button unlock-button">
                     {unlockButton}
                   </Link>
