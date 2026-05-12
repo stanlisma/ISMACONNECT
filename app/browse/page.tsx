@@ -363,27 +363,6 @@ export default async function BrowsePage({
           </p>
         </div>
 
-        <div className="pill-links">
-          <Link className="pill-link" href={buildPathWithQuery("/browse", { intent, requestWindow })}>
-            All listings
-          </Link>
-
-          {CATEGORIES.map((item) => (
-            <Link
-              className="pill-link"
-              href={buildPathWithQuery("/browse", {
-                category: item.value,
-                intent,
-                requestWindow,
-                communityArea
-              })}
-              key={item.value}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-
         {category && subcategoryLinks.length ? (
           <div className="subcategory-link-row">
             <Link
