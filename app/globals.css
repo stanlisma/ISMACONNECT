@@ -6950,6 +6950,14 @@ code {
   grid-column: 1 / -1;
 }
 
+.listing-price-amount-field {
+  align-content: start;
+}
+
+.listing-price-amount-input {
+  max-width: 280px;
+}
+
 .listing-description-input {
   min-height: 170px;
   resize: vertical;
@@ -6985,6 +6993,12 @@ code {
 
   .listing-contact-grid {
     grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .listing-price-amount-input {
+    max-width: 100%;
   }
 }
 
