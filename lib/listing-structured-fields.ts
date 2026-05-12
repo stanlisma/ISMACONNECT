@@ -207,7 +207,7 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
       label: "Area / neighbourhood",
       kind: "select",
       options: [...RENTAL_AREA_OPTIONS],
-      helpText: "Help renters spot where the place sits in Fort McMurray.",
+      helpText: "Help renters spot where the place sits in Fort McMurray or nearby RMWB communities.",
       showInFilters: true
     },
     {

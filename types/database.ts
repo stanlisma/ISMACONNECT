@@ -53,11 +53,25 @@ export type RideShareTimeWindow =
 export type FortMcMurrayArea =
   | "downtown"
   | "thickwood"
+  | "dickinsfield"
   | "timberlea"
+  | "eagle-ridge"
+  | "stonecreek"
+  | "parsons-creek"
+  | "taiganova"
+  | "wood-buffalo"
+  | "abasand"
+  | "beacon-hill"
+  | "grayling-terrace"
+  | "waterways"
+  | "prairie-creek"
   | "gregoire"
   | "airport"
-  | "abasand"
-  | "eagle-ridge";
+  | "draper"
+  | "saprae-creek-estates"
+  | "anzac"
+  | "fort-mckay"
+  | "gregoire-lake-estates";
 export type RideShareArea =
   | FortMcMurrayArea
   | "site-camp"
