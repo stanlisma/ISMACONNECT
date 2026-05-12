@@ -125,36 +125,226 @@ function getListingIntentTitle(listingIntent: ListingIntent) {
   return listingIntent === "need" ? "Post what you need" : "Create listing";
 }
 
-function getTitlePlaceholder(category: string, listingIntent: ListingIntent) {
-  if (listingIntent === "need") {
-    switch (category) {
-      case "ride-share":
-        return "Need a ride to site tomorrow at 5 AM";
-      case "rentals":
-        return "Need a room in Timberlea starting June 1";
-      case "jobs":
-        return "Looking for Class 1 driver shifts in Fort McMurray";
-      case "services":
-        return "Need move-out cleaning this weekend";
-      case "buy-sell":
-      default:
-        return "Looking for an iPhone 14 in Fort McMurray";
+const TITLE_PLACEHOLDER_MAP: Record<
+  string,
+  Partial<Record<string, { offer: string; need: string }>>
+> = {
+  "ride-share": {
+    "daily-commute": {
+      offer: "Daily rides to site from Thickwood",
+      need: "Need a daily ride to site from Timberlea"
+    },
+    "one-time-ride": {
+      offer: "One-time ride to Edmonton this Friday",
+      need: "Need a one-time ride to Edmonton tomorrow"
+    },
+    "airport-ride": {
+      offer: "Airport pickup available from YMM to Thickwood",
+      need: "Need an airport ride from YMM tonight"
+    },
+    "camp-site-transport": {
+      offer: "14/7 rides to Horizon from Fort McMurray",
+      need: "Need a ride to site tomorrow at 5 AM"
+    },
+    "long-distance-ride": {
+      offer: "Fort McMurray to Calgary ride this weekend",
+      need: "Need a long-distance ride to Edmonton on Tuesday"
+    },
+    "delivery-item-transport": {
+      offer: "Pickup truck available for small item delivery",
+      need: "Need item delivery from Timberlea to Downtown"
+    }
+  },
+  rentals: {
+    apartments: {
+      offer: "1-bedroom apartment in Downtown, available June 1",
+      need: "Need an apartment in Thickwood starting June 1"
+    },
+    houses: {
+      offer: "3-bedroom house with garage in Timberlea",
+      need: "Need a house rental for a small family in Fort McMurray"
+    },
+    "rooms-shared": {
+      offer: "Furnished room in Timberlea with parking",
+      need: "Need a furnished room near site pickup routes"
+    },
+    "basement-suites": {
+      offer: "Quiet basement suite in Thickwood, utilities included",
+      need: "Need a basement suite in Fort McMurray for June"
+    },
+    "short-term-rentals": {
+      offer: "Short-term rental for FIFO workers in Timberlea",
+      need: "Need a short-term rental for my next rotation"
+    },
+    "parking-storage": {
+      offer: "Truck parking available in Thickwood",
+      need: "Need secure parking for a work truck"
+    },
+    "commercial-space": {
+      offer: "Commercial bay space available in Fort McMurray",
+      need: "Need small commercial space for equipment storage"
+    }
+  },
+  jobs: {
+    "construction-trades": {
+      offer: "Hiring carpenter for local project in Fort McMurray",
+      need: "Looking for construction or trade shifts in Fort McMurray"
+    },
+    "oilfield-camp-site": {
+      offer: "Hiring labourers for 14/7 camp shift",
+      need: "Looking for camp or site work starting next week"
+    },
+    "general-labour": {
+      offer: "General labour help needed for weekend move",
+      need: "Looking for general labour work this week"
+    },
+    "driving-delivery": {
+      offer: "Hiring Class 1 driver for regional route",
+      need: "Looking for Class 1 driver shifts in Fort McMurray"
+    },
+    hospitality: {
+      offer: "Hiring line cook for busy Fort McMurray kitchen",
+      need: "Looking for hospitality work in Fort McMurray"
+    },
+    healthcare: {
+      offer: "Hiring health care aide for local support role",
+      need: "Looking for healthcare shifts in Fort McMurray"
+    },
+    "admin-office": {
+      offer: "Office administrator needed for local business",
+      need: "Looking for admin or office work in Fort McMurray"
+    },
+    "other-jobs": {
+      offer: "Hiring part-time help for local operations",
+      need: "Looking for local work in Fort McMurray"
+    }
+  },
+  services: {
+    "skilled-trades": {
+      offer: "Licensed electrician available for home repairs",
+      need: "Need a plumber for a kitchen leak this week"
+    },
+    cleaning: {
+      offer: "Move-out cleaning available across Fort McMurray",
+      need: "Need move-out cleaning this weekend"
+    },
+    "home-services": {
+      offer: "Handyman available for small home repairs",
+      need: "Need help with drywall patching in Timberlea"
+    },
+    "moving-hauling": {
+      offer: "Moving and dump runs available in Fort McMurray",
+      need: "Need a dump run for old furniture this Saturday"
+    },
+    "automotive-services": {
+      offer: "Mobile brake service available in Fort McMurray",
+      need: "Need help replacing brakes on my truck"
+    },
+    "beauty-wellness": {
+      offer: "Certified lash technician in Fort McMurray",
+      need: "Need a local makeup artist for this weekend"
+    },
+    "lessons-tutoring": {
+      offer: "Math tutoring available for high school students",
+      need: "Need an English tutor for my teenager"
+    },
+    "business-services": {
+      offer: "Bookkeeping and payroll support for local businesses",
+      need: "Need bookkeeping help for my small business"
+    },
+    "childcare-family-care": {
+      offer: "Babysitting available evenings and weekends",
+      need: "Need childcare help after school this week"
+    },
+    "senior-care": {
+      offer: "Companion care available for seniors in Fort McMurray",
+      need: "Need senior care support for weekday mornings"
+    },
+    "other-services": {
+      offer: "Local service help available across Fort McMurray",
+      need: "Need reliable local help in Fort McMurray"
+    }
+  },
+  "buy-sell": {
+    furniture: {
+      offer: "Solid wood dining table with 6 chairs",
+      need: "Looking for a sectional couch in Fort McMurray"
+    },
+    electronics: {
+      offer: "55-inch Samsung TV in great condition",
+      need: "Looking for a PS5 in Fort McMurray"
+    },
+    phones: {
+      offer: "iPhone 14 Pro, unlocked and clean",
+      need: "Looking for an iPhone 14 in Fort McMurray"
+    },
+    computers: {
+      offer: "Gaming laptop with RTX graphics card",
+      need: "Looking for a used MacBook for work"
+    },
+    home: {
+      offer: "Kitchen island and bar stools for sale",
+      need: "Looking for a patio set in good condition"
+    },
+    "tools-equipment": {
+      offer: "Milwaukee tool set with batteries and charger",
+      need: "Looking for used snowblower or generator"
+    },
+    clothing: {
+      offer: "Men's work jackets and safety gear bundle",
+      need: "Looking for winter workwear in size large"
+    },
+    "baby-kids": {
+      offer: "Stroller and crib set in excellent condition",
+      need: "Looking for baby gate and high chair"
+    },
+    "auto-parts": {
+      offer: "F-150 winter tires on rims, ready to mount",
+      need: "Looking for truck tires for a Dodge Ram"
+    },
+    "sports-outdoors": {
+      offer: "Trek mountain bike, tuned and ready to ride",
+      need: "Looking for camping gear for summer trips"
+    },
+    "free-stuff": {
+      offer: "Free moving boxes, pickup in Thickwood",
+      need: "Looking for free pallets or scrap wood"
+    },
+    wanted: {
+      offer: "Wanted: used trailer in good shape",
+      need: "Looking for a workbench or tool chest"
+    },
+    "other-buy-sell": {
+      offer: "Household bundle available for quick pickup",
+      need: "Looking for a specific item in Fort McMurray"
     }
   }
+};
 
-  switch (category) {
-    case "ride-share":
-      return "Daily rides to Horizon from Thickwood";
-    case "rentals":
-      return "Furnished room in Timberlea, available June 1";
-    case "jobs":
-      return "Hiring Class 1 driver for 14/7 camp shift";
-    case "services":
-      return "Move-out cleaning available across Fort McMurray";
-    case "buy-sell":
-    default:
-      return "iPhone 14 Pro, unlocked and clean";
+function getRandomItem<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function getTitlePlaceholder(category: string, listingIntent: ListingIntent, subcategory?: string) {
+  const categoryMap = TITLE_PLACEHOLDER_MAP[category];
+  const fallback =
+    listingIntent === "need"
+      ? "Post what you need in Fort McMurray"
+      : "Create a clear local listing for Fort McMurray";
+
+  if (!categoryMap) {
+    return fallback;
   }
+
+  if (subcategory && categoryMap[subcategory]) {
+    return categoryMap[subcategory]?.[listingIntent] ?? fallback;
+  }
+
+  const examples = Object.values(categoryMap)
+    .map((item) => item?.[listingIntent])
+    .filter((value): value is string => Boolean(value));
+
+  return examples.length ? getRandomItem(examples) : fallback;
 }
 
 function getDescriptionHint(listingIntent: ListingIntent) {
@@ -317,8 +507,8 @@ export function ListingForm({
   const locationHint = useMemo(() => getLocationHint(category), [category]);
   const titleText = useMemo(() => getListingIntentTitle(listingIntent), [listingIntent]);
   const titlePlaceholder = useMemo(
-    () => getTitlePlaceholder(category, listingIntent),
-    [category, listingIntent]
+    () => getTitlePlaceholder(category, listingIntent, subcategory || undefined),
+    [category, listingIntent, subcategory]
   );
   const descriptionHint = useMemo(() => getDescriptionHint(listingIntent), [listingIntent]);
   const contactHint = useMemo(() => getContactHint(listingIntent), [listingIntent]);
