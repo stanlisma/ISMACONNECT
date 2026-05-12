@@ -376,10 +376,10 @@ export default async function ListingPage({
                 <span>
                   Rating: {getSellerReviewSummary(sellerTrustSummary)}
                 </span>
-                <span>
-                  Verification:{" "}
+                  <span>
+                    Verification:{" "}
                   {sellerTrustSummary?.verification_status === "verified"
-                    ? "Verified seller"
+                    ? "ID verified"
                     : sellerTrustSummary?.verification_status === "pending"
                       ? "Verification pending"
                       : "Not verified yet"}

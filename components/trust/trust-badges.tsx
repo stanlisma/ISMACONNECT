@@ -29,7 +29,7 @@ export function TrustBadges({ summary, compact = false }: TrustBadgesProps) {
       {showVerified ? (
         <span className="trust-badge trust-badge-verified">
           <ShieldCheck aria-hidden="true" size={compact ? 12 : 14} strokeWidth={2.4} />
-          <span>{compact ? "Verified" : "Verified Seller"}</span>
+          <span>{compact ? "ID Verified" : "ID Verified"}</span>
         </span>
       ) : null}
 
