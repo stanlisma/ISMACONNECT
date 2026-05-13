@@ -43,6 +43,8 @@ export function BrowseFilters({
     () => getStructuredFilterDefinitions(activeStructuredCategory as any),
     [activeStructuredCategory]
   );
+  const hasDesktopSecondaryRow =
+    selectedIntent === "need" || subcategories.length > 0 || structuredFilterDefinitions.length > 0;
   const activeFilterLabels = useMemo(() => {
     const labels: string[] = [];
     const appliedCategory = showCategorySelect ? category : null;
@@ -258,7 +260,7 @@ export function BrowseFilters({
       >
         {view ? <input name="view" type="hidden" value={view} /> : null}
         {communityArea ? <input name="communityArea" type="hidden" value={communityArea} /> : null}
-        <div className="browse-filter-primary-grid">
+        <div className={`browse-filter-primary-grid${!hasDesktopSecondaryRow ? " is-compact" : ""}`}>
           <label className="field filter-search browse-filter-search">
             <span className="field-label">Search</span>
             <input
@@ -311,42 +313,6 @@ export function BrowseFilters({
             </select>
           </label>
 
-          {selectedIntent === "need" ? (
-            <label className="field">
-              <span className="field-label">Need timing</span>
-              <select
-                className="select"
-                name="requestWindow"
-                value={selectedRequestWindow}
-                onChange={(event) => setSelectedRequestWindow(event.target.value)}
-              >
-                <option value="">Any timing</option>
-                <option value="today">Today</option>
-                <option value="this-week">This week</option>
-                <option value="flexible">Flexible</option>
-              </select>
-            </label>
-          ) : null}
-
-          {subcategories.length > 0 ? (
-            <label className="field">
-              <span className="field-label">Sub-category</span>
-              <select
-                className="select"
-                name="subcategory"
-                value={selectedSubcategory}
-                onChange={(e) => setSelectedSubcategory(e.target.value)}
-              >
-                <option value="">All subcategories</option>
-                {subcategories.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
           <label className="field">
             <span className="field-label">Sort</span>
             <select className="select" name="sort" defaultValue={sort ?? ""}>
@@ -355,10 +321,81 @@ export function BrowseFilters({
               <option value="price_desc">Price: High to Low</option>
             </select>
           </label>
+
+          {!hasDesktopSecondaryRow ? (
+            <label className="field browse-price-range-field browse-price-range-field-desktop is-compact">
+              <span className="field-label">Price range</span>
+              <div className="browse-price-range-inputs is-compact">
+                <input
+                  className="input"
+                  name="minPrice"
+                  type="number"
+                  defaultValue={minPrice ?? ""}
+                  placeholder="Min $"
+                />
+                <input
+                  className="input"
+                  name="maxPrice"
+                  type="number"
+                  defaultValue={maxPrice ?? ""}
+                  placeholder="Max $"
+                />
+              </div>
+            </label>
+          ) : null}
+
+          {!hasDesktopSecondaryRow ? (
+            <div className="filter-actions browse-filter-actions-inline">
+              <button className="button" type="submit">
+                Apply
+              </button>
+
+              <Link href={clearHref} className="button button-secondary">
+                Clear
+              </Link>
+            </div>
+          ) : null}
         </div>
 
-        <div className="browse-filter-detail-grid" key={activeStructuredCategory}>
-          <label className="field browse-price-range-field browse-price-range-field-desktop">
+        {hasDesktopSecondaryRow ? (
+          <div className="browse-filter-detail-grid" key={activeStructuredCategory}>
+            {selectedIntent === "need" ? (
+              <label className="field">
+                <span className="field-label">Need timing</span>
+                <select
+                  className="select"
+                  name="requestWindow"
+                  value={selectedRequestWindow}
+                  onChange={(event) => setSelectedRequestWindow(event.target.value)}
+                >
+                  <option value="">Any timing</option>
+                  <option value="today">Today</option>
+                  <option value="this-week">This week</option>
+                  <option value="flexible">Flexible</option>
+                </select>
+              </label>
+            ) : null}
+
+            {subcategories.length > 0 ? (
+              <label className="field">
+                <span className="field-label">Sub-category</span>
+                <select
+                  className="select"
+                  name="subcategory"
+                  value={selectedSubcategory}
+                  onChange={(e) => setSelectedSubcategory(e.target.value)}
+                >
+                  <option value="">All subcategories</option>
+                  {subcategories.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+
+            <label className="field browse-price-range-field browse-price-range-field-desktop">
             <span className="field-label">Price range</span>
             <div className="browse-price-range-inputs">
               <input
@@ -378,18 +415,21 @@ export function BrowseFilters({
             </div>
           </label>
 
-          {renderStructuredFilterFields()}
-        </div>
+            {renderStructuredFilterFields()}
+          </div>
+        ) : null}
 
-        <div className="filter-actions browse-filter-actions-bar">
-          <button className="button" type="submit">
-            Apply
-          </button>
+        {hasDesktopSecondaryRow ? (
+          <div className="filter-actions browse-filter-actions-bar">
+            <button className="button" type="submit">
+              Apply
+            </button>
 
-          <Link href={clearHref} className="button button-secondary">
-            Clear
-          </Link>
-        </div>
+            <Link href={clearHref} className="button button-secondary">
+              Clear
+            </Link>
+          </div>
+        ) : null}
       </form>
 
       {/* MOBILE FILTER SHEET */}

@@ -8246,6 +8246,10 @@ code {
   align-items: end;
 }
 
+.browse-filter-primary-grid.is-compact {
+  grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)) minmax(0, 250px) auto;
+}
+
 .browse-filter-detail-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -8272,10 +8276,31 @@ code {
   grid-column: span 2;
 }
 
+.browse-price-range-field-desktop.is-compact {
+  grid-column: span 1;
+}
+
 .browse-price-range-inputs {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.65rem;
+}
+
+.browse-price-range-inputs.is-compact {
+  grid-template-columns: repeat(2, minmax(0, 112px));
+  gap: 0.55rem;
+}
+
+.browse-filter-actions-inline {
+  align-self: end;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  padding: 0;
+  border: 0;
+}
+
+.browse-filter-actions-inline .button {
+  min-width: 104px;
 }
 
 .browse-filter-actions-bar {
