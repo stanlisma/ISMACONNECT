@@ -385,22 +385,6 @@ export default async function CategoryPage({
             : "0 results found"}
         </p>
 
-        <div className="pill-links">
-          <Link className="pill-link" href={buildPathWithQuery("/browse", { intent, requestWindow })}>
-            All listings
-          </Link>
-
-          {CATEGORIES.map((item) => (
-            <Link
-              className="pill-link"
-              href={buildPathWithQuery(item.href, { intent, requestWindow })}
-              key={item.value}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-
         {subcategoryLinks.length ? (
           <div className="subcategory-link-row">
             <Link

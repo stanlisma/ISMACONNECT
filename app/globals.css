@@ -8059,11 +8059,11 @@ code {
   align-items: end;
 }
 
-.browse-filter-secondary-grid {
+.browse-filter-detail-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 1.15fr) minmax(0, 3.85fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.85rem;
-  align-items: start;
+  align-items: end;
 }
 
 .browse-desktop-filters .field {
@@ -8081,16 +8081,14 @@ code {
   align-self: start;
 }
 
+.browse-price-range-field-desktop {
+  grid-column: span 2;
+}
+
 .browse-price-range-inputs {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.65rem;
-}
-
-.browse-structured-filters-desktop {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.85rem;
 }
 
 .browse-filter-actions-bar {
@@ -8108,8 +8106,8 @@ code {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .browse-filter-secondary-grid {
-    grid-template-columns: 1fr;
+  .browse-filter-detail-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -8118,7 +8116,11 @@ code {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .browse-structured-filters-desktop {
+  .browse-filter-detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .browse-price-range-field-desktop {
+    grid-column: span 2;
   }
 }
