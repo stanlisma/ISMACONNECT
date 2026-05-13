@@ -515,6 +515,14 @@ export function ListingForm({
     () => getTitlePlaceholder(category, listingIntent, subcategory || undefined),
     [category, listingIntent, subcategory]
   );
+  const structuredCheckboxFields = useMemo(
+    () => structuredFields.filter((field) => field.kind === "checkbox"),
+    [structuredFields]
+  );
+  const structuredInputFields = useMemo(
+    () => structuredFields.filter((field) => field.kind !== "checkbox"),
+    [structuredFields]
+  );
   const descriptionHint = useMemo(() => getDescriptionHint(listingIntent), [listingIntent]);
   const contactHint = useMemo(() => getContactHint(listingIntent), [listingIntent]);
   const photoPanelCopy = useMemo(() => getPhotoPanelCopy(listingIntent), [listingIntent]);
@@ -659,6 +667,80 @@ export function ListingForm({
       has_address: Boolean(String(formData.get("location") ?? "").trim()),
       shows_exact_address_on_map: formData.get("show_exact_address_on_map") === "on"
     });
+  }
+
+  function renderStructuredField(field: (typeof structuredFields)[number]) {
+    const fieldValue =
+      structuredDefaults && typeof structuredDefaults === "object"
+        ? structuredDefaults[field.name as keyof typeof structuredDefaults]
+        : undefined;
+
+    if (field.kind === "checkbox") {
+      return (
+        <label key={field.name} className="listing-structured-checkbox">
+          <input
+            type="checkbox"
+            name={field.name}
+            defaultChecked={Boolean(fieldValue)}
+          />
+          <span className="listing-structured-checkbox-copy">
+            <strong className="listing-structured-checkbox-label">
+              <span>{field.label}</span>
+              {field.helpText ? <FieldHelp text={field.helpText} label={field.label} /> : null}
+            </strong>
+          </span>
+        </label>
+      );
+    }
+
+    if (field.kind === "number") {
+      return (
+        <label key={field.name} className="field">
+          <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
+          <input
+            className="input"
+            type="number"
+            min={1}
+            max={8}
+            name={field.name}
+            defaultValue={typeof fieldValue === "number" ? String(fieldValue) : ""}
+            placeholder="Enter a number"
+          />
+        </label>
+      );
+    }
+
+    if (field.kind === "date") {
+      return (
+        <label key={field.name} className="field">
+          <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
+          <input
+            className="input"
+            type="date"
+            name={field.name}
+            defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
+          />
+        </label>
+      );
+    }
+
+    return (
+      <label key={field.name} className="field">
+        <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
+        <select
+          className="input"
+          name={field.name}
+          defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
+        >
+          <option value="">Select an option</option>
+          {field.options?.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
   }
 
   return (
@@ -896,81 +978,17 @@ export function ListingForm({
               </div>
             </div>
 
-            <div className="listing-structured-grid">
-              {structuredFields.map((field) => {
-                const fieldValue =
-                  structuredDefaults && typeof structuredDefaults === "object"
-                    ? structuredDefaults[field.name as keyof typeof structuredDefaults]
-                    : undefined;
+            {structuredInputFields.length ? (
+              <div className={`listing-structured-grid${category === "rentals" ? " is-rentals" : ""}`}>
+                {structuredInputFields.map((field) => renderStructuredField(field))}
+              </div>
+            ) : null}
 
-                if (field.kind === "checkbox") {
-                  return (
-                    <label key={field.name} className="listing-structured-checkbox">
-                      <input
-                        type="checkbox"
-                        name={field.name}
-                        defaultChecked={Boolean(fieldValue)}
-                      />
-                      <span className="listing-structured-checkbox-copy">
-                        <strong className="listing-structured-checkbox-label">
-                          <span>{field.label}</span>
-                          {field.helpText ? <FieldHelp text={field.helpText} label={field.label} /> : null}
-                        </strong>
-                      </span>
-                    </label>
-                  );
-                }
-
-                if (field.kind === "number") {
-                  return (
-                    <label key={field.name} className="field">
-                      <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
-                      <input
-                        className="input"
-                        type="number"
-                        min={1}
-                        max={8}
-                        name={field.name}
-                        defaultValue={typeof fieldValue === "number" ? String(fieldValue) : ""}
-                        placeholder="Enter a number"
-                      />
-                    </label>
-                  );
-                }
-
-                if (field.kind === "date") {
-                  return (
-                    <label key={field.name} className="field">
-                      <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
-                      <input
-                        className="input"
-                        type="date"
-                        name={field.name}
-                        defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
-                      />
-                    </label>
-                  );
-                }
-
-                return (
-                  <label key={field.name} className="field">
-                    <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
-                    <select
-                      className="input"
-                      name={field.name}
-                      defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
-                    >
-                      <option value="">Select an option</option>
-                      {field.options?.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                );
-              })}
-            </div>
+            {structuredCheckboxFields.length ? (
+              <div className={`listing-structured-boolean-grid${category === "rentals" ? " is-rentals" : ""}`}>
+                {structuredCheckboxFields.map((field) => renderStructuredField(field))}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}

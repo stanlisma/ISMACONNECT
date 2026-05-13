@@ -252,6 +252,13 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
       showInFilters: true
     },
     {
+      name: "parkingType",
+      label: "Parking",
+      kind: "select",
+      options: [...RENTAL_PARKING_OPTIONS],
+      showInFilters: true
+    },
+    {
       name: "furnished",
       label: "Furnished",
       kind: "checkbox",
@@ -267,13 +274,6 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
       name: "shortTerm",
       label: "Short-term friendly",
       kind: "checkbox",
-      showInFilters: true
-    },
-    {
-      name: "parkingType",
-      label: "Parking",
-      kind: "select",
-      options: [...RENTAL_PARKING_OPTIONS],
       showInFilters: true
     }
   ],
