@@ -252,136 +252,141 @@ export function BrowseFilters({
       {/* DESKTOP FULL FILTERS */}
       <form
         action={actionPath}
-        className="surface filters-grid desktop-filters"
+        className="surface desktop-filters browse-desktop-filters"
         method="get"
         onSubmit={() => trackFilterSubmit("desktop")}
       >
         {view ? <input name="view" type="hidden" value={view} /> : null}
         {communityArea ? <input name="communityArea" type="hidden" value={communityArea} /> : null}
-        <label className="field filter-search">
-          <span className="field-label">Search</span>
-          <input
-            className="input"
-            name="q"
-            defaultValue={search ?? ""}
-            placeholder="Search bikes, rentals, jobs..."
-          />
-        </label>
+        <div className="browse-filter-primary-grid">
+          <label className="field filter-search browse-filter-search">
+            <span className="field-label">Search</span>
+            <input
+              className="input"
+              name="q"
+              defaultValue={search ?? ""}
+              placeholder="Search bikes, rentals, jobs..."
+            />
+          </label>
 
-        {showCategorySelect ? (
+          {showCategorySelect ? (
+            <label className="field">
+              <span className="field-label">Category</span>
+              <select
+                className="select"
+                name="category"
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedSubcategory("");
+                }}
+              >
+                <option value="">All categories</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           <label className="field">
-            <span className="field-label">Category</span>
+            <span className="field-label">Post type</span>
             <select
               className="select"
-              name="category"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                setSelectedSubcategory("");
+              name="intent"
+              value={selectedIntent}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setSelectedIntent(nextValue);
+                if (nextValue !== "need") {
+                  setSelectedRequestWindow("");
+                }
               }}
             >
-              <option value="">All categories</option>
-              {CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
+              <option value="">All posts</option>
+              <option value="offer">Offers only</option>
+              <option value="need">Needs only</option>
             </select>
           </label>
-        ) : null}
 
-        <label className="field">
-          <span className="field-label">Post type</span>
-          <select
-            className="select"
-            name="intent"
-            value={selectedIntent}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              setSelectedIntent(nextValue);
-              if (nextValue !== "need") {
-                setSelectedRequestWindow("");
-              }
-            }}
-          >
-            <option value="">All posts</option>
-            <option value="offer">Offers only</option>
-            <option value="need">Needs only</option>
-          </select>
-        </label>
+          {selectedIntent === "need" ? (
+            <label className="field">
+              <span className="field-label">Need timing</span>
+              <select
+                className="select"
+                name="requestWindow"
+                value={selectedRequestWindow}
+                onChange={(event) => setSelectedRequestWindow(event.target.value)}
+              >
+                <option value="">Any timing</option>
+                <option value="today">Today</option>
+                <option value="this-week">This week</option>
+                <option value="flexible">Flexible</option>
+              </select>
+            </label>
+          ) : null}
 
-        {selectedIntent === "need" ? (
+          {subcategories.length > 0 ? (
+            <label className="field">
+              <span className="field-label">Sub-category</span>
+              <select
+                className="select"
+                name="subcategory"
+                value={selectedSubcategory}
+                onChange={(e) => setSelectedSubcategory(e.target.value)}
+              >
+                <option value="">All subcategories</option>
+                {subcategories.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           <label className="field">
-            <span className="field-label">Need timing</span>
-            <select
-              className="select"
-              name="requestWindow"
-              value={selectedRequestWindow}
-              onChange={(event) => setSelectedRequestWindow(event.target.value)}
-            >
-              <option value="">Any timing</option>
-              <option value="today">Today</option>
-              <option value="this-week">This week</option>
-              <option value="flexible">Flexible</option>
+            <span className="field-label">Sort</span>
+            <select className="select" name="sort" defaultValue={sort ?? ""}>
+              <option value="">Newest First</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
             </select>
           </label>
-        ) : null}
-
-        {subcategories.length > 0 ? (
-          <label className="field">
-            <span className="field-label">Sub-category</span>
-            <select
-              className="select"
-              name="subcategory"
-              value={selectedSubcategory}
-              onChange={(e) => setSelectedSubcategory(e.target.value)}
-            >
-              <option value="">All subcategories</option>
-              {subcategories.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-
-        <label className="field">
-          <span className="field-label">Min price</span>
-          <input
-            className="input"
-            name="minPrice"
-            type="number"
-            defaultValue={minPrice ?? ""}
-            placeholder="Min $"
-          />
-        </label>
-
-        <label className="field">
-          <span className="field-label">Max price</span>
-          <input
-            className="input"
-            name="maxPrice"
-            type="number"
-            defaultValue={maxPrice ?? ""}
-            placeholder="Max $"
-          />
-        </label>
-
-        <label className="field">
-          <span className="field-label">Sort</span>
-          <select className="select" name="sort" defaultValue={sort ?? ""}>
-            <option value="">Newest First</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-          </select>
-        </label>
-
-        <div className="browse-structured-filters" key={activeStructuredCategory}>
-          {renderStructuredFilterFields()}
         </div>
 
-        <div className="filter-actions">
+        <div className="browse-filter-secondary-grid">
+          <label className="field browse-price-range-field">
+            <span className="field-label">Price range</span>
+            <div className="browse-price-range-inputs">
+              <input
+                className="input"
+                name="minPrice"
+                type="number"
+                defaultValue={minPrice ?? ""}
+                placeholder="Min $"
+              />
+              <input
+                className="input"
+                name="maxPrice"
+                type="number"
+                defaultValue={maxPrice ?? ""}
+                placeholder="Max $"
+              />
+            </div>
+          </label>
+
+          <div
+            className="browse-structured-filters browse-structured-filters-desktop"
+            key={activeStructuredCategory}
+          >
+            {renderStructuredFilterFields()}
+          </div>
+        </div>
+
+        <div className="filter-actions browse-filter-actions-bar">
           <button className="button" type="submit">
             Apply
           </button>
