@@ -51,9 +51,15 @@ export const listingSchema = z
       .max(3000, "Description must be 3000 characters or less."),
 
     price: z
-      .string()
-      .trim()
-      .transform((value) => (value ? Number(value) : null))
+      .union([z.string(), z.null(), z.undefined()])
+      .transform((value) => {
+        if (typeof value !== "string") {
+          return null;
+        }
+
+        const trimmed = value.trim();
+        return trimmed ? Number(trimmed) : null;
+      })
       .refine((value) => value === null || (!Number.isNaN(value) && value >= 0), {
         message: "Price must be a positive number."
       }),

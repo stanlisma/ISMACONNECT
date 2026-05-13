@@ -7876,12 +7876,15 @@ code {
   }
 
   .listing-editor-page-head {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.5rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
-  .listing-editor-page-copy h2 {
-    font-size: 1.42rem;
-    line-height: 1.08;
+  .listing-editor-page-copy {
+    display: none;
   }
 
   .listing-editor-page-copy .section-copy {
@@ -7889,12 +7892,11 @@ code {
   }
 
   .listing-editor-page-actions {
-    flex-direction: column;
-    align-items: stretch;
+    justify-content: flex-end;
   }
 
   .listing-editor-page-actions .button {
-    width: 100%;
+    width: auto;
   }
 
   .listing-editor-form {

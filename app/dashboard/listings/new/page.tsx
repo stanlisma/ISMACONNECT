@@ -24,12 +24,6 @@ export default async function NewListingPage({
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
 
-      <div className="surface listing-editor-page-head">
-        <div className="listing-editor-page-copy">
-          <h2>{listingIntent === "need" ? "Post a need" : "Create listing"}</h2>
-        </div>
-      </div>
-
       <ListingForm
         action={createListingAction}
         profileContact={{
