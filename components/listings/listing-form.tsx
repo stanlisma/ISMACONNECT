@@ -826,8 +826,8 @@ export function ListingForm({
           {hasStorefrontChoices ? (
             <label className="field">
               <FieldLabelWithHelp
-                label="Storefront"
-                helpText="Choose which storefront this listing should appear under. Leave it unassigned if this post should stay on your personal seller profile."
+                label="Post as"
+                helpText="Choose whether this post should appear under your personal seller profile or one of your storefronts."
               />
               <select
                 className="input"
@@ -835,7 +835,7 @@ export function ListingForm({
                 value={storefrontId}
                 onChange={(event) => setStorefrontId(event.target.value)}
               >
-                <option value="">No storefront / personal profile</option>
+                <option value="">My personal profile</option>
                 {storefronts.map((storefront) => (
                   <option key={storefront.id} value={storefront.id}>
                     {storefront.name}
