@@ -24,6 +24,7 @@ import {
 import { getStructuredFieldDefinitions } from "@/lib/listing-structured-fields";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import type {
+  AdditionalBusinessStorefront,
   ListingIntent,
   ListingPriceType,
   ListingStructuredData,
@@ -37,6 +38,8 @@ type ListingFormProps = {
     email?: string;
     phone?: string;
   };
+  storefronts?: AdditionalBusinessStorefront[];
+  primaryStorefrontLabel?: string | null;
   defaultContactSource?: "profile" | "custom";
   defaults?: {
     listingIntent?: ListingIntent;
@@ -46,6 +49,7 @@ type ListingFormProps = {
     title?: string;
     price?: string;
     priceType?: ListingPriceType;
+    storefrontId?: string | null;
     location?: string;
     showExactAddressOnMap?: boolean;
     description?: string;
@@ -462,6 +466,8 @@ async function optimizeImage(file: File) {
 export function ListingForm({
   action,
   profileContact,
+  storefronts = [],
+  primaryStorefrontLabel,
   defaultContactSource = "custom",
   defaults,
   submitLabel = "Publish listing"
@@ -472,6 +478,7 @@ export function ListingForm({
   const [subcategory, setSubcategory] = useState(
     normalizeSubcategory(defaults?.category ?? DEFAULT_MARKETPLACE_CATEGORY, defaults?.subcategory) ?? ""
   );
+  const [storefrontId, setStorefrontId] = useState(defaults?.storefrontId ?? "");
   const [description, setDescription] = useState(defaults?.description ?? "");
   const [priceType, setPriceType] = useState<ListingPriceType>(
     defaults?.priceType ?? getDefaultPriceType(defaults?.category as any)
@@ -494,6 +501,7 @@ export function ListingForm({
   const [contactPhone, setContactPhone] = useState(defaults?.contactPhone ?? "");
 
   const subcategories = useMemo(() => getSubcategories(category), [category]);
+  const hasStorefrontChoices = Boolean((primaryStorefrontLabel && primaryStorefrontLabel.trim()) || storefronts.length);
   const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
   const structuredDefaults = useMemo(() => {
     const raw = defaults?.structuredData;
@@ -816,6 +824,32 @@ export function ListingForm({
           ) : (
             <input type="hidden" name="requestWindow" value="" />
           )}
+
+          {hasStorefrontChoices ? (
+            <label className="field">
+              <FieldLabelWithHelp
+                label="Storefront"
+                helpText="Choose which storefront this listing should appear under. Leave it on the primary storefront if this post belongs to your main business profile."
+              />
+              <select
+                className="input"
+                name="storefrontId"
+                value={storefrontId}
+                onChange={(event) => setStorefrontId(event.target.value)}
+              >
+                <option value="">
+                  {primaryStorefrontLabel?.trim()
+                    ? `Primary storefront - ${primaryStorefrontLabel}`
+                    : "Primary storefront"}
+                </option>
+                {storefronts.map((storefront) => (
+                  <option key={storefront.id} value={storefront.id}>
+                    {storefront.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
           <label className="field">
             <FieldLabelWithHelp

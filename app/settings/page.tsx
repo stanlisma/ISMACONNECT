@@ -1,3 +1,4 @@
+import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
 import { BusinessProfileForm } from "@/components/settings/business-profile-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
@@ -12,9 +13,16 @@ import {
   getIdentityVerificationPriceLabel,
   reconcileLatestIdentityVerificationPayment
 } from "@/lib/identity-verification";
-import { updateBusinessProfileAction, updateNotificationSettingsAction } from "@/lib/actions/settings";
+import {
+  createAdditionalStorefrontAction,
+  deleteAdditionalStorefrontAction,
+  updateAdditionalStorefrontAction,
+  updateBusinessProfileAction,
+  updateNotificationSettingsAction
+} from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
+import { getOwnedAdditionalStorefronts } from "@/lib/data";
 import { isEmailConfigured, isStripeWebhookConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
@@ -73,6 +81,8 @@ export default async function SettingsPage({
   } else {
     businessProfile = normalizeBusinessProfileRow(businessProfileResponse.data);
   }
+
+  const additionalStorefrontsResult = await getOwnedAdditionalStorefronts(viewer.user.id);
 
   const identityNeedsRetry = profile?.stripe_identity_session_status === "requires_input";
   const identityProcessing = profile?.stripe_identity_session_status === "processing";
@@ -164,6 +174,17 @@ export default async function SettingsPage({
               profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
             }}
           />
+
+          {businessProfile.is_business ? (
+            <AdditionalStorefrontsManager
+              storefronts={additionalStorefrontsResult.storefronts}
+              schemaReady={additionalStorefrontsResult.schemaReady}
+              createAction={createAdditionalStorefrontAction}
+              updateAction={updateAdditionalStorefrontAction}
+              deleteAction={deleteAdditionalStorefrontAction}
+              fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
+            />
+          ) : null}
         </div>
 
         <div className="surface settings-section-card" id="verification">

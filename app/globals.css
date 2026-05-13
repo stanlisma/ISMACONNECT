@@ -6097,6 +6097,77 @@ code {
   justify-content: flex-end;
 }
 
+.storefront-manager-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+
+.storefront-manager-summary h2 {
+  margin: 0 0 0.2rem;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.storefront-manager-summary .section-copy,
+.storefront-manager-card-head .section-copy {
+  margin: 0;
+}
+
+.storefront-manager-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.05rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+
+.storefront-manager-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.storefront-manager-card-head h2,
+.storefront-manager-card-head h3 {
+  margin: 0 0 0.2rem;
+  color: var(--text);
+}
+
+.storefront-manager-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.storefront-manager-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.storefront-manager-toggle {
+  margin-top: 0.1rem;
+}
+
+.storefront-manager-actions {
+  justify-content: flex-end;
+}
+
+.storefront-manager-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .seller-storefront-hero {
   display: grid;
   gap: 1.25rem;
@@ -6388,6 +6459,24 @@ code {
 }
 
 @media (max-width: 760px) {
+  .storefront-manager-summary,
+  .storefront-manager-card {
+    padding: 0.95rem 1rem;
+    border-radius: 20px;
+  }
+
+  .storefront-manager-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .storefront-manager-actions {
+    justify-content: stretch;
+  }
+
+  .storefront-manager-actions .button {
+    width: 100%;
+  }
+
   .seller-storefront-hero {
     gap: 1rem;
     padding: 1rem;

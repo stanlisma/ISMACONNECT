@@ -13,6 +13,7 @@ import { TrustBadges } from "@/components/trust/trust-badges";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
+import { buildStorefrontHref } from "@/lib/business-storefronts";
 import { getListingBoostState } from "@/lib/boost-products";
 import { CATEGORY_MAP, LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS, SITE_NAME } from "@/lib/constants";
 import {
@@ -365,7 +366,10 @@ export default async function ListingPage({
               />
 
               <div className="action-row" style={{ marginBottom: "1rem" }}>
-                <Link className="button button-secondary" href={`/sellers/${listing.owner_id}`}>
+                <Link
+                  className="button button-secondary"
+                  href={buildStorefrontHref(listing.owner_id, listing.storefront_id)}
+                >
                   View seller storefront
                 </Link>
               </div>
