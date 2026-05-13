@@ -1,5 +1,9 @@
 import { expireListingPromotions } from "@/lib/boosts";
 import {
+  isAdditionalStorefrontSchemaError,
+  normalizeAdditionalStorefrontRow
+} from "@/lib/business-storefronts";
+import {
   EMPTY_BUSINESS_PROFILE,
   isBusinessProfileSchemaError,
   normalizeBusinessProfileRow
@@ -16,6 +20,7 @@ import {
   type CommunityMapArea
 } from "@/lib/local-marketplace";
 import type {
+  AdditionalBusinessStorefront,
   BusinessMapProfile,
   FlaggedListing,
   Listing,
@@ -55,6 +60,44 @@ function logDataError(context: string, error: { message?: string | null } | null
   if (error) {
     console.error(`${context}:`, error.message || error);
   }
+}
+
+export async function getOwnedAdditionalStorefronts(ownerId: string) {
+  if (!ownerId) {
+    return {
+      schemaReady: true,
+      storefronts: [] as AdditionalBusinessStorefront[]
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const response = await supabase
+    .from("business_storefronts")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: true });
+
+  if (response.error) {
+    if (isAdditionalStorefrontSchemaError(response.error)) {
+      return {
+        schemaReady: false,
+        storefronts: [] as AdditionalBusinessStorefront[]
+      };
+    }
+
+    logDataError("Additional storefront query failed", response.error);
+    return {
+      schemaReady: true,
+      storefronts: [] as AdditionalBusinessStorefront[]
+    };
+  }
+
+  return {
+    schemaReady: true,
+    storefronts: ((response.data as Array<Record<string, unknown>> | null) ?? []).map((row) =>
+      normalizeAdditionalStorefrontRow(row)
+    )
+  };
 }
 
 export async function getBusinessMapProfileMap(ownerIds: string[]) {
@@ -529,7 +572,8 @@ export async function getSavedListings(userId: string) {
 
 export async function getPublicSellerStorefront(
   sellerId: string,
-  limit = 12
+  limit = 12,
+  storefrontId?: string | null
 ): Promise<PublicSellerStorefront | null> {
   if (!isSupabaseConfigured()) {
     return null;
@@ -538,22 +582,58 @@ export async function getPublicSellerStorefront(
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
 
-  let response = await supabase
+  let additionalStorefront: AdditionalBusinessStorefront | null = null;
+
+  if (storefrontId) {
+    const storefrontResponse = await supabase
+      .from("business_storefronts")
+      .select("*")
+      .eq("id", storefrontId)
+      .eq("owner_id", sellerId)
+      .maybeSingle();
+
+    if (storefrontResponse.error) {
+      if (!isAdditionalStorefrontSchemaError(storefrontResponse.error)) {
+        logDataError("Public additional storefront query failed", storefrontResponse.error);
+      }
+      return null;
+    }
+
+    if (!storefrontResponse.data) {
+      return null;
+    }
+
+    additionalStorefront = normalizeAdditionalStorefrontRow(storefrontResponse.data);
+  }
+
+  let listingsQuery = supabase
     .from("listings")
     .select("*", { count: "exact" })
     .eq("status", "active")
-    .eq("owner_id", sellerId)
+    .eq("owner_id", sellerId);
+
+  if (additionalStorefront) {
+    listingsQuery = listingsQuery.eq("storefront_id", additionalStorefront.id);
+  }
+
+  let response = await listingsQuery
     .order("is_featured", { ascending: false })
     .order("boosted_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (response.error && isPromotionSchemaError(response.error)) {
-    response = await supabase
+    let fallbackQuery = supabase
       .from("listings")
       .select("*", { count: "exact" })
       .eq("status", "active")
-      .eq("owner_id", sellerId)
+      .eq("owner_id", sellerId);
+
+    if (additionalStorefront) {
+      fallbackQuery = fallbackQuery.eq("storefront_id", additionalStorefront.id);
+    }
+
+    response = await fallbackQuery
       .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -566,11 +646,11 @@ export async function getPublicSellerStorefront(
 
   const listings = (response.data || []) as Listing[];
 
-  if (!listings.length) {
+  if (!listings.length && !additionalStorefront) {
     return null;
   }
 
-  const firstListing = listings[0];
+  const firstListing = listings[0] ?? null;
   const activeCategories = Array.from(new Set(listings.map((listing) => listing.category)));
   let businessProfile = EMPTY_BUSINESS_PROFILE;
 
@@ -600,24 +680,28 @@ export async function getPublicSellerStorefront(
     businessProfile = normalizeBusinessProfileRow(businessProfileResponse.data);
   }
 
-  const displayName = businessProfile.is_business
-    ? businessProfile.business_name || businessProfile.full_name || firstListing.contact_name || "Local business"
-    : businessProfile.full_name || firstListing.contact_name || "Local seller";
+  const displayName = additionalStorefront
+    ? additionalStorefront.name
+    : businessProfile.is_business
+      ? businessProfile.business_name || businessProfile.full_name || firstListing?.contact_name || "Local business"
+      : businessProfile.full_name || firstListing?.contact_name || "Local seller";
 
   return {
     seller_id: sellerId,
+    storefront_id: additionalStorefront?.id ?? null,
     display_name: displayName,
-    is_business: businessProfile.is_business,
-    business_description: businessProfile.business_description,
-    business_logo_url: businessProfile.business_logo_url,
-    business_website: businessProfile.business_website,
-    business_address: businessProfile.business_address,
-    show_exact_business_location: businessProfile.show_exact_business_location,
-    service_areas: businessProfile.service_areas,
-    business_services: businessProfile.business_services,
-    business_hours: businessProfile.business_hours,
-    phone: businessProfile.phone,
-    primary_location: getPublicListingLocationLabel(firstListing),
+    is_business: additionalStorefront ? true : businessProfile.is_business,
+    business_description: additionalStorefront?.description ?? businessProfile.business_description,
+    business_logo_url: additionalStorefront?.logo_url ?? businessProfile.business_logo_url,
+    business_website: additionalStorefront?.website ?? businessProfile.business_website,
+    business_address: additionalStorefront?.address ?? businessProfile.business_address,
+    show_exact_business_location:
+      additionalStorefront?.show_exact_location ?? businessProfile.show_exact_business_location,
+    service_areas: additionalStorefront?.service_areas ?? businessProfile.service_areas,
+    business_services: additionalStorefront?.services ?? businessProfile.business_services,
+    business_hours: additionalStorefront?.hours ?? businessProfile.business_hours,
+    phone: additionalStorefront?.phone ?? businessProfile.phone,
+    primary_location: firstListing ? getPublicListingLocationLabel(firstListing) : additionalStorefront?.address ?? "Fort McMurray",
     total_active_listings: response.count ?? listings.length,
     active_categories: activeCategories,
     listings

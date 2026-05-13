@@ -2,6 +2,7 @@ import { ListingForm } from "@/components/listings/listing-form";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { createListingAction } from "@/lib/actions/listings";
 import { requireViewer } from "@/lib/auth";
+import { getOwnedAdditionalStorefronts } from "@/lib/data";
 import { getSingleParam, resolveCategory, resolveListingIntent } from "@/lib/utils";
 
 export default async function NewListingPage({
@@ -18,6 +19,9 @@ export default async function NewListingPage({
     : viewer.profile.full_name ?? undefined;
   const profileContactEmail = viewer.user.email ?? undefined;
   const profileContactPhone = viewer.profile.phone ?? undefined;
+  const storefrontsResult = viewer.profile.is_business
+    ? await getOwnedAdditionalStorefronts(viewer.user.id)
+    : { storefronts: [], schemaReady: true };
 
   return (
     <>
@@ -31,6 +35,10 @@ export default async function NewListingPage({
           email: profileContactEmail,
           phone: profileContactPhone
         }}
+        storefronts={storefrontsResult.storefronts}
+        primaryStorefrontLabel={
+          viewer.profile.is_business ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined : undefined
+        }
         defaultContactSource="profile"
         defaults={{
           category,
@@ -42,6 +50,7 @@ export default async function NewListingPage({
             viewer.profile.is_business && viewer.profile.business_address
               ? viewer.profile.business_address
               : undefined,
+          storefrontId: null,
           showExactAddressOnMap: viewer.profile.show_exact_business_location ?? false
         }}
         submitLabel={listingIntent === "need" ? "Post need" : "Publish listing"}

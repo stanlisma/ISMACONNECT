@@ -19,12 +19,16 @@ import {
 import { buildPathWithQuery, formatDate, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export async function generateMetadata({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ sellerId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { sellerId } = await params;
-  const storefront = await getPublicSellerStorefront(sellerId, 6);
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const storefrontId = getSingleParam(resolvedSearchParams?.storefront);
+  const storefront = await getPublicSellerStorefront(sellerId, 6, storefrontId);
 
   if (!storefront) {
     return {
@@ -54,7 +58,8 @@ export default async function SellerStorefrontPage({
 }) {
   const { sellerId } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const storefront = await getPublicSellerStorefront(sellerId);
+  const storefrontId = getSingleParam(resolvedSearchParams?.storefront);
+  const storefront = await getPublicSellerStorefront(sellerId, 12, storefrontId);
 
   if (!storefront) {
     notFound();
@@ -307,10 +312,14 @@ export default async function SellerStorefrontPage({
             </div>
           ) : (
             <EmptyState
-              actionHref={`/sellers/${sellerId}`}
+              actionHref={storefrontId ? `/sellers/${sellerId}` : `/sellers/${sellerId}`}
               actionLabel="See all seller listings"
-              description="This seller has active listings, but not in the category you filtered to."
-              title="No listings in this category"
+              description={
+                storefrontId
+                  ? "This storefront is live, but it does not have active listings in this category yet."
+                  : "This seller has active listings, but not in the category you filtered to."
+              }
+              title={storefrontId ? "No active listings in this storefront yet" : "No listings in this category"}
             />
           )}
         </div>

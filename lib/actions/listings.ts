@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
+import { isAdditionalStorefrontSchemaError } from "@/lib/business-storefronts";
 import { normalizeSubcategory } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
@@ -72,6 +73,10 @@ function getListingPriceTypeSchemaMessage() {
   return "Your database pricing fields are out of date. Run the latest ISMACONNECT listing price-type migration in Supabase, then try posting again.";
 }
 
+function getListingStorefrontSchemaMessage() {
+  return "Your database storefront fields are out of date. Run the latest ISMACONNECT business storefront migration in Supabase, then try posting again.";
+}
+
 function isListingGeocodingSchemaError(error: {
   code?: string | null;
   message?: string | null;
@@ -106,6 +111,10 @@ function getListingMutationErrorMessage(error: {
 
   if (isListingPriceTypeSchemaError(error)) {
     return getListingPriceTypeSchemaMessage();
+  }
+
+  if (isAdditionalStorefrontSchemaError(error)) {
+    return getListingStorefrontSchemaMessage();
   }
 
   if (isListingGeocodingSchemaError(error)) {
@@ -172,6 +181,22 @@ async function loadListingForMutation(listingId: string) {
   return data;
 }
 
+async function resolveOwnedStorefrontId(ownerId: string, storefrontId: FormDataEntryValue | null) {
+  if (typeof storefrontId !== "string" || !storefrontId.trim()) {
+    return null;
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("business_storefronts")
+    .select("id")
+    .eq("id", storefrontId)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
+  return data?.id ?? null;
+}
+
 function parseListingIntent(formData: FormData): ListingIntent {
   return formData.get("listingIntent") === "need" ? "need" : "offer";
 }
@@ -236,10 +261,16 @@ export async function createListingAction(formData: FormData) {
   const dataInput = parsed.data;
   const normalizedSubcategory = normalizeSubcategory(dataInput.category, dataInput.subcategory);
   const imageUrls = parseImageUrls(formData);
+  const storefrontId = await resolveOwnedStorefrontId(viewer.user.id, formData.get("storefrontId"));
+  const requestedStorefrontId = String(formData.get("storefrontId") ?? "").trim();
   const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
 
   if (!structuredDataResult.success) {
     redirectWithMessage(returnPath, "error", firstMessage(structuredDataResult.error));
+  }
+
+  if (requestedStorefrontId && !storefrontId) {
+    redirectWithMessage(returnPath, "error", "Choose a valid storefront for this listing.");
   }
 
   const supabase = await createServerSupabaseClient();
@@ -256,6 +287,7 @@ export async function createListingAction(formData: FormData) {
       category: dataInput.category,
       listing_intent: dataInput.listingIntent,
       request_window: dataInput.requestWindow,
+      storefront_id: storefrontId,
       subcategory: normalizedSubcategory,
       title: dataInput.title,
       description: dataInput.description,
@@ -332,6 +364,8 @@ export async function updateListingAction(listingId: string, formData: FormData)
   const dataInput = parsed.data;
   const normalizedSubcategory = normalizeSubcategory(dataInput.category, dataInput.subcategory);
   const imageUrls = parseImageUrls(formData);
+  const storefrontId = await resolveOwnedStorefrontId(viewer.user.id, formData.get("storefrontId"));
+  const requestedStorefrontId = String(formData.get("storefrontId") ?? "").trim();
   const structuredDataResult = parseStructuredListingData(dataInput.category, formData);
 
   if (!structuredDataResult.success) {
@@ -339,6 +373,14 @@ export async function updateListingAction(listingId: string, formData: FormData)
       `/dashboard/listings/${listingId}/edit`,
       "error",
       firstMessage(structuredDataResult.error)
+    );
+  }
+
+  if (requestedStorefrontId && !storefrontId) {
+    redirectWithMessage(
+      `/dashboard/listings/${listingId}/edit`,
+      "error",
+      "Choose a valid storefront for this listing."
     );
   }
 
@@ -357,6 +399,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
       category: dataInput.category,
       listing_intent: dataInput.listingIntent,
       request_window: dataInput.requestWindow,
+      storefront_id: storefrontId,
       subcategory: normalizedSubcategory,
       title: dataInput.title,
       description: dataInput.description,

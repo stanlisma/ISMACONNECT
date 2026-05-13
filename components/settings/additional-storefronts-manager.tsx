@@ -1,0 +1,245 @@
+import { Trash2 } from "lucide-react";
+
+import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import type { AdditionalBusinessStorefront } from "@/types/database";
+
+type AdditionalStorefrontsManagerProps = {
+  storefronts: AdditionalBusinessStorefront[];
+  schemaReady: boolean;
+  createAction: (formData: FormData) => void | Promise<void>;
+  updateAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
+  deleteAction: (storefrontId: string) => void | Promise<void>;
+  fallbackPhone?: string;
+};
+
+function StorefrontForm({
+  title,
+  submitLabel,
+  defaults,
+  action,
+  deleteAction,
+  isNew,
+  fallbackPhone
+}: {
+  title: string;
+  submitLabel: string;
+  defaults?: AdditionalBusinessStorefront;
+  action: (formData: FormData) => void | Promise<void>;
+  deleteAction?: (formData: FormData) => void | Promise<void>;
+  isNew?: boolean;
+  fallbackPhone?: string;
+}) {
+  return (
+    <div className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}>
+      <div className="storefront-manager-card-head">
+        <div>
+          <h3>{title}</h3>
+          <p className="section-copy">
+            {isNew
+              ? "Create another public storefront for a separate brand, location, or service line."
+              : "Edit this storefront separately from your primary business profile."}
+          </p>
+        </div>
+
+        {deleteAction ? (
+          <form action={deleteAction}>
+            <button className="button button-ghost storefront-manager-delete" type="submit">
+              <Trash2 aria-hidden="true" size={14} strokeWidth={2.2} />
+              <span>Delete</span>
+            </button>
+          </form>
+        ) : null}
+      </div>
+
+      <form action={action} className="storefront-manager-form">
+        <div className="storefront-manager-grid">
+          <label className="field">
+            <FieldLabelWithHelp
+              label="Storefront name"
+              helpText="Use the public name customers should see for this storefront."
+            />
+            <input
+              className="input"
+              type="text"
+              name="name"
+              defaultValue={defaults?.name ?? ""}
+              placeholder="Example: North Side Rentals"
+              required
+            />
+          </label>
+
+          <label className="field">
+            <FieldLabelWithHelp
+              label="Website"
+              helpText="Optional public website for this storefront."
+            />
+            <input
+              className="input"
+              type="text"
+              name="website"
+              defaultValue={defaults?.website ?? ""}
+              placeholder="northsiderentals.ca"
+            />
+          </label>
+        </div>
+
+        <div className="storefront-manager-grid">
+          <label className="field">
+            <FieldLabelWithHelp
+              label="Phone"
+              helpText="Optional storefront phone. Leave blank to keep using your account phone in trust views."
+            />
+            <input
+              className="input"
+              type="tel"
+              name="phone"
+              defaultValue={defaults?.phone ?? fallbackPhone ?? ""}
+              placeholder="(780) 555-0123"
+            />
+          </label>
+
+          <label className="field">
+            <FieldLabelWithHelp
+              label="Storefront address"
+              helpText="Use the storefront or business address only. Leave blank if this storefront should stay area-based."
+            />
+            <input
+              className="input"
+              type="text"
+              name="address"
+              defaultValue={defaults?.address ?? ""}
+              placeholder="205 Powder Drive, Fort McMurray, AB"
+            />
+          </label>
+        </div>
+
+        <label className="field">
+          <FieldLabelWithHelp
+            label="Description"
+            helpText="Explain what this storefront offers and who it serves."
+          />
+          <textarea
+            className="textarea business-profile-textarea"
+            name="description"
+            rows={4}
+            defaultValue={defaults?.description ?? ""}
+            placeholder="Describe what this storefront offers, who it serves, and how locals should use it."
+          />
+        </label>
+
+        <div className="storefront-manager-grid">
+          <label className="field">
+            <FieldLabelWithHelp
+              label="Service areas"
+              helpText="List the communities or nearby areas this storefront serves, separated with commas."
+            />
+            <input
+              className="input"
+              type="text"
+              name="service_areas"
+              defaultValue={defaults?.service_areas.join(", ") ?? ""}
+              placeholder="Fort McMurray, Timberlea, Thickwood"
+            />
+          </label>
+
+          <label className="field">
+            <FieldLabelWithHelp
+              label="Storefront services"
+              helpText="Separate specialties with commas so the storefront reads clearly."
+            />
+            <input
+              className="input"
+              type="text"
+              name="services"
+              defaultValue={defaults?.services.join(", ") ?? ""}
+              placeholder="Short-term rentals, crew housing, furnished suites"
+            />
+          </label>
+        </div>
+
+        <label className="business-profile-toggle storefront-manager-toggle">
+          <input
+            type="checkbox"
+            name="show_exact_location"
+            defaultChecked={defaults?.show_exact_location ?? false}
+          />
+          <span>
+            <strong className="listing-toggle-title">
+              <span>Use this storefront address as an exact map default</span>
+              <FieldHelp
+                text="Only use this when the storefront has a real business address you want tied to listings by default."
+                label="Use this storefront address as an exact map default"
+              />
+            </strong>
+          </span>
+        </label>
+
+        <div className="business-profile-actions storefront-manager-actions">
+          <button className="button" type="submit">
+            {submitLabel}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export function AdditionalStorefrontsManager({
+  storefronts,
+  schemaReady,
+  createAction,
+  updateAction,
+  deleteAction,
+  fallbackPhone
+}: AdditionalStorefrontsManagerProps) {
+  if (!schemaReady) {
+    return (
+      <div className="surface storefront-manager-card">
+        <div className="storefront-manager-card-head">
+          <div>
+            <h2>Additional storefronts</h2>
+            <p className="section-copy">
+              Run the additional storefront migration in Supabase to manage more than one public storefront from one business account.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-block-stack">
+      <div className="surface storefront-manager-summary">
+        <div>
+          <h2>Additional storefronts</h2>
+          <p className="section-copy">
+            Add separate storefronts for different locations, brands, or service lines.
+          </p>
+        </div>
+        <div className="meta-list">
+          <span>{storefronts.length} additional storefront{storefronts.length === 1 ? "" : "s"}</span>
+        </div>
+      </div>
+
+      {storefronts.map((storefront) => (
+        <StorefrontForm
+          key={storefront.id}
+          title={storefront.name}
+          submitLabel="Save storefront"
+          defaults={storefront}
+          action={updateAction.bind(null, storefront.id)}
+          deleteAction={deleteAction.bind(null, storefront.id)}
+          fallbackPhone={fallbackPhone}
+        />
+      ))}
+
+      <StorefrontForm
+        title="Add storefront"
+        submitLabel="Create storefront"
+        action={createAction}
+        isNew
+        fallbackPhone={fallbackPhone}
+      />
+    </div>
+  );
+}

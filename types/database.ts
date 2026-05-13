@@ -174,6 +174,7 @@ export interface Profile {
 export interface Listing {
   id: string;
   owner_id: string;
+  storefront_id: string | null;
   title: string;
   slug: string;
   category: ListingCategory;
@@ -298,6 +299,7 @@ export interface IdentityVerificationOrder {
 
 export interface PublicSellerStorefront {
   seller_id: string;
+  storefront_id: string | null;
   display_name: string;
   is_business: boolean;
   business_description: string | null;
@@ -313,6 +315,29 @@ export interface PublicSellerStorefront {
   total_active_listings: number;
   active_categories: ListingCategory[];
   listings: Listing[];
+}
+
+export interface AdditionalBusinessStorefront {
+  id: string;
+  owner_id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  logo_url: string | null;
+  website: string | null;
+  phone: string | null;
+  address: string | null;
+  show_exact_location: boolean;
+  geocoded_lat: number | null;
+  geocoded_lng: number | null;
+  geocoded_area: string | null;
+  geocoded_formatted_address: string | null;
+  geocoded_at: string | null;
+  service_areas: string[];
+  services: string[];
+  hours: BusinessHours;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BusinessMapProfile {

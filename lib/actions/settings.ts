@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 
 import { requireViewer } from "@/lib/auth";
 import {
+  buildStorefrontSlug,
+  isAdditionalStorefrontSchemaError,
+  parseAdditionalStorefrontFormData
+} from "@/lib/business-storefronts";
+import {
   isBusinessProfileSchemaError,
   normalizeBusinessAddress,
   normalizeBusinessWebsite,
@@ -14,6 +19,46 @@ import {
 } from "@/lib/business-profile";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+async function generateUniqueStorefrontSlug(ownerId: string, name: string, storefrontId?: string) {
+  const supabase = await createServerSupabaseClient();
+  const baseSlug = buildStorefrontSlug(name);
+  let candidate = baseSlug;
+  let suffix = 2;
+
+  while (true) {
+    let query = supabase
+      .from("business_storefronts")
+      .select("id")
+      .eq("owner_id", ownerId)
+      .eq("slug", candidate);
+
+    if (storefrontId) {
+      query = query.neq("id", storefrontId);
+    }
+
+    const { data } = await query.maybeSingle();
+
+    if (!data) {
+      return candidate;
+    }
+
+    candidate = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+}
+
+async function loadOwnedStorefront(ownerId: string, storefrontId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("business_storefronts")
+    .select("*")
+    .eq("id", storefrontId)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
+  return data;
+}
 
 export async function updateNotificationSettingsAction(formData: FormData) {
   const viewer = await requireViewer();
@@ -113,4 +158,146 @@ export async function updateBusinessProfileAction(formData: FormData) {
   revalidatePath("/account");
   revalidatePath(`/sellers/${viewer.user.id}`);
   redirect("/settings?success=Business profile updated");
+}
+
+export async function createAdditionalStorefrontAction(formData: FormData) {
+  const viewer = await requireViewer();
+  const supabase = await createServerSupabaseClient();
+  const parsed = parseAdditionalStorefrontFormData(formData);
+
+  if (!parsed.name) {
+    redirect("/settings?error=Storefront name is required.");
+  }
+
+  const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name);
+  const geocodedAddress = parsed.address
+    ? await geocodeMarketplaceAddress(parsed.address)
+    : null;
+
+  const { error } = await supabase.from("business_storefronts").insert({
+    owner_id: viewer.user.id,
+    slug,
+    name: parsed.name,
+    description: parsed.description,
+    website: parsed.website,
+    phone: parsed.phone,
+    address: parsed.address,
+    show_exact_location: parsed.address ? parsed.showExactLocation : false,
+    geocoded_lat: geocodedAddress?.lat ?? null,
+    geocoded_lng: geocodedAddress?.lng ?? null,
+    geocoded_area: geocodedAddress?.area ?? null,
+    geocoded_formatted_address: geocodedAddress?.formattedAddress ?? null,
+    geocoded_at: geocodedAddress ? new Date().toISOString() : null,
+    service_areas: parsed.serviceAreas,
+    services: parsed.services
+  });
+
+  if (error) {
+    if (isAdditionalStorefrontSchemaError(error)) {
+      redirect("/settings?error=Run the additional storefront migration in Supabase before saving more storefronts.");
+    }
+
+    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/settings");
+  revalidatePath(`/sellers/${viewer.user.id}`);
+  redirect("/settings?success=Additional storefront created");
+}
+
+export async function updateAdditionalStorefrontAction(storefrontId: string, formData: FormData) {
+  const viewer = await requireViewer();
+  const existingStorefront = await loadOwnedStorefront(viewer.user.id, storefrontId);
+
+  if (!existingStorefront) {
+    redirect("/settings?error=That storefront could not be found.");
+  }
+
+  const parsed = parseAdditionalStorefrontFormData(formData);
+
+  if (!parsed.name) {
+    redirect("/settings?error=Storefront name is required.");
+  }
+
+  const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name, storefrontId);
+  const shouldReuseGeocode =
+    existingStorefront.address === parsed.address &&
+    typeof existingStorefront.geocoded_lat === "number" &&
+    typeof existingStorefront.geocoded_lng === "number";
+  const geocodedAddress = parsed.address
+    ? shouldReuseGeocode
+      ? {
+          lat: existingStorefront.geocoded_lat as number,
+          lng: existingStorefront.geocoded_lng as number,
+          area: typeof existingStorefront.geocoded_area === "string" ? existingStorefront.geocoded_area : null,
+          formattedAddress:
+            typeof existingStorefront.geocoded_formatted_address === "string"
+              ? existingStorefront.geocoded_formatted_address
+              : null
+        }
+      : await geocodeMarketplaceAddress(parsed.address)
+    : null;
+  const supabase = await createServerSupabaseClient();
+
+  const { error } = await supabase
+    .from("business_storefronts")
+    .update({
+      slug,
+      name: parsed.name,
+      description: parsed.description,
+      website: parsed.website,
+      phone: parsed.phone,
+      address: parsed.address,
+      show_exact_location: parsed.address ? parsed.showExactLocation : false,
+      geocoded_lat: geocodedAddress?.lat ?? null,
+      geocoded_lng: geocodedAddress?.lng ?? null,
+      geocoded_area: geocodedAddress?.area ?? null,
+      geocoded_formatted_address: geocodedAddress?.formattedAddress ?? null,
+      geocoded_at: geocodedAddress ? new Date().toISOString() : null,
+      service_areas: parsed.serviceAreas,
+      services: parsed.services,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", storefrontId)
+    .eq("owner_id", viewer.user.id);
+
+  if (error) {
+    if (isAdditionalStorefrontSchemaError(error)) {
+      redirect("/settings?error=Run the additional storefront migration in Supabase before saving more storefronts.");
+    }
+
+    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/settings");
+  revalidatePath(`/sellers/${viewer.user.id}`);
+  redirect("/settings?success=Storefront updated");
+}
+
+export async function deleteAdditionalStorefrontAction(storefrontId: string) {
+  const viewer = await requireViewer();
+  const existingStorefront = await loadOwnedStorefront(viewer.user.id, storefrontId);
+
+  if (!existingStorefront) {
+    redirect("/settings?error=That storefront could not be found.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase
+    .from("business_storefronts")
+    .delete()
+    .eq("id", storefrontId)
+    .eq("owner_id", viewer.user.id);
+
+  if (error) {
+    if (isAdditionalStorefrontSchemaError(error)) {
+      redirect("/settings?error=Run the additional storefront migration in Supabase before deleting storefronts.");
+    }
+
+    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/settings");
+  revalidatePath(`/sellers/${viewer.user.id}`);
+  redirect("/settings?success=Storefront deleted");
 }
