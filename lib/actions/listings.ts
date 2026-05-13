@@ -58,6 +58,20 @@ function getListingIntentSchemaMessage() {
   return "Your database listing request fields are out of date. Run the latest ISMACONNECT listing-request migration in Supabase, then try posting again.";
 }
 
+function isListingPriceTypeSchemaError(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+  return message.includes("price_type");
+}
+
+function getListingPriceTypeSchemaMessage() {
+  return "Your database pricing fields are out of date. Run the latest ISMACONNECT listing price-type migration in Supabase, then try posting again.";
+}
+
 function isListingGeocodingSchemaError(error: {
   code?: string | null;
   message?: string | null;
@@ -88,6 +102,10 @@ function getListingMutationErrorMessage(error: {
 
   if (isListingIntentSchemaError(error)) {
     return getListingIntentSchemaMessage();
+  }
+
+  if (isListingPriceTypeSchemaError(error)) {
+    return getListingPriceTypeSchemaMessage();
   }
 
   if (isListingGeocodingSchemaError(error)) {
