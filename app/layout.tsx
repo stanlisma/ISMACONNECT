@@ -73,7 +73,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <AnalyticsProvider userId={viewer?.user.id ?? null} />
         <PwaShell />
-        <MobileBottomNav />
+        <MobileBottomNav
+          viewer={Boolean(viewer)}
+          unreadMessagesCount={unreadMessagesCount}
+          unreadActivityCount={unreadNotificationsCount}
+        />
         <div className="site-shell">
           <SiteHeader
             viewer={viewer}

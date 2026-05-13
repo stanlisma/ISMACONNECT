@@ -1,5 +1,6 @@
 import { BusinessProfileForm } from "@/components/settings/business-profile-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
+import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import {
@@ -138,6 +139,10 @@ export default async function SettingsPage({
 
           <div className="settings-block-stack">
             <BrowserNotificationSettings />
+          </div>
+
+          <div className="settings-block-stack">
+            <InstallAppCard />
           </div>
         </div>
 
