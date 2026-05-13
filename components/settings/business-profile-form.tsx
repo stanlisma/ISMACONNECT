@@ -12,12 +12,14 @@ interface BusinessProfileFormProps {
     profilePhone: string;
   };
   schemaReady: boolean;
+  returnPath?: string;
 }
 
 export function BusinessProfileForm({
   action,
   defaults,
-  schemaReady
+  schemaReady,
+  returnPath = "/settings"
 }: BusinessProfileFormProps) {
   const [isBusiness, setIsBusiness] = useState(defaults.isBusiness);
 
@@ -55,6 +57,8 @@ export function BusinessProfileForm({
       </div>
 
       <form action={action} className="business-profile-form">
+        <input type="hidden" name="return_path" value={returnPath} />
+
         <label className="business-profile-toggle">
           <input
             type="checkbox"

@@ -13,6 +13,32 @@ import { isBusinessProfileSchemaError } from "@/lib/business-profile";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+function resolveSettingsReturnPath(formData: FormData, fallbackPath = "/settings") {
+  const rawPath = formData.get("return_path");
+
+  if (typeof rawPath !== "string" || !rawPath.startsWith("/")) {
+    return fallbackPath;
+  }
+
+  if (rawPath === "/settings" || rawPath.startsWith("/settings?")) {
+    return rawPath;
+  }
+
+  if (rawPath === "/dashboard/storefronts" || rawPath.startsWith("/dashboard/storefronts?")) {
+    return rawPath;
+  }
+
+  return fallbackPath;
+}
+
+function buildReturnPathWithMessage(returnPath: string, key: "success" | "error", message: string) {
+  const [pathname, existingQuery] = returnPath.split("?");
+  const searchParams = new URLSearchParams(existingQuery ?? "");
+  searchParams.set(key, message);
+  const queryString = searchParams.toString();
+  return queryString ? `${pathname}?${queryString}` : pathname;
+}
+
 async function generateUniqueStorefrontSlug(ownerId: string, name: string, storefrontId?: string) {
   const supabase = await createServerSupabaseClient();
   const baseSlug = buildStorefrontSlug(name);
@@ -74,6 +100,7 @@ export async function updateBusinessProfileAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
   const isBusiness = formData.get("is_business") === "on";
+  const returnPath = resolveSettingsReturnPath(formData);
 
   if (!isBusiness) {
     const { count, error: storefrontCountError } = await supabase
@@ -82,11 +109,17 @@ export async function updateBusinessProfileAction(formData: FormData) {
       .eq("owner_id", viewer.user.id);
 
     if (storefrontCountError && !isAdditionalStorefrontSchemaError(storefrontCountError)) {
-      redirect(`/settings?error=${encodeURIComponent(storefrontCountError.message)}`);
+      redirect(buildReturnPathWithMessage(returnPath, "error", storefrontCountError.message));
     }
 
     if ((count ?? 0) > 0) {
-      redirect("/settings?error=Delete your storefronts before turning off business mode for this account.");
+      redirect(
+        buildReturnPathWithMessage(
+          returnPath,
+          "error",
+          "Delete your storefronts before turning off business mode for this account."
+        )
+      );
     }
   }
 
@@ -115,25 +148,33 @@ export async function updateBusinessProfileAction(formData: FormData) {
 
   if (error) {
     if (isBusinessProfileSchemaError(error)) {
-      redirect("/settings?error=Run the business profile migration in Supabase before saving business settings.");
+      redirect(
+        buildReturnPathWithMessage(
+          returnPath,
+          "error",
+          "Run the business profile migration in Supabase before saving business settings."
+        )
+      );
     }
 
-    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+    redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
   }
 
   revalidatePath("/settings");
+  revalidatePath("/dashboard/storefronts");
   revalidatePath("/account");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect("/settings?success=Business profile updated");
+  redirect(buildReturnPathWithMessage(returnPath, "success", "Business profile updated"));
 }
 
 export async function createAdditionalStorefrontAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
   const parsed = parseAdditionalStorefrontFormData(formData);
+  const returnPath = resolveSettingsReturnPath(formData);
 
   if (!parsed.name) {
-    redirect("/settings?error=Storefront name is required.");
+    redirect(buildReturnPathWithMessage(returnPath, "error", "Storefront name is required."));
   }
 
   const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name);
@@ -163,29 +204,37 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
 
   if (error) {
     if (isAdditionalStorefrontSchemaError(error)) {
-      redirect("/settings?error=Run the additional storefront migration in Supabase before saving more storefronts.");
+      redirect(
+        buildReturnPathWithMessage(
+          returnPath,
+          "error",
+          "Run the additional storefront migration in Supabase before saving more storefronts."
+        )
+      );
     }
 
-    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+    redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
   }
 
   revalidatePath("/settings");
+  revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect("/settings?success=Storefront created");
+  redirect(buildReturnPathWithMessage(returnPath, "success", "Storefront created"));
 }
 
 export async function updateAdditionalStorefrontAction(storefrontId: string, formData: FormData) {
   const viewer = await requireViewer();
   const existingStorefront = await loadOwnedStorefront(viewer.user.id, storefrontId);
+  const returnPath = resolveSettingsReturnPath(formData);
 
   if (!existingStorefront) {
-    redirect("/settings?error=That storefront could not be found.");
+    redirect(buildReturnPathWithMessage(returnPath, "error", "That storefront could not be found."));
   }
 
   const parsed = parseAdditionalStorefrontFormData(formData);
 
   if (!parsed.name) {
-    redirect("/settings?error=Storefront name is required.");
+    redirect(buildReturnPathWithMessage(returnPath, "error", "Storefront name is required."));
   }
 
   const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name, storefrontId);
@@ -234,23 +283,31 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
 
   if (error) {
     if (isAdditionalStorefrontSchemaError(error)) {
-      redirect("/settings?error=Run the additional storefront migration in Supabase before saving more storefronts.");
+      redirect(
+        buildReturnPathWithMessage(
+          returnPath,
+          "error",
+          "Run the additional storefront migration in Supabase before saving more storefronts."
+        )
+      );
     }
 
-    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+    redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
   }
 
   revalidatePath("/settings");
+  revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect("/settings?success=Storefront updated");
+  redirect(buildReturnPathWithMessage(returnPath, "success", "Storefront updated"));
 }
 
-export async function deleteAdditionalStorefrontAction(storefrontId: string) {
+export async function deleteAdditionalStorefrontAction(storefrontId: string, formData: FormData) {
   const viewer = await requireViewer();
   const existingStorefront = await loadOwnedStorefront(viewer.user.id, storefrontId);
+  const returnPath = resolveSettingsReturnPath(formData, "/dashboard/storefronts");
 
   if (!existingStorefront) {
-    redirect("/settings?error=That storefront could not be found.");
+    redirect(buildReturnPathWithMessage(returnPath, "error", "That storefront could not be found."));
   }
 
   const supabase = await createServerSupabaseClient();
@@ -262,13 +319,20 @@ export async function deleteAdditionalStorefrontAction(storefrontId: string) {
 
   if (error) {
     if (isAdditionalStorefrontSchemaError(error)) {
-      redirect("/settings?error=Run the additional storefront migration in Supabase before deleting storefronts.");
+      redirect(
+        buildReturnPathWithMessage(
+          returnPath,
+          "error",
+          "Run the additional storefront migration in Supabase before deleting storefronts."
+        )
+      );
     }
 
-    redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+    redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
   }
 
   revalidatePath("/settings");
+  revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect("/settings?success=Storefront deleted");
+  redirect(buildReturnPathWithMessage(returnPath, "success", "Storefront deleted"));
 }

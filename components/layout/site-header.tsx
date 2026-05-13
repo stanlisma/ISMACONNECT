@@ -249,6 +249,7 @@ export function SiteHeader({
           {viewer && (
             <nav className="account-nav">
               <Link href="/dashboard">My Listings</Link>
+              <Link href="/dashboard/storefronts">My Storefronts</Link>
               <Link href="/dashboard/searches">Saved Searches</Link>
               <Link href="/saved">Favourites</Link>
               <Link href="/settings">Settings</Link>
@@ -273,6 +274,9 @@ export function SiteHeader({
           <nav className="mobile-account-nav" aria-label="Mobile account shortcuts">
             <Link href="/dashboard" className={isExactPath("/dashboard") ? "is-active" : ""}>
               Listings
+            </Link>
+            <Link href="/dashboard/storefronts" className={isPathGroup("/dashboard/storefronts") ? "is-active" : ""}>
+              My Storefronts
             </Link>
             <Link href="/dashboard/searches" className={isPathGroup("/dashboard/searches") ? "is-active" : ""}>
               Saved Searches

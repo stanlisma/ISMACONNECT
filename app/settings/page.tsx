@@ -167,6 +167,7 @@ export default async function SettingsPage({
           <BusinessProfileForm
             action={updateBusinessProfileAction}
             schemaReady={businessSchemaReady}
+            returnPath="/settings"
             defaults={{
               isBusiness: businessProfile.is_business,
               profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
@@ -181,6 +182,7 @@ export default async function SettingsPage({
             updateAction={updateAdditionalStorefrontAction}
             deleteAction={deleteAdditionalStorefrontAction}
             fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
+            returnPath="/settings"
             suggestedDefaults={
               additionalStorefrontsResult.storefronts.length === 0 &&
               (businessProfile.business_name ||
