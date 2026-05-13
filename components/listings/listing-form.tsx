@@ -13,6 +13,7 @@ import {
 import { useMemo, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
+import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import {
   DEFAULT_MARKETPLACE_CATEGORY,
   getDefaultPriceType,
@@ -65,11 +66,6 @@ type UploadItem = {
   name: string;
   details: string;
   status: UploadStatus;
-};
-
-type FieldHelpProps = {
-  text: string;
-  label?: string;
 };
 
 const MAX_IMAGE_COUNT = 8;
@@ -372,36 +368,6 @@ function getPhotoPanelCopy(listingIntent: ListingIntent) {
   return listingIntent === "need"
     ? "Upload reference photos only if they help explain the job, item, or location. We optimize them before upload."
     : `Upload up to ${MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.`;
-}
-
-function FieldHelp({ text, label = "Help" }: FieldHelpProps) {
-  return (
-    <span
-      className="field-help-badge"
-      tabIndex={0}
-      role="note"
-      title={text}
-      aria-label={`${label}: ${text}`}
-      data-tooltip={text}
-    >
-      ?
-    </span>
-  );
-}
-
-function FieldLabelWithHelp({
-  label,
-  helpText
-}: {
-  label: string;
-  helpText?: string | null;
-}) {
-  return (
-    <span className="field-label-row">
-      <span className="field-label">{label}</span>
-      {helpText ? <FieldHelp text={helpText} label={label} /> : null}
-    </span>
-  );
 }
 
 function normalizeContactValue(value?: string | null) {

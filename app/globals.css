@@ -1318,6 +1318,13 @@ code {
   flex-wrap: wrap;
 }
 
+.field-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .field-help-badge {
   position: relative;
   display: inline-flex;
@@ -1334,11 +1341,18 @@ code {
   line-height: 1;
   cursor: help;
   user-select: none;
-  flex-shrink: 0;
+  list-style: none;
 }
 
-.field-help-badge::after {
-  content: attr(data-tooltip);
+.field-help-badge::-webkit-details-marker {
+  display: none;
+}
+
+.field-help-badge::marker {
+  content: "";
+}
+
+.field-help-popover {
   position: absolute;
   top: calc(100% + 0.45rem);
   left: 0;
@@ -1360,8 +1374,9 @@ code {
   z-index: 30;
 }
 
-.field-help-badge:hover::after,
-.field-help-badge:focus-visible::after {
+.field-help:hover .field-help-popover,
+.field-help:focus-within .field-help-popover,
+.field-help[open] .field-help-popover {
   opacity: 1;
   transform: translateY(0);
 }
@@ -5836,13 +5851,6 @@ code {
   color: var(--text);
 }
 
-.business-profile-toggle small {
-  display: block;
-  margin-top: 0.18rem;
-  color: var(--text-soft);
-  line-height: 1.45;
-}
-
 .business-profile-fields {
   display: grid;
   gap: 1rem;
@@ -5933,12 +5941,6 @@ code {
   border: 1px dashed var(--line-strong);
   border-radius: 18px;
   background: linear-gradient(180deg, #ffffff, #f8fbff);
-}
-
-.business-logo-copy p {
-  margin: 0.2rem 0 0;
-  color: var(--text-soft);
-  line-height: 1.45;
 }
 
 .business-logo-controls {
