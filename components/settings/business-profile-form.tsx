@@ -3,6 +3,7 @@
 import { Building2, ImagePlus, X } from "lucide-react";
 import { useState } from "react";
 
+import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { BUSINESS_DAY_ORDER } from "@/lib/business-profile";
 import type { BusinessHours } from "@/types/database";
 
@@ -104,8 +105,13 @@ export function BusinessProfileForm({
             onChange={(event) => setIsBusiness(event.target.checked)}
           />
           <span>
-            <strong>Use a business storefront</strong>
-            <small>Best for employers, service providers, and local businesses with multiple listings.</small>
+            <strong className="listing-toggle-title">
+              <span>Use a business storefront</span>
+              <FieldHelp
+                text="Best for employers, service providers, and local businesses with multiple listings."
+                label="Use a business storefront"
+              />
+            </strong>
           </span>
         </label>
 
@@ -114,7 +120,10 @@ export function BusinessProfileForm({
         <div className={`business-profile-fields ${isBusiness ? "is-active" : "is-inactive"}`}>
           <div className="business-profile-grid">
             <label className="field">
-              <span className="field-label">Business name</span>
+              <FieldLabelWithHelp
+                label="Business name"
+                helpText="Use the public name customers know your business by."
+              />
               <input
                 className="input"
                 type="text"
@@ -125,7 +134,10 @@ export function BusinessProfileForm({
             </label>
 
             <label className="field">
-              <span className="field-label">Website</span>
+              <FieldLabelWithHelp
+                label="Website"
+                helpText="Add your public website if you want a direct storefront link."
+              />
               <input
                 className="input"
                 type="text"
@@ -138,7 +150,10 @@ export function BusinessProfileForm({
 
           <div className="business-profile-grid">
             <label className="field">
-              <span className="field-label">Business address</span>
+              <FieldLabelWithHelp
+                label="Business address"
+                helpText="Use your storefront or business address only. Home-based sellers should leave this blank."
+              />
               <input
                 className="input"
                 type="text"
@@ -146,14 +161,14 @@ export function BusinessProfileForm({
                 defaultValue={defaults.businessAddress}
                 placeholder="205 Powder Drive, Fort McMurray, AB"
               />
-              <p className="field-hint">
-                Use your storefront or business address only. Home-based sellers should leave this blank.
-              </p>
             </label>
           </div>
 
           <label className="field">
-            <span className="field-label">Business description</span>
+            <FieldLabelWithHelp
+              label="Business description"
+              helpText="Describe what your business offers, who you serve, and why locals should trust you."
+            />
             <textarea
               className="textarea business-profile-textarea"
               name="business_description"
@@ -164,7 +179,10 @@ export function BusinessProfileForm({
           </label>
 
           <label className="field">
-            <span className="field-label">Service areas</span>
+            <FieldLabelWithHelp
+              label="Service areas"
+              helpText="List the communities or nearby areas you serve, separated with commas."
+            />
             <input
               className="input"
               type="text"
@@ -175,7 +193,10 @@ export function BusinessProfileForm({
           </label>
 
           <label className="field">
-            <span className="field-label">Business services</span>
+            <FieldLabelWithHelp
+              label="Business services"
+              helpText="Separate specialties with commas so the storefront reads more like a real local business page."
+            />
             <input
               className="input"
               type="text"
@@ -183,16 +204,15 @@ export function BusinessProfileForm({
               defaultValue={defaults.businessServices}
               placeholder="Cleaning, move-out services, dump runs, handyman work"
             />
-            <p className="field-hint">
-              Separate specialties with commas so your storefront reads more like a real local business page.
-            </p>
           </label>
 
           <div className="business-hours-card">
             <div className="business-hours-head">
               <div>
-                <span className="field-label">Business hours</span>
-                <p className="field-hint">Show weekly hours so customers know when to call or message.</p>
+                <FieldLabelWithHelp
+                  label="Business hours"
+                  helpText="Show weekly hours so customers know when to call or message."
+                />
               </div>
               <p className="business-hours-phone-note">
                 Call button uses your profile phone:
@@ -245,15 +265,22 @@ export function BusinessProfileForm({
               defaultChecked={defaults.showExactBusinessLocation}
             />
             <span>
-              <strong>Default new listings to your exact business map location</strong>
-              <small>Only use this for real storefront or business addresses you want to prefill as exact map pins by default.</small>
+              <strong className="listing-toggle-title">
+                <span>Default new listings to your exact business map location</span>
+                <FieldHelp
+                  text="Only use this for real storefront or business addresses you want to prefill as exact map pins by default."
+                  label="Default new listings to your exact business map location"
+                />
+              </strong>
             </span>
           </label>
 
           <div className="business-logo-shell">
             <div className="business-logo-copy">
-              <span className="field-label">Business logo</span>
-              <p>Upload one square-friendly logo or badge for your storefront.</p>
+              <FieldLabelWithHelp
+                label="Business logo"
+                helpText="Upload one square-friendly logo or badge for your storefront."
+              />
             </div>
 
             <div className="business-logo-controls">
