@@ -14,31 +14,33 @@ function isListingEditorPath(pathname: string) {
 
 export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
   const pathname = usePathname();
+  const isOverviewPath = pathname === "/dashboard";
 
   if (isListingEditorPath(pathname)) {
     return null;
   }
 
   return (
-    <div className="dashboard-header">
-      <span className="eyebrow">My Listings</span>
-      <h1>Manage your marketplace presence</h1>
-      <p className="section-copy">
-        Signed in as <strong>{fullName || "Local member"}</strong>. Create listings, edit existing posts, and keep
-        your public information current.
-      </p>
-      <div className="dashboard-nav">
-        <Link className="button button-secondary" href="/dashboard">
-          Overview
-        </Link>
+    <div className="dashboard-header dashboard-header-compact">
+      <div className="dashboard-header-main">
+        <h1>My listings</h1>
+        {fullName ? <p className="dashboard-header-meta">{fullName}</p> : null}
+      </div>
+
+      <div className="dashboard-nav dashboard-nav-compact">
+        {!isOverviewPath ? (
+          <Link className="button button-secondary" href="/dashboard">
+            Overview
+          </Link>
+        ) : null}
         <Link className="button button-secondary" href="/saved">
           Favourites
         </Link>
         <Link className="button button-secondary" href="/dashboard/searches">
-          Saved searches
+          Saved
         </Link>
         <Link className="button button-secondary" href="/dashboard/boosts">
-          Boost products
+          Boosts
         </Link>
         <Link className="button" href="/dashboard/listings/new">
           New listing
