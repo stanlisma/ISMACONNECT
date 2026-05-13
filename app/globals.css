@@ -1438,12 +1438,26 @@ code {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.listing-structured-grid.is-rentals {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.listing-structured-boolean-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.listing-structured-boolean-grid.is-rentals {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .listing-structured-checkbox {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.8rem;
-  min-height: 100%;
-  padding: 0.95rem 1rem;
+  min-height: 3.5rem;
+  padding: 0.9rem 1rem;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.94);
@@ -1452,14 +1466,14 @@ code {
 .listing-structured-checkbox input {
   width: 1.05rem;
   height: 1.05rem;
-  margin-top: 0.15rem;
   accent-color: var(--primary);
+  flex-shrink: 0;
 }
 
 .listing-structured-checkbox-copy {
   display: grid;
-  gap: 0.2rem;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .listing-structured-checkbox-copy strong {
@@ -7072,6 +7086,11 @@ code {
 }
 
 @media (max-width: 760px) {
+  .listing-structured-grid.is-rentals,
+  .listing-structured-boolean-grid.is-rentals {
+    grid-template-columns: 1fr;
+  }
+
   .listing-price-amount-input {
     max-width: 100%;
   }
