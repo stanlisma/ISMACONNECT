@@ -1161,6 +1161,21 @@ code {
   gap: 0.35rem;
 }
 
+.browser-notification-title,
+.settings-title-row,
+.business-profile-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.settings-title-row h2,
+.business-profile-title-row h2,
+.business-profile-title-row h3 {
+  margin: 0;
+}
+
 .browser-notification-copy p,
 .browser-notification-actions p {
   margin: 0;
@@ -4335,6 +4350,10 @@ code {
   margin: 0;
 }
 
+.settings-title-row {
+  margin-bottom: 0.15rem;
+}
+
 .settings-jump-row {
   margin-top: 0.15rem;
 }
@@ -5930,6 +5949,11 @@ code {
   margin: 0 0 0.2rem;
   color: var(--text);
   font-size: 1.15rem;
+}
+
+.business-profile-head-copy {
+  display: grid;
+  gap: 0.2rem;
 }
 
 .business-profile-head p {

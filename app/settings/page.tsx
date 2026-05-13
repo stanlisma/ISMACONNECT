@@ -3,6 +3,7 @@ import { BusinessProfileForm } from "@/components/settings/business-profile-form
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { FlashMessage } from "@/components/ui/flash-message";
+import { FieldHelp } from "@/components/ui/field-help";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import {
   EMPTY_BUSINESS_PROFILE,
@@ -121,7 +122,13 @@ export default async function SettingsPage({
         </div>
 
         <div className="surface settings-section-card" id="notifications">
-          <h2 style={{ marginBottom: "0.85rem" }}>Notification Settings</h2>
+          <div className="settings-title-row">
+            <h2>Notification Settings</h2>
+            <FieldHelp
+              label="Notification Settings"
+              text="Manage message emails, browser push alerts, and PWA install options for this device."
+            />
+          </div>
 
           <form action={updateNotificationSettingsAction}>
             <label className="settings-inline-toggle">
@@ -211,10 +218,13 @@ export default async function SettingsPage({
         </div>
 
         <div className="surface settings-section-card" id="verification">
-          <h2 style={{ marginBottom: "0.6rem" }}>Trust & Verification</h2>
-          <p className="section-copy settings-support-copy">
-            ID-verified sellers and strong ratings appear as trust badges across listing cards and detail pages.
-          </p>
+          <div className="settings-title-row">
+            <h2>Trust & Verification</h2>
+            <FieldHelp
+              label="Trust & Verification"
+              text="ID-verified sellers and strong ratings appear as trust badges across listing cards and detail pages."
+            />
+          </div>
 
           <TrustBadges summary={trustSummary} />
 
