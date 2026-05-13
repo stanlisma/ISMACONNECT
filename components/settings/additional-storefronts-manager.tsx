@@ -7,6 +7,7 @@ import type { AdditionalBusinessStorefront } from "@/types/database";
 type AdditionalStorefrontsManagerProps = {
   storefronts: AdditionalBusinessStorefront[];
   schemaReady: boolean;
+  accountEnabled: boolean;
   createAction: (formData: FormData) => void | Promise<void>;
   updateAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
   deleteAction: (storefrontId: string) => void | Promise<void>;
@@ -256,6 +257,7 @@ function StorefrontForm({
 export function AdditionalStorefrontsManager({
   storefronts,
   schemaReady,
+  accountEnabled,
   createAction,
   updateAction,
   deleteAction,
@@ -272,6 +274,24 @@ export function AdditionalStorefrontsManager({
               <FieldHelp
                 label="Storefronts"
                 text="Run the additional storefront migration in Supabase to manage more than one public storefront from one business account."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!accountEnabled) {
+    return (
+      <div className="surface storefront-manager-card">
+        <div className="storefront-manager-card-head">
+          <div>
+            <div className="business-profile-title-row">
+              <h2>Storefronts</h2>
+              <FieldHelp
+                label="Storefronts"
+                text="Turn on business storefronts above and save the business account first. After that, you can create one or more storefronts here."
               />
             </div>
           </div>
