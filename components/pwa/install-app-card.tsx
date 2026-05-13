@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Download, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { FieldHelp } from "@/components/ui/field-help";
 
 type DeferredPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -94,8 +95,13 @@ export function InstallAppCard() {
   return (
     <div className="browser-notification-card install-app-card">
       <div className="browser-notification-copy">
-        <strong>Install ISMACONNECT</strong>
-        <p>{summary}</p>
+        <div className="browser-notification-title">
+          <strong>Install ISMACONNECT</strong>
+          <FieldHelp
+            label="Install ISMACONNECT"
+            text={summary}
+          />
+        </div>
       </div>
 
       {installed ? (

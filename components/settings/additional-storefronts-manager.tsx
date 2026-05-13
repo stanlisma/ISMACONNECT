@@ -35,12 +35,17 @@ function StorefrontForm({
     <div className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}>
       <div className="storefront-manager-card-head">
         <div>
-          <h3>{title}</h3>
-          <p className="section-copy">
-            {isNew
-              ? "Create another public storefront for a separate brand, location, or service line."
-              : "Edit this storefront separately from your primary business profile."}
-          </p>
+          <div className="business-profile-title-row">
+            <h3>{title}</h3>
+            <FieldHelp
+              label={title}
+              text={
+                isNew
+                  ? "Create another public storefront for a separate brand, location, or service line."
+                  : "Edit this storefront separately from your personal seller profile and your other storefronts."
+              }
+            />
+          </div>
         </div>
 
         {deleteAction ? (
@@ -262,10 +267,13 @@ export function AdditionalStorefrontsManager({
       <div className="surface storefront-manager-card">
         <div className="storefront-manager-card-head">
           <div>
-            <h2>Storefronts</h2>
-            <p className="section-copy">
-              Run the additional storefront migration in Supabase to manage more than one public storefront from one business account.
-            </p>
+            <div className="business-profile-title-row">
+              <h2>Storefronts</h2>
+              <FieldHelp
+                label="Storefronts"
+                text="Run the additional storefront migration in Supabase to manage more than one public storefront from one business account."
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -276,10 +284,13 @@ export function AdditionalStorefrontsManager({
     <div className="settings-block-stack">
       <div className="surface storefront-manager-summary">
         <div>
-          <h2>Storefronts</h2>
-          <p className="section-copy">
-            Add separate storefronts for different locations, brands, or service lines.
-          </p>
+          <div className="business-profile-title-row">
+            <h2>Storefronts</h2>
+            <FieldHelp
+              label="Storefronts"
+              text="Add separate storefronts for different locations, brands, or service lines."
+            />
+          </div>
         </div>
         <div className="meta-list">
           <span>{storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}</span>

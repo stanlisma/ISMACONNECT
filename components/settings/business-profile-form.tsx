@@ -43,9 +43,14 @@ export function BusinessProfileForm({
         <div className="business-profile-icon">
           <Building2 aria-hidden="true" size={18} strokeWidth={2.1} />
         </div>
-        <div>
-          <h2>Business account</h2>
-          <p>Turn on business mode for this account, then create separate storefronts for each brand, location, or service line.</p>
+        <div className="business-profile-head-copy">
+          <div className="business-profile-title-row">
+            <h2>Business account</h2>
+            <FieldHelp
+              label="Business account"
+              text="Turn on business mode for this account, then create separate storefronts for each brand, location, or service line."
+            />
+          </div>
         </div>
       </div>
 
@@ -71,14 +76,14 @@ export function BusinessProfileForm({
         <div className={`business-profile-fields ${isBusiness ? "is-active" : "is-inactive"}`}>
           <div className="business-hours-card">
             <div className="business-hours-head">
-              <div>
-                <strong className="listing-toggle-title">How it works</strong>
-                <p className="section-copy">
-                  Your account stays personal. Business details, branding, address, hours, services, and map settings now live inside each storefront you create below.
-                </p>
+              <div className="business-profile-title-row">
+                <strong className="listing-toggle-title">Account phone</strong>
+                <FieldHelp
+                  label="Account phone"
+                  text="Your account stays personal. Storefront details like branding, address, hours, services, and map settings now live inside each storefront you create below. The account phone is still used when a storefront phone is left blank."
+                />
               </div>
               <p className="business-hours-phone-note">
-                Account phone:
                 <strong>{defaults.profilePhone || "Add a phone number in your account profile"}</strong>
               </p>
             </div>

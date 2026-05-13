@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FieldHelp } from "@/components/ui/field-help";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -148,10 +149,13 @@ export function BrowserNotificationSettings() {
   return (
     <div className="browser-notification-card">
       <div className="browser-notification-copy">
-        <strong>Browser notifications</strong>
-        <p>
-          Turn on browser push notifications to get instant alerts for new messages, boost activity, and verification updates even when ISMACONNECT is closed.
-        </p>
+        <div className="browser-notification-title">
+          <strong>Browser notifications</strong>
+          <FieldHelp
+            label="Browser notifications"
+            text="Turn on browser push notifications to get instant alerts for new messages, boost activity, and verification updates even when ISMACONNECT is closed."
+          />
+        </div>
       </div>
 
       {!supported ? (
@@ -190,7 +194,6 @@ export function BrowserNotificationSettings() {
           <button className="button button-secondary" disabled={requesting} type="button" onClick={handleEnable}>
             {requesting ? "Enabling..." : "Enable notifications"}
           </button>
-          <p>Recommended for messages, boosts, verification, and other marketplace updates.</p>
           {statusMessage ? <p>{statusMessage}</p> : null}
         </div>
       )}
