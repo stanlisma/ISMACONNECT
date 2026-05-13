@@ -746,15 +746,12 @@ export function ListingForm({
   return (
     <form action={action} className="form-grid listing-editor-form" onSubmit={handleSubmit}>
       <section className="field-full listing-form-section">
-        <div className="listing-form-section-head">
-          <div>
-            <span className="field-label">Basics</span>
-          </div>
-        </div>
-
         <div className="listing-form-section-grid">
           <div className="field field-full listing-intent-field">
-            <span className="field-label">Post type</span>
+            <FieldLabelWithHelp
+              label="Offer or need"
+              helpText="Choose whether you are posting something available right now or asking people to reply with help, a ride, a rental, work, or an item."
+            />
             <div className="listing-intent-toggle" role="radiogroup" aria-label="Choose post type">
               {(["offer", "need"] as ListingIntent[]).map((value) => (
                 <label
