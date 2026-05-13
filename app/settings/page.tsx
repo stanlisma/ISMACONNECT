@@ -173,48 +173,47 @@ export default async function SettingsPage({
             }}
           />
 
-          {businessProfile.is_business ? (
-            <AdditionalStorefrontsManager
-              storefronts={additionalStorefrontsResult.storefronts}
-              schemaReady={additionalStorefrontsResult.schemaReady}
-              createAction={createAdditionalStorefrontAction}
-              updateAction={updateAdditionalStorefrontAction}
-              deleteAction={deleteAdditionalStorefrontAction}
-              fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
-              suggestedDefaults={
-                additionalStorefrontsResult.storefronts.length === 0 &&
-                (businessProfile.business_name ||
-                  businessProfile.business_description ||
-                  businessProfile.business_website ||
-                  businessProfile.business_address ||
-                  businessProfile.service_areas.length ||
-                  businessProfile.business_services.length)
-                  ? {
-                      name: businessProfile.business_name ?? "",
-                      description: businessProfile.business_description ?? null,
-                      logo_url: businessProfile.business_logo_url ?? null,
-                      website: businessProfile.business_website ?? null,
-                      phone: businessProfile.phone ?? viewer.profile.phone ?? null,
-                      address: businessProfile.business_address ?? null,
-                      show_exact_location: businessProfile.show_exact_business_location,
-                      service_areas: businessProfile.service_areas,
-                      services: businessProfile.business_services,
-                      hours: businessProfile.business_hours,
-                      id: "",
-                      owner_id: viewer.user.id,
-                      slug: "",
-                      geocoded_lat: null,
-                      geocoded_lng: null,
-                      geocoded_area: null,
-                      geocoded_formatted_address: null,
-                      geocoded_at: null,
-                      created_at: "",
-                      updated_at: ""
-                    }
-                  : undefined
-              }
-            />
-          ) : null}
+          <AdditionalStorefrontsManager
+            storefronts={additionalStorefrontsResult.storefronts}
+            schemaReady={additionalStorefrontsResult.schemaReady}
+            accountEnabled={businessProfile.is_business}
+            createAction={createAdditionalStorefrontAction}
+            updateAction={updateAdditionalStorefrontAction}
+            deleteAction={deleteAdditionalStorefrontAction}
+            fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
+            suggestedDefaults={
+              additionalStorefrontsResult.storefronts.length === 0 &&
+              (businessProfile.business_name ||
+                businessProfile.business_description ||
+                businessProfile.business_website ||
+                businessProfile.business_address ||
+                businessProfile.service_areas.length ||
+                businessProfile.business_services.length)
+                ? {
+                    name: businessProfile.business_name ?? "",
+                    description: businessProfile.business_description ?? null,
+                    logo_url: businessProfile.business_logo_url ?? null,
+                    website: businessProfile.business_website ?? null,
+                    phone: businessProfile.phone ?? viewer.profile.phone ?? null,
+                    address: businessProfile.business_address ?? null,
+                    show_exact_location: businessProfile.show_exact_business_location,
+                    service_areas: businessProfile.service_areas,
+                    services: businessProfile.business_services,
+                    hours: businessProfile.business_hours,
+                    id: "",
+                    owner_id: viewer.user.id,
+                    slug: "",
+                    geocoded_lat: null,
+                    geocoded_lng: null,
+                    geocoded_area: null,
+                    geocoded_formatted_address: null,
+                    geocoded_at: null,
+                    created_at: "",
+                    updated_at: ""
+                  }
+                : undefined
+            }
+          />
         </div>
 
         <div className="surface settings-section-card" id="verification">
