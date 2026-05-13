@@ -20,6 +20,7 @@ import {
   getRentalListingMapPoint,
   getRideShareRouteCounts,
   getRideShareRouteMapPoints,
+  resolveCommunityMapArea,
   shouldShowExactListingAddressOnMap
 } from "@/lib/local-marketplace";
 import { buildPathWithQuery } from "@/lib/utils";
@@ -68,6 +69,8 @@ type CommunityListingPoint = {
   businessName: string | null;
   businessAddress: string | null;
   exactAddress: string | null;
+  exactLat: number | null;
+  exactLng: number | null;
 };
 type RideShareListingPoint = ReturnType<typeof getRideShareRouteMapPoints> & { listing: Listing };
 type ExactAddressMapPoint = {
@@ -82,6 +85,10 @@ type ExactAddressMapPoint = {
   listings: Listing[];
   representativeListing: Listing;
 };
+type ExactAddressCandidate = Omit<ExactAddressMapPoint, "lat" | "lng"> & {
+  lat: number | null;
+  lng: number | null;
+};
 
 const EMBEDDED_GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 const EMBEDDED_GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || undefined;
@@ -90,7 +97,6 @@ const FORT_MCMURRAY_CENTER = { lat: 56.7269, lng: -111.3806 };
 const ALBERTA_CENTER = { lat: 54.9, lng: -112.6 };
 
 let googleMapsPromise: Promise<GoogleMapsNamespace> | null = null;
-const geocodedBusinessAddressCache = new Map<string, LatLngLike | null>();
 
 declare global {
   interface Window {
@@ -332,30 +338,15 @@ function buildExactAddressMarkerLabel(point: ExactAddressMapPoint) {
   return formatCompactPrice(point.representativeListing.price);
 }
 
-function buildBusinessGeocodeQuery(address: string) {
-  const normalized = address.toLowerCase();
-
-  if (
-    normalized.includes("fort mcmurray") ||
-    normalized.includes("alberta") ||
-    normalized.includes("canada")
-  ) {
-    return address;
-  }
-
-  return `${address}, Fort McMurray, Alberta, Canada`;
+function buildFallbackGeocodeQuery(address: string) {
+  return /fort\s*mcmurray|alberta|canada/i.test(address)
+    ? address
+    : `${address}, Fort McMurray, Alberta, Canada`;
 }
 
-async function geocodeBusinessAddress(
-  geocoder: any,
-  address: string
-): Promise<LatLngLike | null> {
-  if (geocodedBusinessAddressCache.has(address)) {
-    return geocodedBusinessAddressCache.get(address) ?? null;
-  }
-
-  const result = await new Promise<LatLngLike | null>((resolve) => {
-    geocoder.geocode({ address: buildBusinessGeocodeQuery(address) }, (results: any[], status: string) => {
+async function geocodeAddressFallback(geocoder: any, address: string): Promise<LatLngLike | null> {
+  return new Promise<LatLngLike | null>((resolve) => {
+    geocoder.geocode({ address: buildFallbackGeocodeQuery(address) }, (results: any[], status: string) => {
       if (status !== "OK" || !results?.length) {
         resolve(null);
         return;
@@ -373,9 +364,6 @@ async function geocodeBusinessAddress(
       });
     });
   });
-
-  geocodedBusinessAddressCache.set(address, result);
-  return result;
 }
 
 function createInfoContent(title: string, body: string, caption?: string) {
@@ -669,16 +657,37 @@ function CommunityMapExplorer({
 
           const businessProfile = businessMapProfiles[listing.owner_id];
           const businessAddress = businessProfile?.business_address?.trim() || null;
+          const geocodedBusinessArea = resolveCommunityMapArea(businessProfile?.business_geocoded_area);
           const inferredBusinessArea = businessAddress
             ? getCommunityMapAreaFromText(businessAddress, { includeCamp: includeCampAreas })
             : null;
-          const resolvedArea = (inferredBusinessArea ?? point.area) as CommunityMapArea;
+          const resolvedArea = (geocodedBusinessArea ?? inferredBusinessArea ?? point.area) as CommunityMapArea;
           const resolvedDefinition =
             getCommunityMapAreaDefinition(resolvedArea) ?? getCommunityMapAreaDefinition(point.area as CommunityMapArea);
 
           if (!resolvedDefinition) {
             return null;
           }
+
+          const listingExactGeocode =
+            shouldShowExactListingAddressOnMap(listing) &&
+            typeof listing.geocoded_lat === "number" &&
+            typeof listing.geocoded_lng === "number"
+              ? {
+                  lat: listing.geocoded_lat,
+                  lng: listing.geocoded_lng
+                }
+              : null;
+          const businessExactGeocode =
+            listing.show_exact_address_on_map === null &&
+            businessProfile?.show_exact_business_location &&
+            typeof businessProfile.business_geocoded_lat === "number" &&
+            typeof businessProfile.business_geocoded_lng === "number"
+              ? {
+                  lat: businessProfile.business_geocoded_lat,
+                  lng: businessProfile.business_geocoded_lng
+                }
+              : null;
 
           return {
             listing,
@@ -695,7 +704,9 @@ function CommunityMapExplorer({
                   businessProfile?.show_exact_business_location &&
                   businessAddress
                 ? businessAddress
-                : null
+                : null,
+            exactLat: listingExactGeocode?.lat ?? businessExactGeocode?.lat ?? null,
+            exactLng: listingExactGeocode?.lng ?? businessExactGeocode?.lng ?? null
           };
         })
         .filter(Boolean) as CommunityListingPoint[],
@@ -724,8 +735,8 @@ function CommunityMapExplorer({
       .filter(Boolean)
       .sort((left, right) => right!.count - left!.count) as CommunityAreaSummary[];
   }, [listingPoints]);
-  const exactAddressCandidates = useMemo<Array<Omit<ExactAddressMapPoint, "lat" | "lng">>>(() => {
-    const byAddress = new Map<string, Omit<ExactAddressMapPoint, "lat" | "lng">>();
+  const exactAddressCandidates = useMemo<ExactAddressCandidate[]>(() => {
+    const byAddress = new Map<string, ExactAddressCandidate>();
 
     for (const point of listingPoints) {
       if (!point.exactAddress) {
@@ -736,6 +747,12 @@ function CommunityMapExplorer({
       const existing = byAddress.get(key);
       if (existing) {
         existing.listings.push(point.listing);
+        if (existing.lat === null && point.exactLat !== null) {
+          existing.lat = point.exactLat;
+        }
+        if (existing.lng === null && point.exactLng !== null) {
+          existing.lng = point.exactLng;
+        }
         continue;
       }
 
@@ -746,6 +763,8 @@ function CommunityMapExplorer({
         exactAddress: point.exactAddress,
         area: point.area,
         areaLabel: point.areaLabel,
+        lat: point.exactLat,
+        lng: point.exactLng,
         listings: [point.listing],
         representativeListing: point.listing
       });
@@ -838,13 +857,25 @@ function CommunityMapExplorer({
         Object.values(exactLocationMarkersRef.current).forEach((marker) => marker.setMap(null));
         exactLocationMarkersRef.current = {};
 
-        const geocoder = exactAddressCandidates.length ? new googleMaps.Geocoder() : null;
-        const resolvedExactLocations = geocoder
+        const geocoder = exactAddressCandidates.some((candidate) => candidate.lat === null || candidate.lng === null)
+          ? new googleMaps.Geocoder()
+          : null;
+        const resolvedExactLocations =
+          exactAddressCandidates.length
           ? (
               await Promise.all(
                 exactAddressCandidates.map(async (candidate) => {
-                  const resolvedPoint = await geocodeBusinessAddress(geocoder, candidate.exactAddress);
-                  return resolvedPoint
+                  if (candidate.lat !== null && candidate.lng !== null) {
+                    return {
+                      ...candidate,
+                      lat: candidate.lat,
+                      lng: candidate.lng
+                    };
+                  }
+
+                  const resolvedPoint =
+                    geocoder ? await geocodeAddressFallback(geocoder, candidate.exactAddress) : null;
+                  return resolvedPoint && geocoder
                     ? {
                         ...candidate,
                         lat: resolvedPoint.lat,

@@ -67,7 +67,9 @@ export async function getBusinessMapProfileMap(ownerIds: string[]) {
   const supabase = createServiceRoleSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, business_name, business_address, show_exact_business_location")
+    .select(
+      "id, business_name, business_address, show_exact_business_location, business_geocoded_lat, business_geocoded_lng, business_geocoded_area, business_geocoded_formatted_address"
+    )
     .in("id", uniqueOwnerIds)
     .eq("show_exact_business_location", true);
 
@@ -85,7 +87,17 @@ export async function getBusinessMapProfileMap(ownerIds: string[]) {
           owner_id: String(row.id),
           business_name: typeof row.business_name === "string" ? row.business_name : null,
           business_address: typeof row.business_address === "string" ? row.business_address : null,
-          show_exact_business_location: Boolean(row.show_exact_business_location)
+          show_exact_business_location: Boolean(row.show_exact_business_location),
+          business_geocoded_lat:
+            typeof row.business_geocoded_lat === "number" ? row.business_geocoded_lat : null,
+          business_geocoded_lng:
+            typeof row.business_geocoded_lng === "number" ? row.business_geocoded_lng : null,
+          business_geocoded_area:
+            typeof row.business_geocoded_area === "string" ? row.business_geocoded_area : null,
+          business_geocoded_formatted_address:
+            typeof row.business_geocoded_formatted_address === "string"
+              ? row.business_geocoded_formatted_address
+              : null
         } satisfies BusinessMapProfile
       ])
   );

@@ -10,6 +10,11 @@ export interface BusinessProfileFields {
   business_website: string | null;
   business_address: string | null;
   show_exact_business_location: boolean;
+  business_geocoded_lat: number | null;
+  business_geocoded_lng: number | null;
+  business_geocoded_area: string | null;
+  business_geocoded_formatted_address: string | null;
+  business_geocoded_at: string | null;
   service_areas: string[];
   business_services: string[];
   business_hours: BusinessHours;
@@ -25,6 +30,11 @@ export const EMPTY_BUSINESS_PROFILE: BusinessProfileFields = {
   business_website: null,
   business_address: null,
   show_exact_business_location: false,
+  business_geocoded_lat: null,
+  business_geocoded_lng: null,
+  business_geocoded_area: null,
+  business_geocoded_formatted_address: null,
+  business_geocoded_at: null,
   service_areas: [],
   business_services: [],
   business_hours: {}
@@ -55,6 +65,11 @@ export function isBusinessProfileSchemaError(error: {
     message.includes("business_website") ||
     message.includes("business_address") ||
     message.includes("show_exact_business_location") ||
+    message.includes("business_geocoded_lat") ||
+    message.includes("business_geocoded_lng") ||
+    message.includes("business_geocoded_area") ||
+    message.includes("business_geocoded_formatted_address") ||
+    message.includes("business_geocoded_at") ||
     message.includes("service_areas") ||
     message.includes("business_services") ||
     message.includes("business_hours")
@@ -327,6 +342,11 @@ export function normalizeBusinessProfileRow(row: any): BusinessProfileFields {
     business_website: normalizeBusinessWebsite(row?.business_website ?? null),
     business_address: normalizeBusinessAddress(row?.business_address ?? null),
     show_exact_business_location: Boolean(row?.show_exact_business_location),
+    business_geocoded_lat: typeof row?.business_geocoded_lat === "number" ? row.business_geocoded_lat : null,
+    business_geocoded_lng: typeof row?.business_geocoded_lng === "number" ? row.business_geocoded_lng : null,
+    business_geocoded_area: row?.business_geocoded_area?.trim?.() || null,
+    business_geocoded_formatted_address: row?.business_geocoded_formatted_address?.trim?.() || null,
+    business_geocoded_at: row?.business_geocoded_at ?? null,
     service_areas: normalizeServiceAreas(row?.service_areas),
     business_services: normalizeBusinessServices(row?.business_services),
     business_hours: normalizeBusinessHours(row?.business_hours)

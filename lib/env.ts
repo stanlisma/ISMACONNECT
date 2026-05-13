@@ -2,6 +2,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "";
 const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() || "";
 const googleMapsMapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID?.trim() || "";
+const googleMapsServerApiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY?.trim() || "";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || "";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || "";
@@ -40,6 +41,22 @@ export function getGoogleMapsEnv() {
   return {
     googleMapsApiKey,
     googleMapsMapId: googleMapsMapId || null
+  };
+}
+
+export function isGoogleServerGeocodingConfigured() {
+  return Boolean(googleMapsServerApiKey);
+}
+
+export function getGoogleServerGeocodingEnv() {
+  if (!isGoogleServerGeocodingConfigured()) {
+    throw new Error(
+      "Missing Google server geocoding environment variable. Set GOOGLE_MAPS_SERVER_API_KEY."
+    );
+  }
+
+  return {
+    googleMapsServerApiKey
   };
 }
 

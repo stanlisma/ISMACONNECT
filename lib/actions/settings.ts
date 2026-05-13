@@ -12,6 +12,7 @@ import {
   parseBusinessServicesInput,
   parseServiceAreasInput
 } from "@/lib/business-profile";
+import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function updateNotificationSettingsAction(formData: FormData) {
@@ -34,6 +35,13 @@ export async function updateNotificationSettingsAction(formData: FormData) {
 export async function updateBusinessProfileAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select(
+      "business_address, business_geocoded_lat, business_geocoded_lng, business_geocoded_area, business_geocoded_formatted_address, business_geocoded_at"
+    )
+    .eq("id", viewer.user.id)
+    .maybeSingle();
 
   const isBusiness = formData.get("is_business") === "on";
   const businessName = String(formData.get("business_name") ?? "").trim() || null;
@@ -45,6 +53,29 @@ export async function updateBusinessProfileAction(formData: FormData) {
   const serviceAreas = parseServiceAreasInput(String(formData.get("service_areas") ?? ""));
   const businessServices = parseBusinessServicesInput(String(formData.get("business_services") ?? ""));
   const businessHours = parseBusinessHoursFormData(formData);
+  const shouldReuseExistingGeocode =
+    isBusiness &&
+    businessAddress &&
+    existingProfile?.business_address === businessAddress &&
+    typeof existingProfile.business_geocoded_lat === "number" &&
+    typeof existingProfile.business_geocoded_lng === "number";
+  const geocodedBusinessAddress =
+    isBusiness && businessAddress
+      ? shouldReuseExistingGeocode
+        ? {
+            lat: existingProfile.business_geocoded_lat as number,
+            lng: existingProfile.business_geocoded_lng as number,
+            area:
+              typeof existingProfile.business_geocoded_area === "string"
+                ? existingProfile.business_geocoded_area
+                : null,
+            formattedAddress:
+              typeof existingProfile.business_geocoded_formatted_address === "string"
+                ? existingProfile.business_geocoded_formatted_address
+                : null
+          }
+        : await geocodeMarketplaceAddress(businessAddress)
+      : null;
 
   const payload = {
     is_business: isBusiness,
@@ -54,6 +85,12 @@ export async function updateBusinessProfileAction(formData: FormData) {
     business_website: isBusiness ? businessWebsite : null,
     business_address: isBusiness ? businessAddress : null,
     show_exact_business_location: isBusiness && businessAddress ? showExactBusinessLocation : false,
+    business_geocoded_lat: isBusiness ? geocodedBusinessAddress?.lat ?? null : null,
+    business_geocoded_lng: isBusiness ? geocodedBusinessAddress?.lng ?? null : null,
+    business_geocoded_area: isBusiness ? geocodedBusinessAddress?.area ?? null : null,
+    business_geocoded_formatted_address: isBusiness ? geocodedBusinessAddress?.formattedAddress ?? null : null,
+    business_geocoded_at:
+      isBusiness && geocodedBusinessAddress ? new Date().toISOString() : null,
     service_areas: isBusiness ? serviceAreas : [],
     business_services: isBusiness ? businessServices : [],
     business_hours: isBusiness ? businessHours : {}
