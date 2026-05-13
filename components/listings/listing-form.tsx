@@ -476,6 +476,9 @@ export function ListingForm({
   const [priceType, setPriceType] = useState<ListingPriceType>(
     defaults?.priceType ?? getDefaultPriceType(defaults?.category as any)
   );
+  const [price, setPrice] = useState(
+    defaults?.priceType === "contact" ? "" : defaults?.price ?? ""
+  );
   const [imageUrls, setImageUrls] = useState<string[]>(
     defaults?.imageUrls?.length
       ? defaults.imageUrls
@@ -492,7 +495,17 @@ export function ListingForm({
 
   const subcategories = useMemo(() => getSubcategories(category), [category]);
   const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
-  const structuredDefaults = defaults?.structuredData ?? null;
+  const structuredDefaults = useMemo(() => {
+    const raw = defaults?.structuredData;
+
+    if (!raw || typeof raw !== "object") {
+      return null;
+    }
+
+    return Object.fromEntries(
+      Object.entries(raw).filter(([, value]) => value !== null)
+    ) as ListingStructuredData;
+  }, [defaults?.structuredData]);
   const normalizedProfileContact = useMemo(
     () => ({
       name: normalizeContactValue(profileContact?.name),
@@ -815,9 +828,13 @@ export function ListingForm({
               value={category}
               onChange={(event) => {
                 const nextCategory = event.target.value;
+                const nextPriceType = getDefaultPriceType(nextCategory as any);
                 setCategory(nextCategory);
                 setSubcategory("");
-                setPriceType(getDefaultPriceType(nextCategory as any));
+                setPriceType(nextPriceType);
+                if (nextPriceType === "contact") {
+                  setPrice("");
+                }
               }}
               required
             >
@@ -872,7 +889,13 @@ export function ListingForm({
               className="input"
               name="priceType"
               value={priceType}
-              onChange={(event) => setPriceType(event.target.value as ListingPriceType)}
+              onChange={(event) => {
+                const nextPriceType = event.target.value as ListingPriceType;
+                setPriceType(nextPriceType);
+                if (nextPriceType === "contact") {
+                  setPrice("");
+                }
+              }}
             >
               {Object.entries(LISTING_PRICE_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -891,18 +914,19 @@ export function ListingForm({
                   : "Enter the amount that matches the pricing style you selected."
               }
             />
-            <input
-              className="input listing-price-amount-input"
-              name="price"
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
-              defaultValue={defaults?.price ?? ""}
-              placeholder={priceType === "contact" ? "Optional when using Contact for price" : "Enter amount"}
-              disabled={priceType === "contact"}
-            />
-          </label>
+              <input
+                className="input listing-price-amount-input"
+                name="price"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+              placeholder={priceType === "contact" ? "No amount needed" : "Enter amount"}
+                disabled={priceType === "contact"}
+              />
+            </label>
 
           <label className="field">
             <FieldLabelWithHelp label="Address" helpText={locationHint} />
