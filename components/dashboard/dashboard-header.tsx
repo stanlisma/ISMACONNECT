@@ -15,6 +15,8 @@ function isListingEditorPath(pathname: string) {
 export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
   const pathname = usePathname();
   const isOverviewPath = pathname === "/dashboard";
+  const isStorefrontsPath = pathname.startsWith("/dashboard/storefronts");
+  const heading = isStorefrontsPath ? "My storefronts" : "My listings";
 
   if (isListingEditorPath(pathname)) {
     return null;
@@ -23,7 +25,7 @@ export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
   return (
     <div className="dashboard-header dashboard-header-compact">
       <div className="dashboard-header-main">
-        <h1>My listings</h1>
+        <h1>{heading}</h1>
         {fullName ? <p className="dashboard-header-meta">{fullName}</p> : null}
       </div>
 
@@ -38,6 +40,9 @@ export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
         </Link>
         <Link className="button button-secondary" href="/dashboard/searches">
           Saved
+        </Link>
+        <Link className="button button-secondary" href="/dashboard/storefronts">
+          Storefronts
         </Link>
         <Link className="button button-secondary" href="/dashboard/boosts">
           Boosts

@@ -10,9 +10,10 @@ type AdditionalStorefrontsManagerProps = {
   accountEnabled: boolean;
   createAction: (formData: FormData) => void | Promise<void>;
   updateAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
-  deleteAction: (storefrontId: string) => void | Promise<void>;
+  deleteAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
   fallbackPhone?: string;
   suggestedDefaults?: AdditionalBusinessStorefront;
+  returnPath?: string;
 };
 
 function StorefrontForm({
@@ -22,7 +23,8 @@ function StorefrontForm({
   action,
   deleteAction,
   isNew,
-  fallbackPhone
+  fallbackPhone,
+  returnPath = "/settings"
 }: {
   title: string;
   submitLabel: string;
@@ -31,6 +33,7 @@ function StorefrontForm({
   deleteAction?: (formData: FormData) => void | Promise<void>;
   isNew?: boolean;
   fallbackPhone?: string;
+  returnPath?: string;
 }) {
   return (
     <div className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}>
@@ -51,6 +54,7 @@ function StorefrontForm({
 
         {deleteAction ? (
           <form action={deleteAction}>
+            <input type="hidden" name="return_path" value={returnPath} />
             <button className="button button-ghost storefront-manager-delete" type="submit">
               <Trash2 aria-hidden="true" size={14} strokeWidth={2.2} />
               <span>Delete</span>
@@ -60,6 +64,8 @@ function StorefrontForm({
       </div>
 
       <form action={action} className="storefront-manager-form">
+        <input type="hidden" name="return_path" value={returnPath} />
+
         <div className="storefront-manager-grid">
           <label className="field">
             <FieldLabelWithHelp
@@ -262,7 +268,8 @@ export function AdditionalStorefrontsManager({
   updateAction,
   deleteAction,
   fallbackPhone,
-  suggestedDefaults
+  suggestedDefaults,
+  returnPath = "/settings"
 }: AdditionalStorefrontsManagerProps) {
   if (!schemaReady) {
     return (
@@ -326,6 +333,7 @@ export function AdditionalStorefrontsManager({
           action={updateAction.bind(null, storefront.id)}
           deleteAction={deleteAction.bind(null, storefront.id)}
           fallbackPhone={fallbackPhone}
+          returnPath={returnPath}
         />
       ))}
 
@@ -336,6 +344,7 @@ export function AdditionalStorefrontsManager({
         isNew
         fallbackPhone={fallbackPhone}
         defaults={suggestedDefaults}
+        returnPath={returnPath}
       />
     </div>
   );
