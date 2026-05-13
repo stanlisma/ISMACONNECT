@@ -49,7 +49,13 @@ export type CategoryLocalContent = {
 
 type PublicLocationListing = Pick<
   Listing,
-  "category" | "location" | "title" | "description" | "structured_data" | "show_exact_address_on_map"
+  | "category"
+  | "location"
+  | "title"
+  | "description"
+  | "structured_data"
+  | "show_exact_address_on_map"
+  | "geocoded_area"
 >;
 
 export const FORT_MCMURRAY_AREA_OPTIONS: Array<LocalMarketplaceAreaOption<FortMcMurrayArea>> = [
@@ -616,6 +622,10 @@ export function shouldShowExactListingAddressOnMap(
   return listing.show_exact_address_on_map === true && Boolean(listing.location?.trim());
 }
 
+function getStoredCommunityMapArea(value?: string | null) {
+  return resolveCommunityMapArea(value) ?? null;
+}
+
 function getRideSharePublicAreaLabel(listing: PublicLocationListing) {
   const { departureArea, destinationArea } = getRideShareAreasFromListing(listing as Listing);
   const primaryArea = departureArea ?? destinationArea ?? "fort-mcmurray";
@@ -645,6 +655,7 @@ export function getRentalAreaFromListing(listing: Listing) {
   const structuredData = (listing.structured_data ?? {}) as RentalListingStructuredData;
   return (
     structuredData.rentalArea ??
+    getStoredCommunityMapArea(listing.geocoded_area) ??
     inferFortMcmurrayAreaFromLocation(listing.location) ??
     inferFortMcmurrayAreaFromLocation(`${listing.title} ${listing.description}`) ??
     "fort-mcmurray"
@@ -653,6 +664,7 @@ export function getRentalAreaFromListing(listing: Listing) {
 
 export function getCommunityMapAreaFromListing(listing: Listing): CommunityMapArea {
   const combinedText = `${listing.location} ${listing.title} ${listing.description}`;
+  const geocodedArea = getStoredCommunityMapArea(listing.geocoded_area);
 
   switch (listing.category) {
     case "rentals": {
@@ -665,7 +677,8 @@ export function getCommunityMapAreaFromListing(listing: Listing): CommunityMapAr
         return "site-camp";
       }
 
-        return (
+      return (
+        geocodedArea ??
         getCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
         getCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
         "fort-mcmurray"
@@ -674,12 +687,14 @@ export function getCommunityMapAreaFromListing(listing: Listing): CommunityMapAr
     case "services":
     case "buy-sell":
       return (
+        geocodedArea ??
         getCommunityMapAreaFromText(listing.location) ??
         getCommunityMapAreaFromText(combinedText) ??
         "fort-mcmurray"
       );
     default:
       return (
+        geocodedArea ??
         getCommunityMapAreaFromText(listing.location, { includeCamp: true }) ??
         getCommunityMapAreaFromText(combinedText, { includeCamp: true }) ??
         "fort-mcmurray"
@@ -692,12 +707,13 @@ export function getMappedCommunityAreaForListing(
   businessProfile?: BusinessMapProfile | null
 ): CommunityMapArea {
   const includeCampAreas = listing.category === "jobs";
+  const geocodedBusinessArea = getStoredCommunityMapArea(businessProfile?.business_geocoded_area);
   const businessAddress = businessProfile?.business_address?.trim();
   const inferredBusinessArea = businessAddress
     ? getCommunityMapAreaFromText(businessAddress, { includeCamp: includeCampAreas })
     : null;
 
-  return inferredBusinessArea ?? getCommunityMapAreaFromListing(listing);
+  return geocodedBusinessArea ?? inferredBusinessArea ?? getCommunityMapAreaFromListing(listing);
 }
 
 export function filterListingsByCommunityArea(

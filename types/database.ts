@@ -151,6 +151,11 @@ export interface Profile {
   business_website?: string | null;
   business_address?: string | null;
   show_exact_business_location?: boolean | null;
+  business_geocoded_lat?: number | null;
+  business_geocoded_lng?: number | null;
+  business_geocoded_area?: string | null;
+  business_geocoded_formatted_address?: string | null;
+  business_geocoded_at?: string | null;
   service_areas?: string[] | null;
   business_services?: string[] | null;
   business_hours?: BusinessHours | null;
@@ -179,6 +184,11 @@ export interface Listing {
   price_type: ListingPriceType;
   location: string;
   show_exact_address_on_map: boolean | null;
+  geocoded_lat: number | null;
+  geocoded_lng: number | null;
+  geocoded_area: string | null;
+  geocoded_formatted_address: string | null;
+  geocoded_at: string | null;
   contact_name: string;
   contact_email: string | null;
   contact_phone: string | null;
@@ -310,6 +320,10 @@ export interface BusinessMapProfile {
   business_name: string | null;
   business_address: string | null;
   show_exact_business_location: boolean;
+  business_geocoded_lat: number | null;
+  business_geocoded_lng: number | null;
+  business_geocoded_area: string | null;
+  business_geocoded_formatted_address: string | null;
 }
 
 export interface PushSubscriptionRecord {

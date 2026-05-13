@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
+import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
 import { normalizeSubcategory } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -57,6 +58,45 @@ function getListingIntentSchemaMessage() {
   return "Your database listing request fields are out of date. Run the latest ISMACONNECT listing-request migration in Supabase, then try posting again.";
 }
 
+function isListingGeocodingSchemaError(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+  return message.includes("geocoded_lat") || message.includes("geocoded_lng") || message.includes("geocoded_area");
+}
+
+function getListingGeocodingSchemaMessage() {
+  return "Your database geocoding fields are out of date. Run the latest ISMACONNECT geocoding migration in Supabase, then try posting again.";
+}
+
+function getListingMutationErrorMessage(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  if (isSubcategoryConstraintError(error)) {
+    return getSubcategoryConstraintMessage();
+  }
+
+  if (isAddressVisibilitySchemaError(error)) {
+    return getAddressVisibilitySchemaMessage();
+  }
+
+  if (isListingIntentSchemaError(error)) {
+    return getListingIntentSchemaMessage();
+  }
+
+  if (isListingGeocodingSchemaError(error)) {
+    return getListingGeocodingSchemaMessage();
+  }
+
+  return error.message ?? "Could not save the listing.";
+}
+
 function parseImageUrls(formData: FormData) {
   const raw = formData.get("imageUrls");
 
@@ -105,7 +145,9 @@ async function loadListingForMutation(listingId: string) {
 
   const { data } = await supabase
     .from("listings")
-    .select("id, owner_id, slug, category, status")
+    .select(
+      "id, owner_id, slug, category, status, location, geocoded_lat, geocoded_lng, geocoded_area, geocoded_formatted_address, geocoded_at"
+    )
     .eq("id", listingId)
     .single();
 
@@ -118,6 +160,33 @@ function parseListingIntent(formData: FormData): ListingIntent {
 
 function getCreateListingReturnPath(intent: ListingIntent) {
   return intent === "need" ? "/dashboard/listings/new?intent=need" : "/dashboard/listings/new";
+}
+
+function getPersistedListingGeocode(
+  existing:
+    | {
+        location?: string | null;
+        geocoded_lat?: number | null;
+        geocoded_lng?: number | null;
+        geocoded_area?: string | null;
+        geocoded_formatted_address?: string | null;
+      }
+    | null
+) {
+  if (
+    existing &&
+    typeof existing.geocoded_lat === "number" &&
+    typeof existing.geocoded_lng === "number"
+  ) {
+    return {
+      lat: existing.geocoded_lat,
+      lng: existing.geocoded_lng,
+      area: existing.geocoded_area ?? null,
+      formattedAddress: existing.geocoded_formatted_address ?? null
+    };
+  }
+
+  return null;
 }
 
 export async function createListingAction(formData: FormData) {
@@ -157,6 +226,9 @@ export async function createListingAction(formData: FormData) {
 
   const supabase = await createServerSupabaseClient();
   const slug = await generateUniqueSlug(dataInput.title);
+  const geocodedLocation = await geocodeMarketplaceAddress(dataInput.location, {
+    category: dataInput.category
+  });
 
   const { data, error } = await supabase
     .from("listings")
@@ -173,6 +245,11 @@ export async function createListingAction(formData: FormData) {
       price_type: dataInput.priceType,
       location: dataInput.location,
       show_exact_address_on_map: dataInput.showExactAddressOnMap,
+      geocoded_lat: geocodedLocation?.lat ?? null,
+      geocoded_lng: geocodedLocation?.lng ?? null,
+      geocoded_area: geocodedLocation?.area ?? null,
+      geocoded_formatted_address: geocodedLocation?.formattedAddress ?? null,
+      geocoded_at: geocodedLocation ? new Date().toISOString() : null,
       contact_name: dataInput.contactName,
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
@@ -187,15 +264,7 @@ export async function createListingAction(formData: FormData) {
     redirectWithMessage(
       returnPath,
       "error",
-      error
-        ? isSubcategoryConstraintError(error)
-          ? getSubcategoryConstraintMessage()
-          : isAddressVisibilitySchemaError(error)
-            ? getAddressVisibilitySchemaMessage()
-            : isListingIntentSchemaError(error)
-              ? getListingIntentSchemaMessage()
-            : error.message
-        : "Could not create the listing."
+      error ? getListingMutationErrorMessage(error) : "Could not create the listing."
     );
   }
 
@@ -256,6 +325,13 @@ export async function updateListingAction(listingId: string, formData: FormData)
   }
 
   const supabase = await createServerSupabaseClient();
+  const existingGeocode = getPersistedListingGeocode(existing);
+  const geocodedLocation =
+    existing.location === dataInput.location && existingGeocode
+      ? existingGeocode
+      : await geocodeMarketplaceAddress(dataInput.location, {
+          category: dataInput.category
+        });
 
   const { error, data } = await supabase
     .from("listings")
@@ -270,6 +346,11 @@ export async function updateListingAction(listingId: string, formData: FormData)
       price_type: dataInput.priceType,
       location: dataInput.location,
       show_exact_address_on_map: dataInput.showExactAddressOnMap,
+      geocoded_lat: geocodedLocation?.lat ?? null,
+      geocoded_lng: geocodedLocation?.lng ?? null,
+      geocoded_area: geocodedLocation?.area ?? null,
+      geocoded_formatted_address: geocodedLocation?.formattedAddress ?? null,
+      geocoded_at: geocodedLocation ? new Date().toISOString() : null,
       contact_name: dataInput.contactName,
       contact_email: dataInput.contactEmail,
       contact_phone: dataInput.contactPhone,
@@ -285,15 +366,7 @@ export async function updateListingAction(listingId: string, formData: FormData)
     redirectWithMessage(
       `/dashboard/listings/${listingId}/edit`,
       "error",
-      error
-        ? isSubcategoryConstraintError(error)
-          ? getSubcategoryConstraintMessage()
-          : isAddressVisibilitySchemaError(error)
-            ? getAddressVisibilitySchemaMessage()
-            : isListingIntentSchemaError(error)
-              ? getListingIntentSchemaMessage()
-            : error.message
-        : "Could not update the listing."
+      error ? getListingMutationErrorMessage(error) : "Could not update the listing."
     );
   }
 
