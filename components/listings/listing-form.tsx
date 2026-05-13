@@ -67,10 +67,19 @@ type UploadItem = {
   status: UploadStatus;
 };
 
+type FieldHelpProps = {
+  text: string;
+  label?: string;
+};
+
 const MAX_IMAGE_COUNT = 8;
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 1800;
 const WEBP_QUALITY = 0.82;
+const LISTING_INTENT_HELP: Record<ListingIntent, string> = {
+  offer: "Use Offer when you already have the ride, rental, job, service, or item available.",
+  need: "Use Need when you are asking the market for help, a ride, a rental, work, or an item."
+};
 
 function getLocationPlaceholder(category: string) {
   switch (category) {
@@ -363,6 +372,36 @@ function getPhotoPanelCopy(listingIntent: ListingIntent) {
   return listingIntent === "need"
     ? "Upload reference photos only if they help explain the job, item, or location. We optimize them before upload."
     : `Upload up to ${MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.`;
+}
+
+function FieldHelp({ text, label = "Help" }: FieldHelpProps) {
+  return (
+    <span
+      className="field-help-badge"
+      tabIndex={0}
+      role="note"
+      title={text}
+      aria-label={`${label}: ${text}`}
+      data-tooltip={text}
+    >
+      ?
+    </span>
+  );
+}
+
+function FieldLabelWithHelp({
+  label,
+  helpText
+}: {
+  label: string;
+  helpText?: string | null;
+}) {
+  return (
+    <span className="field-label-row">
+      <span className="field-label">{label}</span>
+      {helpText ? <FieldHelp text={helpText} label={label} /> : null}
+    </span>
+  );
 }
 
 function normalizeContactValue(value?: string | null) {
@@ -662,7 +701,6 @@ export function ListingForm({
         <div className="listing-form-section-head">
           <div>
             <span className="field-label">Basics</span>
-            <p className="field-hint">Start with the core facts people scan first.</p>
           </div>
         </div>
 
@@ -687,20 +725,21 @@ export function ListingForm({
                     }
                   }}
                   />
-                  <span>{LISTING_INTENT_LABELS[value]}</span>
+                  <span className="listing-intent-option-label">
+                    <span>{LISTING_INTENT_LABELS[value]}</span>
+                    <FieldHelp text={LISTING_INTENT_HELP[value]} label={LISTING_INTENT_LABELS[value]} />
+                  </span>
                 </label>
               ))}
             </div>
-            <p className="field-hint">
-              {listingIntent === "need"
-                ? "Use Need when you are asking the market for help, a ride, a rental, or a worker."
-                : "Use Offer when you already have the ride, service, rental, job, or item available."}
-            </p>
           </div>
 
           {listingIntent === "need" ? (
             <label className="field">
-              <span className="field-label">When do you need this?</span>
+              <FieldLabelWithHelp
+                label="When do you need this?"
+                helpText="Choose how urgent the request is so people know whether you need help today, this week, or on a flexible timeline."
+              />
               <select
                 className="input"
                 name="requestWindow"
@@ -721,7 +760,10 @@ export function ListingForm({
           )}
 
           <label className="field">
-            <span className="field-label">Category</span>
+            <FieldLabelWithHelp
+              label="Category"
+              helpText="Pick the main section this listing belongs in, like Rentals, Ride Share, Jobs, or Services."
+            />
             <select
               className="input"
               name="category"
@@ -743,7 +785,10 @@ export function ListingForm({
           </label>
 
           <label className="field">
-            <span className="field-label">Sub-category</span>
+            <FieldLabelWithHelp
+              label="Sub-category"
+              helpText="Choose the closest fit so the listing shows up in the right filters and search results."
+            />
             <select
               className="input"
               name="subcategory"
@@ -760,7 +805,10 @@ export function ListingForm({
           </label>
 
           <label className="field listing-form-title-field">
-            <span className="field-label">Title</span>
+            <FieldLabelWithHelp
+              label="Title"
+              helpText="Keep it specific and local so people can understand the listing at a glance."
+            />
             <input
               className="input"
               name="title"
@@ -771,7 +819,10 @@ export function ListingForm({
           </label>
 
           <label className="field">
-            <span className="field-label">{listingIntent === "need" ? "Budget type" : "Price type"}</span>
+            <FieldLabelWithHelp
+              label={listingIntent === "need" ? "Budget type" : "Price type"}
+              helpText={priceTypeHint}
+            />
             <select
               className="input"
               name="priceType"
@@ -784,11 +835,17 @@ export function ListingForm({
                 </option>
               ))}
             </select>
-            <span className="field-hint">{priceTypeHint}</span>
           </label>
 
           <label className="field listing-price-amount-field">
-            <span className="field-label">{listingIntent === "need" ? "Budget amount" : "Price amount"}</span>
+            <FieldLabelWithHelp
+              label={listingIntent === "need" ? "Budget amount" : "Price amount"}
+              helpText={
+                priceType === "contact"
+                  ? "Optional when you want people to reply first before you share a number."
+                  : "Enter the amount that matches the pricing style you selected."
+              }
+            />
             <input
               className="input listing-price-amount-input"
               name="price"
@@ -803,8 +860,7 @@ export function ListingForm({
           </label>
 
           <label className="field">
-            <span className="field-label">Address</span>
-            <p className="field-hint">{locationHint}</p>
+            <FieldLabelWithHelp label="Address" helpText={locationHint} />
             <input
               className="input"
               name="location"
@@ -814,7 +870,10 @@ export function ListingForm({
           </label>
 
           <div className="field listing-address-toggle-field">
-            <span className="field-label">Map privacy</span>
+            <FieldLabelWithHelp
+              label="Map privacy"
+              helpText="Choose whether the public map should show the exact address or only the community."
+            />
             <label className="business-profile-toggle listing-address-toggle">
               <input
                 type="checkbox"
@@ -822,8 +881,13 @@ export function ListingForm({
                 defaultChecked={defaults?.showExactAddressOnMap ?? false}
               />
               <span>
-                <strong>Show exact address on the map</strong>
-                <small>Leave this off to show only the community, like Thickwood, Downtown, or Fort McMurray.</small>
+                <strong className="listing-toggle-title">
+                  <span>Show exact address on the map</span>
+                  <FieldHelp
+                    text="Leave this off to show only the community, like Thickwood, Downtown, or Fort McMurray."
+                    label="Show exact address on the map"
+                  />
+                </strong>
               </span>
             </label>
           </div>
@@ -833,8 +897,7 @@ export function ListingForm({
       <section className="field-full listing-form-section">
         <div className="listing-form-section-head">
           <div>
-            <span className="field-label">Description</span>
-            <p className="field-hint">{descriptionHint}</p>
+            <FieldLabelWithHelp label="Description" helpText={descriptionHint} />
           </div>
         </div>
 
@@ -860,10 +923,10 @@ export function ListingForm({
           <div className="listing-structured-panel" key={category}>
             <div className="listing-structured-panel-head">
               <div>
-                <span className="field-label">Category details</span>
-                <p className="field-hint">
-                  A few local details make your listing easier to trust and much easier to filter.
-                </p>
+                <FieldLabelWithHelp
+                  label="Category details"
+                  helpText="These extra details help your listing show up in the right local filters, especially for rides, rentals, jobs, and services."
+                />
               </div>
             </div>
 
@@ -883,8 +946,10 @@ export function ListingForm({
                         defaultChecked={Boolean(fieldValue)}
                       />
                       <span className="listing-structured-checkbox-copy">
-                        <strong>{field.label}</strong>
-                        {field.helpText ? <span>{field.helpText}</span> : null}
+                        <strong className="listing-structured-checkbox-label">
+                          <span>{field.label}</span>
+                          {field.helpText ? <FieldHelp text={field.helpText} label={field.label} /> : null}
+                        </strong>
                       </span>
                     </label>
                   );
@@ -893,7 +958,7 @@ export function ListingForm({
                 if (field.kind === "number") {
                   return (
                     <label key={field.name} className="field">
-                      <span className="field-label">{field.label}</span>
+                      <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
                       <input
                         className="input"
                         type="number"
@@ -903,7 +968,6 @@ export function ListingForm({
                         defaultValue={typeof fieldValue === "number" ? String(fieldValue) : ""}
                         placeholder="Enter a number"
                       />
-                      {field.helpText ? <span className="field-hint">{field.helpText}</span> : null}
                     </label>
                   );
                 }
@@ -911,21 +975,20 @@ export function ListingForm({
                 if (field.kind === "date") {
                   return (
                     <label key={field.name} className="field">
-                      <span className="field-label">{field.label}</span>
+                      <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
                       <input
                         className="input"
                         type="date"
                         name={field.name}
                         defaultValue={typeof fieldValue === "string" ? fieldValue : ""}
                       />
-                      {field.helpText ? <span className="field-hint">{field.helpText}</span> : null}
                     </label>
                   );
                 }
 
                 return (
                   <label key={field.name} className="field">
-                    <span className="field-label">{field.label}</span>
+                    <FieldLabelWithHelp label={field.label} helpText={field.helpText} />
                     <select
                       className="input"
                       name={field.name}
@@ -938,7 +1001,6 @@ export function ListingForm({
                         </option>
                       ))}
                     </select>
-                    {field.helpText ? <span className="field-hint">{field.helpText}</span> : null}
                   </label>
                 );
               })}
@@ -950,8 +1012,7 @@ export function ListingForm({
       <section className="field-full listing-form-section">
         <div className="listing-form-section-head">
           <div>
-            <span className="field-label">Contact details</span>
-            <p className="field-hint">{contactHint}</p>
+            <FieldLabelWithHelp label="Contact details" helpText={contactHint} />
           </div>
         </div>
 
@@ -1011,17 +1072,12 @@ export function ListingForm({
           </>
         ) : (
           <>
-            <div className="listing-contact-note">
-              <strong>Name and email are required.</strong>
-              <span>
-                Phone is optional. Business accounts can use a business name instead of a personal
-                name.
-              </span>
-            </div>
-
             <div className="listing-form-section-grid listing-contact-grid">
               <label className="field listing-contact-field">
-                <span className="field-label">Contact or business name</span>
+                <FieldLabelWithHelp
+                  label="Contact or business name"
+                  helpText="This is the name people see when they reply. Business accounts can use a business name."
+                />
                 <input
                   className="input"
                   name="contactName"
@@ -1032,13 +1088,13 @@ export function ListingForm({
                   autoCapitalize="words"
                   required
                 />
-                <span className="field-hint">
-                  This is the name shown to people replying to your post.
-                </span>
               </label>
 
               <label className="field listing-contact-field">
-                <span className="field-label">Reply email</span>
+                <FieldLabelWithHelp
+                  label="Reply email"
+                  helpText="Replies and message follow-ups will use this email."
+                />
                 <input
                   className="input"
                   name="contactEmail"
@@ -1049,11 +1105,13 @@ export function ListingForm({
                   autoComplete="email"
                   required
                 />
-                <span className="field-hint">Replies and message follow-ups will use this email.</span>
               </label>
 
               <label className="field listing-contact-field">
-                <span className="field-label">Phone number</span>
+                <FieldLabelWithHelp
+                  label="Phone number"
+                  helpText="Optional. Add a number if you want calls or texts as part of the reply flow."
+                />
                 <input
                   className="input"
                   name="contactPhone"
@@ -1064,7 +1122,6 @@ export function ListingForm({
                   placeholder="(780) 555-0123"
                   autoComplete="tel"
                 />
-                <span className="field-hint">Optional. Add a number if you want calls or texts.</span>
               </label>
             </div>
           </>
@@ -1075,10 +1132,10 @@ export function ListingForm({
         <div className="listing-media-panel">
           <div className="listing-media-panel-head">
             <div>
-              <span className="field-label">{listingIntent === "need" ? "Reference photos" : "Listing photos"}</span>
-              <p className="field-hint listing-media-panel-copy">
-                {photoPanelCopy}
-              </p>
+              <FieldLabelWithHelp
+                label={listingIntent === "need" ? "Reference photos" : "Listing photos"}
+                helpText={photoPanelCopy}
+              />
             </div>
 
             <div className="listing-media-panel-meta">
@@ -1133,10 +1190,10 @@ export function ListingForm({
           {imageUrls.length ? (
             <div className="listing-image-manager">
               <div className="listing-image-manager-head">
-                <span className="field-label">Arrange photos</span>
-                <span className="field-hint">
-                  Use cover, move, or remove to control how your listing appears in browse.
-                </span>
+                <FieldLabelWithHelp
+                  label="Arrange photos"
+                  helpText="Use cover, move, or remove to control how the listing appears in browse and on the detail page."
+                />
               </div>
 
               <div className="listing-image-grid">

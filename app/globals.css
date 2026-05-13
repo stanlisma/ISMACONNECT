@@ -1311,6 +1311,66 @@ code {
   font-weight: 700;
 }
 
+.field-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.field-help-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid rgba(21, 73, 183, 0.22);
+  border-radius: 999px;
+  background: rgba(232, 241, 255, 0.92);
+  color: var(--primary-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.field-help-badge::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  width: min(18rem, calc(100vw - 3rem));
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 40px rgba(17, 24, 39, 0.14);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.45;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 30;
+}
+
+.field-help-badge:hover::after,
+.field-help-badge:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.field-help-badge:focus-visible {
+  outline: 2px solid rgba(21, 73, 183, 0.35);
+  outline-offset: 2px;
+}
+
 .field-hint {
   color: var(--text-soft);
   font-size: 0.9rem;
@@ -1389,6 +1449,15 @@ code {
 
 .listing-structured-checkbox-copy strong {
   color: var(--text);
+}
+
+.listing-structured-checkbox-label,
+.listing-toggle-title,
+.listing-intent-option-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
 }
 
 .listing-structured-checkbox-copy span {
@@ -6944,6 +7013,10 @@ code {
   background: linear-gradient(180deg, rgba(30, 107, 255, 0.12), rgba(232, 241, 255, 0.9));
   color: var(--primary-dark);
   box-shadow: 0 10px 24px rgba(18, 94, 219, 0.12);
+}
+
+.listing-intent-option .field-help-badge {
+  background: rgba(255, 255, 255, 0.84);
 }
 
 .listing-form-title-field {
