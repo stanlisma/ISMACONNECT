@@ -357,8 +357,8 @@ export function BrowseFilters({
           </label>
         </div>
 
-        <div className="browse-filter-secondary-grid">
-          <label className="field browse-price-range-field">
+        <div className="browse-filter-detail-grid" key={activeStructuredCategory}>
+          <label className="field browse-price-range-field browse-price-range-field-desktop">
             <span className="field-label">Price range</span>
             <div className="browse-price-range-inputs">
               <input
@@ -378,12 +378,7 @@ export function BrowseFilters({
             </div>
           </label>
 
-          <div
-            className="browse-structured-filters browse-structured-filters-desktop"
-            key={activeStructuredCategory}
-          >
-            {renderStructuredFilterFields()}
-          </div>
+          {renderStructuredFilterFields()}
         </div>
 
         <div className="filter-actions browse-filter-actions-bar">
