@@ -122,7 +122,7 @@ export default async function BrowsePage({
 
   const viewer = await getViewer();
   const businessMapProfiles = isMapEligibleCategory
-    ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.owner_id))
+    ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.storefront_id ?? ""))
     : new Map();
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();

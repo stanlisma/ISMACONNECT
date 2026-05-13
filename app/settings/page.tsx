@@ -162,15 +162,6 @@ export default async function SettingsPage({
             schemaReady={businessSchemaReady}
             defaults={{
               isBusiness: businessProfile.is_business,
-              businessName: businessProfile.business_name ?? "",
-              businessDescription: businessProfile.business_description ?? "",
-              businessLogoUrl: businessProfile.business_logo_url ?? "",
-              businessWebsite: businessProfile.business_website ?? "",
-              businessAddress: businessProfile.business_address ?? "",
-              showExactBusinessLocation: businessProfile.show_exact_business_location,
-              serviceAreas: businessProfile.service_areas.join(", "),
-              businessServices: businessProfile.business_services.join(", "),
-              businessHours: businessProfile.business_hours,
               profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
             }}
           />
@@ -183,6 +174,38 @@ export default async function SettingsPage({
               updateAction={updateAdditionalStorefrontAction}
               deleteAction={deleteAdditionalStorefrontAction}
               fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
+              suggestedDefaults={
+                additionalStorefrontsResult.storefronts.length === 0 &&
+                (businessProfile.business_name ||
+                  businessProfile.business_description ||
+                  businessProfile.business_website ||
+                  businessProfile.business_address ||
+                  businessProfile.service_areas.length ||
+                  businessProfile.business_services.length)
+                  ? {
+                      name: businessProfile.business_name ?? "",
+                      description: businessProfile.business_description ?? null,
+                      logo_url: businessProfile.business_logo_url ?? null,
+                      website: businessProfile.business_website ?? null,
+                      phone: businessProfile.phone ?? viewer.profile.phone ?? null,
+                      address: businessProfile.business_address ?? null,
+                      show_exact_location: businessProfile.show_exact_business_location,
+                      service_areas: businessProfile.service_areas,
+                      services: businessProfile.business_services,
+                      hours: businessProfile.business_hours,
+                      id: "",
+                      owner_id: viewer.user.id,
+                      slug: "",
+                      geocoded_lat: null,
+                      geocoded_lng: null,
+                      geocoded_area: null,
+                      geocoded_formatted_address: null,
+                      geocoded_at: null,
+                      created_at: "",
+                      updated_at: ""
+                    }
+                  : undefined
+              }
             />
           ) : null}
         </div>

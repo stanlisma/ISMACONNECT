@@ -341,6 +341,7 @@ export interface AdditionalBusinessStorefront {
 }
 
 export interface BusinessMapProfile {
+  storefront_id: string;
   owner_id: string;
   business_name: string | null;
   business_address: string | null;

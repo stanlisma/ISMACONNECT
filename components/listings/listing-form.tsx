@@ -39,7 +39,6 @@ type ListingFormProps = {
     phone?: string;
   };
   storefronts?: AdditionalBusinessStorefront[];
-  primaryStorefrontLabel?: string | null;
   defaultContactSource?: "profile" | "custom";
   defaults?: {
     listingIntent?: ListingIntent;
@@ -467,7 +466,6 @@ export function ListingForm({
   action,
   profileContact,
   storefronts = [],
-  primaryStorefrontLabel,
   defaultContactSource = "custom",
   defaults,
   submitLabel = "Publish listing"
@@ -501,7 +499,7 @@ export function ListingForm({
   const [contactPhone, setContactPhone] = useState(defaults?.contactPhone ?? "");
 
   const subcategories = useMemo(() => getSubcategories(category), [category]);
-  const hasStorefrontChoices = Boolean((primaryStorefrontLabel && primaryStorefrontLabel.trim()) || storefronts.length);
+  const hasStorefrontChoices = storefronts.length > 0;
   const structuredFields = useMemo(() => getStructuredFieldDefinitions(category as any), [category]);
   const structuredDefaults = useMemo(() => {
     const raw = defaults?.structuredData;
@@ -829,7 +827,7 @@ export function ListingForm({
             <label className="field">
               <FieldLabelWithHelp
                 label="Storefront"
-                helpText="Choose which storefront this listing should appear under. Leave it on the primary storefront if this post belongs to your main business profile."
+                helpText="Choose which storefront this listing should appear under. Leave it unassigned if this post should stay on your personal seller profile."
               />
               <select
                 className="input"
@@ -837,11 +835,7 @@ export function ListingForm({
                 value={storefrontId}
                 onChange={(event) => setStorefrontId(event.target.value)}
               >
-                <option value="">
-                  {primaryStorefrontLabel?.trim()
-                    ? `Primary storefront - ${primaryStorefrontLabel}`
-                    : "Primary storefront"}
-                </option>
+                <option value="">No storefront / personal profile</option>
                 {storefronts.map((storefront) => (
                   <option key={storefront.id} value={storefront.id}>
                     {storefront.name}

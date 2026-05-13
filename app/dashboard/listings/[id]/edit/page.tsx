@@ -26,9 +26,7 @@ export default async function EditListingPage({
   }
 
   const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
-  const profileContactName = viewer.profile.is_business
-    ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
-    : viewer.profile.full_name ?? undefined;
+  const profileContactName = viewer.profile.full_name ?? undefined;
   const profileContactEmail = viewer.user.email ?? undefined;
   const profileContactPhone = viewer.profile.phone ?? undefined;
   const storefrontsResult = viewer.profile.is_business
@@ -71,9 +69,6 @@ export default async function EditListingPage({
           phone: profileContactPhone
         }}
         storefronts={storefrontsResult.storefronts}
-        primaryStorefrontLabel={
-          viewer.profile.is_business ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined : undefined
-        }
         defaultContactSource={usesProfileContactByDefault ? "profile" : "custom"}
         defaults={{
           category: listing.category ?? undefined,
@@ -88,8 +83,7 @@ export default async function EditListingPage({
           imageUrl: listing.image_url ?? undefined,
           imageUrls: listing.image_urls ?? undefined,
           location: listing.location ?? undefined,
-          showExactAddressOnMap:
-            listing.show_exact_address_on_map ?? viewer.profile.show_exact_business_location ?? false,
+          showExactAddressOnMap: listing.show_exact_address_on_map ?? false,
           price: listing.price != null ? String(listing.price) : undefined,
           priceType: listing.price_type ?? undefined,
           structuredData: listing.structured_data ?? undefined,

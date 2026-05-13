@@ -724,8 +724,10 @@ export function filterListingsByCommunityArea(
   return listings.filter((listing) => {
     const businessProfile =
       businessMapProfiles instanceof Map
-        ? businessMapProfiles.get(listing.owner_id)
-        : businessMapProfiles?.[listing.owner_id];
+        ? businessMapProfiles.get(listing.storefront_id ?? "")
+        : listing.storefront_id
+          ? businessMapProfiles?.[listing.storefront_id]
+          : undefined;
 
     return getMappedCommunityAreaForListing(listing, businessProfile) === area;
   });

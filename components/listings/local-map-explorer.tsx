@@ -655,7 +655,7 @@ function CommunityMapExplorer({
             return null;
           }
 
-          const businessProfile = businessMapProfiles[listing.owner_id];
+          const businessProfile = listing.storefront_id ? businessMapProfiles[listing.storefront_id] : undefined;
           const businessAddress = businessProfile?.business_address?.trim() || null;
           const geocodedBusinessArea = resolveCommunityMapArea(businessProfile?.business_geocoded_area);
           const inferredBusinessArea = businessAddress

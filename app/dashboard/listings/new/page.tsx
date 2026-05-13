@@ -14,9 +14,7 @@ export default async function NewListingPage({
   const viewer = await requireViewer();
   const listingIntent = resolveListingIntent(getSingleParam(resolvedSearchParams?.intent)) ?? "offer";
   const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
-  const profileContactName = viewer.profile.is_business
-    ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined
-    : viewer.profile.full_name ?? undefined;
+  const profileContactName = viewer.profile.full_name ?? undefined;
   const profileContactEmail = viewer.user.email ?? undefined;
   const profileContactPhone = viewer.profile.phone ?? undefined;
   const storefrontsResult = viewer.profile.is_business
@@ -36,9 +34,6 @@ export default async function NewListingPage({
           phone: profileContactPhone
         }}
         storefronts={storefrontsResult.storefronts}
-        primaryStorefrontLabel={
-          viewer.profile.is_business ? viewer.profile.business_name ?? viewer.profile.full_name ?? undefined : undefined
-        }
         defaultContactSource="profile"
         defaults={{
           category,
@@ -46,12 +41,8 @@ export default async function NewListingPage({
           contactName: profileContactName,
           contactEmail: profileContactEmail,
           contactPhone: profileContactPhone,
-          location:
-            viewer.profile.is_business && viewer.profile.business_address
-              ? viewer.profile.business_address
-              : undefined,
           storefrontId: null,
-          showExactAddressOnMap: viewer.profile.show_exact_business_location ?? false
+          showExactAddressOnMap: false
         }}
         submitLabel={listingIntent === "need" ? "Post need" : "Publish listing"}
       />

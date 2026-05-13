@@ -206,7 +206,7 @@ export default async function CategoryPage({
   const pageSize = activeResults.pageSize;
   const mapListings = mapResults.listings;
   const businessMapProfiles = isMapEligibleCategory
-    ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.owner_id))
+    ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.storefront_id ?? ""))
     : new Map();
   const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;

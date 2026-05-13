@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import { BUSINESS_DAY_ORDER } from "@/lib/business-profile";
 import type { AdditionalBusinessStorefront } from "@/types/database";
 
 type AdditionalStorefrontsManagerProps = {
@@ -10,6 +11,7 @@ type AdditionalStorefrontsManagerProps = {
   updateAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
   deleteAction: (storefrontId: string) => void | Promise<void>;
   fallbackPhone?: string;
+  suggestedDefaults?: AdditionalBusinessStorefront;
 };
 
 function StorefrontForm({
@@ -70,6 +72,22 @@ function StorefrontForm({
 
           <label className="field">
             <FieldLabelWithHelp
+              label="Logo image URL"
+              helpText="Optional storefront logo or badge image URL."
+            />
+            <input
+              className="input"
+              type="text"
+              name="logo_url"
+              defaultValue={defaults?.logo_url ?? ""}
+              placeholder="https://..."
+            />
+          </label>
+        </div>
+
+        <div className="storefront-manager-grid">
+          <label className="field">
+            <FieldLabelWithHelp
               label="Website"
               helpText="Optional public website for this storefront."
             />
@@ -81,9 +99,7 @@ function StorefrontForm({
               placeholder="northsiderentals.ca"
             />
           </label>
-        </div>
 
-        <div className="storefront-manager-grid">
           <label className="field">
             <FieldLabelWithHelp
               label="Phone"
@@ -97,21 +113,21 @@ function StorefrontForm({
               placeholder="(780) 555-0123"
             />
           </label>
-
-          <label className="field">
-            <FieldLabelWithHelp
-              label="Storefront address"
-              helpText="Use the storefront or business address only. Leave blank if this storefront should stay area-based."
-            />
-            <input
-              className="input"
-              type="text"
-              name="address"
-              defaultValue={defaults?.address ?? ""}
-              placeholder="205 Powder Drive, Fort McMurray, AB"
-            />
-          </label>
         </div>
+
+        <label className="field">
+          <FieldLabelWithHelp
+            label="Storefront address"
+            helpText="Use the storefront or business address only. Leave blank if this storefront should stay area-based."
+          />
+          <input
+            className="input"
+            type="text"
+            name="address"
+            defaultValue={defaults?.address ?? ""}
+            placeholder="205 Powder Drive, Fort McMurray, AB"
+          />
+        </label>
 
         <label className="field">
           <FieldLabelWithHelp
@@ -157,6 +173,54 @@ function StorefrontForm({
           </label>
         </div>
 
+        <div className="business-hours-card">
+          <div className="business-hours-head">
+            <div>
+              <FieldLabelWithHelp
+                label="Storefront hours"
+                helpText="Optional weekly hours for this storefront."
+              />
+            </div>
+          </div>
+
+          <div className="business-hours-list">
+            {BUSINESS_DAY_ORDER.map((day) => {
+              const defaultsForDay = defaults?.hours?.[day.key];
+
+              return (
+                <div key={day.key} className="business-hours-row">
+                  <span className="business-hours-day">{day.label}</span>
+
+                  <label className="business-hours-closed">
+                    <input
+                      type="checkbox"
+                      name={`business_hours_${day.key}_closed`}
+                      defaultChecked={Boolean(defaultsForDay?.closed)}
+                    />
+                    <span>Closed</span>
+                  </label>
+
+                  <input
+                    className="input"
+                    type="time"
+                    name={`business_hours_${day.key}_open`}
+                    defaultValue={defaultsForDay?.open ?? ""}
+                  />
+
+                  <span className="business-hours-separator">to</span>
+
+                  <input
+                    className="input"
+                    type="time"
+                    name={`business_hours_${day.key}_close`}
+                    defaultValue={defaultsForDay?.close ?? ""}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <label className="business-profile-toggle storefront-manager-toggle">
           <input
             type="checkbox"
@@ -190,14 +254,15 @@ export function AdditionalStorefrontsManager({
   createAction,
   updateAction,
   deleteAction,
-  fallbackPhone
+  fallbackPhone,
+  suggestedDefaults
 }: AdditionalStorefrontsManagerProps) {
   if (!schemaReady) {
     return (
       <div className="surface storefront-manager-card">
         <div className="storefront-manager-card-head">
           <div>
-            <h2>Additional storefronts</h2>
+            <h2>Storefronts</h2>
             <p className="section-copy">
               Run the additional storefront migration in Supabase to manage more than one public storefront from one business account.
             </p>
@@ -211,13 +276,13 @@ export function AdditionalStorefrontsManager({
     <div className="settings-block-stack">
       <div className="surface storefront-manager-summary">
         <div>
-          <h2>Additional storefronts</h2>
+          <h2>Storefronts</h2>
           <p className="section-copy">
             Add separate storefronts for different locations, brands, or service lines.
           </p>
         </div>
         <div className="meta-list">
-          <span>{storefronts.length} additional storefront{storefronts.length === 1 ? "" : "s"}</span>
+          <span>{storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}</span>
         </div>
       </div>
 
@@ -239,6 +304,7 @@ export function AdditionalStorefrontsManager({
         action={createAction}
         isNew
         fallbackPhone={fallbackPhone}
+        defaults={suggestedDefaults}
       />
     </div>
   );
