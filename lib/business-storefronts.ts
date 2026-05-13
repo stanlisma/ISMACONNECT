@@ -3,6 +3,7 @@ import {
   normalizeBusinessHours,
   normalizeBusinessServices,
   normalizeBusinessWebsite,
+  parseBusinessHoursFormData,
   normalizeServiceAreas,
   parseBusinessServicesInput,
   parseServiceAreasInput
@@ -70,22 +71,26 @@ export function buildStorefrontSlug(name: string) {
 export function parseAdditionalStorefrontFormData(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
+  const logoUrl = String(formData.get("logo_url") ?? "").trim() || null;
   const website = normalizeBusinessWebsite(String(formData.get("website") ?? ""));
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const address = normalizeBusinessAddress(String(formData.get("address") ?? ""));
   const showExactLocation = formData.get("show_exact_location") === "on";
   const serviceAreas = parseServiceAreasInput(String(formData.get("service_areas") ?? ""));
   const services = parseBusinessServicesInput(String(formData.get("services") ?? ""));
+  const hours = parseBusinessHoursFormData(formData);
 
   return {
     name,
     description,
+    logoUrl,
     website,
     phone,
     address,
     showExactLocation,
     serviceAreas,
-    services
+    services,
+    hours
   };
 }
 

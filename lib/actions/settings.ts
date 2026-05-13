@@ -9,14 +9,7 @@ import {
   isAdditionalStorefrontSchemaError,
   parseAdditionalStorefrontFormData
 } from "@/lib/business-storefronts";
-import {
-  isBusinessProfileSchemaError,
-  normalizeBusinessAddress,
-  normalizeBusinessWebsite,
-  parseBusinessHoursFormData,
-  parseBusinessServicesInput,
-  parseServiceAreasInput
-} from "@/lib/business-profile";
+import { isBusinessProfileSchemaError } from "@/lib/business-profile";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -80,65 +73,39 @@ export async function updateNotificationSettingsAction(formData: FormData) {
 export async function updateBusinessProfileAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
-  const { data: existingProfile } = await supabase
-    .from("profiles")
-    .select(
-      "business_address, business_geocoded_lat, business_geocoded_lng, business_geocoded_area, business_geocoded_formatted_address, business_geocoded_at"
-    )
-    .eq("id", viewer.user.id)
-    .maybeSingle();
-
   const isBusiness = formData.get("is_business") === "on";
-  const businessName = String(formData.get("business_name") ?? "").trim() || null;
-  const businessDescription = String(formData.get("business_description") ?? "").trim() || null;
-  const businessLogoUrl = String(formData.get("business_logo_url") ?? "").trim() || null;
-  const businessWebsite = normalizeBusinessWebsite(String(formData.get("business_website") ?? ""));
-  const businessAddress = normalizeBusinessAddress(String(formData.get("business_address") ?? ""));
-  const showExactBusinessLocation = formData.get("show_exact_business_location") === "on";
-  const serviceAreas = parseServiceAreasInput(String(formData.get("service_areas") ?? ""));
-  const businessServices = parseBusinessServicesInput(String(formData.get("business_services") ?? ""));
-  const businessHours = parseBusinessHoursFormData(formData);
-  const shouldReuseExistingGeocode =
-    isBusiness &&
-    businessAddress &&
-    existingProfile?.business_address === businessAddress &&
-    typeof existingProfile.business_geocoded_lat === "number" &&
-    typeof existingProfile.business_geocoded_lng === "number";
-  const geocodedBusinessAddress =
-    isBusiness && businessAddress
-      ? shouldReuseExistingGeocode
-        ? {
-            lat: existingProfile.business_geocoded_lat as number,
-            lng: existingProfile.business_geocoded_lng as number,
-            area:
-              typeof existingProfile.business_geocoded_area === "string"
-                ? existingProfile.business_geocoded_area
-                : null,
-            formattedAddress:
-              typeof existingProfile.business_geocoded_formatted_address === "string"
-                ? existingProfile.business_geocoded_formatted_address
-                : null
-          }
-        : await geocodeMarketplaceAddress(businessAddress)
-      : null;
+
+  if (!isBusiness) {
+    const { count, error: storefrontCountError } = await supabase
+      .from("business_storefronts")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_id", viewer.user.id);
+
+    if (storefrontCountError && !isAdditionalStorefrontSchemaError(storefrontCountError)) {
+      redirect(`/settings?error=${encodeURIComponent(storefrontCountError.message)}`);
+    }
+
+    if ((count ?? 0) > 0) {
+      redirect("/settings?error=Delete your storefronts before turning off business mode for this account.");
+    }
+  }
 
   const payload = {
     is_business: isBusiness,
-    business_name: isBusiness ? businessName : null,
-    business_description: isBusiness ? businessDescription : null,
-    business_logo_url: isBusiness ? businessLogoUrl : null,
-    business_website: isBusiness ? businessWebsite : null,
-    business_address: isBusiness ? businessAddress : null,
-    show_exact_business_location: isBusiness && businessAddress ? showExactBusinessLocation : false,
-    business_geocoded_lat: isBusiness ? geocodedBusinessAddress?.lat ?? null : null,
-    business_geocoded_lng: isBusiness ? geocodedBusinessAddress?.lng ?? null : null,
-    business_geocoded_area: isBusiness ? geocodedBusinessAddress?.area ?? null : null,
-    business_geocoded_formatted_address: isBusiness ? geocodedBusinessAddress?.formattedAddress ?? null : null,
-    business_geocoded_at:
-      isBusiness && geocodedBusinessAddress ? new Date().toISOString() : null,
-    service_areas: isBusiness ? serviceAreas : [],
-    business_services: isBusiness ? businessServices : [],
-    business_hours: isBusiness ? businessHours : {}
+    business_name: null,
+    business_description: null,
+    business_logo_url: null,
+    business_website: null,
+    business_address: null,
+    show_exact_business_location: false,
+    business_geocoded_lat: null,
+    business_geocoded_lng: null,
+    business_geocoded_area: null,
+    business_geocoded_formatted_address: null,
+    business_geocoded_at: null,
+    service_areas: [],
+    business_services: [],
+    business_hours: {}
   };
 
   const { error } = await supabase
@@ -179,6 +146,7 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     slug,
     name: parsed.name,
     description: parsed.description,
+    logo_url: parsed.logoUrl,
     website: parsed.website,
     phone: parsed.phone,
     address: parsed.address,
@@ -189,7 +157,8 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     geocoded_formatted_address: geocodedAddress?.formattedAddress ?? null,
     geocoded_at: geocodedAddress ? new Date().toISOString() : null,
     service_areas: parsed.serviceAreas,
-    services: parsed.services
+    services: parsed.services,
+    hours: parsed.hours
   });
 
   if (error) {
@@ -202,7 +171,7 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
 
   revalidatePath("/settings");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect("/settings?success=Additional storefront created");
+  redirect("/settings?success=Storefront created");
 }
 
 export async function updateAdditionalStorefrontAction(storefrontId: string, formData: FormData) {
@@ -245,6 +214,7 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
       slug,
       name: parsed.name,
       description: parsed.description,
+      logo_url: parsed.logoUrl,
       website: parsed.website,
       phone: parsed.phone,
       address: parsed.address,
@@ -256,6 +226,7 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
       geocoded_at: geocodedAddress ? new Date().toISOString() : null,
       service_areas: parsed.serviceAreas,
       services: parsed.services,
+      hours: parsed.hours,
       updated_at: new Date().toISOString()
     })
     .eq("id", storefrontId)

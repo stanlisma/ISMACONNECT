@@ -100,21 +100,21 @@ export async function getOwnedAdditionalStorefronts(ownerId: string) {
   };
 }
 
-export async function getBusinessMapProfileMap(ownerIds: string[]) {
-  const uniqueOwnerIds = [...new Set(ownerIds.filter(Boolean))];
+export async function getBusinessMapProfileMap(storefrontIds: string[]) {
+  const uniqueStorefrontIds = [...new Set(storefrontIds.filter(Boolean))];
 
-  if (!uniqueOwnerIds.length || !isSupabaseServiceRoleConfigured()) {
+  if (!uniqueStorefrontIds.length || !isSupabaseServiceRoleConfigured()) {
     return new Map<string, BusinessMapProfile>();
   }
 
   const supabase = createServiceRoleSupabaseClient();
   const { data, error } = await supabase
-    .from("profiles")
+    .from("business_storefronts")
     .select(
-      "id, business_name, business_address, show_exact_business_location, business_geocoded_lat, business_geocoded_lng, business_geocoded_area, business_geocoded_formatted_address"
+      "id, owner_id, name, address, show_exact_location, geocoded_lat, geocoded_lng, geocoded_area, geocoded_formatted_address"
     )
-    .in("id", uniqueOwnerIds)
-    .eq("show_exact_business_location", true);
+    .in("id", uniqueStorefrontIds)
+    .eq("show_exact_location", true);
 
   if (error) {
     logDataError("Business map profile query failed", error);
@@ -123,23 +123,24 @@ export async function getBusinessMapProfileMap(ownerIds: string[]) {
 
   return new Map(
     ((data as Array<Record<string, unknown>> | null) ?? [])
-      .filter((row) => Boolean(row.id))
+      .filter((row) => Boolean(row.id) && Boolean(row.owner_id))
       .map((row) => [
         String(row.id),
         {
-          owner_id: String(row.id),
-          business_name: typeof row.business_name === "string" ? row.business_name : null,
-          business_address: typeof row.business_address === "string" ? row.business_address : null,
-          show_exact_business_location: Boolean(row.show_exact_business_location),
+          storefront_id: String(row.id),
+          owner_id: String(row.owner_id),
+          business_name: typeof row.name === "string" ? row.name : null,
+          business_address: typeof row.address === "string" ? row.address : null,
+          show_exact_business_location: Boolean(row.show_exact_location),
           business_geocoded_lat:
-            typeof row.business_geocoded_lat === "number" ? row.business_geocoded_lat : null,
+            typeof row.geocoded_lat === "number" ? row.geocoded_lat : null,
           business_geocoded_lng:
-            typeof row.business_geocoded_lng === "number" ? row.business_geocoded_lng : null,
+            typeof row.geocoded_lng === "number" ? row.geocoded_lng : null,
           business_geocoded_area:
-            typeof row.business_geocoded_area === "string" ? row.business_geocoded_area : null,
+            typeof row.geocoded_area === "string" ? row.geocoded_area : null,
           business_geocoded_formatted_address:
-            typeof row.business_geocoded_formatted_address === "string"
-              ? row.business_geocoded_formatted_address
+            typeof row.geocoded_formatted_address === "string"
+              ? row.geocoded_formatted_address
               : null
         } satisfies BusinessMapProfile
       ])
@@ -362,7 +363,7 @@ export async function getPublicListings(filters: {
 
     const areaListings = (areaResponse.data || []) as Listing[];
     const businessMapProfiles = Object.fromEntries(
-      await getBusinessMapProfileMap(areaListings.map((listing) => listing.owner_id))
+      await getBusinessMapProfileMap(areaListings.map((listing) => listing.storefront_id ?? ""))
     );
     const filteredListings = filterListingsByCommunityArea(
       areaListings,
@@ -682,24 +683,21 @@ export async function getPublicSellerStorefront(
 
   const displayName = additionalStorefront
     ? additionalStorefront.name
-    : businessProfile.is_business
-      ? businessProfile.business_name || businessProfile.full_name || firstListing?.contact_name || "Local business"
-      : businessProfile.full_name || firstListing?.contact_name || "Local seller";
+    : businessProfile.full_name || firstListing?.contact_name || "Local seller";
 
   return {
     seller_id: sellerId,
     storefront_id: additionalStorefront?.id ?? null,
     display_name: displayName,
-    is_business: additionalStorefront ? true : businessProfile.is_business,
-    business_description: additionalStorefront?.description ?? businessProfile.business_description,
-    business_logo_url: additionalStorefront?.logo_url ?? businessProfile.business_logo_url,
-    business_website: additionalStorefront?.website ?? businessProfile.business_website,
-    business_address: additionalStorefront?.address ?? businessProfile.business_address,
-    show_exact_business_location:
-      additionalStorefront?.show_exact_location ?? businessProfile.show_exact_business_location,
-    service_areas: additionalStorefront?.service_areas ?? businessProfile.service_areas,
-    business_services: additionalStorefront?.services ?? businessProfile.business_services,
-    business_hours: additionalStorefront?.hours ?? businessProfile.business_hours,
+    is_business: Boolean(additionalStorefront),
+    business_description: additionalStorefront?.description ?? null,
+    business_logo_url: additionalStorefront?.logo_url ?? null,
+    business_website: additionalStorefront?.website ?? null,
+    business_address: additionalStorefront?.address ?? null,
+    show_exact_business_location: additionalStorefront?.show_exact_location ?? false,
+    service_areas: additionalStorefront?.service_areas ?? [],
+    business_services: additionalStorefront?.services ?? [],
+    business_hours: additionalStorefront?.hours ?? {},
     phone: additionalStorefront?.phone ?? businessProfile.phone,
     primary_location: firstListing ? getPublicListingLocationLabel(firstListing) : additionalStorefront?.address ?? "Fort McMurray",
     total_active_listings: response.count ?? listings.length,
