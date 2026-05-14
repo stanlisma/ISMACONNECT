@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 
+import { StorefrontLogoField } from "@/components/settings/storefront-logo-field";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { BUSINESS_DAY_ORDER } from "@/lib/business-profile";
 import type { AdditionalBusinessStorefront } from "@/types/database";
@@ -85,19 +86,7 @@ function StorefrontForm({
             />
           </label>
 
-          <label className="field">
-            <FieldLabelWithHelp
-              label="Logo image URL"
-              helpText="Optional storefront logo or badge image URL."
-            />
-            <input
-              className="input"
-              type="text"
-              name="logo_url"
-              defaultValue={defaults?.logo_url ?? ""}
-              placeholder="https://..."
-            />
-          </label>
+          <StorefrontLogoField defaultValue={defaults?.logo_url ?? ""} />
         </div>
 
         <div className="storefront-manager-grid">

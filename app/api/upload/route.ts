@@ -9,6 +9,8 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient();
   const formData = await request.formData();
   const file = formData.get("file");
+  const requestedFolder = String(formData.get("folder") ?? "").trim().toLowerCase();
+  const uploadFolder = requestedFolder === "storefronts" ? "storefronts" : "listings";
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
@@ -25,7 +27,7 @@ export async function POST(request: Request) {
 
   const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const safeExt = fileExt.replace(/[^a-z0-9]/g, "") || "jpg";
-  const filePath = `listings/${Date.now()}-${crypto.randomUUID()}.${safeExt}`;
+  const filePath = `${uploadFolder}/${Date.now()}-${crypto.randomUUID()}.${safeExt}`;
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);

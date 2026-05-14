@@ -6220,6 +6220,45 @@ code {
   gap: 0.45rem;
 }
 
+.storefront-logo-field {
+  align-content: start;
+}
+
+.storefront-logo-shell {
+  gap: 0.85rem;
+}
+
+.storefront-logo-controls {
+  align-items: center;
+}
+
+.storefront-logo-controls .input {
+  flex: 1 1 280px;
+}
+
+.storefront-logo-upload {
+  flex: 0 0 auto;
+}
+
+.storefront-logo-clear {
+  gap: 0.45rem;
+}
+
+.storefront-logo-preview-row {
+  display: flex;
+  align-items: center;
+}
+
+.storefront-logo-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+}
+
+.storefront-logo-error {
+  margin: 0;
+}
+
 .seller-storefront-hero {
   display: grid;
   gap: 1.25rem;
@@ -6527,6 +6566,17 @@ code {
   }
 
   .storefront-manager-empty-state .button {
+    width: 100%;
+  }
+
+  .storefront-logo-controls {
+    display: grid;
+    justify-items: stretch;
+  }
+
+  .storefront-logo-controls .input,
+  .storefront-logo-upload,
+  .storefront-logo-clear {
     width: 100%;
   }
 
