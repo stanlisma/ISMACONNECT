@@ -6144,6 +6144,14 @@ code {
   margin: 0;
 }
 
+.storefront-manager-summary-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .storefront-manager-card {
   display: grid;
   gap: 1rem;
@@ -6186,6 +6194,10 @@ code {
 
 .storefront-manager-empty-state .button {
   width: fit-content;
+}
+
+.storefront-manager-empty-card {
+  background: linear-gradient(180deg, #ffffff, #f5faff);
 }
 
 .storefront-manager-grid {
@@ -6503,6 +6515,11 @@ code {
   .storefront-manager-card {
     padding: 0.95rem 1rem;
     border-radius: 20px;
+  }
+
+  .storefront-manager-summary-side {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .storefront-manager-grid {
