@@ -61,6 +61,7 @@ export function BusinessProfileForm({
 
         <label className="business-profile-toggle">
           <input
+            id="business-storefront-toggle"
             type="checkbox"
             name="is_business"
             defaultChecked={defaults.isBusiness}
