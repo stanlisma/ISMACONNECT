@@ -10,8 +10,10 @@ import {
   parseAdditionalStorefrontFormData
 } from "@/lib/business-storefronts";
 import { isBusinessProfileSchemaError } from "@/lib/business-profile";
+import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 
 function resolveSettingsReturnPath(formData: FormData, fallbackPath = "/settings") {
   const rawPath = formData.get("return_path");
@@ -40,7 +42,9 @@ function buildReturnPathWithMessage(returnPath: string, key: "success" | "error"
 }
 
 async function generateUniqueStorefrontSlug(ownerId: string, name: string, storefrontId?: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
   const baseSlug = buildStorefrontSlug(name);
   let candidate = baseSlug;
   let suffix = 2;
@@ -68,7 +72,9 @@ async function generateUniqueStorefrontSlug(ownerId: string, name: string, store
 }
 
 async function loadOwnedStorefront(ownerId: string, storefrontId: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
   const { data } = await supabase
     .from("business_storefronts")
     .select("*")
@@ -77,6 +83,12 @@ async function loadOwnedStorefront(ownerId: string, storefrontId: string) {
     .maybeSingle();
 
   return data;
+}
+
+async function createSettingsMutationClient() {
+  return isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
 }
 
 export async function updateNotificationSettingsAction(formData: FormData) {
@@ -98,7 +110,7 @@ export async function updateNotificationSettingsAction(formData: FormData) {
 
 export async function updateBusinessProfileAction(formData: FormData) {
   const viewer = await requireViewer();
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createSettingsMutationClient();
   const isBusiness = formData.get("is_business") === "on";
   const returnPath = resolveSettingsReturnPath(formData);
 
@@ -141,9 +153,10 @@ export async function updateBusinessProfileAction(formData: FormData) {
     business_hours: {}
   };
 
-  const { error } = await supabase
+  const { data: updatedProfile, error } = await supabase
     .from("profiles")
     .update(payload)
+    .select("is_business")
     .eq("id", viewer.user.id);
 
   if (error) {
@@ -160,6 +173,20 @@ export async function updateBusinessProfileAction(formData: FormData) {
     redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
   }
 
+  const persistedValue = Array.isArray(updatedProfile)
+    ? Boolean(updatedProfile[0]?.is_business)
+    : Boolean((updatedProfile as { is_business?: boolean } | null)?.is_business);
+
+  if (persistedValue !== isBusiness) {
+    redirect(
+      buildReturnPathWithMessage(
+        returnPath,
+        "error",
+        "Business storefront setting did not save. Please confirm the business storefront migration is fully applied in Supabase."
+      )
+    );
+  }
+
   revalidatePath("/settings");
   revalidatePath("/dashboard/storefronts");
   revalidatePath("/account");
@@ -169,7 +196,7 @@ export async function updateBusinessProfileAction(formData: FormData) {
 
 export async function createAdditionalStorefrontAction(formData: FormData) {
   const viewer = await requireViewer();
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createSettingsMutationClient();
   const parsed = parseAdditionalStorefrontFormData(formData);
   const returnPath = resolveSettingsReturnPath(formData);
 
@@ -182,25 +209,29 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     ? await geocodeMarketplaceAddress(parsed.address)
     : null;
 
-  const { error } = await supabase.from("business_storefronts").insert({
-    owner_id: viewer.user.id,
-    slug,
-    name: parsed.name,
-    description: parsed.description,
-    logo_url: parsed.logoUrl,
-    website: parsed.website,
-    phone: parsed.phone,
-    address: parsed.address,
-    show_exact_location: parsed.address ? parsed.showExactLocation : false,
-    geocoded_lat: geocodedAddress?.lat ?? null,
-    geocoded_lng: geocodedAddress?.lng ?? null,
-    geocoded_area: geocodedAddress?.area ?? null,
-    geocoded_formatted_address: geocodedAddress?.formattedAddress ?? null,
-    geocoded_at: geocodedAddress ? new Date().toISOString() : null,
-    service_areas: parsed.serviceAreas,
-    services: parsed.services,
-    hours: parsed.hours
-  });
+  const { data: insertedStorefront, error } = await supabase
+    .from("business_storefronts")
+    .insert({
+      owner_id: viewer.user.id,
+      slug,
+      name: parsed.name,
+      description: parsed.description,
+      logo_url: parsed.logoUrl,
+      website: parsed.website,
+      phone: parsed.phone,
+      address: parsed.address,
+      show_exact_location: parsed.address ? parsed.showExactLocation : false,
+      geocoded_lat: geocodedAddress?.lat ?? null,
+      geocoded_lng: geocodedAddress?.lng ?? null,
+      geocoded_area: geocodedAddress?.area ?? null,
+      geocoded_formatted_address: geocodedAddress?.formattedAddress ?? null,
+      geocoded_at: geocodedAddress ? new Date().toISOString() : null,
+      service_areas: parsed.serviceAreas,
+      services: parsed.services,
+      hours: parsed.hours
+    })
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     if (isAdditionalStorefrontSchemaError(error)) {
@@ -214,6 +245,16 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     }
 
     redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
+  }
+
+  if (!insertedStorefront?.id) {
+    redirect(
+      buildReturnPathWithMessage(
+        returnPath,
+        "error",
+        "Storefront creation did not persist. Please try again after confirming the storefront migration is applied."
+      )
+    );
   }
 
   revalidatePath("/settings");
@@ -255,9 +296,9 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
         }
       : await geocodeMarketplaceAddress(parsed.address)
     : null;
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createSettingsMutationClient();
 
-  const { error } = await supabase
+  const { data: updatedStorefront, error } = await supabase
     .from("business_storefronts")
     .update({
       slug,
@@ -278,6 +319,7 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
       hours: parsed.hours,
       updated_at: new Date().toISOString()
     })
+    .select("id")
     .eq("id", storefrontId)
     .eq("owner_id", viewer.user.id);
 
@@ -295,6 +337,20 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
     redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
   }
 
+  const persistedStorefrontId = Array.isArray(updatedStorefront)
+    ? updatedStorefront[0]?.id
+    : (updatedStorefront as { id?: string } | null)?.id;
+
+  if (!persistedStorefrontId) {
+    redirect(
+      buildReturnPathWithMessage(
+        returnPath,
+        "error",
+        "Storefront update did not persist. Please try again after confirming the storefront migration is applied."
+      )
+    );
+  }
+
   revalidatePath("/settings");
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
@@ -310,10 +366,11 @@ export async function deleteAdditionalStorefrontAction(storefrontId: string, for
     redirect(buildReturnPathWithMessage(returnPath, "error", "That storefront could not be found."));
   }
 
-  const supabase = await createServerSupabaseClient();
-  const { error } = await supabase
+  const supabase = await createSettingsMutationClient();
+  const { data: deletedStorefront, error } = await supabase
     .from("business_storefronts")
     .delete()
+    .select("id")
     .eq("id", storefrontId)
     .eq("owner_id", viewer.user.id);
 
@@ -329,6 +386,20 @@ export async function deleteAdditionalStorefrontAction(storefrontId: string, for
     }
 
     redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
+  }
+
+  const deletedStorefrontId = Array.isArray(deletedStorefront)
+    ? deletedStorefront[0]?.id
+    : (deletedStorefront as { id?: string } | null)?.id;
+
+  if (!deletedStorefrontId) {
+    redirect(
+      buildReturnPathWithMessage(
+        returnPath,
+        "error",
+        "Storefront delete did not persist. Please try again after confirming the storefront migration is applied."
+      )
+    );
   }
 
   revalidatePath("/settings");
