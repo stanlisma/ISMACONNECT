@@ -362,6 +362,16 @@ export function AdditionalStorefrontsManager({
         </div>
       ) : null}
 
+      <StorefrontForm
+        title="Create storefront"
+        submitLabel="Create storefront"
+        action={createAction}
+        isNew
+        fallbackPhone={fallbackPhone}
+        defaults={suggestedDefaults}
+        returnPath={returnPath}
+      />
+
       {storefronts.map((storefront) => (
         <StorefrontForm
           key={storefront.id}
@@ -374,16 +384,6 @@ export function AdditionalStorefrontsManager({
           returnPath={returnPath}
         />
       ))}
-
-      <StorefrontForm
-        title="Create storefront"
-        submitLabel="Create storefront"
-        action={createAction}
-        isNew
-        fallbackPhone={fallbackPhone}
-        defaults={suggestedDefaults}
-        returnPath={returnPath}
-      />
     </div>
   );
 }
