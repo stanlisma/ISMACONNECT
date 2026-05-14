@@ -316,7 +316,7 @@ export function AdditionalStorefrontsManager({
         <div className="storefront-manager-empty-state">
           <p>Turn on business storefronts above and save the business profile to unlock storefront creation.</p>
           <a className="button button-secondary" href="#business-storefront-toggle">
-            Turn on storefronts above
+            Create storefront
           </a>
         </div>
       </div>
