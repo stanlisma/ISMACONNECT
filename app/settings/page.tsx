@@ -1,3 +1,5 @@
+import { unstable_noStore as noStore } from "next/cache";
+
 import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
 import { BusinessProfileForm } from "@/components/settings/business-profile-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
@@ -35,6 +37,8 @@ export default async function SettingsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  noStore();
+
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
