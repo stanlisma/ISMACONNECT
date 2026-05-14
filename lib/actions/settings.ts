@@ -111,7 +111,9 @@ export async function updateNotificationSettingsAction(formData: FormData) {
 export async function updateBusinessProfileAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createSettingsMutationClient();
-  const isBusiness = formData.get("is_business") === "on";
+  const isBusiness =
+    formData.get("is_business_value") === "true" ||
+    formData.get("is_business") === "on";
   const returnPath = resolveSettingsReturnPath(formData);
 
   if (!isBusiness) {
