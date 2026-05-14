@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FieldHelp } from "@/components/ui/field-help";
 
@@ -22,6 +22,10 @@ export function BusinessProfileForm({
   returnPath = "/settings"
 }: BusinessProfileFormProps) {
   const [isBusiness, setIsBusiness] = useState(defaults.isBusiness);
+
+  useEffect(() => {
+    setIsBusiness(defaults.isBusiness);
+  }, [defaults.isBusiness]);
 
   if (!schemaReady) {
     return (
@@ -64,7 +68,7 @@ export function BusinessProfileForm({
             id="business-storefront-toggle"
             type="checkbox"
             name="is_business"
-            defaultChecked={defaults.isBusiness}
+            checked={isBusiness}
             onChange={(event) => setIsBusiness(event.target.checked)}
           />
           <span>
