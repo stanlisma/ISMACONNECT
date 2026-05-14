@@ -62,12 +62,12 @@ export function BusinessProfileForm({
 
       <form action={action} className="business-profile-form">
         <input type="hidden" name="return_path" value={returnPath} />
+        <input type="hidden" name="is_business_value" value={isBusiness ? "true" : "false"} />
 
         <label className="business-profile-toggle">
           <input
             id="business-storefront-toggle"
             type="checkbox"
-            name="is_business"
             checked={isBusiness}
             onChange={(event) => setIsBusiness(event.target.checked)}
           />
