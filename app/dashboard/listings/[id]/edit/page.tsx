@@ -29,9 +29,7 @@ export default async function EditListingPage({
   const profileContactName = viewer.profile.full_name ?? undefined;
   const profileContactEmail = viewer.user.email ?? undefined;
   const profileContactPhone = viewer.profile.phone ?? undefined;
-  const storefrontsResult = viewer.profile.is_business
-    ? await getOwnedAdditionalStorefronts(viewer.user.id)
-    : { storefronts: [], schemaReady: true };
+  const storefrontsResult = await getOwnedAdditionalStorefronts(viewer.user.id);
   const normalizedListingContact = {
     name: listing.contact_name?.trim() ?? "",
     email: listing.contact_email?.trim() ?? "",

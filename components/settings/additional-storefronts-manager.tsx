@@ -7,7 +7,7 @@ import type { AdditionalBusinessStorefront } from "@/types/database";
 type AdditionalStorefrontsManagerProps = {
   storefronts: AdditionalBusinessStorefront[];
   schemaReady: boolean;
-  accountEnabled: boolean;
+  accountEnabled?: boolean;
   createAction: (formData: FormData) => void | Promise<void>;
   updateAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
   deleteAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
@@ -266,7 +266,7 @@ function StorefrontForm({
 export function AdditionalStorefrontsManager({
   storefronts,
   schemaReady,
-  accountEnabled,
+  accountEnabled = false,
   createAction,
   updateAction,
   deleteAction,
@@ -298,31 +298,6 @@ export function AdditionalStorefrontsManager({
     );
   }
 
-  if (!accountEnabled) {
-    return (
-      <div className="surface storefront-manager-card">
-        <div className="storefront-manager-card-head">
-          <div>
-            <div className="business-profile-title-row">
-              <h2>Storefronts</h2>
-              <FieldHelp
-                label="Storefronts"
-                text="Turn on business storefronts above and save the business account first. After that, you can create one or more storefronts here."
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="storefront-manager-empty-state">
-          <p>Turn on business storefronts above and save the business profile to unlock storefront creation.</p>
-          <a className="button button-secondary" href="#business-storefront-toggle">
-            Create storefront
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="settings-block-stack">
       <div className="surface storefront-manager-summary">
@@ -339,11 +314,27 @@ export function AdditionalStorefrontsManager({
           <div className="meta-list">
           <span>{storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}</span>
           </div>
-          <a className="button button-secondary" href="#create-storefront-form">
+          <a className={`button${accountEnabled ? " button-secondary" : ""}`} href="#create-storefront-form">
             Create storefront
           </a>
         </div>
       </div>
+
+      {!accountEnabled ? (
+        <div className="surface storefront-manager-card storefront-manager-empty-card">
+          <div className="storefront-manager-card-head">
+            <div>
+              <h3>Business mode will turn on automatically</h3>
+            </div>
+          </div>
+
+          <div className="storefront-manager-empty-state">
+            <p>
+              You can create a storefront right away. Saving your first storefront will also enable business storefronts on this account.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {storefronts.length === 0 ? (
         <div className="surface storefront-manager-card storefront-manager-empty-card">

@@ -211,6 +211,11 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     ? await geocodeMarketplaceAddress(parsed.address)
     : null;
 
+  await supabase
+    .from("profiles")
+    .update({ is_business: true })
+    .eq("id", viewer.user.id);
+
   const { data: insertedStorefront, error } = await supabase
     .from("business_storefronts")
     .insert({
