@@ -88,10 +88,7 @@ export default async function DashboardStorefrontsPage({
         </div>
 
         <div className="action-row">
-          <a
-            className={`button${businessProfile.is_business ? "" : " button-secondary"}`}
-            href={businessProfile.is_business ? "#create-storefront-form" : "#business-storefront-toggle"}
-          >
+          <a className="button" href="#create-storefront-form">
             Create storefront
           </a>
         </div>
