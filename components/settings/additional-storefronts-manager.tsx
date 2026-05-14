@@ -285,6 +285,12 @@ export function AdditionalStorefrontsManager({
             </div>
           </div>
         </div>
+
+        <div className="storefront-manager-empty-state">
+          <p>
+            Run the storefront migration in Supabase first, then refresh this page to start creating storefronts.
+          </p>
+        </div>
       </div>
     );
   }
@@ -302,6 +308,13 @@ export function AdditionalStorefrontsManager({
               />
             </div>
           </div>
+        </div>
+
+        <div className="storefront-manager-empty-state">
+          <p>Turn on business storefronts above and save the business profile to unlock storefront creation.</p>
+          <a className="button button-secondary" href="#business-storefront-toggle">
+            Turn on storefronts above
+          </a>
         </div>
       </div>
     );

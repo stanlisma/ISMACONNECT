@@ -6172,6 +6172,22 @@ code {
   gap: 1rem;
 }
 
+.storefront-manager-empty-state {
+  display: grid;
+  gap: 0.85rem;
+  padding-top: 0.35rem;
+}
+
+.storefront-manager-empty-state p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.storefront-manager-empty-state .button {
+  width: fit-content;
+}
+
 .storefront-manager-grid {
   display: grid;
   gap: 0.85rem;
@@ -6491,6 +6507,10 @@ code {
 
   .storefront-manager-grid {
     grid-template-columns: 1fr;
+  }
+
+  .storefront-manager-empty-state .button {
+    width: 100%;
   }
 
   .storefront-manager-actions {
