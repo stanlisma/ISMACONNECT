@@ -36,7 +36,10 @@ function StorefrontForm({
   returnPath?: string;
 }) {
   return (
-    <div className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}>
+    <div
+      id={isNew ? "create-storefront-form" : undefined}
+      className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}
+    >
       <div className="storefront-manager-card-head">
         <div>
           <div className="business-profile-title-row">
@@ -332,10 +335,32 @@ export function AdditionalStorefrontsManager({
             />
           </div>
         </div>
-        <div className="meta-list">
+        <div className="storefront-manager-summary-side">
+          <div className="meta-list">
           <span>{storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}</span>
+          </div>
+          <a className="button button-secondary" href="#create-storefront-form">
+            Create storefront
+          </a>
         </div>
       </div>
+
+      {storefronts.length === 0 ? (
+        <div className="surface storefront-manager-card storefront-manager-empty-card">
+          <div className="storefront-manager-card-head">
+            <div>
+              <h3>No storefronts yet</h3>
+            </div>
+          </div>
+
+          <div className="storefront-manager-empty-state">
+            <p>Create your first storefront below for a brand, location, or service line under this account.</p>
+            <a className="button" href="#create-storefront-form">
+              Create your first storefront
+            </a>
+          </div>
+        </div>
+      ) : null}
 
       {storefronts.map((storefront) => (
         <StorefrontForm
@@ -351,7 +376,7 @@ export function AdditionalStorefrontsManager({
       ))}
 
       <StorefrontForm
-        title="Add storefront"
+        title="Create storefront"
         submitLabel="Create storefront"
         action={createAction}
         isNew

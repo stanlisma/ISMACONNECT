@@ -85,9 +85,15 @@ export default async function DashboardStorefrontsPage({
         </div>
 
         <div className="action-row">
-          <Link className="button button-secondary" href="/settings#business">
-            Open business settings
-          </Link>
+          {businessProfile.is_business ? (
+            <Link className="button" href="#create-storefront-form">
+              Create storefront
+            </Link>
+          ) : (
+            <a className="button button-secondary" href="#business-storefront-toggle">
+              Turn on storefronts
+            </a>
+          )}
         </div>
       </div>
 
