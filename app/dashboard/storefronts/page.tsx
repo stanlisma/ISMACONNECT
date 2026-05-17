@@ -78,26 +78,11 @@ export default async function DashboardStorefrontsPage({
         tone="error"
       />
 
-      <div className="surface storefront-manager-summary">
-        <div>
-          <h2>My Storefronts</h2>
-          <p className="section-copy">
-            Create and update separate storefronts for different businesses,
-            brands, locations, or service lines under your account.
-          </p>
-        </div>
-
-        <div className="action-row">
-          <a className="button" href="#create-storefront-form">
-            Create storefront
-          </a>
-        </div>
-      </div>
-
       <BusinessProfileForm
         action={updateBusinessProfileAction}
         schemaReady={businessSchemaReady}
         returnPath="/dashboard/storefronts"
+        compact
         defaults={{
           isBusiness: businessProfile.is_business,
           profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
