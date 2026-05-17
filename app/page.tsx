@@ -3,6 +3,7 @@ import { getViewer } from "@/lib/auth";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
+import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { getSoftLaunchSnapshot } from "@/lib/launch-metrics";
@@ -71,6 +72,8 @@ export default async function HomePage() {
             Search
           </button>
         </form>
+
+        <MobileInstallBanner />
 
         <div className="home-camp-focus">
           <div className="home-camp-focus-copy">

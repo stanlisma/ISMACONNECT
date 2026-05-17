@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
 import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
+import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchRecoveryPanel } from "@/components/ui/search-recovery-panel";
@@ -16,7 +17,7 @@ import {
   getStructuredFilterDefinitions,
   getStructuredFilterMatchHints
 } from "@/lib/listing-structured-fields";
-import { resolveCommunityMapArea } from "@/lib/local-marketplace";
+import { getCategoryLocalContent, resolveCommunityMapArea } from "@/lib/local-marketplace";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
@@ -34,6 +35,21 @@ export const metadata: Metadata = {
   description:
     "Browse jobs, rentals, services, ride shares, and buy & sell listings in Fort McMurray.",
 };
+
+const MOBILE_BROWSE_QUICK_LINKS = [
+  {
+    label: "Camp rides",
+    href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map"
+  },
+  {
+    label: "Airport rides",
+    href: "/browse?category=ride-share&subcategory=airport-ride&view=map"
+  },
+  {
+    label: "Available rentals",
+    href: "/browse?category=rentals&availabilityType=immediate"
+  }
+];
 
 export default async function BrowsePage({
   searchParams,
@@ -153,6 +169,9 @@ export default async function BrowsePage({
   const categoryLabel = category
     ? CATEGORIES.find((item) => item.value === category)?.label
     : null;
+  const mobileQuickLinks = category
+    ? getCategoryLocalContent(category).quickLinks.slice(0, 3)
+    : MOBILE_BROWSE_QUICK_LINKS;
   const browseTitle = categoryLabel
     ? `${categoryLabel} ${intent === "need" ? "Needs" : "Listings"}`
     : intent === "need"
@@ -303,6 +322,19 @@ export default async function BrowsePage({
               ) : null}
             </div>
           ) : null}
+
+          <MobileInstallBanner />
+
+          <div className="mobile-browse-quick-links">
+            {mobileQuickLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
+                {link.label}
+              </Link>
+            ))}
+            <Link href="#browse-save-search" className="mobile-browse-quick-link is-secondary">
+              Save search
+            </Link>
+          </div>
         </div>
 
         <div className="browse-desktop-heading">
@@ -341,6 +373,7 @@ export default async function BrowsePage({
         />
 
         <SaveSearchToggle
+          anchorId="browse-save-search"
           viewerId={viewer?.user.id}
           actionPath="/browse"
           returnTo={returnTo}
