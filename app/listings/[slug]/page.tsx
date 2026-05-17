@@ -221,6 +221,55 @@ export default async function ListingPage({
                   </div>
                 </div>
 
+                {canUseMobileActions ? (
+                  <div className="detail-quick-actions">
+                    <div className="detail-quick-actions-copy">
+                      <h2>{isNeed ? "Reply fast" : "Message seller fast"}</h2>
+                      <p>
+                        {listing.category === "ride-share"
+                          ? "Use the quick action below, then confirm route, timing, and pickup details."
+                          : isNeed
+                            ? "Send a clear reply so the poster can pick the right local response quickly."
+                            : "Keep the first message short so you can get a faster reply on mobile."}
+                      </p>
+                    </div>
+
+                    <div className="detail-quick-action-row">
+                      <Link href={mobilePrimaryHref} className="button detail-quick-action-button">
+                        {mobilePrimaryLabel}
+                      </Link>
+                      {listing.category === "ride-share" ? (
+                        <Link href="/safety" className="button button-secondary detail-quick-action-button">
+                          Safety tips
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="detail-mobile-trust-strip">
+                  <TrustBadges summary={sellerTrustSummary} compact />
+                  <div className="detail-mobile-trust-meta">
+                    <span>
+                      {sellerTrustSummary?.verification_status === "verified"
+                        ? "ID verified seller"
+                        : sellerTrustSummary?.verification_status === "pending"
+                          ? "Verification pending"
+                          : "Check seller trust before meeting"}
+                    </span>
+                    <span>
+                      {sellerTrustSummary?.member_since
+                        ? `Member since ${formatDate(sellerTrustSummary.member_since)}`
+                        : "New local seller"}
+                    </span>
+                  </div>
+                  {listing.category === "ride-share" ? (
+                    <Link href="/safety" className="detail-mobile-safety-link">
+                      Ride-share safety guide
+                    </Link>
+                  ) : null}
+                </div>
+
                 <p className="detail-copy">{listing.description}</p>
               </div>
 

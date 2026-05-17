@@ -203,6 +203,8 @@ export function ListingCard({
               className="listing-media-image"
               src={images[activeImageIndex]}
               loading="lazy"
+              decoding="async"
+              sizes="(max-width: 760px) 50vw, (max-width: 1100px) 33vw, 25vw"
             />
 
             <div className="listing-card-badges">

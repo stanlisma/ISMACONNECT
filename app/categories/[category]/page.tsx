@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
 import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
+import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchRecoveryPanel } from "@/components/ui/search-recovery-panel";
@@ -325,6 +326,19 @@ export default async function CategoryPage({
               ) : null}
             </div>
           ) : null}
+
+          <MobileInstallBanner />
+
+          <div className="mobile-browse-quick-links">
+            {localContent.quickLinks.slice(0, 3).map((link) => (
+              <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
+                {link.label}
+              </Link>
+            ))}
+            <Link href="#browse-save-search" className="mobile-browse-quick-link is-secondary">
+              Save search
+            </Link>
+          </div>
         </div>
 
         <div className="category-desktop-heading">
@@ -365,6 +379,7 @@ export default async function CategoryPage({
         />
 
         <SaveSearchToggle
+          anchorId="browse-save-search"
           viewerId={viewer?.user.id}
           actionPath={categoryInfo.href}
           returnTo={returnTo}

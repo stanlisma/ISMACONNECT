@@ -10,6 +10,7 @@ interface SaveSearchToggleProps {
   viewerId?: string | null;
   actionPath: string;
   returnTo: string;
+  anchorId?: string;
   search?: string | null;
   category?: ListingCategory | null;
   subcategory?: string | null;
@@ -25,6 +26,7 @@ export function SaveSearchToggle({
   viewerId,
   actionPath,
   returnTo,
+  anchorId,
   search,
   category,
   subcategory,
@@ -52,7 +54,7 @@ export function SaveSearchToggle({
     }
 
     return (
-      <div className="saved-search-banner saved-search-banner-muted">
+      <div className="saved-search-banner saved-search-banner-muted" id={anchorId}>
         <div className="saved-search-copy">
           <strong>Save searches</strong>
           <p>Add a keyword, category, or price filter to save alerts for this view.</p>
@@ -63,7 +65,7 @@ export function SaveSearchToggle({
 
   if (!viewerId) {
     return (
-      <div className="saved-search-banner">
+      <div className="saved-search-banner" id={anchorId}>
         <div className="saved-search-copy">
           <strong>Save this search</strong>
           <p>Sign in to keep this search and track new matching listings in one place.</p>
@@ -77,7 +79,10 @@ export function SaveSearchToggle({
   }
 
   return (
-    <div className={`saved-search-banner${compactOnMobile ? " saved-search-banner-compact-mobile" : ""}`}>
+    <div
+      id={anchorId}
+      className={`saved-search-banner${compactOnMobile ? " saved-search-banner-compact-mobile" : ""}`}
+    >
       <div className="saved-search-copy">
         <strong>{isSaved ? "Search saved" : "Save this search"}</strong>
         <p>

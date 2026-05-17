@@ -58,6 +58,7 @@ export function ListingImageGallery({
           src={images[activeImage]}
           alt={`${title} image ${activeImage + 1}`}
           className="listing-detail-main-image"
+          decoding="async"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         />
@@ -116,7 +117,7 @@ export function ListingImageGallery({
                 onClick={() => setActiveImage(index)}
                 aria-label={`View image ${index + 1}`}
               >
-                <img src={url} alt={`${title} thumbnail ${index + 1}`} />
+                <img src={url} alt={`${title} thumbnail ${index + 1}`} loading="lazy" decoding="async" />
               </button>
             ))}
           </div>
