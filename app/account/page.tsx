@@ -3,11 +3,11 @@ import {
   ChevronRight,
   Heart,
   ListChecks,
-  Mail,
   Megaphone,
   MessageCircle,
   Search,
   ShieldCheck,
+  Store,
   UserCircle2
 } from "lucide-react";
 import Link from "next/link";
@@ -99,6 +99,17 @@ export default async function AccountPage() {
   const email = viewer.user.email || "No email available";
   const initials = getInitials(fullName, viewer.user.email);
   const emailNotificationsEnabled = profileSettingsResult.data?.email_notifications !== false;
+  const unreadTotal = unreadMessagesCount + unreadNotificationsCount + searchAlertsCount;
+  const trustSummaryCopy = trustSummary?.review_count
+    ? getSellerTrustSummaryCopy(trustSummary)
+    : viewer.profile.stripe_identity_session_status === "processing" ||
+        viewer.profile.verification_status === "pending"
+      ? "Verification in progress."
+      : viewer.profile.verification_status === "verified"
+        ? "ID verified."
+        : viewer.profile.stripe_identity_session_status === "requires_input"
+          ? "Verification needs one more step."
+          : "Add verification and reviews to build trust faster.";
 
   return (
     <section className="section account-page">
@@ -118,24 +129,12 @@ export default async function AccountPage() {
                       ? "Business Account"
                       : "Member Account"}
                 </span>
-                <h1 className="section-title">Account</h1>
-                <p className="account-name">{fullName}</p>
+                <h1 className="section-title">{fullName}</h1>
                 <p className="section-copy account-email">{email}</p>
 
                 <div className="account-trust-summary">
                   <TrustBadges summary={trustSummary} />
-                  <p className="section-copy">
-                    {trustSummary?.review_count
-                      ? getSellerTrustSummaryCopy(trustSummary)
-                      : viewer.profile.stripe_identity_session_status === "processing" ||
-                          viewer.profile.verification_status === "pending"
-                        ? "Stripe is processing your seller verification."
-                        : viewer.profile.verification_status === "verified"
-                          ? "Your listings show an ID-verified badge."
-                          : viewer.profile.stripe_identity_session_status === "requires_input"
-                            ? "Stripe needs one more verification attempt before your badge can be approved."
-                            : "Start Stripe ID verification and collect ratings to build trust faster."}
-                  </p>
+                  <p className="section-copy">{trustSummaryCopy}</p>
                 </div>
               </div>
             </div>
@@ -153,56 +152,14 @@ export default async function AccountPage() {
 
               <div className="account-stat-card">
                 <span className="account-stat-label">Unread</span>
-                <strong>{unreadMessagesCount + unreadNotificationsCount + searchAlertsCount}</strong>
+                <strong>{unreadTotal}</strong>
               </div>
-            </div>
-
-            <div className="account-quick-links">
-              <Link href="/dashboard" className="account-quick-link">
-                <span className="account-menu-icon">
-                  <ListChecks aria-hidden="true" size={18} strokeWidth={2.2} />
-                </span>
-                <span className="account-quick-link-copy">
-                  <span className="account-quick-link-label">Listings</span>
-                  <small>{listingsCount} live</small>
-                </span>
-              </Link>
-
-              <Link href="/messages" className="account-quick-link">
-                <span className="account-menu-icon">
-                  <MessageCircle aria-hidden="true" size={18} strokeWidth={2.2} />
-                </span>
-                <span className="account-quick-link-copy">
-                  <span className="account-quick-link-label">Messages</span>
-                  <small>{unreadMessagesCount} unread</small>
-                </span>
-              </Link>
-
-              <Link href="/dashboard/searches" className="account-quick-link">
-                <span className="account-menu-icon">
-                  <Search aria-hidden="true" size={18} strokeWidth={2.2} />
-                </span>
-                <span className="account-quick-link-copy">
-                  <span className="account-quick-link-label">Alerts</span>
-                  <small>{searchAlertsCount} new</small>
-                </span>
-              </Link>
-
-              <Link href="/settings" className="account-quick-link">
-                <span className="account-menu-icon">
-                  <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
-                </span>
-                <span className="account-quick-link-copy">
-                  <span className="account-quick-link-label">Settings</span>
-                  <small>Manage account</small>
-                </span>
-              </Link>
             </div>
           </div>
 
           <div className="surface account-section-card">
             <div className="account-section-heading">
-              <span className="account-section-title">My Activity</span>
+              <span className="account-section-title">Shortcuts</span>
             </div>
 
             <div className="account-menu">
@@ -212,7 +169,7 @@ export default async function AccountPage() {
                 </span>
                 <span className="account-menu-content">
                   <span className="account-menu-label">My Listings</span>
-                  <span className="account-menu-description">Manage your active and past posts</span>
+                  <span className="account-menu-description">Create, edit, and boost listings.</span>
                 </span>
                 <span className="account-menu-meta">
                   <span className="account-menu-count">{listingsCount}</span>
@@ -220,16 +177,15 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/saved" className="account-menu-item">
+              <Link href="/dashboard/storefronts" className="account-menu-item">
                 <span className="account-menu-icon">
-                  <Heart aria-hidden="true" size={18} strokeWidth={2.2} />
+                  <Store aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
                 <span className="account-menu-content">
-                  <span className="account-menu-label">Favourites</span>
-                  <span className="account-menu-description">Return to saved listings quickly</span>
+                  <span className="account-menu-label">My Storefronts</span>
+                  <span className="account-menu-description">Create and manage business storefronts.</span>
                 </span>
                 <span className="account-menu-meta">
-                  <span className="account-menu-count">{favouritesCount}</span>
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
@@ -240,7 +196,7 @@ export default async function AccountPage() {
                 </span>
                 <span className="account-menu-content">
                   <span className="account-menu-label">Saved Searches</span>
-                  <span className="account-menu-description">Track search alerts for new matching listings</span>
+                  <span className="account-menu-description">Watch for new matches and alerts.</span>
                 </span>
                 <span className="account-menu-meta">
                   {searchAlertsCount > 0 ? (
@@ -252,15 +208,16 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/dashboard/boosts" className="account-menu-item">
+              <Link href="/saved" className="account-menu-item">
                 <span className="account-menu-icon">
-                  <Megaphone aria-hidden="true" size={18} strokeWidth={2.2} />
+                  <Heart aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
                 <span className="account-menu-content">
-                  <span className="account-menu-label">Boost Products</span>
-                  <span className="account-menu-description">Feature important listings and run paid boosts</span>
+                  <span className="account-menu-label">Favourites</span>
+                  <span className="account-menu-description">Return to saved listings quickly.</span>
                 </span>
                 <span className="account-menu-meta">
+                  <span className="account-menu-count">{favouritesCount}</span>
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
@@ -271,7 +228,7 @@ export default async function AccountPage() {
                 </span>
                 <span className="account-menu-content">
                   <span className="account-menu-label">Messages</span>
-                  <span className="account-menu-description">Chat with buyers, renters, and sellers</span>
+                  <span className="account-menu-description">Reply to buyers, renters, and sellers.</span>
                 </span>
                 <span className="account-menu-meta">
                   {unreadMessagesCount > 0 ? (
@@ -287,7 +244,7 @@ export default async function AccountPage() {
                 </span>
                 <span className="account-menu-content">
                   <span className="account-menu-label">Notifications</span>
-                  <span className="account-menu-description">Review updates and activity alerts</span>
+                  <span className="account-menu-description">Review account and listing updates.</span>
                 </span>
                 <span className="account-menu-meta">
                   {unreadNotificationsCount > 0 ? (
@@ -296,23 +253,28 @@ export default async function AccountPage() {
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
-            </div>
-          </div>
 
-          <div className="surface account-section-card">
-            <div className="account-section-heading">
-              <span className="account-section-title">Preferences</span>
-            </div>
-
-            <div className="account-menu">
-              <Link href="/settings" className="account-menu-item">
+              <Link href="/dashboard/boosts" className="account-menu-item">
                 <span className="account-menu-icon">
-                  <Mail aria-hidden="true" size={18} strokeWidth={2.2} />
+                  <Megaphone aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
                 <span className="account-menu-content">
-                  <span className="account-menu-label">Email Notifications</span>
+                  <span className="account-menu-label">Boost Products</span>
+                  <span className="account-menu-description">Feature important listings.</span>
+                </span>
+                <span className="account-menu-meta">
+                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
+                </span>
+              </Link>
+
+              <Link href="/settings" className="account-menu-item">
+                <span className="account-menu-icon">
+                  <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="account-menu-content">
+                  <span className="account-menu-label">Settings</span>
                   <span className="account-menu-description">
-                    {emailNotificationsEnabled ? "Enabled for new replies and updates" : "Currently paused"}
+                    {emailNotificationsEnabled ? "Notifications on" : "Notifications off"} | Manage verification and account controls.
                   </span>
                 </span>
                 <span className="account-menu-meta">
@@ -326,19 +288,6 @@ export default async function AccountPage() {
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
-
-              <Link href="/settings" className="account-menu-item">
-                <span className="account-menu-icon">
-                  <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
-                </span>
-                <span className="account-menu-content">
-                  <span className="account-menu-label">Trust & Settings</span>
-                  <span className="account-menu-description">Manage verification, badges, and account controls</span>
-                </span>
-                <span className="account-menu-meta">
-                  <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
-                </span>
-              </Link>
             </div>
           </div>
 
@@ -349,7 +298,6 @@ export default async function AccountPage() {
               </span>
               <div>
                 <strong>Signed in on this device</strong>
-                <p className="section-copy">Use sign out when you are finished using your account.</p>
               </div>
             </div>
 
