@@ -117,6 +117,13 @@ export default async function CategoryPage({
   const categoryInfo = CATEGORY_MAP[category];
   const pageTitle = `${categoryInfo.label} ${intent === "need" ? "Needs" : "Listings"}`;
   const localContent = getCategoryLocalContent(category);
+  const todayDateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Edmonton",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const todayDateParam = `${todayDateParts.find((part) => part.type === "year")?.value ?? ""}-${todayDateParts.find((part) => part.type === "month")?.value ?? ""}-${todayDateParts.find((part) => part.type === "day")?.value ?? ""}`;
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const savedSearch = viewer
@@ -210,6 +217,27 @@ export default async function CategoryPage({
     ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.storefront_id ?? ""))
     : new Map();
   const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
+  const mobileQuickLinks =
+    category === "ride-share"
+      ? [
+          {
+            label: "Today",
+            href: `${categoryInfo.href}?tripDate=${todayDateParam}`
+          },
+          {
+            label: "Camp map",
+            href: `${categoryInfo.href}?subcategory=camp-site-transport&view=map`
+          },
+          {
+            label: "Airport",
+            href: `${categoryInfo.href}?subcategory=airport-ride&view=map`
+          },
+          {
+            label: "14 on / 7 off",
+            href: `${categoryInfo.href}?schedulePattern=14-on-7-off`
+          }
+        ]
+      : localContent.quickLinks.slice(0, 3);
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
   const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
   const previousPageHref =
@@ -330,7 +358,7 @@ export default async function CategoryPage({
           <MobileInstallBanner />
 
           <div className="mobile-browse-quick-links">
-            {localContent.quickLinks.slice(0, 3).map((link) => (
+            {mobileQuickLinks.map((link) => (
               <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
                 {link.label}
               </Link>

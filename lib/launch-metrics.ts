@@ -9,6 +9,8 @@ type MetricsSupabase =
 
 export interface SoftLaunchSnapshot {
   recentListingCount: number;
+  freshListingCount: number;
+  staleListingCount: number;
   recentNeedCount: number;
   recentOfferCount: number;
   respondedListingCount: number;
@@ -22,6 +24,7 @@ export interface SoftLaunchSnapshot {
   savedSearchUserCount: number;
   activeSavedSearchUserCount: number;
   unansweredNeedCount: number;
+  staleUnansweredCount: number;
   heroCategoryCounts: Array<{
     category: ListingCategory;
     count: number;
@@ -60,6 +63,8 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
   if (!isSupabaseConfigured()) {
     return {
       recentListingCount: 0,
+      freshListingCount: 0,
+      staleListingCount: 0,
       recentNeedCount: 0,
       recentOfferCount: 0,
       respondedListingCount: 0,
@@ -73,6 +78,7 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
       savedSearchUserCount: 0,
       activeSavedSearchUserCount: 0,
       unansweredNeedCount: 0,
+      staleUnansweredCount: 0,
       heroCategoryCounts: HERO_CATEGORY_ORDER.map((category) => ({ category, count: 0 })),
       heroCategoryResponseCounts: HERO_CATEGORY_ORDER.map((category) => ({ category, count: 0 }))
     };
@@ -80,6 +86,8 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
 
   const supabase = await getMetricsSupabase();
   const listingsWindowStart = getWindowStart(30);
+  const freshWindowStart = getWindowStart(7);
+  const staleWindowStart = getWindowStart(14);
   const savedSearchActivityWindowStart = getWindowStart(14);
 
   const [recentListingsResult, savedSearchesResult] = await Promise.all([
@@ -128,6 +136,8 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
   );
   const conversationCount = (conversationsResult.data ?? []).length;
   const respondedListings = recentListings.filter((listing) => respondedListingIds.has(listing.id));
+  const freshListings = recentListings.filter((listing) => listing.created_at >= freshWindowStart);
+  const staleListings = recentListings.filter((listing) => listing.created_at < staleWindowStart);
 
   const posterCounts = new Map<string, number>();
   recentListings.forEach((listing) => {
@@ -151,6 +161,8 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
 
   return {
     recentListingCount: recentListings.length,
+    freshListingCount: freshListings.length,
+    staleListingCount: staleListings.length,
     recentNeedCount: recentListings.filter((listing) => listing.listing_intent === "need").length,
     recentOfferCount: recentListings.filter((listing) => listing.listing_intent !== "need").length,
     respondedListingCount: respondedListingIds.size,
@@ -167,6 +179,9 @@ export async function getSoftLaunchSnapshot(): Promise<SoftLaunchSnapshot> {
     activeSavedSearchUserCount,
     unansweredNeedCount: recentListings.filter(
       (listing) => listing.listing_intent === "need" && !respondedListingIds.has(listing.id)
+    ).length,
+    staleUnansweredCount: recentListings.filter(
+      (listing) => listing.created_at < staleWindowStart && !respondedListingIds.has(listing.id)
     ).length,
     heroCategoryCounts: HERO_CATEGORY_ORDER.map((category) => ({
       category,
