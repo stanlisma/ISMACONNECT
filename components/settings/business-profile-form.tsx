@@ -13,13 +13,15 @@ interface BusinessProfileFormProps {
   };
   schemaReady: boolean;
   returnPath?: string;
+  compact?: boolean;
 }
 
 export function BusinessProfileForm({
   action,
   defaults,
   schemaReady,
-  returnPath = "/settings"
+  returnPath = "/settings",
+  compact = false
 }: BusinessProfileFormProps) {
   const [isBusiness, setIsBusiness] = useState(defaults.isBusiness);
 
@@ -44,16 +46,16 @@ export function BusinessProfileForm({
   }
 
   return (
-    <div className="business-profile-card surface">
+    <div className={`business-profile-card surface${compact ? " is-compact" : ""}`}>
       <div className="business-profile-head">
         <div className="business-profile-icon">
           <Building2 aria-hidden="true" size={18} strokeWidth={2.1} />
         </div>
         <div className="business-profile-head-copy">
           <div className="business-profile-title-row">
-            <h2>Business account</h2>
+            <h2>{compact ? "Business mode" : "Business account"}</h2>
             <FieldHelp
-              label="Business account"
+              label={compact ? "Business mode" : "Business account"}
               text="Turn on business mode for this account, then create separate storefronts for each brand, location, or service line."
             />
           </div>
@@ -82,26 +84,33 @@ export function BusinessProfileForm({
           </span>
         </label>
 
-        <div className={`business-profile-fields ${isBusiness ? "is-active" : "is-inactive"}`}>
-          <div className="business-hours-card">
-            <div className="business-hours-head">
-              <div className="business-profile-title-row">
-                <strong className="listing-toggle-title">Account phone</strong>
-                <FieldHelp
-                  label="Account phone"
-                  text="Your account stays personal. Storefront details like branding, address, hours, services, and map settings now live inside each storefront you create below. The account phone is still used when a storefront phone is left blank."
-                />
+        {compact ? (
+          <div className={`business-profile-inline-note ${isBusiness ? "is-active" : "is-inactive"}`}>
+            <strong>Account phone:</strong>{" "}
+            <span>{defaults.profilePhone || "Add a phone number in your account profile"}</span>
+          </div>
+        ) : (
+          <div className={`business-profile-fields ${isBusiness ? "is-active" : "is-inactive"}`}>
+            <div className="business-hours-card">
+              <div className="business-hours-head">
+                <div className="business-profile-title-row">
+                  <strong className="listing-toggle-title">Account phone</strong>
+                  <FieldHelp
+                    label="Account phone"
+                    text="Your account stays personal. Storefront details like branding, address, hours, services, and map settings now live inside each storefront you create below. The account phone is still used when a storefront phone is left blank."
+                  />
+                </div>
+                <p className="business-hours-phone-note">
+                  <strong>{defaults.profilePhone || "Add a phone number in your account profile"}</strong>
+                </p>
               </div>
-              <p className="business-hours-phone-note">
-                <strong>{defaults.profilePhone || "Add a phone number in your account profile"}</strong>
-              </p>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="business-profile-actions">
           <button className="button" type="submit">
-            Save business profile
+            {compact ? "Save" : "Save business profile"}
           </button>
         </div>
       </form>

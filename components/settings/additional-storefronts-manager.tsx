@@ -289,7 +289,7 @@ export function AdditionalStorefrontsManager({
 
   return (
     <div className="settings-block-stack">
-      <div className="surface storefront-manager-summary">
+      <div className="storefront-manager-toolbar">
         <div>
           <div className="business-profile-title-row">
             <h2>Storefronts</h2>
@@ -299,48 +299,17 @@ export function AdditionalStorefrontsManager({
             />
           </div>
         </div>
-        <div className="storefront-manager-summary-side">
-          <div className="meta-list">
-          <span>{storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}</span>
-          </div>
+        <div className="storefront-manager-toolbar-side">
+          {storefronts.length ? (
+            <span className="account-menu-pill is-muted">
+              {storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}
+            </span>
+          ) : null}
           <a className={`button${accountEnabled ? " button-secondary" : ""}`} href="#create-storefront-form">
             Create storefront
           </a>
         </div>
       </div>
-
-      {!accountEnabled ? (
-        <div className="surface storefront-manager-card storefront-manager-empty-card">
-          <div className="storefront-manager-card-head">
-            <div>
-              <h3>Business mode will turn on automatically</h3>
-            </div>
-          </div>
-
-          <div className="storefront-manager-empty-state">
-            <p>
-              You can create a storefront right away. Saving your first storefront will also enable business storefronts on this account.
-            </p>
-          </div>
-        </div>
-      ) : null}
-
-      {storefronts.length === 0 ? (
-        <div className="surface storefront-manager-card storefront-manager-empty-card">
-          <div className="storefront-manager-card-head">
-            <div>
-              <h3>No storefronts yet</h3>
-            </div>
-          </div>
-
-          <div className="storefront-manager-empty-state">
-            <p>Create your first storefront below for a brand, location, or service line under this account.</p>
-            <a className="button" href="#create-storefront-form">
-              Create your first storefront
-            </a>
-          </div>
-        </div>
-      ) : null}
 
       <StorefrontForm
         title="Create storefront"
