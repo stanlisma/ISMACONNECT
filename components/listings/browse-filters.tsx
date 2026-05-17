@@ -13,6 +13,20 @@ import { getCommunityMapAreaDefinition } from "@/lib/local-marketplace";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildPathWithQuery } from "@/lib/utils";
 
+function formatFilterDate(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+}
+
 export function BrowseFilters({
   actionPath,
   search,
@@ -118,6 +132,11 @@ export function BrowseFilters({
         return;
       }
 
+      if (field.kind === "date") {
+        labels.push(`${field.label}: ${formatFilterDate(value)}`);
+        return;
+      }
+
       const optionLabel = field.options?.find((option) => option.value === value)?.label ?? value;
       labels.push(optionLabel);
     });
@@ -172,6 +191,24 @@ export function BrowseFilters({
                   <option value="true">Yes</option>
                   <option value="false">No</option>
                 </select>
+              </label>
+            );
+          }
+
+          if (field.kind === "date") {
+            return (
+              <label key={field.name} className="field">
+                <span className="field-label">{field.label}</span>
+                <input className="input" type="date" name={field.name} defaultValue={defaultValue} />
+              </label>
+            );
+          }
+
+          if (field.kind === "number") {
+            return (
+              <label key={field.name} className="field">
+                <span className="field-label">{field.label}</span>
+                <input className="input" type="number" name={field.name} defaultValue={defaultValue} />
               </label>
             );
           }

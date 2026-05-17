@@ -304,7 +304,8 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
       name: "tripDate",
       label: "Trip date",
       kind: "date",
-      helpText: "Best for one-time rides that happen on a specific day."
+      helpText: "Best for one-time rides that happen on a specific day.",
+      showInFilters: true
     },
     {
       name: "pickupWindow",
@@ -560,6 +561,21 @@ export function normalizeStructuredFilterValues(
     const trimmed = value.trim();
 
     if (!trimmed) {
+      continue;
+    }
+
+    if (field.kind === "date") {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        normalizedEntries.push([field.name, trimmed]);
+      }
+      continue;
+    }
+
+    if (field.kind === "number") {
+      const parsed = Number(trimmed);
+      if (Number.isFinite(parsed)) {
+        normalizedEntries.push([field.name, String(parsed)]);
+      }
       continue;
     }
 

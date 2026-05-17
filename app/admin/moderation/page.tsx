@@ -52,6 +52,12 @@ export default async function ModerationPage({
           </div>
 
           <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Fresh this week</span>
+            <strong>{softLaunchSnapshot.freshListingCount}</strong>
+            <p>Posts from the last 7 days. This is the inventory locals are most likely to perceive as active.</p>
+          </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
             <span>Response rate</span>
             <strong>{softLaunchSnapshot.responseRate}%</strong>
             <p>
@@ -85,6 +91,14 @@ export default async function ModerationPage({
             <p>
               {softLaunchSnapshot.unansweredNeedCount} still have no conversation yet. Offers in the same window:{" "}
               {softLaunchSnapshot.recentOfferCount}.
+            </p>
+          </div>
+
+          <div className="surface dashboard-stat-card launch-metric-card">
+            <span>Older than 14 days</span>
+            <strong>{softLaunchSnapshot.staleListingCount}</strong>
+            <p>
+              {softLaunchSnapshot.staleUnansweredCount} older posts still have no conversation. These are the first posts to refresh, close, or replace.
             </p>
           </div>
 

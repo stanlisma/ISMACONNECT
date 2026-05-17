@@ -8,6 +8,7 @@ import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { getListingBoostState } from "@/lib/boost-products";
 import { LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS } from "@/lib/constants";
+import { getListingFreshness } from "@/lib/listing-freshness";
 import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
 import { getPublicListingImages } from "@/lib/listing-media";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
@@ -24,39 +25,6 @@ interface ListingCardProps {
   matchHints?: string[];
 }
 
-function formatStaticDateLabel(dateString: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC"
-  }).format(new Date(dateString));
-}
-
-function getRelativeListingInfo(dateString: string) {
-  const date = new Date(dateString);
-  const diffMs = Date.now() - date.getTime();
-  const diffMinutes = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMinutes / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMinutes < 60) {
-    return { isNew: true, timeLabel: "New" };
-  }
-
-  if (diffHours < 24) {
-    return { isNew: true, timeLabel: `${diffHours}h` };
-  }
-
-  if (diffDays < 7) {
-    return { isNew: diffHours <= 48, timeLabel: `${diffDays}d` };
-  }
-
-  return {
-    isNew: false,
-    timeLabel: formatStaticDateLabel(dateString)
-  };
-}
-
 export function ListingCard({
   listing,
   isSaved = false,
@@ -70,10 +38,7 @@ export function ListingCard({
   const images = getPublicListingImages(listing);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [relativeInfo, setRelativeInfo] = useState(() => ({
-    isNew: false,
-    timeLabel: formatStaticDateLabel(listing.created_at)
-  }));
+  const [freshness, setFreshness] = useState(() => getListingFreshness(listing.created_at));
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const touchStartY = useRef(0);
@@ -81,7 +46,7 @@ export function ListingCard({
   const suppressNextClick = useRef(false);
 
   useEffect(() => {
-    setRelativeInfo(getRelativeListingInfo(listing.created_at));
+    setFreshness(getListingFreshness(listing.created_at));
   }, [listing.created_at]);
 
   function handleTouchStart(event: React.TouchEvent) {
@@ -137,8 +102,9 @@ export function ListingCard({
   const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
   const structuredHighlights = getStructuredCardHighlights(listing.category, listing.structured_data);
 
-  const isNew = relativeInfo.isNew;
-  const timeAgo = relativeInfo.timeLabel;
+  const isNew = freshness.isNew;
+  const isStale = freshness.isStale;
+  const timeAgo = freshness.timeLabel;
   const { featuredActive, urgentActive } = getListingBoostState(listing);
 
   function goToListing(event?: React.MouseEvent<HTMLElement>) {
@@ -217,10 +183,14 @@ export function ListingCard({
               {urgentActive ? (
                 <span className="listing-card-badge listing-card-badge-urgent">Urgent</span>
               ) : null}
+
+              {isStale ? (
+                <span className="listing-card-badge listing-card-badge-stale">Older post</span>
+              ) : null}
             </div>
 
             <span className="mobile-marketplace-badge">
-              {urgentActive ? "Urgent" : isNew ? "Just listed" : timeAgo}
+              {urgentActive ? "Urgent" : freshness.badgeLabel}
             </span>
 
             {images.length > 1 ? (
@@ -343,6 +313,12 @@ export function ListingCard({
           <span className="listing-location">{publicLocation}</span>
           <span style={{ opacity: 0.5 }}>|</span>
           <span>{timeAgo}</span>
+          {isStale ? (
+            <>
+              <span style={{ opacity: 0.5 }}>|</span>
+              <span className="listing-card-stale-note">Confirm availability</span>
+            </>
+          ) : null}
         </div>
       </div>
     </article>

@@ -22,6 +22,7 @@ import {
   getRelatedListings,
   getSavedListingIds,
 } from "@/lib/data";
+import { getListingFreshness } from "@/lib/listing-freshness";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getPublicListingImages } from "@/lib/listing-media";
 import {
@@ -110,6 +111,7 @@ export default async function ListingPage({
 
   const images = getPublicListingImages(listing);
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
+  const freshness = getListingFreshness(listing.created_at);
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
   const publicLocation = getPublicListingLocationLabel(listing);
   const publicLocationLabel = listing.show_exact_address_on_map ? "Address" : "Community";
@@ -145,6 +147,13 @@ export default async function ListingPage({
   const trustDescription = isNeed
     ? "Verification and ratings help locals decide who to reply to first."
     : "Verification and ratings help locals choose who to message first.";
+  const staleListingNotice = freshness.isStale
+    ? listing.category === "ride-share"
+      ? "This ride post is older than two weeks. Confirm the route, timing, and seat availability before heading out."
+      : isNeed
+        ? "This request is older than two weeks. Double-check that help is still needed before you reply."
+        : "This listing is older than two weeks. Confirm availability before making plans or travelling to meet."
+    : null;
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -221,16 +230,25 @@ export default async function ListingPage({
                   </div>
                 </div>
 
+                {staleListingNotice ? (
+                  <div className="detail-stale-notice">
+                    <strong>{freshness.detailLabel}</strong>
+                    <span>{staleListingNotice}</span>
+                  </div>
+                ) : null}
+
                 {canUseMobileActions ? (
                   <div className="detail-quick-actions">
                     <div className="detail-quick-actions-copy">
                       <h2>{isNeed ? "Reply fast" : "Message seller fast"}</h2>
                       <p>
-                        {listing.category === "ride-share"
-                          ? "Use the quick action below, then confirm route, timing, and pickup details."
-                          : isNeed
-                            ? "Send a clear reply so the poster can pick the right local response quickly."
-                            : "Keep the first message short so you can get a faster reply on mobile."}
+                        {staleListingNotice
+                          ? staleListingNotice
+                          : listing.category === "ride-share"
+                            ? "Use the quick action below, then confirm route, timing, and pickup details."
+                            : isNeed
+                              ? "Send a clear reply so the poster can pick the right local response quickly."
+                              : "Keep the first message short so you can get a faster reply on mobile."}
                       </p>
                     </div>
 

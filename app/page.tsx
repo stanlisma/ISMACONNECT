@@ -6,6 +6,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
+import { HOMEPAGE_FRESH_DAYS, isFreshListing } from "@/lib/listing-freshness";
 import { getSoftLaunchSnapshot } from "@/lib/launch-metrics";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
@@ -32,22 +33,14 @@ const CAMP_TRANSPORT_LINKS = [
   }
 ];
 
-const HOMEPAGE_FRESH_DAYS = 14;
-
-function isFreshHomepageListing(createdAt: string) {
-  const listingDate = new Date(createdAt);
-  const freshnessCutoff = new Date();
-  freshnessCutoff.setDate(freshnessCutoff.getDate() - HOMEPAGE_FRESH_DAYS);
-
-  return listingDate >= freshnessCutoff;
-}
-
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
   const activitySnapshot = await getSoftLaunchSnapshot();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
-  const freshListings = latestListings.filter((listing) => isFreshHomepageListing(listing.created_at));
+  const freshListings = latestListings.filter((listing) =>
+    isFreshListing(listing.created_at, HOMEPAGE_FRESH_DAYS)
+  );
   const hasFreshListings = freshListings.length > 0;
   const visibleListings = (hasFreshListings ? freshListings : latestListings).slice(0, 8);
   const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));

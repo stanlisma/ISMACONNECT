@@ -51,6 +51,21 @@ const MOBILE_BROWSE_QUICK_LINKS = [
   }
 ];
 
+function getEdmontonDateParam() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Edmonton",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "";
+  const month = parts.find((part) => part.type === "month")?.value ?? "";
+  const day = parts.find((part) => part.type === "day")?.value ?? "";
+
+  return `${year}-${month}-${day}`;
+}
+
 export default async function BrowsePage({
   searchParams,
 }: {
@@ -169,9 +184,30 @@ export default async function BrowsePage({
   const categoryLabel = category
     ? CATEGORIES.find((item) => item.value === category)?.label
     : null;
-  const mobileQuickLinks = category
-    ? getCategoryLocalContent(category).quickLinks.slice(0, 3)
-    : MOBILE_BROWSE_QUICK_LINKS;
+  const todayDateParam = getEdmontonDateParam();
+  const mobileQuickLinks =
+    category === "ride-share"
+      ? [
+          {
+            label: "Today",
+            href: `/browse?category=ride-share&tripDate=${todayDateParam}`
+          },
+          {
+            label: "Camp map",
+            href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map"
+          },
+          {
+            label: "Airport",
+            href: "/browse?category=ride-share&subcategory=airport-ride&view=map"
+          },
+          {
+            label: "14 on / 7 off",
+            href: "/browse?category=ride-share&schedulePattern=14-on-7-off"
+          }
+        ]
+      : category
+        ? getCategoryLocalContent(category).quickLinks.slice(0, 3)
+        : MOBILE_BROWSE_QUICK_LINKS;
   const browseTitle = categoryLabel
     ? `${categoryLabel} ${intent === "need" ? "Needs" : "Listings"}`
     : intent === "need"
