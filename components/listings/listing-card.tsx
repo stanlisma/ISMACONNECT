@@ -13,6 +13,7 @@ import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
 import { getPublicListingImages } from "@/lib/listing-media";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
+import { getSellerReviewBadgeLabel } from "@/lib/trust-presentation";
 import { excerpt, formatListingPrice, getCategoryLabel } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
 
@@ -101,6 +102,10 @@ export function ListingCard({
   const isNeed = listingIntent === "need";
   const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
   const structuredHighlights = getStructuredCardHighlights(listing.category, listing.structured_data);
+  const mobileTrustLabel =
+    trustSummary?.verification_status === "verified"
+      ? "ID verified"
+      : getSellerReviewBadgeLabel(trustSummary, true);
 
   const isNew = freshness.isNew;
   const isStale = freshness.isStale;
@@ -233,6 +238,31 @@ export function ListingCard({
             </div>
           </div>
         )}
+      </div>
+
+      <div className="mobile-marketplace-meta">
+        <div className="mobile-marketplace-meta-row">
+          {isNeed ? (
+            <span className="mobile-marketplace-chip">{LISTING_INTENT_LABELS[listingIntent]}</span>
+          ) : null}
+          {listing.subcategory ? (
+            <span className="mobile-marketplace-chip">
+              {getSubcategoryLabel(listing.category, listing.subcategory)}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="mobile-marketplace-meta-row mobile-marketplace-meta-row-soft">
+          <span>{publicLocation}</span>
+          <span aria-hidden="true">•</span>
+          <span>{timeAgo}</span>
+          {mobileTrustLabel ? (
+            <>
+              <span aria-hidden="true">•</span>
+              <span>{mobileTrustLabel}</span>
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className="listing-body">

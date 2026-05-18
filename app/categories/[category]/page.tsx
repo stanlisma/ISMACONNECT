@@ -246,6 +246,11 @@ export default async function CategoryPage({
           }
         ]
       : localContent.quickLinks.slice(0, 3);
+  const mobilePostNeedHref = buildPathWithQuery("/dashboard/listings/new", {
+    intent: "need",
+    category
+  });
+  const mobilePostNeedLabel = category === "ride-share" ? "Post ride need" : "Post need";
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
   const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
   const previousPageHref =
@@ -388,6 +393,9 @@ export default async function CategoryPage({
                 {link.label}
               </Link>
             ))}
+            <Link href={mobilePostNeedHref} className="mobile-browse-quick-link is-secondary">
+              {mobilePostNeedLabel}
+            </Link>
             <Link href="#browse-save-search" className="mobile-browse-quick-link is-secondary">
               Save search
             </Link>
