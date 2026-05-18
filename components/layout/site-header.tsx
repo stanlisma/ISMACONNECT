@@ -60,7 +60,6 @@ export function SiteHeader({
   const rideShareLinks = getSubcategories("ride-share").slice(0, HEADER_DROPDOWN_LIMIT);
   const jobLinks = getSubcategories("jobs").slice(0, HEADER_DROPDOWN_LIMIT);
   const serviceLinks = getSubcategories("services").slice(0, HEADER_DROPDOWN_LIMIT);
-  const buySellLinks = getSubcategories("buy-sell").slice(0, HEADER_DROPDOWN_LIMIT);
 
   useEffect(() => {
     if (pathname === "/notifications") {
@@ -232,18 +231,6 @@ export function SiteHeader({
               </div>
             </div>
 
-            {/* BUY & SELL */}
-            <div className="nav-dropdown">
-              <Link href="/categories/buy-sell" className="market-nav-link">Buy & Sell</Link>
-              <div className="nav-dropdown-menu">
-                {buySellLinks.map((item) => (
-                  <Link key={item.value} href={`/categories/buy-sell?subcategory=${item.value}`}>
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
           </nav>
 
           {viewer && (
@@ -306,9 +293,6 @@ export function SiteHeader({
             </Link>
             <Link href="/categories/services" className={isPathGroup("/categories/services") || isPathGroup("/services") ? "is-active" : ""}>
               Services
-            </Link>
-            <Link href="/categories/buy-sell" className={isPathGroup("/categories/buy-sell") || isPathGroup("/buy-sell") ? "is-active" : ""}>
-              Buy & Sell
             </Link>
           </nav>
         ) : null}

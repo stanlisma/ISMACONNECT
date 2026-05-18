@@ -197,8 +197,16 @@ export default async function BrowsePage({
             href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map"
           },
           {
+            label: "Horizon",
+            href: "/browse?category=ride-share&siteCamp=cnrl-horizon&view=map"
+          },
+          {
             label: "Airport",
             href: "/browse?category=ride-share&subcategory=airport-ride&view=map"
+          },
+          {
+            label: "Night shift",
+            href: "/browse?category=ride-share&pickupWindow=night&view=map"
           },
           {
             label: "14 on / 7 off",
@@ -279,6 +287,7 @@ export default async function BrowsePage({
   const subcategoryLinks = category ? getSubcategories(category) : [];
   const recoveryLinks = category
     ? [
+        ...(view === "map" ? [{ href: listViewHref, label: "Switch to list view" }] : []),
         { href: "/browse", label: "Browse all listings" },
         { href: CATEGORY_MAP[category].href, label: `Open ${CATEGORY_MAP[category].label}` },
         ...subcategoryLinks.slice(0, 3).map((item) => ({
@@ -301,9 +310,25 @@ export default async function BrowsePage({
     category
   });
   const emptyActionLabel = intent === "need" ? "Post this need" : "Post a need";
-  const emptyDescription = intent === "need"
-    ? "No matching needs are live yet. Post yours and let local providers or riders respond."
-    : "Try broadening the search or post what you need so the right locals can reply.";
+  const isMapDeadEnd = view === "map";
+  const emptyTitle = isMapDeadEnd
+    ? category === "ride-share"
+      ? "No active rides on this map yet"
+      : category
+        ? `No ${CATEGORY_MAP[category].label.toLowerCase()} pins on this map yet`
+        : "No listings on this map yet"
+    : "No listings match this search";
+  const emptyDescription = isMapDeadEnd
+    ? category === "ride-share"
+      ? "No drivers or route matches fit this map view right now. Post the route you need or switch back to the list."
+      : "Nothing in this map view matches yet. Try list view, broaden the area, or post what you need so locals can reply."
+    : intent === "need"
+      ? "No matching needs are live yet. Post yours and let local providers or riders respond."
+      : "Try broadening the search or post what you need so the right locals can reply.";
+  const recoveryTitle = isMapDeadEnd ? "Keep this search moving" : "Try a faster recovery path";
+  const recoveryDescription = isMapDeadEnd
+    ? "Switch views, widen the route or area, or jump into a more active slice."
+    : "Broaden the search or jump into a different active section.";
   const hasThinResults = totalCount > 0 && totalCount <= 3;
   const lowResultsLinks = [
     { href: emptyActionHref, label: emptyActionLabel },
@@ -484,11 +509,11 @@ export default async function BrowsePage({
               actionHref={emptyActionHref}
               actionLabel={emptyActionLabel}
               description={emptyDescription}
-              title="No listings match this search"
+              title={emptyTitle}
             />
             <SearchRecoveryPanel
-              title="Try a faster recovery path"
-              description="Broaden the search or jump into a different active section."
+              title={recoveryTitle}
+              description={recoveryDescription}
               links={recoveryLinks}
             />
           </>

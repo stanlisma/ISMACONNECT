@@ -1054,6 +1054,40 @@ code {
   font-size: 0.85em;
 }
 
+.local-map-empty-state {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 1rem;
+  padding: 1.35rem;
+}
+
+.local-map-empty-state-copy {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 30rem;
+}
+
+.local-map-empty-state-copy strong {
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.local-map-empty-state-copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.local-map-empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 .local-map-summary-card {
   padding: 0.9rem 1rem;
   border-radius: 20px;
@@ -7036,7 +7070,8 @@ code {
 
   .local-map-canvas-top,
   .local-map-summary-inner,
-  .local-map-stage-meta {
+  .local-map-stage-meta,
+  .local-map-empty-state-actions {
     flex-direction: column;
     align-items: stretch;
   }

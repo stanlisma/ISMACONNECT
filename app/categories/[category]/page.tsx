@@ -229,8 +229,16 @@ export default async function CategoryPage({
             href: `${categoryInfo.href}?subcategory=camp-site-transport&view=map`
           },
           {
+            label: "Horizon",
+            href: `${categoryInfo.href}?siteCamp=cnrl-horizon&view=map`
+          },
+          {
             label: "Airport",
             href: `${categoryInfo.href}?subcategory=airport-ride&view=map`
+          },
+          {
+            label: "Night shift",
+            href: `${categoryInfo.href}?pickupWindow=night&view=map`
           },
           {
             label: "14 on / 7 off",
@@ -281,6 +289,7 @@ export default async function CategoryPage({
   };
   const subcategoryLinks = getSubcategories(category);
   const recoveryLinks = [
+    ...(view === "map" ? [{ href: listViewHref, label: "Switch to list view" }] : []),
     {
       href: buildPathWithQuery(categoryInfo.href, { intent, requestWindow }),
       label: `All ${categoryInfo.label}`
@@ -301,9 +310,25 @@ export default async function CategoryPage({
     category
   });
   const emptyActionLabel = intent === "need" ? `Post a ${categoryInfo.label.toLowerCase()} need` : "Post a need";
-  const emptyDescription = intent === "need"
-    ? `No ${categoryInfo.label.toLowerCase()} requests are live yet. Post yours and let locals respond.`
-    : `No ${categoryInfo.label.toLowerCase()} listings are live yet. Post what you need or add the first local listing.`;
+  const isMapDeadEnd = view === "map";
+  const emptyTitle = isMapDeadEnd
+    ? category === "ride-share"
+      ? "No active rides on this map yet"
+      : `No ${categoryInfo.label.toLowerCase()} pins on this map yet`
+    : `No ${categoryInfo.label.toLowerCase()} listings found`;
+  const emptyDescription = isMapDeadEnd
+    ? category === "ride-share"
+      ? "No drivers or route matches fit this map view right now. Post the trip you need or switch back to the list."
+      : `Nothing in this ${categoryInfo.label.toLowerCase()} map matches yet. Switch to list view, widen the area, or post what you need.`
+    : intent === "need"
+      ? `No ${categoryInfo.label.toLowerCase()} requests are live yet. Post yours and let locals respond.`
+      : `No ${categoryInfo.label.toLowerCase()} listings are live yet. Post what you need or add the first local listing.`;
+  const recoveryTitle = isMapDeadEnd
+    ? `Keep this ${categoryInfo.label.toLowerCase()} search moving`
+    : `Try a different ${categoryInfo.label.toLowerCase()} slice`;
+  const recoveryDescription = isMapDeadEnd
+    ? "Switch views, widen the route or area, or jump into a more active slice."
+    : "Switch to another subcategory or broaden back out to keep moving.";
   const hasThinResults = totalCount > 0 && totalCount <= 3;
   const lowResultsLinks = [
     { href: emptyActionHref, label: emptyActionLabel },
@@ -478,11 +503,11 @@ export default async function CategoryPage({
               actionHref={emptyActionHref}
               actionLabel={emptyActionLabel}
               description={emptyDescription}
-              title={`No ${categoryInfo.label.toLowerCase()} listings found`}
+              title={emptyTitle}
             />
             <SearchRecoveryPanel
-              title={`Try a different ${categoryInfo.label.toLowerCase()} slice`}
-              description="Switch to another subcategory or broaden back out to keep moving."
+              title={recoveryTitle}
+              description={recoveryDescription}
               links={recoveryLinks}
             />
           </>
