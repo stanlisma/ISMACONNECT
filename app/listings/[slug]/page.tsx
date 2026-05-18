@@ -120,6 +120,7 @@ export default async function ListingPage({
   const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
   const isOwner = viewer?.user.id === listing.owner_id;
   const canUseMobileActions = !isOwner;
+  const storefrontHref = buildStorefrontHref(listing.owner_id, listing.storefront_id);
   const mobilePrimaryHref = viewer
     ? existingConversation
       ? `/messages/${existingConversation.id}`
@@ -237,35 +238,17 @@ export default async function ListingPage({
                   </div>
                 ) : null}
 
-                {canUseMobileActions ? (
-                  <div className="detail-quick-actions">
-                    <div className="detail-quick-actions-copy">
-                      <h2>{isNeed ? "Reply fast" : "Message seller fast"}</h2>
-                      <p>
-                        {staleListingNotice
-                          ? staleListingNotice
-                          : listing.category === "ride-share"
-                            ? "Use the quick action below, then confirm route, timing, and pickup details."
-                            : isNeed
-                              ? "Send a clear reply so the poster can pick the right local response quickly."
-                              : "Keep the first message short so you can get a faster reply on mobile."}
-                      </p>
-                    </div>
-
-                    <div className="detail-quick-action-row">
-                      <Link href={mobilePrimaryHref} className="button detail-quick-action-button">
-                        {mobilePrimaryLabel}
-                      </Link>
-                      {listing.category === "ride-share" ? (
-                        <Link href="/safety" className="button button-secondary detail-quick-action-button">
-                          Safety tips
-                        </Link>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : null}
-
                 <div className="detail-mobile-trust-strip">
+                  <div className="detail-mobile-trust-head">
+                    <div className="detail-mobile-trust-owner">
+                      <strong>{listing.contact_name}</strong>
+                      <span>{isNeed ? "Local requester" : "Local seller"}</span>
+                    </div>
+                    <Link href={storefrontHref} className="detail-mobile-storefront-link">
+                      Storefront
+                    </Link>
+                  </div>
+
                   <TrustBadges summary={sellerTrustSummary} compact />
                   <div className="detail-mobile-trust-meta">
                     <span>
@@ -425,7 +408,7 @@ export default async function ListingPage({
           </div>
 
           <aside className="detail-side">
-            <div className="detail-card">
+            <div className="detail-card detail-seller-card">
               <SectionHeading
                 eyebrow={isNeed ? "Poster Trust" : "Seller Trust"}
                 title={listing.contact_name}
@@ -435,7 +418,7 @@ export default async function ListingPage({
               <div className="action-row" style={{ marginBottom: "1rem" }}>
                 <Link
                   className="button button-secondary"
-                  href={buildStorefrontHref(listing.owner_id, listing.storefront_id)}
+                  href={storefrontHref}
                 >
                   View seller storefront
                 </Link>

@@ -216,6 +216,11 @@ export default async function BrowsePage({
       : category
         ? getCategoryLocalContent(category).quickLinks.slice(0, 3)
         : MOBILE_BROWSE_QUICK_LINKS;
+  const mobilePostNeedHref = buildPathWithQuery("/dashboard/listings/new", {
+    intent: "need",
+    category
+  });
+  const mobilePostNeedLabel = category === "ride-share" ? "Post ride need" : "Post need";
   const browseTitle = categoryLabel
     ? `${categoryLabel} ${intent === "need" ? "Needs" : "Listings"}`
     : intent === "need"
@@ -392,6 +397,9 @@ export default async function BrowsePage({
                 {link.label}
               </Link>
             ))}
+            <Link href={mobilePostNeedHref} className="mobile-browse-quick-link is-secondary">
+              {mobilePostNeedLabel}
+            </Link>
             <Link href="#browse-save-search" className="mobile-browse-quick-link is-secondary">
               Save search
             </Link>
