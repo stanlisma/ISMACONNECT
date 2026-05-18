@@ -26,6 +26,7 @@ import type {
   Listing,
   ListingCategory,
   ListingIntent,
+  PublicBusinessStorefrontDirectoryItem,
   PublicSellerStorefront
 } from "@/types/database";
 
@@ -703,6 +704,154 @@ export async function getPublicSellerStorefront(
     total_active_listings: response.count ?? listings.length,
     active_categories: activeCategories,
     listings
+  };
+}
+
+export async function getPublicBusinessStorefrontDirectory(filters?: {
+  category?: ListingCategory;
+  limit?: number;
+}) {
+  if (!isSupabaseConfigured()) {
+    return {
+      isConfigured: false,
+      schemaReady: true,
+      storefronts: [] as PublicBusinessStorefrontDirectoryItem[]
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  await expireListingPromotions(supabase);
+
+  const storefrontResponse = await supabase
+    .from("business_storefronts")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .limit(filters?.limit ? Math.max(filters.limit * 2, filters.limit) : 80);
+
+  if (storefrontResponse.error) {
+    if (isAdditionalStorefrontSchemaError(storefrontResponse.error)) {
+      return {
+        isConfigured: true,
+        schemaReady: false,
+        storefronts: [] as PublicBusinessStorefrontDirectoryItem[]
+      };
+    }
+
+    logDataError("Public business storefront directory query failed", storefrontResponse.error);
+    return {
+      isConfigured: true,
+      schemaReady: true,
+      storefronts: [] as PublicBusinessStorefrontDirectoryItem[]
+    };
+  }
+
+  const storefrontRows = ((storefrontResponse.data as Array<Record<string, unknown>> | null) ?? []).map((row) =>
+    normalizeAdditionalStorefrontRow(row)
+  );
+
+  if (!storefrontRows.length) {
+    return {
+      isConfigured: true,
+      schemaReady: true,
+      storefronts: [] as PublicBusinessStorefrontDirectoryItem[]
+    };
+  }
+
+  let listingsQuery = supabase
+    .from("listings")
+    .select("id, owner_id, storefront_id, category, title, description, location, show_exact_address_on_map, geocoded_area, created_at")
+    .eq("status", "active")
+    .not("storefront_id", "is", null);
+
+  if (filters?.category) {
+    listingsQuery = listingsQuery.eq("category", filters.category);
+  }
+
+  const listingsResponse = await listingsQuery.order("created_at", { ascending: false }).limit(400);
+
+  if (listingsResponse.error) {
+    logDataError("Business storefront active listings query failed", listingsResponse.error);
+    return {
+      isConfigured: true,
+      schemaReady: true,
+      storefronts: [] as PublicBusinessStorefrontDirectoryItem[]
+    };
+  }
+
+  const listings = (listingsResponse.data || []) as Array<
+    Pick<
+      Listing,
+      | "id"
+      | "owner_id"
+      | "storefront_id"
+      | "category"
+      | "title"
+      | "description"
+      | "location"
+      | "show_exact_address_on_map"
+      | "geocoded_area"
+      | "created_at"
+    >
+  >;
+  const groupedListings = new Map<string, typeof listings>();
+
+  for (const listing of listings) {
+    if (!listing.storefront_id) {
+      continue;
+    }
+
+    const existing = groupedListings.get(listing.storefront_id) ?? [];
+    existing.push(listing);
+    groupedListings.set(listing.storefront_id, existing);
+  }
+
+  const storefronts = storefrontRows
+    .map((storefront) => {
+      const storefrontListings = groupedListings.get(storefront.id) ?? [];
+
+      if (!storefrontListings.length) {
+        return null;
+      }
+
+      const latestListing = storefrontListings[0];
+      const activeCategories = Array.from(new Set(storefrontListings.map((listing) => listing.category)));
+
+      return {
+        storefront_id: storefront.id,
+        owner_id: storefront.owner_id,
+        slug: storefront.slug,
+        name: storefront.name,
+        description: storefront.description,
+        logo_url: storefront.logo_url,
+        website: storefront.website,
+        phone: storefront.phone,
+        address: storefront.address,
+        service_areas: storefront.service_areas,
+        services: storefront.services,
+        hours: storefront.hours,
+        primary_location:
+          storefront.address?.trim() ||
+          getPublicListingLocationLabel(latestListing as Listing) ||
+          "Fort McMurray",
+        active_listing_count: storefrontListings.length,
+        active_categories: activeCategories,
+        latest_listing_created_at: latestListing?.created_at ?? null
+      } satisfies PublicBusinessStorefrontDirectoryItem;
+    })
+    .filter(Boolean) as PublicBusinessStorefrontDirectoryItem[];
+
+  return {
+    isConfigured: true,
+    schemaReady: true,
+    storefronts: storefronts
+      .sort((left, right) => {
+        if (right.active_listing_count !== left.active_listing_count) {
+          return right.active_listing_count - left.active_listing_count;
+        }
+
+        return (right.latest_listing_created_at ?? "").localeCompare(left.latest_listing_created_at ?? "");
+      })
+      .slice(0, filters?.limit ?? 40)
   };
 }
 
