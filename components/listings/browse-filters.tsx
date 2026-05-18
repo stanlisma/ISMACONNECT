@@ -27,6 +27,23 @@ function formatFilterDate(value: string) {
   }).format(date);
 }
 
+function getBrowseSearchPlaceholder(category?: string | null) {
+  switch (category) {
+    case "ride-share":
+      return "Search camp rides, airport trips, routes...";
+    case "rentals":
+      return "Search rooms, apartments, rentals...";
+    case "services":
+      return "Search cleaners, movers, local services...";
+    case "jobs":
+      return "Search camp jobs, shifts, local work...";
+    case "buy-sell":
+      return "Search furniture, tools, electronics...";
+    default:
+      return "Search rides, rentals, services, jobs...";
+  }
+}
+
 export function BrowseFilters({
   actionPath,
   search,
@@ -57,6 +74,7 @@ export function BrowseFilters({
     () => getStructuredFilterDefinitions(activeStructuredCategory as any),
     [activeStructuredCategory]
   );
+  const searchPlaceholder = getBrowseSearchPlaceholder(showCategorySelect ? selectedCategory : category);
   const hasDesktopSecondaryRow =
     selectedIntent === "need" || subcategories.length > 0 || structuredFilterDefinitions.length > 0;
   const activeFilterLabels = useMemo(() => {
@@ -257,7 +275,7 @@ export function BrowseFilters({
           className="input mobile-filter-search"
           name="q"
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="Search bikes, rentals, jobs..."
+          placeholder={searchPlaceholder}
           value={searchText}
         />
 
@@ -304,7 +322,7 @@ export function BrowseFilters({
               className="input"
               name="q"
               defaultValue={search ?? ""}
-              placeholder="Search bikes, rentals, jobs..."
+              placeholder={searchPlaceholder}
             />
           </label>
 
