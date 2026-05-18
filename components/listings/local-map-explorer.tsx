@@ -525,6 +525,42 @@ function MapSurface({
   );
 }
 
+function MapActionState({
+  title,
+  description,
+  links
+}: {
+  title: string;
+  description: string;
+  links: Array<{ href: string; label: string; secondary?: boolean }>;
+}) {
+  if (!links.length) {
+    return null;
+  }
+
+  return (
+    <div className="local-map-empty-state">
+      <div className="local-map-empty-state-copy">
+        <span className="local-map-summary-eyebrow">Map recovery</span>
+        <strong>{title}</strong>
+        <p>{description}</p>
+      </div>
+
+      <div className="local-map-empty-state-actions">
+        {links.map((link) => (
+          <Link
+            key={`${link.href}:${link.label}`}
+            href={link.href}
+            className={`local-map-summary-link${link.secondary ? " is-secondary" : ""}`}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function getCommunityMapContent(category: ListingCategory) {
   switch (category) {
     case "rentals":
@@ -1086,6 +1122,34 @@ function CommunityMapExplorer({
 
   const selectedExactLocationPoint =
     selectedExactLocationKey ? exactLocationPoints.find((point) => point.key === selectedExactLocationKey) ?? null : null;
+  const hasMappedResults = knownAreas.length > 0 || exactLocationPoints.length > 0;
+  const mapEmptyTitle =
+    selectedAreaData
+      ? `No mapped listings in ${selectedAreaData.label} yet`
+      : `No mapped ${mapContent.statsLabel} yet`;
+  const mapEmptyLinks = [
+    {
+      href: buildPathWithQuery("/dashboard/listings/new", {
+        intent: "need",
+        category
+      }),
+      label: category === "rentals" ? "Post a rental need" : "Post a need"
+    },
+    {
+      href: buildHref({ view: undefined }),
+      label: "Switch to list view",
+      secondary: true
+    },
+    ...(activeArea || selectedArea
+      ? [
+          {
+            href: buildHref({ communityArea: undefined }),
+            label: "Clear area filter",
+            secondary: true
+          }
+        ]
+      : [])
+  ];
 
   function handleReset() {
     const map = mapRef.current;
@@ -1199,7 +1263,15 @@ function CommunityMapExplorer({
             ) : null
           }
         >
-          <div ref={mapRootRef} className="local-map-google-stage" />
+          {hasMappedResults ? (
+            <div ref={mapRootRef} className="local-map-google-stage" />
+          ) : (
+            <MapActionState
+              title={mapEmptyTitle}
+              description="Switch to list view, widen the area, or post what you need so locals can reply when the map is quiet."
+              links={mapEmptyLinks}
+            />
+          )}
         </MapSurface>
 
         <div className="local-map-sidebar">
@@ -1276,6 +1348,7 @@ function RideShareMapExplorer({
     [endpoints]
   );
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(activeDeparture ?? activeDestination ?? null);
+  const hasMappedResults = mappedRouteListings.length > 0 || endpoints.length > 0;
 
   useEffect(() => {
     setSelectedEndpoint(activeDeparture ?? activeDestination ?? endpoints[0]?.value ?? null);
@@ -1295,6 +1368,12 @@ function RideShareMapExplorer({
     }
 
     if (!mapRootRef.current) {
+      return;
+    }
+
+    if (!hasMappedResults) {
+      clearMapSurface(mapRootRef.current);
+      setStatus("ready");
       return;
     }
 
@@ -1450,7 +1529,18 @@ function RideShareMapExplorer({
       cancelled = true;
       stopWatching?.();
     };
-  }, [authFailed, endpointDataKey, mappedRouteListings, routeDataKey, endpoints, topRoutes, selectedEndpoint]);
+  }, [
+    authFailed,
+    configStatus,
+    endpointDataKey,
+    googleMapsConfig,
+    hasMappedResults,
+    mappedRouteListings,
+    routeDataKey,
+    endpoints,
+    topRoutes,
+    selectedEndpoint
+  ]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
       mapRef.current.setOptions({ mapId: googleMapsConfig.mapId });
@@ -1495,6 +1585,41 @@ function RideShareMapExplorer({
   }, [selectedEndpoint, endpoints]);
 
   const selectedEndpointData = endpoints.find((endpoint) => endpoint.value === selectedEndpoint) ?? null;
+  const emptyRideTitle =
+    activeDeparture && activeDestination
+      ? "No active rides on this route yet"
+      : activeDeparture || activeDestination
+        ? "No active rides at this stop yet"
+        : "No active rides on this map yet";
+  const emptyRideLinks = [
+    {
+      href: buildPathWithQuery("/dashboard/listings/new", {
+        intent: "need",
+        category: "ride-share"
+      }),
+      label: "Post a ride need"
+    },
+    {
+      href: buildHref({ view: undefined }),
+      label: "Switch to list view",
+      secondary: true
+    },
+    ...(activeDeparture || activeDestination
+      ? [
+          {
+            href: buildHref({ departureArea: undefined, destinationArea: undefined }),
+            label: "Clear route filter",
+            secondary: true
+          }
+        ]
+      : [
+          {
+            href: buildHref({ subcategory: "camp-site-transport" }),
+            label: "Browse camp transport",
+            secondary: true
+          }
+        ])
+  ];
 
   function handleReset() {
     const map = mapRef.current;
@@ -1570,7 +1695,15 @@ function RideShareMapExplorer({
             ) : null
           }
         >
-          <div ref={mapRootRef} className="local-map-google-stage" />
+          {hasMappedResults ? (
+            <div ref={mapRootRef} className="local-map-google-stage" />
+          ) : (
+            <MapActionState
+              title={emptyRideTitle}
+              description="Try a different route, switch to list view, or post the trip you need so local drivers can respond."
+              links={emptyRideLinks}
+            />
+          )}
         </MapSurface>
 
         <div className="local-map-sidebar">
