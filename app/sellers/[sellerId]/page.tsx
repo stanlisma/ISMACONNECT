@@ -205,6 +205,14 @@ export default async function SellerStorefrontPage({
                 >
                   Explore similar listings
                 </Link>
+                <Link
+                  className="button button-secondary"
+                  href={buildPathWithQuery("/businesses", {
+                    category: storefront.active_categories[0] ?? undefined
+                  })}
+                >
+                  Browse businesses
+                </Link>
               </div>
 
               {storefront.is_business ? (

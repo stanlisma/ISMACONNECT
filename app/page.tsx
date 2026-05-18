@@ -14,6 +14,7 @@ const POPULAR_QUERIES = [
   { label: "Timberlea rentals", href: "/browse?category=rentals&q=timberlea" },
   { label: "Camp rides", href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map" },
   { label: "Airport rides", href: "/browse?category=ride-share&subcategory=airport-ride&view=map" },
+  { label: "Local businesses", href: "/businesses" },
   { label: "Move-out cleaners", href: "/browse?category=services&q=move-out+cleaning" },
   { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
 ];

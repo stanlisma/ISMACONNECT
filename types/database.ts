@@ -317,6 +317,25 @@ export interface PublicSellerStorefront {
   listings: Listing[];
 }
 
+export interface PublicBusinessStorefrontDirectoryItem {
+  storefront_id: string;
+  owner_id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  logo_url: string | null;
+  website: string | null;
+  phone: string | null;
+  address: string | null;
+  service_areas: string[];
+  services: string[];
+  hours: BusinessHours;
+  primary_location: string;
+  active_listing_count: number;
+  active_categories: ListingCategory[];
+  latest_listing_created_at: string | null;
+}
+
 export interface AdditionalBusinessStorefront {
   id: string;
   owner_id: string;

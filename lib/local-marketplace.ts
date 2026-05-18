@@ -467,11 +467,11 @@ export const CATEGORY_LOCAL_CONTENT: Record<ListingCategory, CategoryLocalConten
       "Subcategories stay focused on the services locals actually search for."
     ],
     quickLinks: [
+      { label: "Local businesses", href: "/businesses?category=services" },
       { label: "Cleaning services", href: "/categories/services?subcategory=cleaning" },
       { label: "Childcare & family care", href: "/categories/services?subcategory=childcare-family-care" },
       { label: "Senior care", href: "/categories/services?subcategory=senior-care" },
-      { label: "Automotive services", href: "/categories/services?subcategory=automotive-services" },
-      { label: "Lessons & tutoring", href: "/categories/services?subcategory=lessons-tutoring" }
+      { label: "Automotive services", href: "/categories/services?subcategory=automotive-services" }
     ],
     buyerTips: [
       "Open the seller storefront before messaging so you can compare business details and active listings.",
