@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
-import { getBaseUrl, isStripeWebhookConfigured } from "@/lib/env";
+import { getBaseUrl, isStripeWebhookConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
 import {
   attachStripeSessionToIdentityVerificationOrder,
   createPendingIdentityVerificationOrder,
@@ -22,14 +22,36 @@ import {
   retrieveStripeIdentityVerificationSession
 } from "@/lib/stripe";
 import { canViewerRateSeller, getViewerSellerReview } from "@/lib/trust";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
+function createProtectedProfileMutationClient() {
+  if (!isSupabaseServiceRoleConfigured()) {
+    throw new Error(
+      "Secure profile verification updates require SUPABASE_SERVICE_ROLE_KEY on the server."
+    );
+  }
+
+  return createServiceRoleSupabaseClient();
+}
+
 export async function requestSellerVerificationAction() {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
+  const protectedProfileClient = (() => {
+    try {
+      return createProtectedProfileMutationClient();
+    } catch (error) {
+      redirectWithMessage(
+        "/settings",
+        "error",
+        error instanceof Error ? error.message : "Protected verification updates are not configured."
+      );
+    }
+  })();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -70,7 +92,7 @@ export async function requestSellerVerificationAction() {
   }
 
   if (existingSession?.status === "verified") {
-    const { error } = await supabase
+    const { error } = await protectedProfileClient
       .from("profiles")
       .update({
         verification_status: "verified",
@@ -102,7 +124,7 @@ export async function requestSellerVerificationAction() {
     existingSession &&
     (existingSession.status === "processing" || existingSession.status === "requires_input")
   ) {
-    const { error } = await supabase
+    const { error } = await protectedProfileClient
       .from("profiles")
       .update({
         verification_status: "pending",
@@ -206,7 +228,7 @@ export async function requestSellerVerificationAction() {
     );
   }
 
-  const { error } = await supabase
+  const { error } = await protectedProfileClient
     .from("profiles")
     .update({
       verification_status: "pending",
