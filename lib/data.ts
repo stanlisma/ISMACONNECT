@@ -71,7 +71,9 @@ export async function getOwnedAdditionalStorefronts(ownerId: string) {
     };
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
   const response = await supabase
     .from("business_storefronts")
     .select("*")

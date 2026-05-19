@@ -41,6 +41,16 @@ function buildReturnPathWithMessage(returnPath: string, key: "success" | "error"
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
 
+function buildReturnPathWithMessageAndHash(
+  returnPath: string,
+  key: "success" | "error",
+  message: string,
+  hash: string
+) {
+  const nextPath = buildReturnPathWithMessage(returnPath, key, message);
+  return `${nextPath}${hash.startsWith("#") ? hash : `#${hash}`}`;
+}
+
 async function generateUniqueStorefrontSlug(ownerId: string, name: string, storefrontId?: string) {
   const supabase = isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
@@ -267,7 +277,14 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
   revalidatePath("/settings");
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect(buildReturnPathWithMessage(returnPath, "success", "Storefront created"));
+  redirect(
+    buildReturnPathWithMessageAndHash(
+      returnPath,
+      "success",
+      "Storefront created",
+      `storefront-${insertedStorefront.id}`
+    )
+  );
 }
 
 export async function updateAdditionalStorefrontAction(storefrontId: string, formData: FormData) {
@@ -361,7 +378,14 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
   revalidatePath("/settings");
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
-  redirect(buildReturnPathWithMessage(returnPath, "success", "Storefront updated"));
+  redirect(
+    buildReturnPathWithMessageAndHash(
+      returnPath,
+      "success",
+      "Storefront updated",
+      `storefront-${persistedStorefrontId}`
+    )
+  );
 }
 
 export async function deleteAdditionalStorefrontAction(storefrontId: string, formData: FormData) {

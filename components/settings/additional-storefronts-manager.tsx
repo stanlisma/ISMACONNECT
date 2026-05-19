@@ -38,7 +38,7 @@ function StorefrontForm({
 }) {
   return (
     <div
-      id={isNew ? "create-storefront-form" : undefined}
+      id={isNew ? "create-storefront-form" : defaults?.id ? `storefront-${defaults.id}` : undefined}
       className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}
     >
       <div className="storefront-manager-card-head">
@@ -306,20 +306,10 @@ export function AdditionalStorefrontsManager({
             </span>
           ) : null}
           <a className={`button${accountEnabled ? " button-secondary" : ""}`} href="#create-storefront-form">
-            Create storefront
+            {storefronts.length ? "Create another storefront" : "Create storefront"}
           </a>
         </div>
       </div>
-
-      <StorefrontForm
-        title="Create storefront"
-        submitLabel="Create storefront"
-        action={createAction}
-        isNew
-        fallbackPhone={fallbackPhone}
-        defaults={suggestedDefaults}
-        returnPath={returnPath}
-      />
 
       {storefronts.map((storefront) => (
         <StorefrontForm
@@ -333,6 +323,16 @@ export function AdditionalStorefrontsManager({
           returnPath={returnPath}
         />
       ))}
+
+      <StorefrontForm
+        title="Create storefront"
+        submitLabel="Create storefront"
+        action={createAction}
+        isNew
+        fallbackPhone={fallbackPhone}
+        defaults={suggestedDefaults}
+        returnPath={returnPath}
+      />
     </div>
   );
 }
