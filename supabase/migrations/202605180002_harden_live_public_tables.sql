@@ -107,7 +107,7 @@ begin
 end;
 $$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -119,10 +119,10 @@ begin
     execute 'drop trigger if exists protect_profile_privileged_fields on public.profiles';
     execute 'create trigger protect_profile_privileged_fields before insert or update on public.profiles for each row execute function public.protect_profile_privileged_fields()';
   end if;
-end
-$$;
+end;
+$block$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -133,10 +133,10 @@ begin
     execute 'alter table public.listings enable row level security';
     execute 'drop policy if exists "Allow public view updates" on public.listings';
   end if;
-end
-$$;
+end;
+$block$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -185,10 +185,10 @@ begin
       )
     $policy$;
   end if;
-end
-$$;
+end;
+$block$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -254,10 +254,10 @@ begin
       )
     $policy$;
   end if;
-end
-$$;
+end;
+$block$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -344,10 +344,10 @@ begin
       )
     $policy$;
   end if;
-end
-$$;
+end;
+$block$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -404,10 +404,10 @@ begin
       )
     $policy$;
   end if;
-end
-$$;
+end;
+$block$;
 
-do $$
+do $block$
 begin
   if exists (
     select 1
@@ -447,5 +447,5 @@ begin
       using (user_id = auth.uid())
     $policy$;
   end if;
-end
-$$;
+end;
+$block$;
