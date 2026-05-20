@@ -23,24 +23,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   if (viewer) {
     const supabase = await createServerSupabaseClient();
 
-    const [conversationsResult, notificationsResult, latestUnreadNotificationResult, unreadSavedSearchAlertsState] = await Promise.all([
+    const [conversationsResult, notificationsResult, unreadSavedSearchAlertsState] = await Promise.all([
       supabase
         .from("conversations")
         .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
         .or(`buyer_id.eq.${viewer.user.id},seller_id.eq.${viewer.user.id}`),
       supabase
         .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", viewer.user.id)
-        .eq("is_read", false),
-      supabase
-        .from("notifications")
-        .select("created_at")
+        .select("created_at", { count: "exact" })
         .eq("user_id", viewer.user.id)
         .eq("is_read", false)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .limit(1),
       getSavedSearchAlertState(viewer.user.id)
     ]);
 
@@ -59,7 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
     unreadNotificationsCount = (notificationsResult.count ?? 0) + unreadSavedSearchAlertsState.count;
 
-    const latestUnreadNotificationAt = latestUnreadNotificationResult.data?.created_at ?? null;
+    const latestUnreadNotificationAt = notificationsResult.data?.[0]?.created_at ?? null;
     const latestUnreadSavedSearchAt = unreadSavedSearchAlertsState.latestCreatedAt ?? null;
 
     unreadNotificationsMarker =

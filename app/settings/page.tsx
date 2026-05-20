@@ -58,7 +58,9 @@ export default async function SettingsPage({
 
   const businessProfileResponse = await supabase
     .from("profiles")
-    .select("full_name, phone, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours")
+    .select(
+      "full_name, phone, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours"
+    )
     .eq("id", viewer.user.id)
     .maybeSingle();
 
@@ -93,6 +95,33 @@ export default async function SettingsPage({
   const identityProcessing = profile?.stripe_identity_session_status === "processing";
   const verificationPaid = latestVerificationOrder?.status === "paid";
   const verificationPaymentPending = latestVerificationOrder?.status === "pending";
+  const verificationSupportText =
+    identityProcessing || profile?.verification_status === "pending"
+      ? "Stripe is processing your identity verification now."
+      : identityNeedsRetry
+        ? profile?.stripe_identity_last_error_reason ||
+          "Stripe needs more information before your seller badge can be approved."
+        : !verificationPaid
+          ? `A one-time ${verificationPriceLabel} Stripe Checkout payment is required before ID verification starts.`
+          : "Use Stripe Identity to verify a government-issued photo ID and matching selfie.";
+  const verificationStatusLabel =
+    profile?.verification_status === "verified"
+      ? "Verified"
+      : identityProcessing || profile?.verification_status === "pending"
+        ? "Processing"
+        : identityNeedsRetry
+          ? "Needs retry"
+          : verificationPaid
+            ? "Ready"
+            : "Not started";
+  const verificationStatusToneClass =
+    profile?.verification_status === "verified"
+      ? "is-success"
+      : identityNeedsRetry
+        ? "is-danger"
+        : identityProcessing || profile?.verification_status === "pending"
+          ? "is-warning"
+          : "is-muted";
 
   return (
     <section className="section">
@@ -130,7 +159,7 @@ export default async function SettingsPage({
             <h2>Notification Settings</h2>
             <FieldHelp
               label="Notification Settings"
-              text="Manage message emails, browser push alerts, and PWA install options for this device."
+              text="Manage message emails, browser push alerts, and install options for this device."
             />
           </div>
 
@@ -151,11 +180,9 @@ export default async function SettingsPage({
           </form>
 
           {!emailDeliveryReady ? (
-            <p className="section-copy settings-support-copy">
-              Email delivery is not configured on this deployment yet. Turn on
-              ` RESEND_API_KEY ` and ` EMAIL_FROM ` in the app environment to send
-              message emails.
-            </p>
+            <div className="browser-notification-pill-row settings-inline-status">
+              <span className="account-menu-pill is-warning">Email unavailable</span>
+            </div>
           ) : null}
 
           <div className="settings-block-stack">
@@ -227,7 +254,7 @@ export default async function SettingsPage({
             <h2>Trust & Verification</h2>
             <FieldHelp
               label="Trust & Verification"
-              text="ID-verified sellers and strong ratings appear as trust badges across listing cards and detail pages."
+              text={`ID-verified sellers and strong ratings appear as trust badges across listing cards and detail pages. ${verificationSupportText}`}
             />
           </div>
 
@@ -235,42 +262,31 @@ export default async function SettingsPage({
 
           <div className="meta-list settings-meta-list">
             <span>Status: {profile?.verification_status ?? "unverified"}</span>
-            <span>
-              Ratings: {getSellerReviewSummary(trustSummary)}
-            </span>
+            <span>Ratings: {getSellerReviewSummary(trustSummary)}</span>
           </div>
 
           {profile?.verification_status === "verified" ? (
-            <p className="section-copy settings-support-copy">
-              Your Stripe seller verification is active and visible on your listings.
-            </p>
+            <div className="browser-notification-pill-row settings-inline-status">
+              <span className="account-menu-pill is-success">Seller badge live</span>
+            </div>
           ) : (
             <>
-              <p className="section-copy settings-support-copy">
-                {identityProcessing || profile?.verification_status === "pending"
-                  ? "Stripe is processing your identity verification now."
-                  : identityNeedsRetry
-                    ? profile?.stripe_identity_last_error_reason ||
-                      "Stripe needs more information before your seller badge can be approved."
-                    : !verificationPaid
-                      ? `A one-time ${verificationPriceLabel} Stripe Checkout payment is required before ID verification starts.`
-                    : "Use Stripe Identity to verify a government-issued photo ID and matching selfie."}
-              </p>
+              <div className="browser-notification-pill-row settings-inline-status">
+                <span className={`account-menu-pill ${verificationStatusToneClass}`}>
+                  {verificationStatusLabel}
+                </span>
+                {!verificationPaid ? (
+                  <span className="account-menu-pill is-muted">Fee {verificationPriceLabel}</span>
+                ) : null}
+                {verificationPaymentPending ? (
+                  <span className="account-menu-pill is-warning">Payment pending</span>
+                ) : null}
+                {!stripeIdentityReady ? (
+                  <span className="account-menu-pill is-danger">Stripe unavailable</span>
+                ) : null}
+              </div>
 
-              {!verificationPaid && latestVerificationOrder ? (
-                <p className="section-copy" style={{ marginTop: "0.75rem" }}>
-                  Latest payment status: {latestVerificationOrder.status}
-                  {verificationPaymentPending
-                    ? " — waiting for Stripe to confirm the payment."
-                    : ""}
-                </p>
-              ) : null}
-
-              {!stripeIdentityReady ? (
-                <p className="section-copy settings-support-copy">
-                  Stripe Identity is not configured in this environment yet.
-                </p>
-              ) : (
+              {stripeIdentityReady ? (
                 <form action={requestSellerVerificationAction} className="settings-block-stack">
                   <button className="button" type="submit">
                     {identityNeedsRetry
@@ -279,10 +295,10 @@ export default async function SettingsPage({
                         ? "Continue Stripe ID verification"
                         : !verificationPaid
                           ? `Pay ${verificationPriceLabel} to verify`
-                        : "Start Stripe ID verification"}
+                          : "Start Stripe ID verification"}
                   </button>
                 </form>
-              )}
+              ) : null}
             </>
           )}
         </div>

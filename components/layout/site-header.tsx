@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import InstallButton from "@/components/install-button";
 import { getSubcategories } from "@/lib/subcategories";
 import "./site-header.css";
 
@@ -138,8 +137,6 @@ export function SiteHeader({
           </form>
 
           <div className="header-actions market-header-actions">
-            <InstallButton />
-
             {viewer ? (
               <>
                 <Link

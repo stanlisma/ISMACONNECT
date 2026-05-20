@@ -500,8 +500,8 @@ function MapSurface({
 
         {status === "loading" ? (
           <div className="local-map-status">
-            <strong>Loading Google Maps</strong>
-            <p>Loading live map.</p>
+            <strong>Preparing map</strong>
+            <p>Routes will appear here in a moment.</p>
           </div>
         ) : null}
 
