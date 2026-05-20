@@ -328,8 +328,18 @@ header.site-header {
     backdrop-filter: blur(16px);
   }
 
+  .app-standalone header.site-header {
+    top: 0 !important;
+    background: rgba(247, 251, 255, 0.98) !important;
+    box-shadow: 0 12px 24px rgba(15, 54, 91, 0.08) !important;
+  }
+
   .header-inner {
     padding: 0.72rem 0.78rem 0.68rem;
+  }
+
+  .app-standalone .header-inner {
+    padding: calc(0.45rem + env(safe-area-inset-top, 0px)) 0.72rem 0.56rem;
   }
 
   .header-top {
@@ -530,6 +540,11 @@ header.site-header {
     font-size: 0.8rem;
     font-weight: 700;
     white-space: nowrap;
+  }
+
+  .app-standalone .mobile-account-nav,
+  .app-standalone .mobile-marketplace-nav {
+    margin-top: 0.42rem;
   }
 
   .mobile-account-nav a.is-active {

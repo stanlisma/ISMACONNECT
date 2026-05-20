@@ -5,7 +5,7 @@ type RouteLoadingShellProps = {
 };
 
 export function RouteLoadingShell({
-  eyebrow = "Loading",
+  eyebrow = "Opening",
   title,
   detail = false
 }: RouteLoadingShellProps) {

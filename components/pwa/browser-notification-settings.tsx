@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { FieldHelp } from "@/components/ui/field-help";
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -146,55 +147,85 @@ export function BrowserNotificationSettings() {
     }
   }
 
+  const pushSummary =
+    !supported
+      ? "Push notifications need a supported browser plus VAPID keys configured in the app environment."
+      : permission === "denied"
+        ? "Notifications are blocked in this browser. Re-enable them from browser site settings to keep marketplace alerts active."
+        : "Turn on browser push notifications to get instant alerts for new messages, boost activity, and verification updates even when ISMACONNECT is closed.";
+
   return (
     <div className="browser-notification-card">
       <div className="browser-notification-copy">
         <div className="browser-notification-title">
           <strong>Browser notifications</strong>
-          <FieldHelp
-            label="Browser notifications"
-            text="Turn on browser push notifications to get instant alerts for new messages, boost activity, and verification updates even when ISMACONNECT is closed."
-          />
+          <FieldHelp label="Browser notifications" text={pushSummary} />
         </div>
       </div>
 
       {!supported ? (
         <div className="browser-notification-actions">
-          <span className="account-menu-pill is-muted">Unavailable</span>
-          <p>
-            Push notifications need a supported browser plus VAPID keys configured in the app environment.
-          </p>
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Unavailable</span>
+          </div>
         </div>
       ) : loadingState ? (
-        <span className="account-menu-pill is-muted">Checking...</span>
+        <div className="browser-notification-actions">
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Checking</span>
+          </div>
+        </div>
       ) : permission === "granted" && subscribed ? (
         <div className="browser-notification-actions">
-          <span className="account-menu-pill is-success">Enabled</span>
-          <button className="button button-secondary" disabled={requesting} type="button" onClick={handleDisable}>
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-success">Enabled</span>
+          </div>
+          <button
+            className="button button-secondary"
+            disabled={requesting}
+            type="button"
+            onClick={handleDisable}
+          >
             {requesting ? "Updating..." : "Turn off on this device"}
           </button>
-          {statusMessage ? <p>{statusMessage}</p> : null}
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : permission === "granted" ? (
         <div className="browser-notification-actions">
-          <button className="button button-secondary" disabled={requesting} type="button" onClick={handleEnable}>
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Permission granted</span>
+          </div>
+          <button
+            className="button button-secondary"
+            disabled={requesting}
+            type="button"
+            onClick={handleEnable}
+          >
             {requesting ? "Connecting..." : "Finish enabling push"}
           </button>
-          {statusMessage ? <p>{statusMessage}</p> : null}
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : permission === "denied" ? (
         <div className="browser-notification-actions">
-          <span className="account-menu-pill is-muted">Blocked</span>
-          <p>
-            Notifications are blocked in this browser. Re-enable them from your browser site settings to keep marketplace alerts active.
-          </p>
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Blocked</span>
+          </div>
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : (
         <div className="browser-notification-actions">
-          <button className="button button-secondary" disabled={requesting} type="button" onClick={handleEnable}>
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Off</span>
+          </div>
+          <button
+            className="button button-secondary"
+            disabled={requesting}
+            type="button"
+            onClick={handleEnable}
+          >
             {requesting ? "Enabling..." : "Enable notifications"}
           </button>
-          {statusMessage ? <p>{statusMessage}</p> : null}
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Download, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
 import { FieldHelp } from "@/components/ui/field-help";
 
 type DeferredPromptEvent = Event & {
@@ -60,7 +61,7 @@ export function InstallAppCard() {
 
   const summary = useMemo(() => {
     if (installed) {
-      return "ISMACONNECT is already installed here. Launch it from your home screen for the fastest mobile experience.";
+      return "ISMACONNECT is already installed on this device. Launch it from your home screen for the fastest mobile experience.";
     }
 
     if (deferredPrompt) {
@@ -97,45 +98,52 @@ export function InstallAppCard() {
       <div className="browser-notification-copy">
         <div className="browser-notification-title">
           <strong>Install ISMACONNECT</strong>
-          <FieldHelp
-            label="Install ISMACONNECT"
-            text={summary}
-          />
+          <FieldHelp label="Install ISMACONNECT" text={summary} />
         </div>
       </div>
 
       {installed ? (
         <div className="browser-notification-actions">
-          <span className="account-menu-pill is-success">Installed</span>
-          <p>{statusMessage || "Ready to open from your home screen."}</p>
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-success">Installed</span>
+            <span className="account-menu-pill is-muted">Home screen</span>
+          </div>
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : deferredPrompt ? (
         <div className="browser-notification-actions">
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-active">Ready to install</span>
+          </div>
           <button className="button button-secondary" type="button" onClick={handleInstall}>
             <Download aria-hidden="true" size={16} strokeWidth={2.2} />
             Install app
           </button>
-          {statusMessage ? <p>{statusMessage}</p> : null}
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : isIos ? (
         <div className="browser-notification-actions">
-          <span className="account-menu-pill is-muted">Safari</span>
-          <p className="install-app-inline-tip">
-            <Share2 aria-hidden="true" size={15} strokeWidth={2.2} />
-            Share
-            <span aria-hidden="true">→</span>
-            Add to Home Screen
-          </p>
-          {statusMessage ? <p>{statusMessage}</p> : null}
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Safari</span>
+            <span className="install-app-inline-tip">
+              <Share2 aria-hidden="true" size={15} strokeWidth={2.2} />
+              <span>Share</span>
+              <span aria-hidden="true">-&gt;</span>
+              <span>Add to Home Screen</span>
+            </span>
+          </div>
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : (
         <div className="browser-notification-actions">
-          <span className="account-menu-pill is-muted">Browser menu</span>
-          <p className="install-app-inline-tip">
-            <CheckCircle2 aria-hidden="true" size={15} strokeWidth={2.2} />
-            Use your browser menu if install is available on this device.
-          </p>
-          {statusMessage ? <p>{statusMessage}</p> : null}
+          <div className="browser-notification-pill-row">
+            <span className="account-menu-pill is-muted">Browser menu</span>
+            <span className="install-app-inline-tip">
+              <CheckCircle2 aria-hidden="true" size={15} strokeWidth={2.2} />
+              <span>Install app / Add to Home Screen</span>
+            </span>
+          </div>
+          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       )}
     </div>

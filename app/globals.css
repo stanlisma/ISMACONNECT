@@ -37,6 +37,13 @@ body {
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 
+html.app-standalone,
+body.app-standalone {
+  background:
+    radial-gradient(circle at top left, rgba(0, 111, 214, 0.1), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -1325,6 +1332,18 @@ code {
 .browser-notification-actions {
   display: grid;
   gap: 0.7rem;
+}
+
+.browser-notification-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.browser-notification-note {
+  color: var(--text-soft);
+  line-height: 1.5;
 }
 
 .offline-surface {
@@ -4503,6 +4522,16 @@ code {
   color: #0a8b5d;
 }
 
+.account-menu-pill.is-warning {
+  background: #fff4d6;
+  color: #9a6700;
+}
+
+.account-menu-pill.is-danger {
+  background: #ffe7ea;
+  color: #b42318;
+}
+
 .account-menu-pill.is-muted {
   background: #eef2f7;
   color: #667085;
@@ -4552,6 +4581,10 @@ code {
   margin: 0.9rem 0 0;
 }
 
+.settings-inline-status {
+  margin-top: 0.9rem;
+}
+
 .settings-block-stack {
   margin-top: 1rem;
 }
@@ -4565,6 +4598,13 @@ code {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.35rem;
+  min-height: 1.8rem;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  background: #f3f7fd;
+  color: #55728f;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .settings-meta-list {
@@ -5421,6 +5461,10 @@ code {
 @media (max-width: 760px) {
   .site-shell {
     padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .app-standalone .site-shell {
+    padding-bottom: calc(102px + env(safe-area-inset-bottom));
   }
 
   .dashboard-stats-grid {
@@ -9009,6 +9053,25 @@ code {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.9);
     color: var(--text-soft);
+  }
+
+  .browser-notification-card {
+    gap: 0.75rem;
+    padding-top: 0.9rem;
+  }
+
+  .browser-notification-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .browser-notification-pill-row {
+    gap: 0.45rem;
+  }
+
+  .install-app-inline-tip {
+    width: 100%;
+    justify-content: center;
   }
 
   .mobile-browse-quick-links {
