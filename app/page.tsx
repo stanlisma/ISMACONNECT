@@ -54,7 +54,14 @@ export default async function HomePage() {
     <main className="homepage-main" style={pageStyle}>
       <section className="home-mobile-hero surface">
         <div className="home-mobile-hero-copy">
-          <span className="eyebrow">Fort McMurray</span>
+          <div className="marketplace-page-utility-row">
+            <span className="eyebrow">Fort McMurray</span>
+            {viewer ? (
+              <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
+                My Storefronts
+              </Link>
+            ) : null}
+          </div>
           <h1>Camp rides, rentals, services, and jobs for Fort McMurray</h1>
         </div>
 
@@ -95,7 +102,14 @@ export default async function HomePage() {
       </section>
 
       <section className="home-hero-section" style={heroCardStyle}>
-        <span style={badgeStyle}>FORT MCMURRAY FIRST</span>
+        <div className="marketplace-page-utility-row home-hero-utility-row">
+          <span className="eyebrow">Fort McMurray</span>
+          {viewer ? (
+            <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
+              My Storefronts
+            </Link>
+          ) : null}
+        </div>
 
         <h1 style={titleStyle}>
           Find camp rides, rentals, services, and local work without chasing Facebook threads.

@@ -155,6 +155,30 @@ export default async function ListingPage({
         ? "This request is older than two weeks. Double-check that help is still needed before you reply."
         : "This listing is older than two weeks. Confirm availability before making plans or travelling to meet."
     : null;
+  const detailFacts = [
+    { label: "Category", value: category.label, isRepeated: true },
+    { label: "Post type", value: LISTING_INTENT_LABELS[listingIntent], isRepeated: true },
+    ...(requestWindowLabel ? [{ label: "Need timing", value: requestWindowLabel, isRepeated: false }] : []),
+    { label: publicLocationLabel, value: publicLocation, isRepeated: true },
+    { label: "Posted", value: formatDate(listing.created_at), isRepeated: true },
+    {
+      label: isNeed ? "Budget" : "Price",
+      value: formatListingPrice(listing.price, listing.price_type, listingIntent),
+      isRepeated: true
+    },
+    { label: "Pricing", value: getListingPriceTypeLabel(listing.price_type), isRepeated: false },
+    ...structuredDetailItems.map((item) => ({
+      label: "Detail",
+      value: item,
+      isRepeated: false
+    })),
+    ...(featuredActive && listing.featured_until
+      ? [{ label: "Featured until", value: formatDate(listing.featured_until), isRepeated: false }]
+      : []),
+    ...(urgentActive && listing.urgent_until
+      ? [{ label: "Urgent until", value: formatDate(listing.urgent_until), isRepeated: false }]
+      : [])
+  ];
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -286,31 +310,20 @@ export default async function ListingPage({
             <div className="detail-card">
               <SectionHeading
                 eyebrow="Listing Details"
-                title="What people should know"
-                description="Clear local details keep replies fast and reduce back-and-forth."
+                title="More details"
               />
 
-                <div className="meta-list">
-                  <span>Category: {category.label}</span>
-                  <span>Post type: {LISTING_INTENT_LABELS[listingIntent]}</span>
-                  {requestWindowLabel ? <span>Need timing: {requestWindowLabel}</span> : null}
-                  <span>{publicLocationLabel}: {publicLocation}</span>
-                  <span>Posted: {formatDate(listing.created_at)}</span>
-                  <span>
-                    {isNeed ? "Budget" : "Price"}: {formatListingPrice(listing.price, listing.price_type, listingIntent)}
+              <div className="meta-list detail-fact-list">
+                {detailFacts.map((item) => (
+                  <span
+                    key={`${item.label}-${item.value}`}
+                    className={`detail-fact-item${item.isRepeated ? " is-repeated" : ""}`}
+                  >
+                    <strong>{item.label}:</strong> {item.value}
                   </span>
-                  <span>Pricing: {getListingPriceTypeLabel(listing.price_type)}</span>
-                  {structuredDetailItems.map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                  {featuredActive && listing.featured_until ? (
-                    <span>Featured until: {formatDate(listing.featured_until)}</span>
-                  ) : null}
-                  {urgentActive && listing.urgent_until ? (
-                    <span>Urgent until: {formatDate(listing.urgent_until)}</span>
-                  ) : null}
-                </div>
+                ))}
               </div>
+            </div>
 
             {viewer ? (
               viewer.user.id !== listing.owner_id ? (

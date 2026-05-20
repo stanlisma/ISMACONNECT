@@ -30,6 +30,8 @@ export default async function EditListingPage({
   const profileContactEmail = viewer.user.email ?? undefined;
   const profileContactPhone = viewer.profile.phone ?? undefined;
   const storefrontsResult = await getOwnedAdditionalStorefronts(viewer.user.id);
+  const selectedStorefront =
+    storefrontsResult.storefronts.find((storefront) => storefront.id === listing.storefront_id) ?? null;
   const normalizedListingContact = {
     name: listing.contact_name?.trim() ?? "",
     email: listing.contact_email?.trim() ?? "",
@@ -40,6 +42,18 @@ export default async function EditListingPage({
     email: profileContactEmail?.trim() ?? "",
     phone: profileContactPhone?.trim() ?? ""
   };
+  const normalizedStorefrontContact = selectedStorefront
+    ? {
+        name: selectedStorefront.name.trim(),
+        email: normalizedProfileContact.email,
+        phone: selectedStorefront.phone?.trim() ?? ""
+      }
+    : null;
+  const usesStorefrontContactByDefault =
+    Boolean(normalizedStorefrontContact?.name && normalizedStorefrontContact.email) &&
+    normalizedListingContact.name === normalizedStorefrontContact?.name &&
+    normalizedListingContact.email === normalizedStorefrontContact?.email &&
+    normalizedListingContact.phone === normalizedStorefrontContact?.phone;
   const usesProfileContactByDefault =
     Boolean(normalizedProfileContact.name && normalizedProfileContact.email) &&
     normalizedListingContact.name === normalizedProfileContact.name &&
@@ -67,7 +81,9 @@ export default async function EditListingPage({
           phone: profileContactPhone
         }}
         storefronts={storefrontsResult.storefronts}
-        defaultContactSource={usesProfileContactByDefault ? "profile" : "custom"}
+        defaultContactSource={
+          usesStorefrontContactByDefault ? "storefront" : usesProfileContactByDefault ? "profile" : "custom"
+        }
         defaults={{
           category: listing.category ?? undefined,
           subcategory: listing.subcategory ?? undefined,

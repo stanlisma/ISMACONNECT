@@ -36,19 +36,27 @@ function resolveSettingsReturnPath(formData: FormData, fallbackPath = "/settings
 function buildReturnPathWithMessage(returnPath: string, key: "success" | "error", message: string) {
   const [pathname, existingQuery] = returnPath.split("?");
   const searchParams = new URLSearchParams(existingQuery ?? "");
+  searchParams.delete("create");
+  searchParams.delete("storefront");
   searchParams.set(key, message);
   const queryString = searchParams.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
 
-function buildReturnPathWithMessageAndHash(
+function buildReturnPathWithMessageAndFocus(
   returnPath: string,
   key: "success" | "error",
   message: string,
-  hash: string
+  storefrontId: string
 ) {
-  const nextPath = buildReturnPathWithMessage(returnPath, key, message);
-  return `${nextPath}${hash.startsWith("#") ? hash : `#${hash}`}`;
+  const [pathname, existingQuery] = returnPath.split("?");
+  const searchParams = new URLSearchParams(existingQuery ?? "");
+  searchParams.delete("create");
+  searchParams.set(key, message);
+  searchParams.set("storefront", storefrontId);
+  const queryString = searchParams.toString();
+  const nextPath = queryString ? `${pathname}?${queryString}` : pathname;
+  return `${nextPath}#storefront-${storefrontId}`;
 }
 
 async function generateUniqueStorefrontSlug(ownerId: string, name: string, storefrontId?: string) {
@@ -278,11 +286,11 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
   redirect(
-    buildReturnPathWithMessageAndHash(
+    buildReturnPathWithMessageAndFocus(
       returnPath,
       "success",
       "Storefront created",
-      `storefront-${insertedStorefront.id}`
+      insertedStorefront.id
     )
   );
 }
@@ -379,11 +387,11 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
   redirect(
-    buildReturnPathWithMessageAndHash(
+    buildReturnPathWithMessageAndFocus(
       returnPath,
       "success",
       "Storefront updated",
-      `storefront-${persistedStorefrontId}`
+      persistedStorefrontId
     )
   );
 }

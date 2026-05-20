@@ -701,7 +701,7 @@ export async function getPublicSellerStorefront(
     service_areas: additionalStorefront?.service_areas ?? [],
     business_services: additionalStorefront?.services ?? [],
     business_hours: additionalStorefront?.hours ?? {},
-    phone: additionalStorefront?.phone ?? businessProfile.phone,
+    phone: additionalStorefront ? additionalStorefront.phone : businessProfile.phone,
     primary_location: firstListing ? getPublicListingLocationLabel(firstListing) : additionalStorefront?.address ?? "Fort McMurray",
     total_active_listings: response.count ?? listings.length,
     active_categories: activeCategories,

@@ -30,6 +30,8 @@ export default async function DashboardStorefrontsPage({
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const showCreateForm = getSingleParam(resolvedSearchParams?.create) === "1";
+  const focusStorefrontId = getSingleParam(resolvedSearchParams?.storefront);
 
   const businessProfileResponse = await supabase
     .from("profiles")
@@ -93,10 +95,11 @@ export default async function DashboardStorefrontsPage({
         storefronts={additionalStorefrontsResult.storefronts}
         schemaReady={additionalStorefrontsResult.schemaReady}
         accountEnabled={businessProfile.is_business}
+        focusStorefrontId={focusStorefrontId}
+        showCreateForm={showCreateForm}
         createAction={createAdditionalStorefrontAction}
         updateAction={updateAdditionalStorefrontAction}
         deleteAction={deleteAdditionalStorefrontAction}
-        fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
         returnPath="/dashboard/storefronts"
         suggestedDefaults={
           additionalStorefrontsResult.storefronts.length === 0 &&
@@ -111,7 +114,7 @@ export default async function DashboardStorefrontsPage({
                 description: businessProfile.business_description ?? null,
                 logo_url: businessProfile.business_logo_url ?? null,
                 website: businessProfile.business_website ?? null,
-                phone: businessProfile.phone ?? viewer.profile.phone ?? null,
+                phone: null,
                 address: businessProfile.business_address ?? null,
                 show_exact_location: businessProfile.show_exact_business_location,
                 service_areas: businessProfile.service_areas,

@@ -212,7 +212,6 @@ export default async function SettingsPage({
             createAction={createAdditionalStorefrontAction}
             updateAction={updateAdditionalStorefrontAction}
             deleteAction={deleteAdditionalStorefrontAction}
-            fallbackPhone={businessProfile.phone ?? viewer.profile.phone ?? ""}
             returnPath="/settings"
             suggestedDefaults={
               additionalStorefrontsResult.storefronts.length === 0 &&
@@ -227,7 +226,7 @@ export default async function SettingsPage({
                     description: businessProfile.business_description ?? null,
                     logo_url: businessProfile.business_logo_url ?? null,
                     website: businessProfile.business_website ?? null,
-                    phone: businessProfile.phone ?? viewer.profile.phone ?? null,
+                    phone: null,
                     address: businessProfile.business_address ?? null,
                     show_exact_location: businessProfile.show_exact_business_location,
                     service_areas: businessProfile.service_areas,
