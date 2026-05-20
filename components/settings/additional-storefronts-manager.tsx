@@ -9,13 +9,22 @@ type AdditionalStorefrontsManagerProps = {
   storefronts: AdditionalBusinessStorefront[];
   schemaReady: boolean;
   accountEnabled?: boolean;
+  focusStorefrontId?: string | null;
+  showCreateForm?: boolean;
   createAction: (formData: FormData) => void | Promise<void>;
   updateAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
   deleteAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
-  fallbackPhone?: string;
   suggestedDefaults?: AdditionalBusinessStorefront;
   returnPath?: string;
 };
+
+function buildCreateStorefrontHref(returnPath: string) {
+  const [pathname, existingQuery] = returnPath.split("?");
+  const searchParams = new URLSearchParams(existingQuery ?? "");
+  searchParams.set("create", "1");
+  const queryString = searchParams.toString();
+  return `${queryString ? `${pathname}?${queryString}` : pathname}#create-storefront-form`;
+}
 
 function StorefrontForm({
   title,
@@ -24,7 +33,6 @@ function StorefrontForm({
   action,
   deleteAction,
   isNew,
-  fallbackPhone,
   returnPath = "/settings"
 }: {
   title: string;
@@ -33,7 +41,6 @@ function StorefrontForm({
   action: (formData: FormData) => void | Promise<void>;
   deleteAction?: (formData: FormData) => void | Promise<void>;
   isNew?: boolean;
-  fallbackPhone?: string;
   returnPath?: string;
 }) {
   return (
@@ -107,13 +114,13 @@ function StorefrontForm({
           <label className="field">
             <FieldLabelWithHelp
               label="Phone"
-              helpText="Optional storefront phone. Leave blank to keep using your account phone in trust views."
+              helpText="Optional storefront phone. Add it when this storefront should have its own public call or text number."
             />
             <input
               className="input"
               type="tel"
               name="phone"
-              defaultValue={defaults?.phone ?? fallbackPhone ?? ""}
+              defaultValue={defaults?.phone ?? ""}
               placeholder="(780) 555-0123"
             />
           </label>
@@ -256,10 +263,11 @@ export function AdditionalStorefrontsManager({
   storefronts,
   schemaReady,
   accountEnabled = false,
+  focusStorefrontId,
+  showCreateForm = false,
   createAction,
   updateAction,
   deleteAction,
-  fallbackPhone,
   suggestedDefaults,
   returnPath = "/settings"
 }: AdditionalStorefrontsManagerProps) {
@@ -289,6 +297,17 @@ export function AdditionalStorefrontsManager({
 
   return (
     <div className="settings-block-stack">
+      {storefronts.length ? (
+        <div className="storefront-manager-overview surface">
+          <div className="storefront-manager-overview-copy">
+            <strong>
+              {storefronts.length} storefront{storefronts.length === 1 ? "" : "s"} on this account
+            </strong>
+            <span>Open a storefront to edit it, or create another one for a different brand, service, or location.</span>
+          </div>
+        </div>
+      ) : null}
+
       <div className="storefront-manager-toolbar">
         <div>
           <div className="business-profile-title-row">
@@ -305,34 +324,78 @@ export function AdditionalStorefrontsManager({
               {storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}
             </span>
           ) : null}
-          <a className={`button${accountEnabled ? " button-secondary" : ""}`} href="#create-storefront-form">
+          <a
+            className={`button${accountEnabled ? " button-secondary" : ""}`}
+            href={buildCreateStorefrontHref(returnPath)}
+          >
             {storefronts.length ? "Create another storefront" : "Create storefront"}
           </a>
         </div>
       </div>
 
-      {storefronts.map((storefront) => (
+      {storefronts.map((storefront) => {
+        const serviceSummary = storefront.services.slice(0, 2).join(" / ");
+        const summaryLabel =
+          serviceSummary ||
+          storefront.address ||
+          storefront.phone ||
+          "Storefront settings";
+
+        return (
+          <details
+            key={storefront.id}
+            className="storefront-manager-panel"
+            open={focusStorefrontId === storefront.id}
+          >
+            <summary className="storefront-manager-panel-summary">
+              <div className="storefront-manager-panel-copy">
+                <strong>{storefront.name}</strong>
+                <span>{summaryLabel}</span>
+              </div>
+              <span className="storefront-manager-panel-action">Edit storefront</span>
+            </summary>
+
+            <StorefrontForm
+              title={storefront.name}
+              submitLabel="Save storefront"
+              defaults={storefront}
+              action={updateAction.bind(null, storefront.id)}
+              deleteAction={deleteAction.bind(null, storefront.id)}
+              returnPath={returnPath}
+            />
+          </details>
+        );
+      })}
+
+      {storefronts.length ? (
+        <details className="storefront-manager-panel storefront-manager-create-panel" open={showCreateForm}>
+          <summary className="storefront-manager-panel-summary" id="create-storefront-form">
+            <div className="storefront-manager-panel-copy">
+              <strong>Create another storefront</strong>
+              <span>Add a separate storefront for another service line, crew, or location.</span>
+            </div>
+            <span className="storefront-manager-panel-action">Open form</span>
+          </summary>
+
+          <StorefrontForm
+            title="Create storefront"
+            submitLabel="Create storefront"
+            action={createAction}
+            isNew
+            defaults={suggestedDefaults}
+            returnPath={returnPath}
+          />
+        </details>
+      ) : (
         <StorefrontForm
-          key={storefront.id}
-          title={storefront.name}
-          submitLabel="Save storefront"
-          defaults={storefront}
-          action={updateAction.bind(null, storefront.id)}
-          deleteAction={deleteAction.bind(null, storefront.id)}
-          fallbackPhone={fallbackPhone}
+          title="Create storefront"
+          submitLabel="Create storefront"
+          action={createAction}
+          isNew
+          defaults={suggestedDefaults}
           returnPath={returnPath}
         />
-      ))}
-
-      <StorefrontForm
-        title="Create storefront"
-        submitLabel="Create storefront"
-        action={createAction}
-        isNew
-        fallbackPhone={fallbackPhone}
-        defaults={suggestedDefaults}
-        returnPath={returnPath}
-      />
+      )}
     </div>
   );
 }

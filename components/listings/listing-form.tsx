@@ -10,7 +10,7 @@ import {
   Trash2,
   UploadCloud
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
@@ -39,7 +39,7 @@ type ListingFormProps = {
     phone?: string;
   };
   storefronts?: AdditionalBusinessStorefront[];
-  defaultContactSource?: "profile" | "custom";
+  defaultContactSource?: "profile" | "storefront" | "custom";
   defaults?: {
     listingIntent?: ListingIntent;
     requestWindow?: RequestWindow | null;
@@ -70,6 +70,8 @@ type UploadItem = {
   details: string;
   status: UploadStatus;
 };
+
+type ContactSource = "profile" | "storefront" | "custom";
 
 const MAX_IMAGE_COUNT = 8;
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -377,6 +379,17 @@ function normalizeContactValue(value?: string | null) {
   return value?.trim() ?? "";
 }
 
+function buildStorefrontContact(
+  storefront: AdditionalBusinessStorefront,
+  profileContact: { email: string }
+) {
+  return {
+    name: normalizeContactValue(storefront.name),
+    email: normalizeContactValue(profileContact.email),
+    phone: normalizeContactValue(storefront.phone)
+  };
+}
+
 function formatFileSize(bytes: number) {
   if (bytes < 1024 * 1024) {
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -523,9 +536,30 @@ export function ListingForm({
   const hasProfileContact = Boolean(
     normalizedProfileContact.name.length && normalizedProfileContact.email.length
   );
-  const [useProfileContact, setUseProfileContact] = useState(
-    hasProfileContact && defaultContactSource === "profile"
+  const selectedStorefront = useMemo(
+    () => storefronts.find((storefront) => storefront.id === storefrontId) ?? null,
+    [storefrontId, storefronts]
   );
+  const normalizedStorefrontContact = useMemo(
+    () =>
+      selectedStorefront
+        ? buildStorefrontContact(selectedStorefront, {
+            email: normalizedProfileContact.email
+          })
+        : null,
+    [normalizedProfileContact.email, selectedStorefront]
+  );
+  const hasStorefrontContact = Boolean(
+    normalizedStorefrontContact?.name.length && normalizedStorefrontContact.email.length
+  );
+  const [contactSource, setContactSource] = useState<ContactSource>(
+    defaultContactSource === "storefront" && hasStorefrontContact
+      ? "storefront"
+      : hasProfileContact && defaultContactSource === "profile"
+        ? "profile"
+        : "custom"
+  );
+  const previousStorefrontIdRef = useRef(defaults?.storefrontId ?? "");
   const descriptionReady = description.trim().length >= 10;
   const locationPlaceholder = useMemo(() => getLocationPlaceholder(category), [category]);
   const locationHint = useMemo(() => getLocationHint(category), [category]);
@@ -560,6 +594,37 @@ export function ListingForm({
   const stickyHint = isUploading
     ? "Uploading photos..."
     : `${listingIntent === "need" ? "Need" : "Listing"} | ${imageUrls.length}/${MAX_IMAGE_COUNT} photos | ${description.length}/3000 chars`;
+
+  useEffect(() => {
+    if (storefrontId === previousStorefrontIdRef.current) {
+      return;
+    }
+
+    previousStorefrontIdRef.current = storefrontId;
+
+    if (normalizedStorefrontContact && hasStorefrontContact) {
+      setContactSource("storefront");
+      setContactName(normalizedStorefrontContact.name);
+      setContactEmail(normalizedStorefrontContact.email);
+      setContactPhone(normalizedStorefrontContact.phone);
+      return;
+    }
+
+    if (hasProfileContact) {
+      setContactSource("profile");
+      setContactName(normalizedProfileContact.name);
+      setContactEmail(normalizedProfileContact.email);
+      setContactPhone(normalizedProfileContact.phone);
+    }
+  }, [
+    storefrontId,
+    normalizedStorefrontContact,
+    hasStorefrontContact,
+    hasProfileContact,
+    normalizedProfileContact.name,
+    normalizedProfileContact.email,
+    normalizedProfileContact.phone
+  ]);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -1049,37 +1114,88 @@ export function ListingForm({
           </div>
         </div>
 
-        {hasProfileContact ? (
+        {hasStorefrontContact ? (
           <div className="listing-contact-mode" role="radiogroup" aria-label="Choose contact source">
             <label
-              className={`listing-contact-mode-option${useProfileContact ? " is-active" : ""}`}
+              className={`listing-contact-mode-option${contactSource === "storefront" ? " is-active" : ""}`}
             >
               <input
                 type="radio"
                 name="contactSource"
-                value="profile"
-                checked={useProfileContact}
-                onChange={() => setUseProfileContact(true)}
+                value="storefront"
+                checked={contactSource === "storefront"}
+                onChange={() => setContactSource("storefront")}
               />
-              <span>Use profile contact</span>
+              <span>Use storefront contact</span>
             </label>
 
             <label
-              className={`listing-contact-mode-option${!useProfileContact ? " is-active" : ""}`}
+              className={`listing-contact-mode-option${contactSource === "custom" ? " is-active" : ""}`}
             >
               <input
                 type="radio"
                 name="contactSource"
                 value="custom"
-                checked={!useProfileContact}
-                onChange={() => setUseProfileContact(false)}
+                checked={contactSource === "custom"}
+                onChange={() => setContactSource("custom")}
+              />
+              <span>Use different contact for this listing</span>
+            </label>
+          </div>
+        ) : hasProfileContact ? (
+          <div className="listing-contact-mode" role="radiogroup" aria-label="Choose contact source">
+            <label
+              className={`listing-contact-mode-option${contactSource === "profile" ? " is-active" : ""}`}
+            >
+              <input
+                type="radio"
+                name="contactSource"
+                value="profile"
+                checked={contactSource === "profile"}
+                onChange={() => setContactSource("profile")}
+              />
+              <span>Use profile contact</span>
+            </label>
+
+            <label
+              className={`listing-contact-mode-option${contactSource === "custom" ? " is-active" : ""}`}
+            >
+              <input
+                type="radio"
+                name="contactSource"
+                value="custom"
+                checked={contactSource === "custom"}
+                onChange={() => setContactSource("custom")}
               />
               <span>Use different contact for this listing</span>
             </label>
           </div>
         ) : null}
 
-        {useProfileContact && hasProfileContact ? (
+        {contactSource === "storefront" && normalizedStorefrontContact ? (
+          <>
+            <div className="listing-contact-summary">
+              <strong>Using storefront contact</strong>
+              <dl>
+                <div>
+                  <dt>Storefront</dt>
+                  <dd>{normalizedStorefrontContact.name}</dd>
+                </div>
+                <div>
+                  <dt>Phone</dt>
+                  <dd>{normalizedStorefrontContact.phone || "No storefront phone added yet"}</dd>
+                </div>
+              </dl>
+              <p className="listing-contact-summary-note">
+                Replies still go to your account email unless you choose a different contact for this listing.
+              </p>
+            </div>
+
+            <input type="hidden" name="contactName" value={normalizedStorefrontContact.name} />
+            <input type="hidden" name="contactEmail" value={normalizedStorefrontContact.email} />
+            <input type="hidden" name="contactPhone" value={normalizedStorefrontContact.phone} />
+          </>
+        ) : contactSource === "profile" && hasProfileContact ? (
           <>
             <div className="listing-contact-summary">
               <strong>Using your profile contact</strong>

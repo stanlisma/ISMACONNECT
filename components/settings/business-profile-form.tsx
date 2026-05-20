@@ -97,7 +97,7 @@ export function BusinessProfileForm({
                   <strong className="listing-toggle-title">Account phone</strong>
                   <FieldHelp
                     label="Account phone"
-                    text="Your account stays personal. Storefront details like branding, address, hours, services, and map settings now live inside each storefront you create below. The account phone is still used when a storefront phone is left blank."
+                    text="Your account stays personal. Storefront details like branding, address, hours, services, and map settings live inside each storefront you create below. Add a storefront phone there when that storefront should have its own public number."
                   />
                 </div>
                 <p className="business-hours-phone-note">

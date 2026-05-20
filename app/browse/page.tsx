@@ -367,7 +367,14 @@ export default async function BrowsePage({
       <div className="container listing-feed-container">
         <div className="browse-mobile-overview surface">
           <div className="browse-mobile-overview-copy">
-            <span className="eyebrow">{category ? "Category" : "Browse"}</span>
+            <div className="marketplace-page-utility-row">
+              <span className="eyebrow">Fort McMurray</span>
+              {viewer ? (
+                <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
+                  My Storefronts
+                </Link>
+              ) : null}
+            </div>
             <h1>{browseTitle}</h1>
             <p>
               {totalCount > 0
@@ -407,10 +414,15 @@ export default async function BrowsePage({
         </div>
 
         <div className="browse-desktop-heading">
-          <SectionHeading
-            eyebrow={category ? "Category" : "Browse"}
-            title={browseTitle}
-          />
+          <div className="marketplace-page-utility-row">
+            <span className="eyebrow">Fort McMurray</span>
+            {viewer ? (
+              <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
+                My Storefronts
+              </Link>
+            ) : null}
+          </div>
+          <SectionHeading title={browseTitle} />
         </div>
 
         {isMapEligibleCategory ? (
