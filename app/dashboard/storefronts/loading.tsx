@@ -1,5 +1,5 @@
 import { RouteLoadingShell } from "@/components/ui/route-loading-shell";
 
 export default function StorefrontsLoading() {
-  return <RouteLoadingShell eyebrow="Storefronts" title="Storefronts" />;
+  return <RouteLoadingShell eyebrow="Storefronts" title="Storefronts" variant="storefront" />;
 }

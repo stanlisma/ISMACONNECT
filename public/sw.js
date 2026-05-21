@@ -1,5 +1,5 @@
-const CACHE_NAME = "ismaconnect-shell-v3";
-const PAGE_CACHE_NAME = "ismaconnect-pages-v1";
+const CACHE_NAME = "ismaconnect-shell-v4";
+const PAGE_CACHE_NAME = "ismaconnect-pages-v2";
 const OFFLINE_URL = "/offline-fallback.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -44,11 +44,30 @@ function isPublicNavigation(url) {
   );
 }
 
-async function handlePublicNavigation(request) {
+async function fetchWithTimeout(request, timeoutMs) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(request, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function handlePublicNavigation(event) {
+  const { request } = event;
   const cache = await caches.open(PAGE_CACHE_NAME);
 
   try {
-    const response = await fetch(request);
+    const preloadedResponse = await event.preloadResponse;
+
+    if (preloadedResponse && preloadedResponse.status === 200) {
+      cache.put(request, preloadedResponse.clone());
+      return preloadedResponse;
+    }
+
+    const response = await fetchWithTimeout(request, 4500);
 
     if (response && response.status === 200) {
       cache.put(request, response.clone());
@@ -83,6 +102,11 @@ self.addEventListener("activate", (event) => {
             .map((key) => caches.delete(key))
         )
       )
+      .then(async () => {
+        if (self.registration.navigationPreload) {
+          await self.registration.navigationPreload.enable();
+        }
+      })
       .then(() => self.clients.claim())
   );
 });
@@ -125,7 +149,7 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       isPublicNavigation(url)
-        ? handlePublicNavigation(request)
+        ? handlePublicNavigation(event)
         : fetch(request).catch(() => caches.match(OFFLINE_URL))
     );
     return;

@@ -26,7 +26,7 @@ import {
 import { buildPathWithQuery } from "@/lib/utils";
 import type { BusinessMapProfile, Listing, ListingCategory } from "@/types/database";
 
-type LocalMapExplorerProps = {
+export type LocalMapExplorerProps = {
   category: ListingCategory;
   listings: Listing[];
   businessMapProfiles?: Record<string, BusinessMapProfile>;

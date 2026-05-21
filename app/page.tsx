@@ -74,7 +74,7 @@ export default async function HomePage() {
           </button>
         </form>
 
-        <MobileInstallBanner />
+          <MobileInstallBanner context="home" />
 
         <div className="home-camp-focus">
           <div className="home-camp-focus-copy">

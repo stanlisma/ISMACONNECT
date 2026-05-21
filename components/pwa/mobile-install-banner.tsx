@@ -9,6 +9,36 @@ type DeferredPromptEvent = Event & {
 };
 
 const DISMISS_KEY = "ismaconnect-mobile-install-banner-dismissed";
+const PAGE_VIEWS_KEY = "ismaconnect-mobile-install-banner-page-views";
+const DISMISS_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+
+type MobileInstallBannerContext = "home" | "browse" | "ride-share" | "storefront";
+
+function getContextCopy(context: MobileInstallBannerContext) {
+  switch (context) {
+    case "ride-share":
+      return {
+        title: "Pin ride-share to your home screen",
+        detail: "Check camp routes, airport trips, and saved ride alerts in one tap."
+      };
+    case "storefront":
+      return {
+        title: "Keep storefront leads one tap away",
+        detail: "Open messages, listings, and business updates faster from your home screen."
+      };
+    case "browse":
+      return {
+        title: "Install the app",
+        detail: "Open ISMACONNECT faster and come back to new local matches with one tap."
+      };
+    case "home":
+    default:
+      return {
+        title: "Add ISMACONNECT to your home screen",
+        detail: "Make local rides, rentals, jobs, and messages feel more like an app."
+      };
+  }
+}
 
 function isIosDevice(userAgent: string) {
   return /iphone|ipad|ipod/i.test(userAgent);
@@ -25,21 +55,36 @@ function isStandaloneMode() {
   );
 }
 
-export function MobileInstallBanner() {
+export function MobileInstallBanner({
+  context = "browse"
+}: {
+  context?: MobileInstallBannerContext;
+}) {
   const [deferredPrompt, setDeferredPrompt] = useState<DeferredPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [showIosSteps, setShowIosSteps] = useState(false);
+  const contextCopy = getContextCopy(context);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
+    const currentViews = Number(window.localStorage.getItem(PAGE_VIEWS_KEY) ?? "0") || 0;
+    window.localStorage.setItem(PAGE_VIEWS_KEY, String(currentViews + 1));
     setInstalled(isStandaloneMode());
     setIsIos(isIosDevice(window.navigator.userAgent));
-    setDismissed(window.localStorage.getItem(DISMISS_KEY) === "true");
+
+    const dismissedAt = Number(window.localStorage.getItem(DISMISS_KEY) ?? "0");
+    const isDismissed = dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_TTL_MS;
+    setDismissed(isDismissed);
+
+    if (!isDismissed && dismissedAt > 0) {
+      window.localStorage.removeItem(DISMISS_KEY);
+    }
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -50,6 +95,7 @@ export function MobileInstallBanner() {
       setInstalled(true);
       setDeferredPrompt(null);
       window.localStorage.removeItem(DISMISS_KEY);
+      window.localStorage.removeItem(PAGE_VIEWS_KEY);
       setStatusMessage("Installed");
     };
 
@@ -65,22 +111,22 @@ export function MobileInstallBanner() {
   const copy = useMemo(() => {
     if (deferredPrompt) {
       return {
-        title: "Install the app",
-        detail: "Open ISMACONNECT faster and come back with one tap.",
+        title: contextCopy.title,
+        detail: contextCopy.detail,
         label: "Install now"
       };
     }
 
     if (isIos) {
       return {
-        title: "Add to Home Screen",
-        detail: "In Safari, tap Share, then Add to Home Screen.",
-        label: "Safari steps"
+        title: contextCopy.title,
+        detail: contextCopy.detail,
+        label: "Show steps"
       };
     }
 
     return null;
-  }, [deferredPrompt, isIos]);
+  }, [contextCopy.detail, contextCopy.title, deferredPrompt, isIos]);
 
   async function handleInstall() {
     if (!deferredPrompt) {
@@ -104,19 +150,32 @@ export function MobileInstallBanner() {
     setDismissed(true);
 
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(DISMISS_KEY, "true");
+      window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
     }
   }
 
-  if (installed || dismissed || !copy) {
+  const pageViews =
+    typeof window !== "undefined"
+      ? Number(window.localStorage.getItem(PAGE_VIEWS_KEY) ?? "0") || 0
+      : 0;
+  const canShowBanner = pageViews >= 2 || Boolean(deferredPrompt);
+
+  if (installed || dismissed || !copy || !canShowBanner) {
     return null;
   }
 
   return (
-    <div className="mobile-install-banner">
+    <div className={`mobile-install-banner${showIosSteps ? " is-expanded" : ""}`}>
       <div className="mobile-install-banner-copy">
         <strong>{copy.title}</strong>
         <span>{statusMessage || copy.detail}</span>
+        {isIos && showIosSteps ? (
+          <ol className="mobile-install-banner-steps">
+            <li>Open ISMACONNECT in Safari.</li>
+            <li>Tap the <Share2 aria-hidden="true" size={13} strokeWidth={2.2} /> share button.</li>
+            <li>Choose <strong>Add to Home Screen</strong>.</li>
+          </ol>
+        ) : null}
       </div>
 
       <div className="mobile-install-banner-actions">
@@ -126,10 +185,14 @@ export function MobileInstallBanner() {
             <span>{copy.label}</span>
           </button>
         ) : (
-          <span className="mobile-install-banner-ios">
+          <button
+            type="button"
+            className="mobile-install-banner-ios"
+            onClick={() => setShowIosSteps((current) => !current)}
+          >
             <Share2 aria-hidden="true" size={14} strokeWidth={2.2} />
-            <span>{copy.label}</span>
-          </span>
+            <span>{showIosSteps ? "Hide steps" : copy.label}</span>
+          </button>
         )}
 
         <button

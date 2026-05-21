@@ -5,6 +5,7 @@ import { Building2, Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 
 import { getBusinessHoursRows, getBusinessHoursStatus } from "@/lib/business-profile";
 import { ListingCard } from "@/components/listings/listing-card";
+import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -156,6 +157,8 @@ export default async function SellerStorefrontPage({
                     ))}
                   </div>
                 ) : null}
+
+                <MobileInstallBanner context="storefront" />
 
                 <TrustBadges summary={trustSummary} />
               </div>
