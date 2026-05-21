@@ -9,13 +9,10 @@ import {
   Star
 } from "lucide-react";
 
-import {
-  OpenSavedSearchForm
-} from "@/components/saved-searches/saved-search-forms";
-import { markNotificationReadAction } from "@/lib/actions/notifications";
 import { requireViewer } from "@/lib/auth";
 import { getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { Listing } from "@/types/database";
 
 type NotificationRecord = {
   id: string;
@@ -26,6 +23,48 @@ type NotificationRecord = {
   is_read: boolean;
   created_at: string;
 };
+
+type ListingPreview = {
+  id: string;
+  slug: string;
+  title: string;
+  location: string;
+  imageUrl: string | null;
+  href: string;
+};
+
+type ConversationListingReference = {
+  id: string;
+  listing_id: string;
+};
+
+function uniqueStrings(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
+}
+
+function getListingPreviewImage(
+  listing: Pick<Listing, "image_url" | "image_urls"> | null | undefined
+) {
+  return listing?.image_url ?? listing?.image_urls?.[0] ?? null;
+}
+
+function getConversationIdFromLink(link: string | null | undefined) {
+  if (!link) {
+    return null;
+  }
+
+  const match = /^\/messages\/([^/?#]+)/.exec(link);
+  return match?.[1] ?? null;
+}
+
+function getListingSlugFromLink(link: string | null | undefined) {
+  if (!link) {
+    return null;
+  }
+
+  const match = /^\/listings\/([^/?#]+)/.exec(link);
+  return match?.[1] ?? null;
+}
 
 function formatNotificationTimestamp(value: string | null | undefined) {
   if (!value) {
@@ -44,6 +83,19 @@ function formatNotificationTimestamp(value: string | null | undefined) {
     hour: "numeric",
     minute: "2-digit"
   }).format(date);
+}
+
+function buildListingPreview(
+  listing: Pick<Listing, "id" | "slug" | "title" | "location" | "image_url" | "image_urls">
+): ListingPreview {
+  return {
+    id: listing.id,
+    slug: listing.slug,
+    title: listing.title,
+    location: listing.location,
+    imageUrl: getListingPreviewImage(listing),
+    href: `/listings/${listing.slug}`
+  };
 }
 
 function getNotificationPresentation(type: string | null | undefined) {
@@ -129,6 +181,78 @@ export default async function NotificationsPage() {
   }
 
   const notificationItems = (notifications ?? []) as NotificationRecord[];
+  const notificationConversationIds = uniqueStrings(
+    notificationItems.map((notification) => getConversationIdFromLink(notification.link))
+  );
+  const directListingSlugs = uniqueStrings(
+    notificationItems.map((notification) => getListingSlugFromLink(notification.link))
+  );
+
+  const { data: conversationReferences } = notificationConversationIds.length
+    ? await supabase
+        .from("conversations")
+        .select("id, listing_id")
+        .in("id", notificationConversationIds)
+    : { data: [] as ConversationListingReference[] };
+
+  const listingIdsFromConversations = uniqueStrings(
+    ((conversationReferences ?? []) as ConversationListingReference[]).map(
+      (conversation) => conversation.listing_id
+    )
+  );
+
+  const [{ data: listingsById }, { data: listingsBySlug }] = await Promise.all([
+    listingIdsFromConversations.length
+      ? supabase
+          .from("listings")
+          .select("id, slug, title, location, image_url, image_urls")
+          .in("id", listingIdsFromConversations)
+      : Promise.resolve({ data: [] as Array<
+          Pick<Listing, "id" | "slug" | "title" | "location" | "image_url" | "image_urls">
+        > }),
+    directListingSlugs.length
+      ? supabase
+          .from("listings")
+          .select("id, slug, title, location, image_url, image_urls")
+          .in("slug", directListingSlugs)
+      : Promise.resolve({ data: [] as Array<
+          Pick<Listing, "id" | "slug" | "title" | "location" | "image_url" | "image_urls">
+        > })
+  ]);
+
+  const listingPreviewById = new Map<string, ListingPreview>();
+  const listingPreviewBySlug = new Map<string, ListingPreview>();
+
+  [...(listingsById ?? []), ...(listingsBySlug ?? [])].forEach((listing) => {
+    const preview = buildListingPreview(listing);
+    listingPreviewById.set(preview.id, preview);
+    listingPreviewBySlug.set(preview.slug, preview);
+  });
+
+  const listingPreviewByConversationId = new Map<string, ListingPreview>();
+
+  ((conversationReferences ?? []) as ConversationListingReference[]).forEach((conversation) => {
+    const preview = listingPreviewById.get(conversation.listing_id);
+
+    if (preview) {
+      listingPreviewByConversationId.set(conversation.id, preview);
+    }
+  });
+
+  const enrichedNotifications = notificationItems.map((notification) => {
+    const conversationId = getConversationIdFromLink(notification.link);
+    const listingSlug = getListingSlugFromLink(notification.link);
+    const preview =
+      (conversationId ? listingPreviewByConversationId.get(conversationId) : null) ??
+      (listingSlug ? listingPreviewBySlug.get(listingSlug) : null) ??
+      null;
+
+    return {
+      ...notification,
+      preview
+    };
+  });
+
   return (
     <section className="section notifications-page">
       <div className="container notifications-page-container">
@@ -155,14 +279,40 @@ export default async function NotificationsPage() {
 
               <div className="notifications-list">
                 {savedSearchAlerts.map((savedSearch) => (
-                  <article key={savedSearch.id} className="notification-card notification-card-search">
-                    <div className="notification-card-icon notification-card-icon-search">
-                      <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+                  <Link
+                    key={savedSearch.id}
+                    href={savedSearch.href}
+                    className="notification-card notification-card-search notification-card-link"
+                  >
+                    <div className="notification-card-media notification-card-search">
+                      {savedSearch.latestMatches[0] ? (
+                        <>
+                          {getListingPreviewImage(savedSearch.latestMatches[0]) ? (
+                            <img
+                              src={getListingPreviewImage(savedSearch.latestMatches[0]) ?? undefined}
+                              alt={savedSearch.latestMatches[0].title}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div className="notification-card-media-fallback notification-card-icon-search">
+                              <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+                            </div>
+                          )}
+                          <span className="notification-card-media-badge notification-card-search">
+                            <Search aria-hidden="true" size={14} strokeWidth={2.2} />
+                          </span>
+                        </>
+                      ) : (
+                        <div className="notification-card-media-fallback notification-card-icon-search">
+                          <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+                        </div>
+                      )}
                     </div>
 
                     <div className="notification-card-body">
                       <div className="notification-card-head">
-                        <div>
+                        <div className="notification-card-headline">
                           <span className="notification-type-pill">Saved search</span>
                           <h3>{savedSearch.label}</h3>
                         </div>
@@ -172,17 +322,26 @@ export default async function NotificationsPage() {
                       <p className="saved-search-description notification-card-description">
                         {savedSearch.description}
                       </p>
+
+                      <div className="notification-card-meta">
+                        {savedSearch.latestMatches[0]?.title ? (
+                          <span className="notification-card-related">
+                            {savedSearch.latestMatches[0].title}
+                          </span>
+                        ) : null}
+                        {savedSearch.latestMatches[0]?.location ? (
+                          <span>{savedSearch.latestMatches[0].location}</span>
+                        ) : null}
+                        <time className="notification-card-time">
+                          {formatNotificationTimestamp(savedSearch.latestMatches[0]?.created_at)}
+                        </time>
+                      </div>
                     </div>
 
-                    <div className="notification-card-actions notification-card-actions-stacked">
-                      <OpenSavedSearchForm
-                        href={savedSearch.href}
-                        savedSearchId={savedSearch.id}
-                        hasAlerts
-                      />
-                      <span className="notification-card-meta-line">Opens your latest matching results</span>
+                    <div className="notification-card-trailing">
+                      <ChevronRight aria-hidden="true" size={16} strokeWidth={2.4} />
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -203,52 +362,84 @@ export default async function NotificationsPage() {
               </div>
 
               <div className="notifications-list">
-                {notificationItems.map((notification) => {
-                  const action = markNotificationReadAction.bind(
-                    null,
-                    notification.id,
-                    notification.link ?? "/notifications"
-                  );
+                {enrichedNotifications.map((notification) => {
                   const presentation = getNotificationPresentation(notification.type);
+
+                  const cardContent = (
+                    <>
+                      <div className={`notification-card-media ${presentation.className}`}>
+                        {notification.preview?.imageUrl ? (
+                          <>
+                            <img
+                              src={notification.preview.imageUrl}
+                              alt={notification.preview.title}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <span className={`notification-card-media-badge ${presentation.className}`}>
+                              {presentation.icon}
+                            </span>
+                          </>
+                        ) : (
+                          <div className={`notification-card-media-fallback ${presentation.className}`}>
+                            {presentation.icon}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="notification-card-body">
+                        <div className="notification-card-head">
+                          <div className="notification-card-headline">
+                            <span className="notification-type-pill">{presentation.label}</span>
+                            <h3>{notification.title}</h3>
+                          </div>
+                        </div>
+
+                        {notification.body ? (
+                          <p className="notification-card-description">{notification.body}</p>
+                        ) : null}
+
+                        <div className="notification-card-meta">
+                          {notification.preview?.title ? (
+                            <span className="notification-card-related">{notification.preview.title}</span>
+                          ) : null}
+                          {notification.preview?.location ? (
+                            <span>{notification.preview.location}</span>
+                          ) : null}
+                          <time className="notification-card-time">
+                            {formatNotificationTimestamp(notification.created_at)}
+                          </time>
+                        </div>
+                      </div>
+
+                      <div className="notification-card-trailing">
+                        {notification.link ? (
+                          <ChevronRight aria-hidden="true" size={16} strokeWidth={2.4} />
+                        ) : (
+                          <span className="notification-card-meta-line">Viewed</span>
+                        )}
+                      </div>
+                    </>
+                  );
+
+                  if (notification.link) {
+                    return (
+                      <Link
+                        key={notification.id}
+                        href={notification.link}
+                        className={`notification-card notification-card-link ${presentation.className}`}
+                      >
+                        {cardContent}
+                      </Link>
+                    );
+                  }
 
                   return (
                     <article
                       key={notification.id}
                       className={`notification-card ${presentation.className}`}
                     >
-                      <div className={`notification-card-icon ${presentation.className}`}>
-                        {presentation.icon}
-                      </div>
-
-                      <div className="notification-card-body">
-                        <div className="notification-card-head">
-                          <div>
-                            <span className="notification-type-pill">{presentation.label}</span>
-                            <h3>{notification.title}</h3>
-                          </div>
-
-                          <time className="notification-card-time">
-                            {formatNotificationTimestamp(notification.created_at)}
-                          </time>
-                        </div>
-
-                        {notification.body ? (
-                          <p className="notification-card-description">{notification.body}</p>
-                        ) : null}
-                      </div>
-
-                      <div className="notification-card-actions">
-                        {notification.link ? (
-                          <form action={action}>
-                            <button className="button button-secondary notification-open-button" type="submit">
-                              <span>Open</span>
-                              <ChevronRight aria-hidden="true" size={16} strokeWidth={2.4} />
-                            </button>
-                          </form>
-                        ) : (
-                          <span className="notification-card-meta-line">Viewed in your notification center</span>
-                        )}
-                      </div>
+                      {cardContent}
                     </article>
                   );
                 })}
