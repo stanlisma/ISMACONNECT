@@ -385,11 +385,15 @@ export default async function BrowsePage({
 
           {isMapEligibleCategory ? (
             <div className="listing-view-toggle browse-view-toggle browse-view-toggle-mobile">
-              <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+              <Link href={listViewHref} scroll={false} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
                 List
               </Link>
               {mapViewHref ? (
-                <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+                <Link
+                  href={mapViewHref}
+                  scroll={false}
+                  className={`listing-view-pill${view === "map" ? " is-active" : ""}`}
+                >
                   Map
                 </Link>
               ) : null}
@@ -427,11 +431,15 @@ export default async function BrowsePage({
 
         {isMapEligibleCategory ? (
           <div className="listing-view-toggle browse-view-toggle" style={{ marginBottom: "1rem" }}>
-            <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+            <Link href={listViewHref} scroll={false} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
               List view
             </Link>
             {mapViewHref ? (
-              <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+              <Link
+                href={mapViewHref}
+                scroll={false}
+                className={`listing-view-pill${view === "map" ? " is-active" : ""}`}
+              >
                 Map view
               </Link>
             ) : null}
@@ -481,6 +489,7 @@ export default async function BrowsePage({
           <div className="subcategory-link-row">
             <Link
               className={`subcategory-link-pill${!subcategory ? " is-active" : ""}`}
+              scroll={false}
               href={buildPathWithQuery("/browse", {
                 q: search,
                 category,
@@ -500,6 +509,7 @@ export default async function BrowsePage({
             {subcategoryLinks.map((item) => (
               <Link
                 key={item.value}
+                scroll={false}
                 className={`subcategory-link-pill${subcategory === item.value ? " is-active" : ""}`}
                 href={buildPathWithQuery("/browse", {
                   q: search,

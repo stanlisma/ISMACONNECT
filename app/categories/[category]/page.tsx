@@ -363,7 +363,14 @@ export default async function CategoryPage({
       <div className="container listing-feed-container">
         <div className="browse-mobile-overview category-mobile-overview surface">
           <div className="browse-mobile-overview-copy">
-            <span className="eyebrow">Category</span>
+            <div className="marketplace-page-utility-row">
+              <span className="eyebrow">Fort McMurray</span>
+              {viewer ? (
+                <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
+                  My Storefronts
+                </Link>
+              ) : null}
+            </div>
             <h1>{pageTitle}</h1>
             <p>
               {totalCount > 0
@@ -374,11 +381,15 @@ export default async function CategoryPage({
 
           {isMapEligibleCategory ? (
             <div className="listing-view-toggle browse-view-toggle browse-view-toggle-mobile">
-              <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+              <Link href={listViewHref} scroll={false} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
                 List
               </Link>
               {mapViewHref ? (
-                <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+                <Link
+                  href={mapViewHref}
+                  scroll={false}
+                  className={`listing-view-pill${view === "map" ? " is-active" : ""}`}
+                >
                   Map
                 </Link>
               ) : null}
@@ -403,20 +414,28 @@ export default async function CategoryPage({
         </div>
 
         <div className="category-desktop-heading">
-          <SectionHeading
-            eyebrow="Category"
-            title={pageTitle}
-            description={localContent.heroDescription}
-          />
+          <div className="marketplace-page-utility-row">
+            <span className="eyebrow">Fort McMurray</span>
+            {viewer ? (
+              <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
+                My Storefronts
+              </Link>
+            ) : null}
+          </div>
+          <SectionHeading title={pageTitle} description={localContent.heroDescription} />
         </div>
 
         {isMapEligibleCategory ? (
           <div className="listing-view-toggle browse-view-toggle" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-            <Link href={listViewHref} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
+            <Link href={listViewHref} scroll={false} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
               List view
             </Link>
             {mapViewHref ? (
-              <Link href={mapViewHref} className={`listing-view-pill${view === "map" ? " is-active" : ""}`}>
+              <Link
+                href={mapViewHref}
+                scroll={false}
+                className={`listing-view-pill${view === "map" ? " is-active" : ""}`}
+              >
                 Map view
               </Link>
             ) : null}
@@ -465,6 +484,7 @@ export default async function CategoryPage({
           <div className="subcategory-link-row">
             <Link
               className={`subcategory-link-pill${!subcategory ? " is-active" : ""}`}
+              scroll={false}
               href={buildPathWithQuery(categoryInfo.href, {
                 q: search,
                 intent,
@@ -483,6 +503,7 @@ export default async function CategoryPage({
             {subcategoryLinks.map((item) => (
               <Link
                 key={item.value}
+                scroll={false}
                 className={`subcategory-link-pill${subcategory === item.value ? " is-active" : ""}`}
                 href={buildPathWithQuery(categoryInfo.href, {
                   q: search,

@@ -32,6 +32,15 @@ function isStandaloneMode() {
   );
 }
 
+function shouldDisableServiceWorker() {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "::1";
+}
+
 export function PwaShell() {
   const [updateReady, setUpdateReady] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -68,6 +77,31 @@ export function PwaShell() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return;
+    }
+
+    if (shouldDisableServiceWorker()) {
+      void navigator.serviceWorker
+        .getRegistrations()
+        .then(async (registrations) => {
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+
+          if ("caches" in window) {
+            const cacheKeys = await window.caches.keys();
+            await Promise.all(cacheKeys.map((cacheKey) => window.caches.delete(cacheKey)));
+          }
+
+          const reloadKey = "ismaconnect-local-sw-reset";
+          if (navigator.serviceWorker.controller && !window.sessionStorage.getItem(reloadKey)) {
+            window.sessionStorage.setItem(reloadKey, "1");
+            window.location.reload();
+            return;
+          }
+
+          window.sessionStorage.removeItem(reloadKey);
+        })
+        .catch(() => undefined);
+
       return;
     }
 
