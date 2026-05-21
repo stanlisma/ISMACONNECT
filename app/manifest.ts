@@ -9,6 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
+    display_override: ["standalone", "minimal-ui", "browser"],
     orientation: "portrait",
     background_color: "#f5f9ff",
     theme_color: "#1E5FE0",
@@ -29,6 +30,16 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Saved Searches",
         short_name: "Alerts",
         url: "/dashboard/searches"
+      },
+      {
+        name: "Camp Rides",
+        short_name: "Rides",
+        url: "/categories/ride-share?subcategory=camp-site-transport&view=map"
+      },
+      {
+        name: "Local Businesses",
+        short_name: "Businesses",
+        url: "/businesses"
       }
     ],
     prefer_related_applications: false,
@@ -44,6 +55,23 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable"
+      },
+      {
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any"
+      },
+      {
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any"
+      },
+      {
+        src: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png"
       }
     ]
   };

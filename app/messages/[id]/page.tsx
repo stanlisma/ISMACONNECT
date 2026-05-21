@@ -157,78 +157,93 @@ export default async function MessageThreadPage({
           </div>
         </div>
 
-        <div className="surface messages-safety-panel">
-          <div className="messages-safety-head">
-            <div>
-              <span className="eyebrow">Safety tools</span>
-              <h2>Manage this conversation</h2>
-            </div>
-            <p>
-              Block or report suspicious chat.
-            </p>
-          </div>
-
-          {messagingDisabledMessage ? (
-            <div className="messages-safety-notice is-blocked">
-              <ShieldBan aria-hidden="true" size={18} strokeWidth={2.2} />
-              <span>{messagingDisabledMessage}</span>
-            </div>
-          ) : null}
-
-          {existingReport ? (
-            <div className="messages-safety-notice">
-              <ShieldAlert aria-hidden="true" size={18} strokeWidth={2.2} />
-              <span>Your report is already in the moderation queue. Submit again to update the reason if needed.</span>
-            </div>
-          ) : null}
-
-          <div className="messages-safety-grid">
-            <form action={blockConversationUserAction} className="messages-safety-card is-block">
-              <input type="hidden" name="conversationId" value={id} />
-              <input type="hidden" name="blockedUserId" value={otherUserId} />
-              <input type="hidden" name="reason" value="Blocked from conversation" />
-
-              <div className="messages-safety-card-copy">
-                <strong>Block user</strong>
-                <p>Stop replies from this person in this thread immediately.</p>
+        <details
+          className="surface messages-safety-panel messages-safety-panel-collapsible"
+          open={Boolean(messagingDisabledMessage || existingReport)}
+        >
+          <summary className="messages-safety-summary">
+            <div className="messages-safety-head">
+              <div>
+                <span className="eyebrow">Safety tools</span>
+                <h2>Manage this conversation</h2>
               </div>
+              <p>Block or report suspicious chat.</p>
+            </div>
 
-              <SubmitButton
-                className="button button-ghost button-danger"
-                pendingLabel="Blocking..."
-                disabled={safetyState.viewerBlockedOther}
-              >
-                {safetyState.viewerBlockedOther ? "User blocked" : "Block user"}
-              </SubmitButton>
-            </form>
+            <div className="messages-safety-summary-status">
+              {messagingDisabledMessage ? (
+                <span className="badge badge-danger">Blocked</span>
+              ) : existingReport ? (
+                <span className="badge badge-soft">Reported</span>
+              ) : (
+                <span className="badge badge-neutral">Optional</span>
+              )}
+            </div>
+          </summary>
 
-            <form action={reportConversationUserAction} className="messages-safety-card is-report">
-              <input type="hidden" name="conversationId" value={id} />
-              <input type="hidden" name="reportedUserId" value={otherUserId} />
-              <input type="hidden" name="listingId" value={listing?.id ?? ""} />
-
-              <div className="messages-safety-card-copy">
-                <strong>Report user</strong>
-                <p>Send this thread to moderation if it looks unsafe or suspicious.</p>
+          <div className="messages-safety-panel-body">
+            {messagingDisabledMessage ? (
+              <div className="messages-safety-notice is-blocked">
+                <ShieldBan aria-hidden="true" size={18} strokeWidth={2.2} />
+                <span>{messagingDisabledMessage}</span>
               </div>
+            ) : null}
 
-              <label className="field messages-safety-select-field">
-                <span className="messages-safety-select-label">Reason</span>
-                <select name="reason" className="input" defaultValue={existingReport?.reason ?? "spam"}>
-                  <option value="spam">Spam or unwanted contact</option>
-                  <option value="harassment">Harassment or abusive language</option>
-                  <option value="scam">Scam or suspicious payment request</option>
-                  <option value="fake-listing">Fake listing or misleading info</option>
-                  <option value="other">Other safety concern</option>
-                </select>
-              </label>
+            {existingReport ? (
+              <div className="messages-safety-notice">
+                <ShieldAlert aria-hidden="true" size={18} strokeWidth={2.2} />
+                <span>Your report is already in the moderation queue. Submit again to update the reason if needed.</span>
+              </div>
+            ) : null}
 
-              <SubmitButton className="button button-secondary" pendingLabel="Submitting...">
-                {existingReport ? "Update report" : "Report user"}
-              </SubmitButton>
-            </form>
+            <div className="messages-safety-grid">
+              <form action={blockConversationUserAction} className="messages-safety-card is-block">
+                <input type="hidden" name="conversationId" value={id} />
+                <input type="hidden" name="blockedUserId" value={otherUserId} />
+                <input type="hidden" name="reason" value="Blocked from conversation" />
+
+                <div className="messages-safety-card-copy">
+                  <strong>Block user</strong>
+                  <p>Stop replies from this person in this thread immediately.</p>
+                </div>
+
+                <SubmitButton
+                  className="button button-ghost button-danger"
+                  pendingLabel="Blocking..."
+                  disabled={safetyState.viewerBlockedOther}
+                >
+                  {safetyState.viewerBlockedOther ? "User blocked" : "Block user"}
+                </SubmitButton>
+              </form>
+
+              <form action={reportConversationUserAction} className="messages-safety-card is-report">
+                <input type="hidden" name="conversationId" value={id} />
+                <input type="hidden" name="reportedUserId" value={otherUserId} />
+                <input type="hidden" name="listingId" value={listing?.id ?? ""} />
+
+                <div className="messages-safety-card-copy">
+                  <strong>Report user</strong>
+                  <p>Send this thread to moderation if it looks unsafe or suspicious.</p>
+                </div>
+
+                <label className="field messages-safety-select-field">
+                  <span className="messages-safety-select-label">Reason</span>
+                  <select name="reason" className="input" defaultValue={existingReport?.reason ?? "spam"}>
+                    <option value="spam">Spam or unwanted contact</option>
+                    <option value="harassment">Harassment or abusive language</option>
+                    <option value="scam">Scam or suspicious payment request</option>
+                    <option value="fake-listing">Fake listing or misleading info</option>
+                    <option value="other">Other safety concern</option>
+                  </select>
+                </label>
+
+                <SubmitButton className="button button-secondary" pendingLabel="Submitting...">
+                  {existingReport ? "Update report" : "Report user"}
+                </SubmitButton>
+              </form>
+            </div>
           </div>
-        </div>
+        </details>
 
         <RealtimeMessages
           conversationId={id}

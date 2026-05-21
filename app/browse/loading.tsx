@@ -1,5 +1,5 @@
 import { RouteLoadingShell } from "@/components/ui/route-loading-shell";
 
 export default function BrowseLoading() {
-  return <RouteLoadingShell eyebrow="Browse" title="Local listings" />;
+  return <RouteLoadingShell eyebrow="Browse" title="Local listings" variant="feed" />;
 }

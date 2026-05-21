@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
+import { LazyLocalMapExplorer } from "@/components/listings/lazy-local-map-explorer";
 import { ListingCard } from "@/components/listings/listing-card";
-import { LocalMapExplorer } from "@/components/listings/local-map-explorer";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -400,7 +400,7 @@ export default async function BrowsePage({
             </div>
           ) : null}
 
-          <MobileInstallBanner />
+          <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
 
           <div className="mobile-browse-quick-links">
             {mobileQuickLinks.map((link) => (
@@ -550,7 +550,7 @@ export default async function BrowsePage({
         ) : (
           <>
             {view === "map" && isMapEligibleCategory ? (
-              <LocalMapExplorer
+              <LazyLocalMapExplorer
                 category={category!}
                 listings={mapListings}
                 businessMapProfiles={Object.fromEntries(businessMapProfiles)}

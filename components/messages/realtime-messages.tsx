@@ -128,6 +128,13 @@ export function RealtimeMessages({
   return (
     <div className="surface messages-thread-shell">
       <div className="messages-thread-feed">
+        {messages.length === 0 ? (
+          <div className="messages-empty-state">
+            <strong>No messages yet</strong>
+            <p>Start the conversation with a clear question so the other person can reply faster.</p>
+          </div>
+        ) : null}
+
         {messages.map((message, index) => {
           const mine = message.sender_id === viewerId;
           const previousMessage = messages[index - 1];
