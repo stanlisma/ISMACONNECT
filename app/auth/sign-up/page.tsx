@@ -30,9 +30,9 @@ export default async function SignUpPage({
         <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
           action={signUpAction}
-          description="Create an account to post listings, edit them later, and manage responses from buyers, renters, and applicants."
+          helpText="Use one account to post rideshare seats or requests, rental listings, local jobs, services, and storefronts without rebuilding your profile every time."
           mode="sign-up"
-          title="Create your seller account"
+          title="Create your account"
         />
       </div>
     </section>

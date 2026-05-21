@@ -44,14 +44,21 @@ export async function signUpAction(formData: FormData) {
   }
 
   const parsed = signUpSchema.safeParse({
-    fullName: formData.get("fullName"),
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
     email: formData.get("email"),
+    confirmEmail: formData.get("confirmEmail"),
+    phone: formData.get("phone"),
+    address: formData.get("address"),
+    phoneVerificationMethod: formData.get("phoneVerificationMethod"),
     password: formData.get("password")
   });
 
   if (!parsed.success) {
     redirectWithMessage("/auth/sign-up", "error", firstMessage(parsed.error));
   }
+
+  const fullName = `${parsed.data!.firstName} ${parsed.data!.lastName}`.trim();
 
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.signUp({
@@ -60,7 +67,12 @@ export async function signUpAction(formData: FormData) {
     options: {
       emailRedirectTo: `${getBaseUrl()}/auth/callback`,
       data: {
-        full_name: parsed.data!.fullName
+        first_name: parsed.data!.firstName,
+        last_name: parsed.data!.lastName,
+        full_name: fullName,
+        phone: parsed.data!.phone,
+        address: parsed.data!.address,
+        phone_verification_method: parsed.data!.phoneVerificationMethod
       }
     }
   });
@@ -72,7 +84,7 @@ export async function signUpAction(formData: FormData) {
   redirectWithMessage(
     "/auth/sign-in",
     "success",
-    "Account created. Check your email for the confirmation link."
+    "Account created. Check your email for the confirmation link, then sign in to continue."
   );
 }
 

@@ -1371,6 +1371,22 @@ code {
   width: min(520px, 100%);
 }
 
+.auth-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.auth-title-row .field-help {
+  margin-top: 0.15rem;
+}
+
+.auth-field-grid {
+  display: grid;
+  gap: 1rem;
+}
+
 .auth-footer {
   margin-top: 1.2rem;
 }
@@ -1524,6 +1540,12 @@ code {
 
 .field-help-badge::-webkit-details-marker {
   display: none;
+}
+
+@media (min-width: 760px) {
+  .auth-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .field-help-badge::marker {
