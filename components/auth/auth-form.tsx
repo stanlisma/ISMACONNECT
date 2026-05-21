@@ -3,16 +3,18 @@
 import Link from "next/link";
 
 import { SubmitButton } from "@/components/ui/submit-button";
+import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { trackMarketplaceEvent } from "@/lib/analytics";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
   title: string;
-  description: string;
+  description?: string;
+  helpText?: string;
   action: (formData: FormData) => Promise<void>;
 }
 
-export function AuthForm({ mode, title, description, action }: AuthFormProps) {
+export function AuthForm({ mode, title, description, helpText, action }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
 
   return (
@@ -22,8 +24,11 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
           {isSignUp ? "Create Account" : "Welcome Back"}
         </span>
 
-        <h1>{title}</h1>
-        <p>{description}</p>
+        <div className="auth-title-row">
+          <h1>{title}</h1>
+          {helpText ? <FieldHelp text={helpText} label={title} /> : null}
+        </div>
+        {description ? <p>{description}</p> : null}
 
         <form
           action={action}
@@ -34,29 +39,118 @@ export function AuthForm({ mode, title, description, action }: AuthFormProps) {
             })
           }
         >
-          {isSignUp && (
+          {isSignUp ? (
+            <>
+              <div className="auth-field-grid">
+                <label className="field">
+                  <span className="field-label">First name</span>
+                  <input
+                    autoComplete="given-name"
+                    className="input"
+                    name="firstName"
+                    placeholder="First name"
+                    required
+                  />
+                </label>
+
+                <label className="field">
+                  <span className="field-label">Last name</span>
+                  <input
+                    autoComplete="family-name"
+                    className="input"
+                    name="lastName"
+                    placeholder="Last name"
+                    required
+                  />
+                </label>
+              </div>
+
+              <div className="auth-field-grid">
+                <label className="field">
+                  <span className="field-label">Email</span>
+                  <input
+                    autoComplete="email"
+                    className="input"
+                    name="email"
+                    placeholder="name@example.com"
+                    required
+                    type="email"
+                  />
+                </label>
+
+                <label className="field">
+                  <span className="field-label">Confirm email</span>
+                  <input
+                    autoComplete="email"
+                    className="input"
+                    name="confirmEmail"
+                    placeholder="Re-enter your email"
+                    required
+                    type="email"
+                  />
+                </label>
+              </div>
+
+              <div className="auth-field-grid">
+                <label className="field">
+                  <FieldLabelWithHelp
+                    label="Phone number"
+                    helpText="Use the number you want tied to listing replies. We will save whether you prefer text or voice verification for this account."
+                  />
+                  <input
+                    autoComplete="tel"
+                    className="input"
+                    name="phone"
+                    placeholder="780-555-0123"
+                    required
+                    type="tel"
+                  />
+                </label>
+
+                <label className="field">
+                  <FieldLabelWithHelp
+                    label="Verify phone by"
+                    helpText="Choose whether this phone should be verified by text message or a voice call when phone verification is enabled for your account."
+                  />
+                  <select
+                    className="select"
+                    name="phoneVerificationMethod"
+                    defaultValue="text"
+                    required
+                  >
+                    <option value="text">Text message</option>
+                    <option value="call">Voice call</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className="field">
+                <FieldLabelWithHelp
+                  label="Address"
+                  helpText="Use your usual Fort McMurray area address or community so your account starts with a real local profile."
+                />
+                <input
+                  autoComplete="street-address"
+                  className="input"
+                  name="address"
+                  placeholder="Thickwood, Fort McMurray"
+                  required
+                />
+              </label>
+            </>
+          ) : (
             <label className="field">
-              <span className="field-label">Full name</span>
+              <span className="field-label">Email</span>
               <input
+                autoComplete="email"
                 className="input"
-                name="fullName"
-                placeholder="Your full name"
+                name="email"
+                placeholder="name@example.com"
                 required
+                type="email"
               />
             </label>
           )}
-
-          <label className="field">
-            <span className="field-label">Email</span>
-            <input
-              autoComplete="email"
-              className="input"
-              name="email"
-              placeholder="name@example.com"
-              required
-              type="email"
-            />
-          </label>
 
           <label className="field">
             <span className="field-label">Password</span>

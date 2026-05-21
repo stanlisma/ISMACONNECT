@@ -143,6 +143,9 @@ export interface Profile {
   email: string | null;
   full_name: string;
   phone: string | null;
+  address?: string | null;
+  phone_verification_method?: "text" | "call" | null;
+  phone_verified_at?: string | null;
   role: AppRole;
   is_business?: boolean | null;
   business_name?: string | null;
