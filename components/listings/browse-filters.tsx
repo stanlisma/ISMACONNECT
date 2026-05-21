@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import { CATEGORIES } from "@/lib/constants";
@@ -67,6 +67,25 @@ export function BrowseFilters({
     normalizeSubcategory(category ?? "", subcategory ?? "") ?? ""
   );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    if (isFilterOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isFilterOpen]);
 
   const subcategories = useMemo(() => getSubcategories(selectedCategory), [selectedCategory]);
   const activeStructuredCategory = (showCategorySelect ? selectedCategory : category) ?? "";
@@ -280,14 +299,10 @@ export function BrowseFilters({
         />
 
         <button
-          aria-expanded={isFilterOpen}
-          aria-haspopup="dialog"
-          className="button mobile-filter-button"
-          type="button"
-          onClick={() => setIsFilterOpen(true)}
+          className="button button-secondary mobile-filter-submit"
+          type="submit"
         >
-          <span>Filter</span>
-          {activeFilterCount > 0 ? <span className="mobile-filter-count">{activeFilterCount}</span> : null}
+          Search
         </button>
       </form>
 
@@ -305,6 +320,17 @@ export function BrowseFilters({
           </Link>
         </div>
       ) : null}
+
+      <button
+        aria-expanded={isFilterOpen}
+        aria-haspopup="dialog"
+        className={`mobile-floating-filter-button${isFilterOpen ? " is-hidden" : ""}`}
+        type="button"
+        onClick={() => setIsFilterOpen(true)}
+      >
+        <span>Filter</span>
+        {activeFilterCount > 0 ? <span className="mobile-filter-count">{activeFilterCount}</span> : null}
+      </button>
 
       {/* DESKTOP FULL FILTERS */}
       <form
