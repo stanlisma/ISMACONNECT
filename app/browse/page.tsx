@@ -400,8 +400,6 @@ export default async function BrowsePage({
             </div>
           ) : null}
 
-          <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
-
           <div className="mobile-browse-quick-links">
             {mobileQuickLinks.map((link) => (
               <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
@@ -415,6 +413,8 @@ export default async function BrowsePage({
               Save search
             </Link>
           </div>
+
+          <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
         </div>
 
         <div className="browse-desktop-heading">

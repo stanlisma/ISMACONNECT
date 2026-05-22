@@ -254,11 +254,11 @@ export function ListingCard({
 
         <div className="mobile-marketplace-meta-row mobile-marketplace-meta-row-soft">
           <span>{publicLocation}</span>
-          <span aria-hidden="true">•</span>
+          <span aria-hidden="true">|</span>
           <span>{timeAgo}</span>
           {mobileTrustLabel ? (
             <>
-              <span aria-hidden="true">•</span>
+              <span aria-hidden="true">|</span>
               <span>{mobileTrustLabel}</span>
             </>
           ) : null}
@@ -320,7 +320,7 @@ export function ListingCard({
           <div className="listing-card-signals listing-card-structured-signals">
             {structuredHighlights.map((item, index) => (
               <span key={item}>
-                {index > 0 ? <span style={{ opacity: 0.5 }}>•</span> : null} {item}
+                {index > 0 ? <span style={{ opacity: 0.5 }}>|</span> : null} {item}
               </span>
             ))}
           </div>

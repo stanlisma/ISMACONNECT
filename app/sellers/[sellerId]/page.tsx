@@ -158,8 +158,6 @@ export default async function SellerStorefrontPage({
                   </div>
                 ) : null}
 
-                <MobileInstallBanner context="storefront" />
-
                 <TrustBadges summary={trustSummary} />
               </div>
             </div>
@@ -217,6 +215,8 @@ export default async function SellerStorefrontPage({
                   Browse businesses
                 </Link>
               </div>
+
+              <MobileInstallBanner context="storefront" />
 
               {storefront.is_business ? (
                 <div className="seller-storefront-detail-grid">

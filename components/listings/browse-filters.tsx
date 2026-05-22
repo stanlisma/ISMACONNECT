@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Search } from "lucide-react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import { CATEGORIES } from "@/lib/constants";
@@ -301,8 +302,10 @@ export function BrowseFilters({
         <button
           className="button button-secondary mobile-filter-submit"
           type="submit"
+          aria-label="Search listings"
         >
-          Search
+          <Search aria-hidden="true" size={18} strokeWidth={2.4} />
+          <span>Search</span>
         </button>
       </form>
 
