@@ -147,9 +147,11 @@ export default async function MessagesPage({
                 <button className="button" type="submit">
                   Search
                 </button>
-                <Link className="button button-secondary" href="/messages">
-                  Clear
-                </Link>
+                {rawQuery || activeFilter === "unread" ? (
+                  <Link className="button button-secondary" href="/messages">
+                    Clear
+                  </Link>
+                ) : null}
               </div>
             </form>
           </div>
@@ -194,7 +196,7 @@ export default async function MessagesPage({
 
                       <div className="messages-list-subline">
                         <span className="messages-list-name">{conversation.otherUserName}</span>
-                        <span>·</span>
+                        <span>|</span>
                         <span>
                           {conversation.last_message_at
                             ? new Intl.DateTimeFormat("en-CA", {

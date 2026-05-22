@@ -396,8 +396,6 @@ export default async function CategoryPage({
             </div>
           ) : null}
 
-          <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
-
           <div className="mobile-browse-quick-links">
             {mobileQuickLinks.map((link) => (
               <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
@@ -411,6 +409,8 @@ export default async function CategoryPage({
               Save search
             </Link>
           </div>
+
+          <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
         </div>
 
         <div className="category-desktop-heading">

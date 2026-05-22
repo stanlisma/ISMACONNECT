@@ -62,7 +62,7 @@ export default async function HomePage() {
               </Link>
             ) : null}
           </div>
-          <h1>Camp rides, rentals, services, and jobs for Fort McMurray</h1>
+          <h1>Find rides, rentals, services, and jobs in Fort McMurray</h1>
         </div>
 
         <form action="/browse" className="home-mobile-search-form">
@@ -73,8 +73,6 @@ export default async function HomePage() {
             Search
           </button>
         </form>
-
-          <MobileInstallBanner context="home" />
 
         <div className="home-camp-focus">
           <div className="home-camp-focus-copy">
@@ -99,6 +97,8 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
+
+        <MobileInstallBanner context="home" />
       </section>
 
       <section className="home-hero-section" style={heroCardStyle}>
