@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface ImageLightboxProps {
@@ -17,10 +17,60 @@ export function ImageLightbox({
   onClose
 }: ImageLightboxProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchEndY = useRef(0);
 
   useEffect(() => {
     setActiveIndex(initialIndex);
   }, [initialIndex]);
+
+  function showPreviousImage() {
+    setActiveIndex((current) => (current - 1 + images.length) % images.length);
+  }
+
+  function showNextImage() {
+    setActiveIndex((current) => (current + 1) % images.length);
+  }
+
+  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    const touchX = event.touches[0].clientX;
+    const touchY = event.touches[0].clientY;
+    touchStartX.current = touchX;
+    touchEndX.current = touchX;
+    touchStartY.current = touchY;
+    touchEndY.current = touchY;
+  }
+
+  function handleTouchMove(event: React.TouchEvent<HTMLDivElement>) {
+    touchEndX.current = event.touches[0].clientX;
+    touchEndY.current = event.touches[0].clientY;
+  }
+
+  function handleTouchEnd() {
+    if (images.length <= 1) {
+      return;
+    }
+
+    const horizontalDistance = touchEndX.current - touchStartX.current;
+    const verticalDistance = touchEndY.current - touchStartY.current;
+    const isHorizontalSwipe =
+      Math.abs(horizontalDistance) > 42 &&
+      Math.abs(horizontalDistance) > Math.abs(verticalDistance);
+
+    if (!isHorizontalSwipe) {
+      return;
+    }
+
+    if (horizontalDistance < 0) {
+      showNextImage();
+    }
+
+    if (horizontalDistance > 0) {
+      showPreviousImage();
+    }
+  }
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -90,12 +140,18 @@ export function ImageLightbox({
           </button>
         </div>
 
-        <div className="image-lightbox-stage">
+        <div
+          className="image-lightbox-stage"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <img
             src={images[activeIndex]}
             alt={`${title} image ${activeIndex + 1}`}
             className="image-lightbox-image"
             decoding="async"
+            draggable={false}
           />
 
           {canPaginate ? (
@@ -103,7 +159,7 @@ export function ImageLightbox({
               <button
                 type="button"
                 className="image-lightbox-arrow image-lightbox-arrow-left"
-                onClick={() => setActiveIndex((current) => (current - 1 + images.length) % images.length)}
+                onClick={showPreviousImage}
                 aria-label="Previous image"
               >
                 <ChevronLeft aria-hidden="true" size={22} strokeWidth={2.5} />
@@ -112,7 +168,7 @@ export function ImageLightbox({
               <button
                 type="button"
                 className="image-lightbox-arrow image-lightbox-arrow-right"
-                onClick={() => setActiveIndex((current) => (current + 1) % images.length)}
+                onClick={showNextImage}
                 aria-label="Next image"
               >
                 <ChevronRight aria-hidden="true" size={22} strokeWidth={2.5} />

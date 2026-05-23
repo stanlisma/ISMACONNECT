@@ -5600,6 +5600,7 @@ code {
   border-radius: 24px;
   background: rgba(16, 24, 40, 0.86);
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .image-lightbox-image {
@@ -5607,6 +5608,8 @@ code {
   max-height: calc(76vh - 2rem);
   object-fit: contain;
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .image-lightbox-arrow {
