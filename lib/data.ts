@@ -810,8 +810,9 @@ export async function getPublicBusinessStorefrontDirectory(filters?: {
   const storefronts = storefrontRows
     .map((storefront) => {
       const storefrontListings = groupedListings.get(storefront.id) ?? [];
+      const hasCategoryMatch = !filters?.category || storefrontListings.length > 0;
 
-      if (!storefrontListings.length) {
+      if (!hasCategoryMatch) {
         return null;
       }
 
@@ -833,7 +834,7 @@ export async function getPublicBusinessStorefrontDirectory(filters?: {
         hours: storefront.hours,
         primary_location:
           storefront.address?.trim() ||
-          getPublicListingLocationLabel(latestListing as Listing) ||
+          (latestListing ? getPublicListingLocationLabel(latestListing as Listing) : null) ||
           "Fort McMurray",
         active_listing_count: storefrontListings.length,
         active_categories: activeCategories,
