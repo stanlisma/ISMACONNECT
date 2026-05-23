@@ -3,6 +3,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 
+import { ImageLightbox } from "@/components/ui/image-lightbox";
+
 type Message = {
   id: string;
   body: string;
@@ -56,6 +58,7 @@ export function RealtimeMessages({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [buyerTyping, setBuyerTyping] = useState(initialBuyerTyping);
   const [sellerTyping, setSellerTyping] = useState(initialSellerTyping);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const hasMountedRef = useRef(false);
 
@@ -157,11 +160,18 @@ export function RealtimeMessages({
                     {message.body ? <div className="messages-bubble-text">{message.body}</div> : null}
 
                     {message.image_url ? (
-                      <img
-                        src={message.image_url}
-                        alt="Attachment"
-                        className="messages-bubble-image"
-                      />
+                      <button
+                        type="button"
+                        className="messages-bubble-image-button"
+                        onClick={() => setLightboxImage(message.image_url ?? null)}
+                        aria-label="Open attachment"
+                      >
+                        <img
+                          src={message.image_url}
+                          alt="Attachment"
+                          className="messages-bubble-image"
+                        />
+                      </button>
                     ) : null}
                   </div>
 
@@ -181,6 +191,15 @@ export function RealtimeMessages({
 
         <div ref={bottomRef} />
       </div>
+
+      {lightboxImage ? (
+        <ImageLightbox
+          images={[lightboxImage]}
+          initialIndex={0}
+          title="Message attachment"
+          onClose={() => setLightboxImage(null)}
+        />
+      ) : null}
     </div>
   );
 }
