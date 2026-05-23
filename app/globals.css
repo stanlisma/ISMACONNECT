@@ -2865,11 +2865,20 @@ code {
   width: 100%;
 }
 
+.listing-detail-main-image-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
 .listing-detail-main-image {
   width: 100%;
+  aspect-ratio: 4 / 3;
   max-height: 720px;
-  object-fit: cover;
-  border-radius: 16px;
+  object-fit: contain;
   display: block;
 }
 
@@ -5502,6 +5511,19 @@ code {
   display: block;
 }
 
+.messages-bubble-image-button {
+  display: block;
+  margin-top: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.messages-bubble-image-button .messages-bubble-image {
+  margin-top: 0;
+}
+
 .messages-bubble-meta {
   margin-top: 0.35rem;
   color: #667085;
@@ -5510,6 +5532,99 @@ code {
 .messages-typing-indicator {
   color: #667085;
   font-size: 0.9rem;
+}
+
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(8, 15, 28, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.image-lightbox-shell {
+  width: min(96vw, 1180px);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.image-lightbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: #ffffff;
+}
+
+.image-lightbox-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.image-lightbox-copy strong {
+  font-size: 1rem;
+}
+
+.image-lightbox-copy span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.88rem;
+}
+
+.image-lightbox-close,
+.image-lightbox-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.image-lightbox-close {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.image-lightbox-stage {
+  position: relative;
+  min-height: min(76vh, 760px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  border-radius: 24px;
+  background: rgba(16, 24, 40, 0.86);
+  overflow: hidden;
+}
+
+.image-lightbox-image {
+  width: 100%;
+  max-height: calc(76vh - 2rem);
+  object-fit: contain;
+  display: block;
+}
+
+.image-lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.image-lightbox-arrow-left {
+  left: 1rem;
+}
+
+.image-lightbox-arrow-right {
+  right: 1rem;
 }
 
 .messages-reply-shell {
@@ -7897,8 +8012,11 @@ code {
   }
 
   .messages-bubble-image {
-    margin-top: 0.6rem;
     max-width: 220px;
+  }
+
+  .messages-bubble-image-button {
+    margin-top: 0.6rem;
   }
 
   .messages-thread-listing-thumb {
@@ -8799,6 +8917,9 @@ code {
 
 .listing-detail-gallery-stage {
   position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #eff5fd, #f8fbff);
 }
 
 .contact-seller-form {
@@ -9181,6 +9302,51 @@ code {
     aspect-ratio: 1 / 1;
     min-height: 320px;
     max-height: none;
+  }
+
+  .image-lightbox {
+    padding: 0.75rem;
+  }
+
+  .image-lightbox-shell {
+    width: 100%;
+    gap: 0.6rem;
+  }
+
+  .image-lightbox-toolbar {
+    gap: 0.6rem;
+  }
+
+  .image-lightbox-copy strong {
+    font-size: 0.94rem;
+  }
+
+  .image-lightbox-copy span {
+    font-size: 0.8rem;
+  }
+
+  .image-lightbox-close,
+  .image-lightbox-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .image-lightbox-stage {
+    min-height: min(72vh, 620px);
+    padding: 0.75rem;
+    border-radius: 18px;
+  }
+
+  .image-lightbox-image {
+    max-height: calc(72vh - 1.5rem);
+  }
+
+  .image-lightbox-arrow-left {
+    left: 0.6rem;
+  }
+
+  .image-lightbox-arrow-right {
+    right: 0.6rem;
   }
 
   .listing-detail-arrow {

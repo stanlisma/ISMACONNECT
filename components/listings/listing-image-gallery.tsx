@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 
+import { ImageLightbox } from "@/components/ui/image-lightbox";
+
 interface ListingImageGalleryProps {
   title: string;
   categoryLabel: string;
@@ -14,6 +16,7 @@ export function ListingImageGallery({
   images
 }: ListingImageGalleryProps) {
   const [activeImage, setActiveImage] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const touchStartX = useRef(0);
 
   function showPreviousImage() {
@@ -54,14 +57,21 @@ export function ListingImageGallery({
   return (
     <div className="listing-detail-gallery">
       <div className="listing-detail-gallery-stage">
-        <img
-          src={images[activeImage]}
-          alt={`${title} image ${activeImage + 1}`}
-          className="listing-detail-main-image"
-          decoding="async"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        />
+        <button
+          type="button"
+          className="listing-detail-main-image-button"
+          aria-label={`Open image ${activeImage + 1}`}
+          onClick={() => setLightboxIndex(activeImage)}
+        >
+          <img
+            src={images[activeImage]}
+            alt={`${title} image ${activeImage + 1}`}
+            className="listing-detail-main-image"
+            decoding="async"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          />
+        </button>
 
         {images.length > 1 ? (
           <>
@@ -122,6 +132,15 @@ export function ListingImageGallery({
             ))}
           </div>
         </>
+      ) : null}
+
+      {lightboxIndex !== null ? (
+        <ImageLightbox
+          images={images}
+          initialIndex={lightboxIndex}
+          title={title}
+          onClose={() => setLightboxIndex(null)}
+        />
       ) : null}
     </div>
   );
