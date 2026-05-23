@@ -33,7 +33,7 @@ export function ContactSellerForm({
           rows={4}
           placeholder={
             isNeed
-              ? "Hi, I can help with this. Here’s what I can offer..."
+              ? "Hi, I can help with this. Here's what I can offer..."
               : "Hi, is this still available?"
           }
           required

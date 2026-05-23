@@ -7734,6 +7734,13 @@ code {
     grid-template-columns: 1fr 1fr;
   }
 
+  .notifications-hero-copy .section-copy,
+  .messages-overview-copy .section-copy,
+  .storefront-directory-hero .section-copy,
+  .account-menu-description {
+    display: none;
+  }
+
   .notifications-section-head {
     grid-template-columns: 1fr;
     flex-direction: column;
@@ -8806,6 +8813,16 @@ code {
   color: var(--text-soft);
 }
 
+.detail-media-panel {
+  margin-top: 1rem;
+}
+
+.detail-description-block {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
 .detail-quick-actions {
   display: none;
 }
@@ -8818,6 +8835,26 @@ code {
 
 .detail-mobile-trust-strip {
   display: none;
+}
+
+.detail-mobile-seller-strip {
+  display: none;
+}
+
+.detail-mobile-seller-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.detail-mobile-seller-copy strong {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.detail-mobile-seller-copy span {
+  color: var(--text-soft);
+  font-size: 0.79rem;
+  font-weight: 600;
 }
 
 .detail-mobile-trust-head {
@@ -9247,6 +9284,15 @@ code {
     line-height: 1.55;
   }
 
+  .detail-media-panel {
+    margin-top: 0.85rem;
+  }
+
+  .detail-description-block {
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+  }
+
   .detail-conversation-card .button,
   .contact-seller-actions .button,
   .detail-mobile-action-main {
@@ -9258,6 +9304,11 @@ code {
   .detail-guest-unlock-card .section-copy {
     font-size: 0.9rem;
     line-height: 1.45;
+  }
+
+  .detail-conversation-card .section-copy,
+  .detail-contact-card .section-copy {
+    display: none;
   }
 
   .detail-mobile-action-bar {
@@ -9852,6 +9903,17 @@ code {
 
   .detail-mobile-trust-strip .trust-badges.is-compact {
     margin-top: 0;
+  }
+
+  .detail-mobile-seller-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.78rem 0.85rem;
+    border: 1px solid rgba(216, 227, 250, 0.95);
+    border-radius: 16px;
+    background: #f8fbff;
   }
 
   .detail-seller-card {

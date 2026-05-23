@@ -121,6 +121,7 @@ export default async function ListingPage({
   const isOwner = viewer?.user.id === listing.owner_id;
   const canUseMobileActions = !isOwner;
   const storefrontHref = buildStorefrontHref(listing.owner_id, listing.storefront_id);
+  const sellerFirstName = listing.contact_name.trim().split(" ")[0] || "Seller";
   const mobilePrimaryHref = viewer
     ? existingConversation
       ? `/messages/${existingConversation.id}`
@@ -133,21 +134,13 @@ export default async function ListingPage({
         ? "Respond now"
         : "Message seller"
     : "Sign in to unlock";
-  const contactEyebrow = isNeed ? "Respond" : "Contact Seller";
-  const contactTitle = isNeed ? "Respond to this request" : "Send a message";
-  const contactDescription = isNeed
-    ? "Let them know if you can help, what you can offer, and when you are available."
-    : "Ask if this listing is still available or request more details.";
-  const ownerTitle = isNeed ? "You posted this request" : "You own this listing";
+  const contactTitle = isNeed ? "Reply to this request" : "Message seller";
+  const ownerTitle = isNeed ? "Manage this request" : "Manage this listing";
   const ownerDescription = isNeed
-    ? "Use My Listings to update the request, close it once you get help, or boost it for faster replies."
-    : "Use My Listings to edit details, upload images, remove the post, or run paid boosts.";
-  const unlockTitle = isNeed ? "Unlock requester details" : "Unlock seller details";
-  const unlockButton = isNeed ? "Unlock contact details" : "Unlock Contact Info";
-  const unlockText = isNeed ? "This request is drawing local attention" : "This listing is getting attention";
-  const trustDescription = isNeed
-    ? "Verification and ratings help locals decide who to reply to first."
-    : "Verification and ratings help locals choose who to message first.";
+    ? "Update the request, close it once you get help, or boost it for faster replies."
+    : "Edit details, update images, or boost this post from your dashboard.";
+  const unlockTitle = isNeed ? "Sign in to reply" : "Sign in to message";
+  const unlockButton = isNeed ? "Sign in to reply" : "Sign in to message";
   const staleListingNotice = freshness.isStale
     ? listing.category === "ride-share"
       ? "This ride post is older than two weeks. Confirm the route, timing, and seat availability before heading out."
@@ -156,16 +149,9 @@ export default async function ListingPage({
         : "This listing is older than two weeks. Confirm availability before making plans or travelling to meet."
     : null;
   const detailFacts = [
-    { label: "Category", value: category.label, isRepeated: true },
-    { label: "Post type", value: LISTING_INTENT_LABELS[listingIntent], isRepeated: true },
-    ...(requestWindowLabel ? [{ label: "Need timing", value: requestWindowLabel, isRepeated: false }] : []),
-    { label: publicLocationLabel, value: publicLocation, isRepeated: true },
-    { label: "Posted", value: formatDate(listing.created_at), isRepeated: true },
-    {
-      label: isNeed ? "Budget" : "Price",
-      value: formatListingPrice(listing.price, listing.price_type, listingIntent),
-      isRepeated: true
-    },
+    ...(listing.show_exact_address_on_map
+      ? [{ label: publicLocationLabel, value: publicLocation, isRepeated: false }]
+      : []),
     { label: "Pricing", value: getListingPriceTypeLabel(listing.price_type), isRepeated: false },
     ...structuredDetailItems.map((item) => ({
       label: "Detail",
@@ -262,55 +248,36 @@ export default async function ListingPage({
                   </div>
                 ) : null}
 
-                <div className="detail-mobile-trust-strip">
-                  <div className="detail-mobile-trust-head">
-                    <div className="detail-mobile-trust-owner">
-                      <strong>{listing.contact_name}</strong>
-                      <span>{isNeed ? "Local requester" : "Local seller"}</span>
-                    </div>
-                    <Link href={storefrontHref} className="detail-mobile-storefront-link">
-                      Storefront
-                    </Link>
-                  </div>
-
-                  <TrustBadges summary={sellerTrustSummary} compact />
-                  <div className="detail-mobile-trust-meta">
-                    <span>
-                      {sellerTrustSummary?.verification_status === "verified"
-                        ? "ID verified seller"
-                        : sellerTrustSummary?.verification_status === "pending"
-                          ? "Verification pending"
-                          : "Check seller trust before meeting"}
-                    </span>
-                    <span>
-                      {sellerTrustSummary?.member_since
-                        ? `Member since ${formatDate(sellerTrustSummary.member_since)}`
-                        : "New local seller"}
-                    </span>
-                  </div>
-                  {listing.category === "ride-share" ? (
-                    <Link href="/safety" className="detail-mobile-safety-link">
-                      Ride-share safety guide
-                    </Link>
-                  ) : null}
-                </div>
-
-                <p className="detail-copy">{listing.description}</p>
               </div>
 
-              <div className="listing-media" style={{ marginTop: "1.25rem" }}>
+              <div className="listing-media detail-media-panel">
                 <ListingImageGallery
                   title={listing.title}
                   categoryLabel={category.label}
                   images={images}
                 />
               </div>
+
+              <div className="detail-description-block">
+                <p className="detail-copy">{listing.description}</p>
+
+                <div className="detail-mobile-seller-strip">
+                  <div className="detail-mobile-seller-copy">
+                    <strong>{sellerFirstName}</strong>
+                    <span>{isNeed ? "Local requester" : "Local seller"}</span>
+                  </div>
+                  <Link href={storefrontHref} className="detail-mobile-storefront-link">
+                    Storefront
+                  </Link>
+                </div>
+              </div>
             </div>
 
-            <div className="detail-card">
+            {detailFacts.length ? (
+              <div className="detail-card">
               <SectionHeading
                 eyebrow="Listing Details"
-                title="More details"
+                title="Key details"
               />
 
               <div className="meta-list detail-fact-list">
@@ -323,7 +290,8 @@ export default async function ListingPage({
                   </span>
                 ))}
               </div>
-            </div>
+              </div>
+            ) : null}
 
             {viewer ? (
               viewer.user.id !== listing.owner_id ? (
@@ -331,12 +299,7 @@ export default async function ListingPage({
                   <div className="detail-card detail-conversation-card">
                     <SectionHeading
                       eyebrow="Conversation"
-                      title="Continue your chat"
-                      description={
-                        isNeed
-                          ? "You already replied to this request. Jump back into the thread."
-                          : "You already contacted this seller about this listing."
-                      }
+                      title="Conversation open"
                     />
 
                     <Link href={`/messages/${existingConversation.id}`} className="button">
@@ -346,11 +309,14 @@ export default async function ListingPage({
                 ) : (
                   <div className="detail-card detail-contact-card" id="message-seller">
                     <SectionHeading
-                      eyebrow={contactEyebrow}
                       title={contactTitle}
-                      description={contactDescription}
                     />
                     <ContactSellerForm listingId={listing.id} listingIntent={listingIntent} />
+                    {listing.category === "ride-share" ? (
+                      <Link href="/safety" className="detail-mobile-safety-link">
+                        Ride-share safety guide
+                      </Link>
+                    ) : null}
                   </div>
                 )
               ) : (
@@ -373,32 +339,14 @@ export default async function ListingPage({
             ) : (
               <div className="detail-card detail-guest-unlock-card">
                 <SectionHeading
-                  eyebrow="Contact"
                   title={unlockTitle}
-                  description="Join ISMACONNECT to instantly message sellers and get faster responses."
+                  description="Join ISMACONNECT to message locals and keep your conversations in one place."
                 />
 
-                <div className="meta-list blurred-contact-preview">
-                  <span>
-                    Seller:{" "}
-                    {listing.contact_name
-                      ? `${listing.contact_name.split(" ")[0]} ******`
-                      : "Seller ******"}
-                  </span>
-                  {listing.contact_email ? <span>Email: ********@*****.com</span> : null}
-                  {listing.contact_phone ? (
-                    <span>Phone: ***-***-{listing.contact_phone.slice(-4)}</span>
-                  ) : null}
-                </div>
-
                 <div className="unlock-box">
-                  <p className="unlock-text">{unlockText}</p>
-
                   <Link href="/auth/sign-in" className="button unlock-button">
                     {unlockButton}
                   </Link>
-
-                  <p className="unlock-sub">Takes less than 10 seconds | No spam</p>
                 </div>
               </div>
             )}
@@ -425,7 +373,6 @@ export default async function ListingPage({
               <SectionHeading
                 eyebrow={isNeed ? "Poster Trust" : "Seller Trust"}
                 title={listing.contact_name}
-                description={trustDescription}
               />
 
               <div className="action-row" style={{ marginBottom: "1rem" }}>
@@ -459,24 +406,6 @@ export default async function ListingPage({
                 </span>
               </div>
             </div>
-
-            {viewer ? (
-              <div className="detail-card">
-                <SectionHeading
-                  eyebrow="Contact"
-                  title={listing.contact_name}
-                  description="Reach out directly using the seller's preferred contact details."
-                />
-
-                <div className="meta-list">
-                  {listing.contact_email ? <span>Email: {listing.contact_email}</span> : null}
-                  {listing.contact_phone ? <span>Phone: {listing.contact_phone}</span> : null}
-                  {!listing.contact_email && !listing.contact_phone ? (
-                    <span>Contact details available after seller update.</span>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
 
             {viewer && viewer.user.id !== listing.owner_id ? (
               <div className="detail-card">
