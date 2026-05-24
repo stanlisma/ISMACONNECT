@@ -69,7 +69,9 @@ export function SaveSearchToggle({
             <span>Save search</span>
           </button>
 
-          <FieldHelp text={helpText} label="Save search" />
+          <span className="saved-search-inline-help">
+            <FieldHelp text={helpText} label="Save search" />
+          </span>
         </div>
       </div>
     );
@@ -87,7 +89,9 @@ export function SaveSearchToggle({
             <span>Save search</span>
           </Link>
 
-          <FieldHelp text={helpText} label="Save search" />
+          <span className="saved-search-inline-help">
+            <FieldHelp text={helpText} label="Save search" />
+          </span>
         </div>
       </div>
     );
@@ -134,7 +138,9 @@ export function SaveSearchToggle({
           </SubmitButton>
         </form>
 
-        <FieldHelp text={helpText} label="Save search" />
+        <span className="saved-search-inline-help">
+          <FieldHelp text={helpText} label="Save search" />
+        </span>
       </div>
     </div>
   );

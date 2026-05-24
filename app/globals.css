@@ -6363,12 +6363,7 @@ code {
 .saved-search-inline-actions {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.4rem;
-  border: 1px solid #d8e3fa;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 8px 18px rgba(30, 107, 255, 0.08);
+  gap: 0.2rem;
 }
 
 .saved-search-inline .saved-search-form {
@@ -6390,6 +6385,16 @@ code {
 
 .saved-search-inline .saved-search-submit {
   min-height: 42px;
+}
+
+.saved-search-inline-help {
+  display: inline-flex;
+  align-items: center;
+  margin-left: -0.05rem;
+}
+
+.saved-search-inline-help .field-help-badge {
+  background: rgba(232, 241, 255, 0.82);
 }
 
 .saved-searches-summary {
@@ -9243,14 +9248,11 @@ code {
   }
 
   .saved-search-inline-actions {
-    width: 100%;
-    justify-content: space-between;
-    padding: 0.3rem;
-    border-radius: 18px;
+    width: auto;
   }
 
   .saved-search-inline .saved-search-form {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
   }
 
   .saved-search-inline .saved-search-form .button {
