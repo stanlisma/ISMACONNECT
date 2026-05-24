@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ExternalLink, ImageIcon, ShieldAlert, ShieldBan } from "lucide-react";
+import { ChevronLeft, ImageIcon, ShieldAlert, ShieldBan } from "lucide-react";
 
 import { MessageComposer } from "@/components/messages/message-composer";
 import { RealtimeMessages } from "@/components/messages/realtime-messages";
@@ -128,7 +128,6 @@ export default async function MessageThreadPage({
             )}
 
             <div className="messages-thread-copy">
-              <span className="eyebrow">Conversation</span>
               <h1 className="section-title">
                 {listing?.slug ? (
                   <Link href={`/listings/${listing.slug}`} className="messages-thread-title-link">
@@ -138,20 +137,11 @@ export default async function MessageThreadPage({
                   <span>{listing?.title ?? "Conversation"}</span>
                 )}
               </h1>
-              <p className="section-copy">
-                Chat with {otherUserFirstName} about this listing.
-              </p>
 
               <div className="messages-thread-meta">
                 <span className="messages-thread-person-pill">{otherUserFullName}</span>
                 {safetyState.viewerBlockedOther ? <span className="badge badge-neutral">Blocked</span> : null}
                 {existingReport ? <span className="badge badge-soft">Reported</span> : null}
-                {listing?.slug ? (
-                  <Link href={`/listings/${listing.slug}`} className="messages-thread-listing-link">
-                    <span>View public listing</span>
-                    <ExternalLink aria-hidden="true" size={14} strokeWidth={2.3} />
-                  </Link>
-                ) : null}
               </div>
             </div>
           </div>
@@ -265,7 +255,6 @@ export default async function MessageThreadPage({
           <div className="messages-reply-head">
             <div>
               <h2>Send reply</h2>
-              <p>Ask your question and keep the thread moving.</p>
             </div>
           </div>
 

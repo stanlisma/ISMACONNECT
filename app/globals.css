@@ -5029,7 +5029,8 @@ code {
   width: 2.55rem;
   height: 2.55rem;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  overflow: hidden;
+  background: #f8fafc;
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -5037,6 +5038,19 @@ code {
   font-size: 0.92rem;
   font-weight: 900;
   letter-spacing: 0.03em;
+  border: 1px solid #d0d5dd;
+}
+
+.messages-list-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.messages-list-avatar.is-placeholder {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-color: transparent;
 }
 
 .messages-list-content {
@@ -5058,15 +5072,6 @@ code {
 }
 
 .messages-list-subline,
-.messages-list-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.45rem;
-  color: #7c91af;
-  font-size: 0.85rem;
-}
-
 .messages-list-name {
   color: var(--primary-dark);
   font-weight: 700;
@@ -5080,22 +5085,6 @@ code {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-}
-
-.messages-list-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.6rem;
-  padding: 0.18rem 0.55rem;
-  border-radius: 999px;
-  background: #eef4ff;
-  color: var(--primary-dark);
-  font-size: 0.74rem;
-  font-weight: 800;
-}
-
-.messages-list-meta-link {
-  color: #7f93b1;
 }
 
 .messages-unread-badge {
@@ -5209,7 +5198,7 @@ code {
 
 .messages-thread-copy {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.4rem;
   min-width: 0;
 }
 
@@ -5234,14 +5223,6 @@ code {
   color: var(--primary-dark);
   font-size: 0.82rem;
   font-weight: 800;
-}
-
-.messages-thread-listing-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: var(--text-soft);
-  font-weight: 700;
 }
 
 .messages-safety-panel {
@@ -5636,19 +5617,12 @@ code {
 
 .messages-reply-head {
   display: grid;
-  gap: 0.35rem;
 }
 
 .messages-reply-head h2 {
   margin: 0;
   color: var(--text);
   font-size: 1.15rem;
-}
-
-.messages-reply-head p {
-  margin: 0;
-  color: var(--text-soft);
-  line-height: 1.55;
 }
 
 .messages-reply-field {
@@ -8027,7 +8001,6 @@ code {
   }
 
   .messages-list-subline,
-  .messages-list-meta,
   .messages-list-preview {
     font-size: 0.82rem;
     line-height: 1.4;
@@ -8079,11 +8052,6 @@ code {
 
   .messages-thread-copy .section-copy,
   .messages-safety-head p,
-  .messages-reply-head p {
-    font-size: 0.88rem;
-    line-height: 1.4;
-  }
-
   .messages-toolbar-actions {
     gap: 0.55rem;
   }
@@ -8124,10 +8092,6 @@ code {
 
   .messages-reply-shell {
     gap: 0.75rem;
-  }
-
-  .messages-reply-head p {
-    display: none;
   }
 
   .message-composer {

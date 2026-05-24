@@ -40,7 +40,7 @@ export default async function MessagesPage({
       seller_id,
       buyer_unread_count,
       seller_unread_count,
-      listing:listings(title, slug),
+      listing:listings(title, slug, image_url),
       seller:profiles!conversations_seller_id_fkey(full_name),
       buyer:profiles!conversations_buyer_id_fkey(full_name)
     `)
@@ -90,14 +90,15 @@ export default async function MessagesPage({
     const preview = latestMessage?.body?.trim()
       ? latestMessage.body.trim()
       : latestMessage?.image_url
-        ? "Image attachment"
+        ? "Photo"
         : "No messages yet";
 
     return {
       ...conversation,
       unreadCount,
       otherUserName,
-      preview
+      preview,
+      listingImageUrl: conversation.listing?.image_url ?? null
     };
   });
 
@@ -182,8 +183,17 @@ export default async function MessagesPage({
                     href={`/messages/${conversation.id}`}
                     className="messages-list-item"
                   >
-                    <div className="messages-list-avatar">
-                      {conversation.otherUserName.trim().charAt(0).toUpperCase() || "U"}
+                    <div
+                      className={`messages-list-avatar${conversation.listingImageUrl ? "" : " is-placeholder"}`}
+                    >
+                      {conversation.listingImageUrl ? (
+                        <img
+                          src={conversation.listingImageUrl}
+                          alt={conversation.listing?.title ?? "Listing image"}
+                        />
+                      ) : (
+                        conversation.otherUserName.trim().charAt(0).toUpperCase() || "U"
+                      )}
                     </div>
 
                     <div className="messages-list-content">
@@ -212,15 +222,6 @@ export default async function MessagesPage({
                       <p className="messages-list-preview">
                         {conversation.preview}
                       </p>
-
-                      <div className="messages-list-meta">
-                        <span className="messages-list-chip">
-                          {conversation.unreadCount > 0 ? "Needs reply" : "Up to date"}
-                        </span>
-                        {conversation.listing?.slug ? (
-                          <span className="messages-list-meta-link">Listing linked</span>
-                        ) : null}
-                      </div>
                     </div>
                   </Link>
                 ))
