@@ -74,7 +74,7 @@ export function getListingFreshness(createdAt: string, now = Date.now()) {
       isStale: true,
       ageDays: diffDays,
       timeLabel: formatStaticDateLabel(createdAt),
-      badgeLabel: "Older post",
+      badgeLabel: formatStaticDateLabel(createdAt),
       detailLabel: "Older listing"
     };
   }

@@ -108,7 +108,6 @@ export function ListingCard({
       : getSellerReviewBadgeLabel(trustSummary, true);
 
   const isNew = freshness.isNew;
-  const isStale = freshness.isStale;
   const timeAgo = freshness.timeLabel;
   const { featuredActive, urgentActive } = getListingBoostState(listing);
 
@@ -187,10 +186,6 @@ export function ListingCard({
 
               {urgentActive ? (
                 <span className="listing-card-badge listing-card-badge-urgent">Urgent</span>
-              ) : null}
-
-              {isStale ? (
-                <span className="listing-card-badge listing-card-badge-stale">Older post</span>
               ) : null}
             </div>
 
@@ -343,12 +338,6 @@ export function ListingCard({
           <span className="listing-location">{publicLocation}</span>
           <span style={{ opacity: 0.5 }}>|</span>
           <span>{timeAgo}</span>
-          {isStale ? (
-            <>
-              <span style={{ opacity: 0.5 }}>|</span>
-              <span className="listing-card-stale-note">Confirm availability</span>
-            </>
-          ) : null}
         </div>
       </div>
     </article>
