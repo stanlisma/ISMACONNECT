@@ -9,16 +9,23 @@ import type { SellerTrustSummary } from "@/types/database";
 interface TrustBadgesProps {
   summary?: SellerTrustSummary | null;
   compact?: boolean;
+  showTopRatedBadge?: boolean;
+  showReviewBadge?: boolean;
 }
 
-export function TrustBadges({ summary, compact = false }: TrustBadgesProps) {
+export function TrustBadges({
+  summary,
+  compact = false,
+  showTopRatedBadge = true,
+  showReviewBadge = true
+}: TrustBadgesProps) {
   if (!summary) {
     return null;
   }
 
   const showVerified = summary.verification_status === "verified";
-  const showTopRated = hasPublicTopRatedSeller(summary);
-  const reviewBadgeLabel = getSellerReviewBadgeLabel(summary, compact);
+  const showTopRated = showTopRatedBadge && hasPublicTopRatedSeller(summary);
+  const reviewBadgeLabel = showReviewBadge ? getSellerReviewBadgeLabel(summary, compact) : null;
 
   if (!showVerified && !showTopRated && !reviewBadgeLabel) {
     return null;
