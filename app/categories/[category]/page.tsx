@@ -246,6 +246,7 @@ export default async function CategoryPage({
           }
         ]
       : localContent.quickLinks.slice(0, 3);
+  const mobileQuickLinksVisible = mobileQuickLinks.slice(0, category === "ride-share" ? 4 : 3);
   const mobilePostNeedHref = buildPathWithQuery("/dashboard/listings/new", {
     intent: "need",
     category
@@ -372,11 +373,6 @@ export default async function CategoryPage({
               ) : null}
             </div>
             <h1>{pageTitle}</h1>
-            <p>
-              {totalCount > 0
-                ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
-                : localContent.heroDescription}
-            </p>
           </div>
 
           {isMapEligibleCategory ? (
@@ -397,16 +393,13 @@ export default async function CategoryPage({
           ) : null}
 
           <div className="mobile-browse-quick-links">
-            {mobileQuickLinks.map((link) => (
+            {mobileQuickLinksVisible.map((link) => (
               <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
                 {link.label}
               </Link>
             ))}
             <Link href={mobilePostNeedHref} className="mobile-browse-quick-link is-secondary">
               {mobilePostNeedLabel}
-            </Link>
-            <Link href="#browse-save-search" className="mobile-browse-quick-link is-secondary">
-              Save search
             </Link>
           </div>
 

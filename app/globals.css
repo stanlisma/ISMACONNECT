@@ -9932,3 +9932,67 @@ code {
     display: none;
   }
 }
+
+@media (max-width: 760px) {
+  .account-trust-summary .section-copy {
+    display: none;
+  }
+
+  .home-mobile-query-chip {
+    min-height: 34px;
+    padding: 0.45rem 0.72rem;
+    font-size: 0.82rem;
+  }
+
+  .browse-mobile-overview {
+    gap: 0.65rem;
+    padding: 0.72rem 0.78rem;
+  }
+
+  .marketplace-page-utility-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0.5rem;
+    padding-bottom: 0.08rem;
+  }
+
+  .marketplace-page-utility-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .marketplace-page-utility-link {
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 0.35rem 0.62rem;
+    font-size: 0.78rem;
+  }
+
+  .storefront-manager-overview {
+    display: none;
+  }
+
+  .storefront-manager-toolbar {
+    align-items: stretch;
+  }
+
+  .storefront-manager-toolbar-side {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .storefront-manager-panel-copy span,
+  .business-profile-inline-note {
+    display: none;
+  }
+
+  .storefront-manager-panel-summary {
+    padding: 0.9rem 0.95rem;
+  }
+
+  .storefront-manager-panel-action {
+    min-height: 2rem;
+    padding: 0 0.7rem;
+    font-size: 0.82rem;
+  }
+}
