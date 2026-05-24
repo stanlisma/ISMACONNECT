@@ -8,8 +8,6 @@ import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingImageGallery } from "@/components/listings/listing-image-gallery";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
-import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
-import { SellerReviewForm } from "@/components/trust/seller-review-form";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -30,16 +28,14 @@ import {
   getStructuredDetailItems
 } from "@/lib/listing-structured-fields";
 import {
-  canViewerRateSeller,
   getSellerTrustSummary,
-  getSellerTrustSummaryMap,
-  getViewerSellerReview
+  getSellerTrustSummaryMap
 } from "@/lib/trust";
 import {
+  buildPathWithQuery,
   excerpt,
   formatDate,
   formatListingPrice,
-  getListingPriceTypeLabel,
   getSingleParam
 } from "@/lib/utils";
 
@@ -96,14 +92,6 @@ export default async function ListingPage({
     viewer && viewer.user.id !== listing.owner_id
       ? await getConversationForListing(listing.id, viewer.user.id)
       : null;
-  const existingReview =
-    viewer && viewer.user.id !== listing.owner_id
-      ? await getViewerSellerReview(listing.id, viewer.user.id)
-      : null;
-  const canRateSeller =
-    viewer && viewer.user.id !== listing.owner_id
-      ? await canViewerRateSeller(listing.id, viewer.user.id, listing.owner_id)
-      : false;
 
   const success = getSingleParam(resolvedSearchParams?.success);
   const error = getSingleParam(resolvedSearchParams?.error);
@@ -112,14 +100,21 @@ export default async function ListingPage({
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
   const publicLocation = getPublicListingLocationLabel(listing);
-  const publicLocationLabel = listing.show_exact_address_on_map ? "Address" : "Community";
   const listingIntent = listing.listing_intent === "need" ? "need" : "offer";
   const isNeed = listingIntent === "need";
   const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
   const isOwner = viewer?.user.id === listing.owner_id;
   const canUseMobileActions = !isOwner;
   const storefrontHref = buildStorefrontHref(listing.owner_id, listing.storefront_id);
-  const sellerFirstName = listing.contact_name.trim().split(" ")[0] || "Seller";
+  const sellerProfileHref = buildPathWithQuery(`/sellers/${listing.owner_id}`, {
+    fromListing: listing.id,
+    listingSlug: listing.slug
+  });
+  const selectedStorefrontHref = buildPathWithQuery(storefrontHref, {
+    fromListing: listing.id,
+    listingSlug: listing.slug
+  });
+  const sellerDisplayName = listing.contact_name.trim() || "Seller";
   const mobilePrimaryHref = viewer
     ? existingConversation
       ? `/messages/${existingConversation.id}`
@@ -140,10 +135,6 @@ export default async function ListingPage({
   const unlockTitle = isNeed ? "Sign in to reply" : "Sign in to message";
   const unlockButton = isNeed ? "Sign in to reply" : "Sign in to message";
   const detailFacts = [
-    ...(listing.show_exact_address_on_map
-      ? [{ label: publicLocationLabel, value: publicLocation, isRepeated: false }]
-      : []),
-    { label: "Pricing", value: getListingPriceTypeLabel(listing.price_type), isRepeated: false },
     ...structuredDetailItems.map((item) => ({
       label: "Detail",
       value: item,
@@ -247,12 +238,13 @@ export default async function ListingPage({
 
                 <div className="detail-mobile-seller-strip">
                   <div className="detail-mobile-seller-copy">
-                    <strong>{sellerFirstName}</strong>
+                    <Link href={sellerProfileHref} className="detail-seller-name-link">
+                      {sellerDisplayName}
+                    </Link>
                     <span>{isNeed ? "Local requester" : "Local seller"}</span>
-                    <SellerRatingInline summary={sellerTrustSummary} compact />
                   </div>
-                  <Link href={storefrontHref} className="detail-mobile-storefront-link">
-                    Storefront
+                  <Link href={selectedStorefrontHref} className="detail-mobile-storefront-link">
+                    Profile
                   </Link>
                 </div>
               </div>
@@ -260,11 +252,6 @@ export default async function ListingPage({
 
             {detailFacts.length ? (
               <div className="detail-card">
-              <SectionHeading
-                eyebrow="Listing Details"
-                title="Key details"
-              />
-
               <div className="meta-list detail-fact-list">
                 {detailFacts.map((item) => (
                   <span
@@ -336,40 +323,25 @@ export default async function ListingPage({
               </div>
             )}
 
-            {viewer && viewer.user.id !== listing.owner_id && (canRateSeller || existingReview) ? (
-              <div className="detail-card">
-                <SectionHeading
-                  eyebrow="Seller Rating"
-                  title="Rate this seller"
-                  description="Share a quick trust signal after messaging this seller through ISMACONNECT."
-                />
-                <SellerReviewForm
-                  listingId={listing.id}
-                  listingSlug={listing.slug}
-                  sellerId={listing.owner_id}
-                  existingReview={existingReview}
-                />
-              </div>
-            ) : null}
           </div>
 
           <aside className="detail-side">
             <div className="detail-card detail-seller-card">
-              <SectionHeading
-                eyebrow={isNeed ? "Poster Trust" : "Seller Trust"}
-                title={listing.contact_name}
-              />
+              <div className="section-heading">
+                <span className="eyebrow">{isNeed ? "Poster Trust" : "Seller Trust"}</span>
+                <Link href={sellerProfileHref} className="section-title detail-seller-name-link">
+                  {sellerDisplayName}
+                </Link>
+              </div>
 
               <div className="action-row" style={{ marginBottom: "1rem" }}>
                 <Link
                   className="button button-secondary"
-                  href={storefrontHref}
+                  href={selectedStorefrontHref}
                 >
-                  View seller storefront
+                  View profile
                 </Link>
               </div>
-
-              <SellerRatingInline summary={sellerTrustSummary} />
 
               <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} />
 
