@@ -4,20 +4,38 @@ import type { SellerTrustSummary } from "@/types/database";
 
 interface SellerRatingInlineProps {
   summary?: SellerTrustSummary | null;
+  rating?: number | null;
+  reviewCount?: number | null;
   compact?: boolean;
+  showCount?: boolean;
 }
 
-export function SellerRatingInline({ summary, compact = false }: SellerRatingInlineProps) {
-  if (!summary || summary.review_count <= 0 || summary.average_rating === null) {
+export function SellerRatingInline({
+  summary,
+  rating,
+  reviewCount,
+  compact = false,
+  showCount = true
+}: SellerRatingInlineProps) {
+  const averageSource = summary?.average_rating ?? rating ?? null;
+  const reviewCountSource = summary?.review_count ?? reviewCount ?? null;
+
+  if (averageSource === null || averageSource === undefined) {
     return null;
   }
 
-  const average = Math.max(0, Math.min(5, summary.average_rating));
+  if (showCount && (reviewCountSource === null || reviewCountSource === undefined || reviewCountSource <= 0)) {
+    return null;
+  }
+
+  const average = Math.max(0, Math.min(5, averageSource));
   const fillWidth = `${(average / 5) * 100}%`;
   const stars = "\u2605\u2605\u2605\u2605\u2605";
-  const label = `${average.toFixed(1)} out of 5 from ${summary.review_count} ${
-    summary.review_count === 1 ? "review" : "reviews"
-  }`;
+  const label = showCount
+    ? `${average.toFixed(1)} out of 5 from ${reviewCountSource} ${
+        reviewCountSource === 1 ? "review" : "reviews"
+      }`
+    : `${average.toFixed(1)} out of 5 stars`;
 
   return (
     <div className={`seller-rating-inline${compact ? " is-compact" : ""}`} aria-label={label}>
@@ -30,7 +48,7 @@ export function SellerRatingInline({ summary, compact = false }: SellerRatingInl
         <span className="seller-rating-stars-fill">{stars}</span>
       </span>
       <span className="seller-rating-value">{average.toFixed(1)}</span>
-      <span className="seller-rating-count">({summary.review_count})</span>
+      {showCount ? <span className="seller-rating-count">({reviewCountSource})</span> : null}
     </div>
   );
 }

@@ -4,19 +4,28 @@ import { notFound } from "next/navigation";
 import { Building2, Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 
 import { getBusinessHoursRows, getBusinessHoursStatus } from "@/lib/business-profile";
+import { buildStorefrontHref } from "@/lib/business-storefronts";
 import { ListingCard } from "@/components/listings/listing-card";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
+import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
+import { SellerReviewForm } from "@/components/trust/seller-review-form";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP, DEFAULT_MARKETPLACE_CATEGORY } from "@/lib/constants";
-import { getPublicSellerStorefront, getSavedListingIds } from "@/lib/data";
-import { getSellerTrustSummary, getSellerTrustSummaryMap } from "@/lib/trust";
 import {
-  getSellerReviewSummary,
-  hasPublicSellerRating
-} from "@/lib/trust-presentation";
+  getPublicSellerReviews,
+  getPublicSellerStorefront,
+  getPublicSellerStorefrontLinks,
+  getSavedListingIds
+} from "@/lib/data";
+import {
+  canViewerRateSeller,
+  getSellerTrustSummary,
+  getSellerTrustSummaryMap,
+  getViewerSellerReview
+} from "@/lib/trust";
 import { buildPathWithQuery, formatDate, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -60,6 +69,8 @@ export default async function SellerStorefrontPage({
   const { sellerId } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const storefrontId = getSingleParam(resolvedSearchParams?.storefront);
+  const reviewListingId = getSingleParam(resolvedSearchParams?.fromListing);
+  const reviewListingSlug = getSingleParam(resolvedSearchParams?.listingSlug);
   const storefront = await getPublicSellerStorefront(sellerId, 12, storefrontId);
 
   if (!storefront) {
@@ -69,8 +80,18 @@ export default async function SellerStorefrontPage({
   const categoryFilter = resolveCategory(getSingleParam(resolvedSearchParams?.category));
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
+  const storefrontLinks = await getPublicSellerStorefrontLinks(sellerId);
+  const publicReviews = await getPublicSellerReviews(sellerId, 6);
   const trustSummary = await getSellerTrustSummary(sellerId);
   const trustMap = await getSellerTrustSummaryMap(storefront.listings.map((listing) => listing.owner_id));
+  const existingReview =
+    viewer && reviewListingId && viewer.user.id !== sellerId
+      ? await getViewerSellerReview(reviewListingId, viewer.user.id)
+      : null;
+  const canRateSellerFromListing =
+    viewer && reviewListingId && viewer.user.id !== sellerId
+      ? await canViewerRateSeller(reviewListingId, viewer.user.id, sellerId)
+      : false;
   const filteredListings = categoryFilter
     ? storefront.listings.filter((listing) => listing.category === categoryFilter)
     : storefront.listings;
@@ -84,11 +105,6 @@ export default async function SellerStorefrontPage({
   const memberSinceLabel = trustSummary?.member_since
     ? formatDate(trustSummary.member_since)
     : "Recently joined";
-  const ratingLabel = hasPublicSellerRating(trustSummary)
-    ? `${trustSummary?.average_rating?.toFixed(1)} / 5`
-    : trustSummary?.review_count
-      ? "Early reviews"
-      : "No public rating yet";
   const storefrontDescription = storefront.is_business
     ? storefront.business_description ||
       "Browse this business storefront, review trust signals, and explore active local listings."
@@ -99,6 +115,18 @@ export default async function SellerStorefrontPage({
   const businessHoursRows = storefront.is_business && businessHoursStatus
     ? getBusinessHoursRows(storefront.business_hours)
     : [];
+  const preservedSellerQuery = {
+    fromListing: reviewListingId ?? undefined,
+    listingSlug: reviewListingSlug ?? undefined
+  };
+  const profileHref = buildPathWithQuery(`/sellers/${sellerId}`, preservedSellerQuery);
+  const showReviewComposer = Boolean(
+    reviewListingId &&
+      reviewListingSlug &&
+      viewer &&
+      viewer.user.id !== sellerId &&
+      (canRateSellerFromListing || existingReview)
+  );
 
   return (
     <section className="section">
@@ -122,7 +150,6 @@ export default async function SellerStorefrontPage({
                 <div className="seller-storefront-meta">
                   <span>{storefront.primary_location}</span>
                   <span>Member since {memberSinceLabel}</span>
-                  <span>{ratingLabel}</span>
                   {storefront.is_business ? <span>Business account</span> : null}
                   {businessHoursStatus ? (
                     <span className={`seller-storefront-status-pill ${businessHoursStatus.isOpen ? "is-open" : ""}`}>
@@ -158,7 +185,8 @@ export default async function SellerStorefrontPage({
                   </div>
                 ) : null}
 
-                <TrustBadges summary={trustSummary} />
+                <SellerRatingInline summary={trustSummary} />
+                <TrustBadges summary={trustSummary} showReviewBadge={false} />
               </div>
             </div>
 
@@ -265,11 +293,34 @@ export default async function SellerStorefrontPage({
             </div>
           </div>
 
+          {storefrontLinks.length ? (
+            <div className="seller-storefront-switcher">
+              <Link
+                className={`seller-storefront-switch-pill${!storefrontId ? " is-active" : ""}`}
+                href={profileHref}
+              >
+                <span>Profile</span>
+              </Link>
+              {storefrontLinks.map((item) => (
+                <Link
+                  key={item.storefront_id}
+                  className={`seller-storefront-switch-pill${storefrontId === item.storefront_id ? " is-active" : ""}`}
+                  href={buildPathWithQuery(buildStorefrontHref(sellerId, item.storefront_id), preservedSellerQuery)}
+                >
+                  <span>{item.name}</span>
+                  <strong>{item.active_listing_count}</strong>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
           <div className="seller-storefront-category-row">
             {categoryCounts.map(({ category, count }) => {
               const isActive = categoryFilter === category;
               const href = buildPathWithQuery(`/sellers/${sellerId}`, {
-                category: isActive ? undefined : category
+                storefront: storefrontId ?? undefined,
+                category: isActive ? undefined : category,
+                ...preservedSellerQuery
               });
 
               return (
@@ -285,11 +336,76 @@ export default async function SellerStorefrontPage({
             })}
 
             {categoryFilter ? (
-              <Link className="seller-storefront-category-clear" href={`/sellers/${sellerId}`}>
+              <Link
+                className="seller-storefront-category-clear"
+                href={buildPathWithQuery(`/sellers/${sellerId}`, {
+                  storefront: storefrontId ?? undefined,
+                  ...preservedSellerQuery
+                })}
+              >
                 Clear filter
               </Link>
             ) : null}
           </div>
+        </div>
+
+        <div className="seller-storefront-reviews-shell">
+          <div className="seller-storefront-reviews-head">
+            <SectionHeading
+              eyebrow="Reviews"
+              title={`Reviews for ${storefront.display_name}`}
+              description="Ratings and comments from locals who connected with this seller through ISMACONNECT."
+            />
+            {showReviewComposer ? (
+              <Link href="#seller-review" className="button button-secondary">
+                Add review
+              </Link>
+            ) : null}
+          </div>
+
+          {showReviewComposer ? (
+            <div className="surface seller-storefront-review-form-card" id="seller-review">
+              <SectionHeading
+                title="Add review"
+                description="Leave a quick rating based on your experience with this seller."
+              />
+              <SellerReviewForm
+                listingId={reviewListingId!}
+                listingSlug={reviewListingSlug!}
+                sellerId={sellerId}
+                existingReview={existingReview}
+              />
+            </div>
+          ) : null}
+
+          {publicReviews.length ? (
+            <div className="seller-storefront-review-list">
+              {publicReviews.map((review) => (
+                <article key={review.id} className="seller-storefront-review-card">
+                  <div className="seller-storefront-review-head">
+                    <SellerRatingInline rating={review.rating} showCount={false} />
+                    <span>{formatDate(review.created_at)}</span>
+                  </div>
+                  {review.comment ? (
+                    <p className="seller-storefront-review-comment">{review.comment}</p>
+                  ) : (
+                    <p className="seller-storefront-review-comment is-empty">No written comment was added.</p>
+                  )}
+                  {review.listing_slug && review.listing_title ? (
+                    <Link href={`/listings/${review.listing_slug}`} className="seller-storefront-review-link">
+                      From: {review.listing_title}
+                    </Link>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="surface seller-storefront-review-empty">
+              <p className="section-copy">
+                No reviews yet. Ratings from local conversations will start showing here as people leave feedback.
+              </p>
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: "1.5rem" }}>
@@ -302,11 +418,6 @@ export default async function SellerStorefrontPage({
             }
             description="These listings are currently visible across browse and category feeds."
           />
-
-          <p className="section-copy seller-storefront-trust-note">
-            {getSellerReviewSummary(trustSummary)}
-            {trustSummary?.verification_status === "verified" ? " ID verification active." : ""}
-          </p>
 
           {filteredListings.length ? (
             <div className="listing-grid listing-feed-grid">

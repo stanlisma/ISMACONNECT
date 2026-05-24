@@ -320,6 +320,23 @@ export interface PublicSellerStorefront {
   listings: Listing[];
 }
 
+export interface PublicSellerStorefrontLink {
+  storefront_id: string;
+  name: string;
+  logo_url: string | null;
+  active_listing_count: number;
+}
+
+export interface PublicSellerReviewItem {
+  id: string;
+  listing_id: string;
+  listing_slug: string | null;
+  listing_title: string | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
 export interface PublicBusinessStorefrontDirectoryItem {
   storefront_id: string;
   owner_id: string;

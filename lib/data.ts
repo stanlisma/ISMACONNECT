@@ -28,6 +28,8 @@ import type {
   ListingCategory,
   ListingIntent,
   PublicBusinessStorefrontDirectoryItem,
+  PublicSellerReviewItem,
+  PublicSellerStorefrontLink,
   PublicSellerStorefront
 } from "@/types/database";
 
@@ -717,6 +719,102 @@ export async function getPublicSellerStorefront(
     active_categories: activeCategories,
     listings
   };
+}
+
+export async function getPublicSellerStorefrontLinks(sellerId: string) {
+  if (!isSupabaseConfigured()) {
+    return [] as PublicSellerStorefrontLink[];
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  const storefrontResponse = await supabase
+    .from("business_storefronts")
+    .select("id, name, logo_url")
+    .eq("owner_id", sellerId)
+    .order("updated_at", { ascending: false });
+
+  if (storefrontResponse.error) {
+    if (!isAdditionalStorefrontSchemaError(storefrontResponse.error)) {
+      logDataError("Public seller storefront links query failed", storefrontResponse.error);
+    }
+
+    return [] as PublicSellerStorefrontLink[];
+  }
+
+  const storefrontRows = (storefrontResponse.data ?? []) as Array<{
+    id: string;
+    name: string;
+    logo_url: string | null;
+  }>;
+
+  if (!storefrontRows.length) {
+    return [] as PublicSellerStorefrontLink[];
+  }
+
+  const listingsResponse = await supabase
+    .from("listings")
+    .select("storefront_id")
+    .eq("owner_id", sellerId)
+    .eq("status", "active")
+    .not("storefront_id", "is", null);
+
+  if (listingsResponse.error) {
+    logDataError("Public seller storefront listing counts query failed", listingsResponse.error);
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const row of ((listingsResponse.data ?? []) as Array<{ storefront_id: string | null }>)) {
+    if (!row.storefront_id) {
+      continue;
+    }
+
+    counts.set(row.storefront_id, (counts.get(row.storefront_id) ?? 0) + 1);
+  }
+
+  return storefrontRows.map((row) => ({
+    storefront_id: row.id,
+    name: row.name,
+    logo_url: row.logo_url,
+    active_listing_count: counts.get(row.id) ?? 0
+  }));
+}
+
+export async function getPublicSellerReviews(sellerId: string, limit = 6) {
+  if (!isSupabaseConfigured() || !isSupabaseServiceRoleConfigured()) {
+    return [] as PublicSellerReviewItem[];
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+  const { data, error } = await supabase
+    .from("seller_reviews")
+    .select("id, listing_id, rating, comment, created_at, listing:listings(slug, title)")
+    .eq("seller_id", sellerId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    logDataError("Public seller reviews query failed", error);
+    return [] as PublicSellerReviewItem[];
+  }
+
+  return ((data ?? []) as Array<{
+    id: string;
+    listing_id: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+    listing?: { slug?: string | null; title?: string | null } | null;
+  }>).map((row) => ({
+    id: row.id,
+    listing_id: row.listing_id,
+    listing_slug: row.listing?.slug ?? null,
+    listing_title: row.listing?.title ?? null,
+    rating: row.rating,
+    comment: row.comment?.trim() ? row.comment.trim() : null,
+    created_at: row.created_at
+  }));
 }
 
 export async function getPublicBusinessStorefrontDirectory(filters?: {
