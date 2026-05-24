@@ -13,6 +13,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { isSupabaseConfigured } from "@/lib/env";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
+import { applyListingKeywordSearch, type ListingKeywordSearchMode } from "@/lib/listing-search";
 import { applyStructuredListingFilters } from "@/lib/listing-structured-fields";
 import {
   filterListingsByCommunityArea,
@@ -263,7 +264,7 @@ export async function getPublicListings(filters: {
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
 
-  const buildBaseQuery = () => {
+  const buildBaseQuery = (searchMode: ListingKeywordSearchMode = "fts") => {
     let query = supabase
     .from("listings")
     .select("*", { count: "exact" })
@@ -291,12 +292,7 @@ export async function getPublicListings(filters: {
       }
     }
 
-    if (filters.search?.trim()) {
-      query = query.textSearch("search_document", filters.search.trim(), {
-        type: "websearch",
-        config: "simple"
-      });
-    }
+    query = applyListingKeywordSearch(query, filters.search, searchMode);
 
     if (filters.minPrice !== null && filters.minPrice !== undefined) {
       query = query.gte("price", filters.minPrice);
@@ -350,15 +346,33 @@ export async function getPublicListings(filters: {
     return query;
   };
 
-  const applyPageRange = (query: any) => query.range(offset, offset + pageSize);
+  const shouldRetryKeywordSearch =
+    Boolean(filters.search?.trim());
+
+  const runListingsQuery = async (rangeStart: number, rangeEnd: number) => {
+    let response = await applySortOrder(buildBaseQuery("fts"), true).range(rangeStart, rangeEnd);
+
+    if (response.error && isPromotionSchemaError(response.error)) {
+      response = await applySortOrder(buildBaseQuery("fts"), false).range(rangeStart, rangeEnd);
+    }
+
+    if (shouldRetryKeywordSearch && (response.error || !(response.data?.length ?? 0))) {
+      let fallbackResponse = await applySortOrder(buildBaseQuery("ilike"), true).range(rangeStart, rangeEnd);
+
+      if (fallbackResponse.error && isPromotionSchemaError(fallbackResponse.error)) {
+        fallbackResponse = await applySortOrder(buildBaseQuery("ilike"), false).range(rangeStart, rangeEnd);
+      }
+
+      if (!fallbackResponse.error || !(response.data?.length ?? 0)) {
+        response = fallbackResponse;
+      }
+    }
+
+    return response;
+  };
 
   if (filters.communityArea && filters.category && filters.category !== "ride-share") {
-    const areaQuery = applySortOrder(buildBaseQuery(), true).range(0, 499);
-    let areaResponse = await areaQuery;
-
-    if (areaResponse.error && isPromotionSchemaError(areaResponse.error)) {
-      areaResponse = await applySortOrder(buildBaseQuery(), false).range(0, 499);
-    }
+    let areaResponse = await runListingsQuery(0, 499);
 
     if (areaResponse.error) {
       logDataError("Community area listings query failed", areaResponse.error);
@@ -385,11 +399,7 @@ export async function getPublicListings(filters: {
     };
   }
 
-  let primaryResponse = await applyPageRange(applySortOrder(buildBaseQuery(), true));
-
-  if (primaryResponse.error && isPromotionSchemaError(primaryResponse.error)) {
-    primaryResponse = await applyPageRange(applySortOrder(buildBaseQuery(), false));
-  }
+  const primaryResponse = await runListingsQuery(offset, offset + pageSize);
 
   if (primaryResponse.error) {
     logDataError("Public listings query failed", primaryResponse.error);

@@ -9,6 +9,7 @@ import {
   getSubcategoryQueryValues,
   normalizeSubcategory
 } from "@/lib/subcategories";
+import { applyListingKeywordSearch } from "@/lib/listing-search";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveCategory, resolveListingIntent, resolveRequestWindow } from "@/lib/utils";
@@ -327,12 +328,7 @@ function applyListingFilters(query: any, filters: SavedSearchFilters) {
     }
   }
 
-  if (normalized.search) {
-    nextQuery = nextQuery.textSearch("search_document", normalized.search, {
-      type: "websearch",
-      config: "simple"
-    });
-  }
+  nextQuery = applyListingKeywordSearch(nextQuery, normalized.search, "ilike");
 
   if (normalized.minPrice !== null) {
     nextQuery = nextQuery.gte("price", normalized.minPrice);
