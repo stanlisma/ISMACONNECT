@@ -3075,11 +3075,6 @@ code {
   color: #9a3412;
 }
 
-.listing-card-badge-stale {
-  background: rgba(255, 255, 255, 0.94);
-  color: #8a5a15;
-}
-
 .listing-card-signals {
   display: flex;
   flex-wrap: wrap;
@@ -3092,11 +3087,6 @@ code {
 
 .listing-card-signals span {
   white-space: nowrap;
-}
-
-.listing-card-stale-note {
-  color: #8a5a15;
-  font-weight: 700;
 }
 
 .listing-card-structured-signals {
