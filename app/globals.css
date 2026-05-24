@@ -2159,7 +2159,7 @@ code {
   inset: 0 auto 0 0;
   overflow: hidden;
   width: var(--seller-rating-fill, 0%);
-  color: #f59e0b;
+  color: var(--primary);
 }
 
 .seller-rating-value {
