@@ -189,9 +189,9 @@ export function ListingCard({
               ) : null}
             </div>
 
-            <span className="mobile-marketplace-badge">
-              {urgentActive ? "Urgent" : freshness.badgeLabel}
-            </span>
+            {urgentActive ? (
+              <span className="mobile-marketplace-badge">Urgent</span>
+            ) : null}
 
             {images.length > 1 ? (
               <>
