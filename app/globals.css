@@ -6356,12 +6356,43 @@ code {
   flex-shrink: 0;
 }
 
+.saved-search-inline {
+  display: flex;
+  justify-content: flex-end;
+  scroll-margin-top: 7.5rem;
+  margin-top: 0.85rem;
+}
+
+.saved-search-inline-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.4rem;
+  border: 1px solid #d8e3fa;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 18px rgba(30, 107, 255, 0.08);
+}
+
+.saved-search-inline .saved-search-form {
+  margin: 0;
+}
+
+.saved-search-inline .saved-search-form,
+.saved-search-inline .saved-search-form .button {
+  width: auto;
+}
+
 .saved-search-submit,
 .saved-search-delete-button {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   white-space: nowrap;
+}
+
+.saved-search-inline .saved-search-submit {
+  min-height: 42px;
 }
 
 .saved-searches-summary {
@@ -9207,6 +9238,31 @@ code {
   .saved-search-copy p {
     font-size: 0.82rem;
     line-height: 1.35;
+  }
+
+  .saved-search-inline {
+    justify-content: flex-start;
+    margin-top: 0.55rem;
+  }
+
+  .saved-search-inline-actions {
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.3rem;
+    border-radius: 18px;
+  }
+
+  .saved-search-inline .saved-search-form {
+    flex: 1 1 auto;
+  }
+
+  .saved-search-inline .saved-search-form .button {
+    width: auto;
+  }
+
+  .saved-search-inline-compact-mobile .saved-search-submit {
+    min-height: 40px;
+    padding: 0.7rem 0.9rem;
   }
 
   .saved-search-banner-compact-mobile {
