@@ -216,6 +216,7 @@ export default async function BrowsePage({
       : category
         ? getCategoryLocalContent(category).quickLinks.slice(0, 3)
         : MOBILE_BROWSE_QUICK_LINKS;
+  const mobileQuickLinksVisible = mobileQuickLinks.slice(0, category === "ride-share" ? 4 : 3);
   const mobilePostNeedHref = buildPathWithQuery("/dashboard/listings/new", {
     intent: "need",
     category
@@ -376,11 +377,6 @@ export default async function BrowsePage({
               ) : null}
             </div>
             <h1>{browseTitle}</h1>
-            <p>
-              {totalCount > 0
-                ? `${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
-                : "Browse local listings and needs"}
-            </p>
           </div>
 
           {isMapEligibleCategory ? (
@@ -401,16 +397,13 @@ export default async function BrowsePage({
           ) : null}
 
           <div className="mobile-browse-quick-links">
-            {mobileQuickLinks.map((link) => (
+            {mobileQuickLinksVisible.map((link) => (
               <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
                 {link.label}
               </Link>
             ))}
             <Link href={mobilePostNeedHref} className="mobile-browse-quick-link is-secondary">
               {mobilePostNeedLabel}
-            </Link>
-            <Link href="#browse-save-search" className="mobile-browse-quick-link is-secondary">
-              Save search
             </Link>
           </div>
 

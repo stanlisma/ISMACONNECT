@@ -19,6 +19,8 @@ const POPULAR_QUERIES = [
   { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
 ];
 
+const MOBILE_POPULAR_QUERIES = POPULAR_QUERIES.slice(0, 4);
+
 const CAMP_TRANSPORT_LINKS = [
   {
     label: "Browse camp rides",
@@ -91,7 +93,7 @@ export default async function HomePage() {
         </div>
 
         <div className="home-mobile-query-row">
-          {POPULAR_QUERIES.map((query) => (
+          {MOBILE_POPULAR_QUERIES.map((query) => (
             <Link key={query.label} href={query.href} className="home-mobile-query-chip">
               {query.label}
             </Link>
