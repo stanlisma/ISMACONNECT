@@ -13,7 +13,6 @@ import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
 import { getPublicListingImages } from "@/lib/listing-media";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
-import { getSellerReviewBadgeLabel } from "@/lib/trust-presentation";
 import { excerpt, formatListingPrice, getCategoryLabel } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
 
@@ -102,10 +101,7 @@ export function ListingCard({
   const isNeed = listingIntent === "need";
   const requestWindowLabel = listing.request_window ? REQUEST_WINDOW_LABELS[listing.request_window] : null;
   const structuredHighlights = getStructuredCardHighlights(listing.category, listing.structured_data);
-  const mobileTrustLabel =
-    trustSummary?.verification_status === "verified"
-      ? "ID verified"
-      : getSellerReviewBadgeLabel(trustSummary, true);
+  const mobileTrustLabel = trustSummary?.verification_status === "verified" ? "ID verified" : null;
 
   const isNew = freshness.isNew;
   const timeAgo = freshness.timeLabel;
@@ -332,7 +328,12 @@ export function ListingCard({
           </div>
         ) : null}
 
-        <TrustBadges summary={trustSummary} compact />
+        <TrustBadges
+          summary={trustSummary}
+          compact
+          showTopRatedBadge={false}
+          showReviewBadge={false}
+        />
 
         <div className="listing-card-signals">
           <span className="listing-location">{publicLocation}</span>

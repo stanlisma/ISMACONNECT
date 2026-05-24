@@ -8,6 +8,7 @@ import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingImageGallery } from "@/components/listings/listing-image-gallery";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
+import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
 import { SellerReviewForm } from "@/components/trust/seller-review-form";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -34,7 +35,6 @@ import {
   getSellerTrustSummaryMap,
   getViewerSellerReview
 } from "@/lib/trust";
-import { getSellerReviewSummary } from "@/lib/trust-presentation";
 import {
   excerpt,
   formatDate,
@@ -249,6 +249,7 @@ export default async function ListingPage({
                   <div className="detail-mobile-seller-copy">
                     <strong>{sellerFirstName}</strong>
                     <span>{isNeed ? "Local requester" : "Local seller"}</span>
+                    <SellerRatingInline summary={sellerTrustSummary} compact />
                   </div>
                   <Link href={storefrontHref} className="detail-mobile-storefront-link">
                     Storefront
@@ -368,14 +369,16 @@ export default async function ListingPage({
                 </Link>
               </div>
 
-              <TrustBadges summary={sellerTrustSummary} />
+              <SellerRatingInline summary={sellerTrustSummary} />
+
+              <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} />
 
               <div className="meta-list" style={{ marginTop: "1rem" }}>
+                {!sellerTrustSummary?.review_count ? (
+                  <span>No reviews yet</span>
+                ) : null}
                 <span>
-                  Rating: {getSellerReviewSummary(sellerTrustSummary)}
-                </span>
-                  <span>
-                    Verification:{" "}
+                  Verification:{" "}
                   {sellerTrustSummary?.verification_status === "verified"
                     ? "ID verified"
                     : sellerTrustSummary?.verification_status === "pending"

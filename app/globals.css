@@ -2121,6 +2121,56 @@ code {
   color: #334155;
 }
 
+.seller-rating-inline {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.seller-rating-inline.is-compact {
+  font-size: 0.8rem;
+  gap: 0.28rem;
+}
+
+.seller-rating-stars {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.seller-rating-stars-base,
+.seller-rating-stars-fill {
+  display: block;
+  white-space: nowrap;
+}
+
+.seller-rating-stars-base {
+  color: #d7deea;
+}
+
+.seller-rating-stars-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  width: var(--seller-rating-fill, 0%);
+  color: #f59e0b;
+}
+
+.seller-rating-value {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.seller-rating-count {
+  color: var(--text-soft);
+}
+
 .launch-metrics-shell {
   display: grid;
   gap: 1rem;
@@ -8842,6 +8892,10 @@ code {
   color: var(--text-soft);
   font-size: 0.79rem;
   font-weight: 600;
+}
+
+.detail-mobile-seller-copy .seller-rating-inline {
+  margin-top: 0.08rem;
 }
 
 .detail-mobile-trust-head {
