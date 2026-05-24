@@ -8908,21 +8908,6 @@ code {
   font-weight: 800;
 }
 
-.detail-stale-notice {
-  display: grid;
-  gap: 0.35rem;
-  margin-top: 1rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid #f2d8a7;
-  border-radius: 16px;
-  background: #fff9ed;
-  color: #8a5a15;
-}
-
-.detail-stale-notice strong {
-  color: #7c4a03;
-}
-
 .detail-contact-card,
 .detail-conversation-card,
 .detail-guest-unlock-card {

@@ -22,7 +22,6 @@ import {
   getRelatedListings,
   getSavedListingIds,
 } from "@/lib/data";
-import { getListingFreshness } from "@/lib/listing-freshness";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getPublicListingImages } from "@/lib/listing-media";
 import {
@@ -111,7 +110,6 @@ export default async function ListingPage({
 
   const images = getPublicListingImages(listing);
   const { featuredActive, urgentActive, boostedActive } = getListingBoostState(listing);
-  const freshness = getListingFreshness(listing.created_at);
   const structuredDetailItems = getStructuredDetailItems(listing.category, listing.structured_data);
   const publicLocation = getPublicListingLocationLabel(listing);
   const publicLocationLabel = listing.show_exact_address_on_map ? "Address" : "Community";
@@ -141,13 +139,6 @@ export default async function ListingPage({
     : "Edit details, update images, or boost this post from your dashboard.";
   const unlockTitle = isNeed ? "Sign in to reply" : "Sign in to message";
   const unlockButton = isNeed ? "Sign in to reply" : "Sign in to message";
-  const staleListingNotice = freshness.isStale
-    ? listing.category === "ride-share"
-      ? "This ride post is older than two weeks. Confirm the route, timing, and seat availability before heading out."
-      : isNeed
-        ? "This request is older than two weeks. Double-check that help is still needed before you reply."
-        : "This listing is older than two weeks. Confirm availability before making plans or travelling to meet."
-    : null;
   const detailFacts = [
     ...(listing.show_exact_address_on_map
       ? [{ label: publicLocationLabel, value: publicLocation, isRepeated: false }]
@@ -240,13 +231,6 @@ export default async function ListingPage({
                     <ListingViewTracker listingId={listing.id} />
                   </div>
                 </div>
-
-                {staleListingNotice ? (
-                  <div className="detail-stale-notice">
-                    <strong>{freshness.detailLabel}</strong>
-                    <span>{staleListingNotice}</span>
-                  </div>
-                ) : null}
 
               </div>
 
