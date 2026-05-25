@@ -441,6 +441,18 @@ export async function deleteAdditionalStorefrontAction(storefrontId: string, for
     );
   }
 
+  const { count: remainingStorefrontCount } = await supabase
+    .from("business_storefronts")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", viewer.user.id);
+
+  if ((remainingStorefrontCount ?? 0) === 0) {
+    await supabase
+      .from("profiles")
+      .update({ is_business: false })
+      .eq("id", viewer.user.id);
+  }
+
   revalidatePath("/settings");
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
