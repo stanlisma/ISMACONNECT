@@ -11,7 +11,6 @@ import type { AdditionalBusinessStorefront } from "@/types/database";
 type AdditionalStorefrontsManagerProps = {
   storefronts: AdditionalBusinessStorefront[];
   schemaReady: boolean;
-  accountEnabled?: boolean;
   focusStorefrontId?: string | null;
   showCreateForm?: boolean;
   createAction: (formData: FormData) => void | Promise<void>;
@@ -416,7 +415,6 @@ function StorefrontPreview({
 export function AdditionalStorefrontsManager({
   storefronts,
   schemaReady,
-  accountEnabled = false,
   focusStorefrontId,
   showCreateForm = false,
   createAction,
@@ -434,7 +432,7 @@ export function AdditionalStorefrontsManager({
               <h2>Storefronts</h2>
               <FieldHelp
                 label="Storefronts"
-                text="Run the additional storefront migration in Supabase to manage more than one public storefront from one business account."
+                text="Run the additional storefront migration in Supabase to manage more than one public storefront from one account."
               />
             </div>
           </div>
@@ -468,7 +466,7 @@ export function AdditionalStorefrontsManager({
             <h2>Storefronts</h2>
             <FieldHelp
               label="Storefronts"
-              text="Add separate storefronts for different locations, brands, or service lines."
+              text="Every signed-in account can create separate storefronts for different locations, brands, or service lines."
             />
           </div>
         </div>
@@ -480,7 +478,7 @@ export function AdditionalStorefrontsManager({
           ) : null}
           {storefronts.length ? (
             <a
-              className={`button${accountEnabled ? " button-secondary" : ""}`}
+              className="button button-secondary"
               href={showCreateForm ? buildStorefrontsOverviewHref(returnPath) : buildCreateStorefrontHref(returnPath)}
             >
               {showCreateForm ? "Back to storefronts" : "Create storefront"}

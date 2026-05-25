@@ -1,7 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 
 import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
-import { BusinessProfileForm } from "@/components/settings/business-profile-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -20,7 +19,6 @@ import {
   createAdditionalStorefrontAction,
   deleteAdditionalStorefrontAction,
   updateAdditionalStorefrontAction,
-  updateBusinessProfileAction,
   updateNotificationSettingsAction
 } from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
@@ -58,29 +56,16 @@ export default async function SettingsPage({
   const businessProfileResponse = await supabase
     .from("profiles")
     .select(
-      "full_name, phone, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours"
+      "business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours"
     )
     .eq("id", viewer.user.id)
     .maybeSingle();
 
-  let businessSchemaReady = true;
   let businessProfile = EMPTY_BUSINESS_PROFILE;
 
   if (businessProfileResponse.error) {
     if (isBusinessProfileSchemaError(businessProfileResponse.error)) {
-      businessSchemaReady = false;
-
-      const fallbackProfile = await supabase
-        .from("profiles")
-        .select("full_name, phone")
-        .eq("id", viewer.user.id)
-        .maybeSingle();
-
-      businessProfile = {
-        ...EMPTY_BUSINESS_PROFILE,
-        full_name: fallbackProfile.data?.full_name ?? null,
-        phone: fallbackProfile.data?.phone ?? null
-      };
+      businessProfile = EMPTY_BUSINESS_PROFILE;
     } else {
       console.error("Business profile load failed:", businessProfileResponse.error.message);
     }
@@ -141,8 +126,8 @@ export default async function SettingsPage({
             <a className="account-menu-pill is-active" href="#notifications">
               Notifications
             </a>
-            <a className="account-menu-pill" href="#business">
-              Business
+            <a className="account-menu-pill" href="#storefronts">
+              Storefronts
             </a>
             <a className="account-menu-pill" href="#verification">
               Verification
@@ -190,21 +175,10 @@ export default async function SettingsPage({
           </div>
         </div>
 
-        <div className="settings-block-stack" id="business">
-          <BusinessProfileForm
-            action={updateBusinessProfileAction}
-            schemaReady={businessSchemaReady}
-            returnPath="/settings"
-            defaults={{
-              isBusiness: businessProfile.is_business,
-              profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
-            }}
-          />
-
+        <div className="settings-block-stack" id="storefronts">
           <AdditionalStorefrontsManager
             storefronts={additionalStorefrontsResult.storefronts}
             schemaReady={additionalStorefrontsResult.schemaReady}
-            accountEnabled={businessProfile.is_business}
             createAction={createAdditionalStorefrontAction}
             updateAction={updateAdditionalStorefrontAction}
             deleteAction={deleteAdditionalStorefrontAction}

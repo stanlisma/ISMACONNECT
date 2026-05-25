@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 
 import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
-import { BusinessProfileForm } from "@/components/settings/business-profile-form";
 import { FlashMessage } from "@/components/ui/flash-message";
 import {
   EMPTY_BUSINESS_PROFILE,
@@ -12,8 +10,7 @@ import {
 import {
   createAdditionalStorefrontAction,
   deleteAdditionalStorefrontAction,
-  updateAdditionalStorefrontAction,
-  updateBusinessProfileAction
+  updateAdditionalStorefrontAction
 } from "@/lib/actions/settings";
 import { requireViewer } from "@/lib/auth";
 import { getOwnedAdditionalStorefronts } from "@/lib/data";
@@ -36,29 +33,16 @@ export default async function DashboardStorefrontsPage({
   const businessProfileResponse = await supabase
     .from("profiles")
     .select(
-      "full_name, phone, is_business, business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours"
+      "business_name, business_description, business_logo_url, business_website, business_address, show_exact_business_location, service_areas, business_services, business_hours"
     )
     .eq("id", viewer.user.id)
     .maybeSingle();
 
-  let businessSchemaReady = true;
   let businessProfile = EMPTY_BUSINESS_PROFILE;
 
   if (businessProfileResponse.error) {
     if (isBusinessProfileSchemaError(businessProfileResponse.error)) {
-      businessSchemaReady = false;
-
-      const fallbackProfile = await supabase
-        .from("profiles")
-        .select("full_name, phone")
-        .eq("id", viewer.user.id)
-        .maybeSingle();
-
-      businessProfile = {
-        ...EMPTY_BUSINESS_PROFILE,
-        full_name: fallbackProfile.data?.full_name ?? null,
-        phone: fallbackProfile.data?.phone ?? null
-      };
+      businessProfile = EMPTY_BUSINESS_PROFILE;
     } else {
       console.error("Business storefront page load failed:", businessProfileResponse.error.message);
     }
@@ -80,21 +64,9 @@ export default async function DashboardStorefrontsPage({
         tone="error"
       />
 
-      <BusinessProfileForm
-        action={updateBusinessProfileAction}
-        schemaReady={businessSchemaReady}
-        returnPath="/dashboard/storefronts"
-        compact
-        defaults={{
-          isBusiness: businessProfile.is_business,
-          profilePhone: businessProfile.phone ?? viewer.profile.phone ?? ""
-        }}
-      />
-
       <AdditionalStorefrontsManager
         storefronts={additionalStorefrontsResult.storefronts}
         schemaReady={additionalStorefrontsResult.schemaReady}
-        accountEnabled={businessProfile.is_business}
         focusStorefrontId={focusStorefrontId}
         showCreateForm={showCreateForm}
         createAction={createAdditionalStorefrontAction}
