@@ -29,7 +29,6 @@ import { getOwnedAdditionalStorefronts } from "@/lib/data";
 import { isEmailConfigured, isStripeWebhookConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
-import { getSellerReviewSummary } from "@/lib/trust-presentation";
 import { getSingleParam } from "@/lib/utils";
 
 export default async function SettingsPage({
@@ -136,11 +135,8 @@ export default async function SettingsPage({
           tone="error"
         />
 
-        <div className="surface settings-overview-card">
-          <div className="settings-overview-head">
-            <h1 className="section-title">Settings</h1>
-          </div>
-
+        <div className="settings-page-header">
+          <h1 className="section-title">Settings</h1>
           <div className="pill-row settings-jump-row">
             <a className="account-menu-pill is-active" href="#notifications">
               Notifications
@@ -258,11 +254,6 @@ export default async function SettingsPage({
           </div>
 
           <TrustBadges summary={trustSummary} />
-
-          <div className="meta-list settings-meta-list">
-            <span>Status: {profile?.verification_status ?? "unverified"}</span>
-            <span>Ratings: {getSellerReviewSummary(trustSummary)}</span>
-          </div>
 
           {profile?.verification_status === "verified" ? (
             <div className="browser-notification-pill-row settings-inline-status">

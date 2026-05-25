@@ -18,7 +18,6 @@ import { requireViewer } from "@/lib/auth";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
-import { getSellerTrustSummaryCopy } from "@/lib/trust-presentation";
 
 function getInitials(name: string, email?: string) {
   const source = name.trim() || email?.trim() || "IS";
@@ -100,17 +99,6 @@ export default async function AccountPage() {
   const initials = getInitials(fullName, viewer.user.email);
   const emailNotificationsEnabled = profileSettingsResult.data?.email_notifications !== false;
   const unreadTotal = unreadMessagesCount + unreadNotificationsCount + searchAlertsCount;
-  const trustSummaryCopy = trustSummary?.review_count
-    ? getSellerTrustSummaryCopy(trustSummary)
-    : viewer.profile.stripe_identity_session_status === "processing" ||
-        viewer.profile.verification_status === "pending"
-      ? "Verification in progress."
-      : viewer.profile.verification_status === "verified"
-        ? "ID verified."
-        : viewer.profile.stripe_identity_session_status === "requires_input"
-          ? "Verification needs one more step."
-          : "Add verification and reviews to build trust faster.";
-
   return (
     <section className="section account-page">
       <div className="container account-page-container">
@@ -134,7 +122,6 @@ export default async function AccountPage() {
 
                 <div className="account-trust-summary">
                   <TrustBadges summary={trustSummary} />
-                  <p className="section-copy">{trustSummaryCopy}</p>
                 </div>
               </div>
             </div>
@@ -172,7 +159,6 @@ export default async function AccountPage() {
                   <span className="account-menu-description">Create, edit, and boost listings.</span>
                 </span>
                 <span className="account-menu-meta">
-                  <span className="account-menu-count">{listingsCount}</span>
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
@@ -217,7 +203,6 @@ export default async function AccountPage() {
                   <span className="account-menu-description">Return to saved listings quickly.</span>
                 </span>
                 <span className="account-menu-meta">
-                  <span className="account-menu-count">{favouritesCount}</span>
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
@@ -273,9 +258,7 @@ export default async function AccountPage() {
                 </span>
                 <span className="account-menu-content">
                   <span className="account-menu-label">Settings</span>
-                  <span className="account-menu-description">
-                    {emailNotificationsEnabled ? "Notifications on" : "Notifications off"} | Manage verification and account controls.
-                  </span>
+                  <span className="account-menu-description">Manage verification, alerts, and account controls.</span>
                 </span>
                 <span className="account-menu-meta">
                   <span
