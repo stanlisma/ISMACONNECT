@@ -6983,9 +6983,17 @@ code {
   display: none;
 }
 
+.storefront-manager-panel-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
 .storefront-manager-panel-copy {
   display: grid;
   gap: 0.2rem;
+  min-width: 0;
 }
 
 .storefront-manager-panel-copy strong {
@@ -7018,6 +7026,164 @@ code {
   border-top: 1px solid var(--line);
   border-radius: 0;
   background: transparent;
+}
+
+.storefront-manager-card.is-embedded {
+  padding: 1rem 0 0;
+}
+
+.storefront-manager-preview {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.storefront-manager-preview-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.storefront-manager-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(30, 95, 224, 0.14), rgba(30, 95, 224, 0.06));
+  color: var(--primary-dark);
+  font-size: 1rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.storefront-manager-avatar-lg {
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 22px;
+  font-size: 1.25rem;
+}
+
+.storefront-manager-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.storefront-manager-preview-copy {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.storefront-manager-preview-copy h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.storefront-manager-preview-copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.storefront-manager-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.9rem;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.storefront-manager-preview-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.storefront-manager-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.storefront-manager-chip-row.is-secondary .storefront-manager-chip {
+  background: rgba(245, 249, 255, 0.98);
+}
+
+.storefront-manager-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 217, 255, 0.92);
+  background: #ffffff;
+  color: var(--primary-dark);
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.storefront-manager-hours-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(191, 217, 255, 0.92);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.storefront-manager-hours-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.storefront-manager-hours-head strong {
+  color: var(--text);
+}
+
+.storefront-manager-hours-head span {
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.storefront-manager-hours-list {
+  gap: 0.45rem;
+}
+
+.storefront-manager-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.storefront-manager-editor {
+  border-top: 1px solid rgba(191, 217, 255, 0.86);
+  padding-top: 0.95rem;
+}
+
+.storefront-manager-editor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--primary-dark);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.storefront-manager-editor-toggle::-webkit-details-marker {
+  display: none;
 }
 
 .storefront-logo-field {
@@ -10137,6 +10303,10 @@ code {
     display: none;
   }
 
+  .storefront-manager-panel-identity {
+    gap: 0.7rem;
+  }
+
   .storefront-manager-panel-summary {
     padding: 0.9rem 0.95rem;
   }
@@ -10145,5 +10315,34 @@ code {
     min-height: 2rem;
     padding: 0 0.7rem;
     font-size: 0.82rem;
+  }
+
+  .storefront-manager-preview {
+    padding: 0.95rem;
+  }
+
+  .storefront-manager-preview-hero {
+    gap: 0.8rem;
+  }
+
+  .storefront-manager-avatar-lg {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 18px;
+    font-size: 1.05rem;
+  }
+
+  .storefront-manager-preview-meta {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .storefront-manager-preview-meta span {
+    flex-wrap: nowrap;
+  }
+
+  .storefront-manager-preview-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 }
