@@ -69,6 +69,7 @@ export default async function SellerStorefrontPage({
   const { sellerId } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const storefrontId = getSingleParam(resolvedSearchParams?.storefront);
+  const isStorefrontView = Boolean(storefrontId);
   const reviewListingId = getSingleParam(resolvedSearchParams?.fromListing);
   const reviewListingSlug = getSingleParam(resolvedSearchParams?.listingSlug);
   const storefront = await getPublicSellerStorefront(sellerId, 12, storefrontId);
@@ -148,10 +149,9 @@ export default async function SellerStorefrontPage({
                 <p className="section-copy">{storefrontDescription}</p>
 
                 <div className="seller-storefront-meta">
-                  <span>{storefront.primary_location}</span>
                   <span>Member since {memberSinceLabel}</span>
                   {storefront.is_business ? <span>Business account</span> : null}
-                  {businessHoursStatus ? (
+                  {!isStorefrontView && businessHoursStatus ? (
                     <span className={`seller-storefront-status-pill ${businessHoursStatus.isOpen ? "is-open" : ""}`}>
                       {businessHoursStatus.label}
                     </span>
@@ -191,58 +191,62 @@ export default async function SellerStorefrontPage({
             </div>
 
             <div className="seller-storefront-rail">
-              <div className="seller-storefront-stats">
-                <div className="seller-storefront-stat">
-                  <span>Active listings</span>
-                  <strong>{storefront.total_active_listings}</strong>
-                </div>
-                <div className="seller-storefront-stat">
-                  <span>Categories</span>
-                  <strong>{storefront.active_categories.length}</strong>
-                </div>
-                <div className="seller-storefront-stat">
-                  <span>Reviews</span>
-                  <strong>{trustSummary?.review_count ?? 0}</strong>
-                </div>
-              </div>
+              {!isStorefrontView ? (
+                <>
+                  <div className="seller-storefront-stats">
+                    <div className="seller-storefront-stat">
+                      <span>Active listings</span>
+                      <strong>{storefront.total_active_listings}</strong>
+                    </div>
+                    <div className="seller-storefront-stat">
+                      <span>Categories</span>
+                      <strong>{storefront.active_categories.length}</strong>
+                    </div>
+                    <div className="seller-storefront-stat">
+                      <span>Reviews</span>
+                      <strong>{trustSummary?.review_count ?? 0}</strong>
+                    </div>
+                  </div>
 
-              <div className="seller-storefront-actions">
-                {storefront.phone ? (
-                  <a className="button" href={`tel:${storefront.phone}`}>
-                    <Phone aria-hidden="true" size={15} strokeWidth={2.2} />
-                    <span>Call business</span>
-                  </a>
-                ) : null}
-                {storefront.business_website ? (
-                  <a
-                    className={`button ${storefront.phone ? "button-secondary" : ""}`}
-                    href={storefront.business_website}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span>Visit website</span>
-                    <ExternalLink aria-hidden="true" size={15} strokeWidth={2.2} />
-                  </a>
-                ) : (
-                  <Link className={`button ${storefront.phone ? "button-secondary" : ""}`} href="/browse">
-                    Browse all listings
-                  </Link>
-                )}
-                <Link
-                  className="button button-secondary"
-                  href={`/categories/${storefront.active_categories[0] ?? DEFAULT_MARKETPLACE_CATEGORY}`}
-                >
-                  Explore similar listings
-                </Link>
-                <Link
-                  className="button button-secondary"
-                  href={buildPathWithQuery("/businesses", {
-                    category: storefront.active_categories[0] ?? undefined
-                  })}
-                >
-                  Browse businesses
-                </Link>
-              </div>
+                  <div className="seller-storefront-actions">
+                    {storefront.phone ? (
+                      <a className="button" href={`tel:${storefront.phone}`}>
+                        <Phone aria-hidden="true" size={15} strokeWidth={2.2} />
+                        <span>Call business</span>
+                      </a>
+                    ) : null}
+                    {storefront.business_website ? (
+                      <a
+                        className={`button ${storefront.phone ? "button-secondary" : ""}`}
+                        href={storefront.business_website}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span>Visit website</span>
+                        <ExternalLink aria-hidden="true" size={15} strokeWidth={2.2} />
+                      </a>
+                    ) : (
+                      <Link className={`button ${storefront.phone ? "button-secondary" : ""}`} href="/browse">
+                        Browse all listings
+                      </Link>
+                    )}
+                    <Link
+                      className="button button-secondary"
+                      href={`/categories/${storefront.active_categories[0] ?? DEFAULT_MARKETPLACE_CATEGORY}`}
+                    >
+                      Explore similar listings
+                    </Link>
+                    <Link
+                      className="button button-secondary"
+                      href={buildPathWithQuery("/businesses", {
+                        category: storefront.active_categories[0] ?? undefined
+                      })}
+                    >
+                      Browse businesses
+                    </Link>
+                  </div>
+                </>
+              ) : null}
 
               <MobileInstallBanner context="storefront" />
 
@@ -314,39 +318,41 @@ export default async function SellerStorefrontPage({
             </div>
           ) : null}
 
-          <div className="seller-storefront-category-row">
-            {categoryCounts.map(({ category, count }) => {
-              const isActive = categoryFilter === category;
-              const href = buildPathWithQuery(`/sellers/${sellerId}`, {
-                storefront: storefrontId ?? undefined,
-                category: isActive ? undefined : category,
-                ...preservedSellerQuery
-              });
-
-              return (
-                <Link
-                  key={category}
-                  className={`seller-storefront-category-pill ${isActive ? "is-active" : ""}`}
-                  href={href}
-                >
-                  <span>{getCategoryLabel(category)}</span>
-                  <strong>{count}</strong>
-                </Link>
-              );
-            })}
-
-            {categoryFilter ? (
-              <Link
-                className="seller-storefront-category-clear"
-                href={buildPathWithQuery(`/sellers/${sellerId}`, {
+          {!isStorefrontView ? (
+            <div className="seller-storefront-category-row">
+              {categoryCounts.map(({ category, count }) => {
+                const isActive = categoryFilter === category;
+                const href = buildPathWithQuery(`/sellers/${sellerId}`, {
                   storefront: storefrontId ?? undefined,
+                  category: isActive ? undefined : category,
                   ...preservedSellerQuery
-                })}
-              >
-                Clear filter
-              </Link>
-            ) : null}
-          </div>
+                });
+
+                return (
+                  <Link
+                    key={category}
+                    className={`seller-storefront-category-pill ${isActive ? "is-active" : ""}`}
+                    href={href}
+                  >
+                    <span>{getCategoryLabel(category)}</span>
+                    <strong>{count}</strong>
+                  </Link>
+                );
+              })}
+
+              {categoryFilter ? (
+                <Link
+                  className="seller-storefront-category-clear"
+                  href={buildPathWithQuery(`/sellers/${sellerId}`, {
+                    storefront: storefrontId ?? undefined,
+                    ...preservedSellerQuery
+                  })}
+                >
+                  Clear filter
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="seller-storefront-reviews-shell">
@@ -408,43 +414,41 @@ export default async function SellerStorefrontPage({
           )}
         </div>
 
-        <div style={{ marginTop: "1.5rem" }}>
-          <SectionHeading
-            eyebrow="Active Listings"
-            title={
-              categoryFilter
-                ? `${CATEGORY_MAP[categoryFilter].label} from ${storefront.display_name}`
-                : `Live posts from ${storefront.display_name}`
-            }
-            description="These listings are currently visible across browse and category feeds."
-          />
-
-          {filteredListings.length ? (
-            <div className="listing-grid listing-feed-grid">
-              {filteredListings.map((listing) => (
-                <ListingCard
-                  key={listing.id}
-                  listing={listing}
-                  isSaved={savedIds.has(listing.id)}
-                  canSave
-                  pathToRevalidate={`/sellers/${sellerId}`}
-                  trustSummary={trustMap.get(listing.owner_id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              actionHref={storefrontId ? `/sellers/${sellerId}` : `/sellers/${sellerId}`}
-              actionLabel="See all seller listings"
-              description={
-                storefrontId
-                  ? "This storefront is live, but it does not have active listings in this category yet."
-                  : "This seller has active listings, but not in the category you filtered to."
+        {!isStorefrontView ? (
+          <div style={{ marginTop: "1.5rem" }}>
+            <SectionHeading
+              eyebrow="Active Listings"
+              title={
+                categoryFilter
+                  ? `${CATEGORY_MAP[categoryFilter].label} from ${storefront.display_name}`
+                  : `Live posts from ${storefront.display_name}`
               }
-              title={storefrontId ? "No active listings in this storefront yet" : "No listings in this category"}
+              description="These listings are currently visible across browse and category feeds."
             />
-          )}
-        </div>
+
+            {filteredListings.length ? (
+              <div className="listing-grid listing-feed-grid">
+                {filteredListings.map((listing) => (
+                  <ListingCard
+                    key={listing.id}
+                    listing={listing}
+                    isSaved={savedIds.has(listing.id)}
+                    canSave
+                    pathToRevalidate={`/sellers/${sellerId}`}
+                    trustSummary={trustMap.get(listing.owner_id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                actionHref={`/sellers/${sellerId}`}
+                actionLabel="See all seller listings"
+                description="This seller has active listings, but not in the category you filtered to."
+                title="No listings in this category"
+              />
+            )}
+          </div>
+        ) : null}
       </div>
     </section>
   );
