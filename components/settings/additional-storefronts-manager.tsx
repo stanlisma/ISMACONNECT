@@ -1,8 +1,11 @@
-import { Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, PencilLine, Phone, MapPin, Trash2 } from "lucide-react";
 
 import { StorefrontLogoField } from "@/components/settings/storefront-logo-field";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
-import { BUSINESS_DAY_ORDER } from "@/lib/business-profile";
+import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
+import { buildStorefrontHref } from "@/lib/business-storefronts";
+import { formatDate } from "@/lib/utils";
 import type { AdditionalBusinessStorefront } from "@/types/database";
 
 type AdditionalStorefrontsManagerProps = {
@@ -26,6 +29,33 @@ function buildCreateStorefrontHref(returnPath: string) {
   return `${queryString ? `${pathname}?${queryString}` : pathname}#create-storefront-form`;
 }
 
+function buildStorefrontsOverviewHref(returnPath: string) {
+  const [pathname, existingQuery] = returnPath.split("?");
+  const searchParams = new URLSearchParams(existingQuery ?? "");
+  searchParams.delete("create");
+  searchParams.delete("storefront");
+  const queryString = searchParams.toString();
+  return queryString ? `${pathname}?${queryString}` : pathname;
+}
+
+function getStorefrontInitials(name: string) {
+  const words = name
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter(Boolean);
+
+  const initials = words
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("");
+
+  return initials || name.slice(0, 2).toUpperCase() || "SF";
+}
+
+function formatStorefrontWebsiteLabel(website: string) {
+  return website.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+}
+
 function StorefrontForm({
   title,
   submitLabel,
@@ -33,6 +63,7 @@ function StorefrontForm({
   action,
   deleteAction,
   isNew,
+  embedded = false,
   returnPath = "/settings"
 }: {
   title: string;
@@ -41,12 +72,13 @@ function StorefrontForm({
   action: (formData: FormData) => void | Promise<void>;
   deleteAction?: (formData: FormData) => void | Promise<void>;
   isNew?: boolean;
+  embedded?: boolean;
   returnPath?: string;
 }) {
   return (
     <div
       id={isNew ? "create-storefront-form" : defaults?.id ? `storefront-${defaults.id}` : undefined}
-      className={`surface storefront-manager-card${isNew ? " is-new" : ""}`}
+      className={`${embedded ? "" : "surface "}storefront-manager-card${isNew ? " is-new" : ""}${embedded ? " is-embedded" : ""}`}
     >
       <div className="storefront-manager-card-head">
         <div>
@@ -259,6 +291,128 @@ function StorefrontForm({
   );
 }
 
+function StorefrontPreview({
+  storefront,
+  action,
+  deleteAction,
+  returnPath
+}: {
+  storefront: AdditionalBusinessStorefront;
+  action: (formData: FormData) => void | Promise<void>;
+  deleteAction: (formData: FormData) => void | Promise<void>;
+  returnPath: string;
+}) {
+  const hoursRows = hasConfiguredBusinessHours(storefront.hours) ? getBusinessHoursRows(storefront.hours) : [];
+  const publicStorefrontHref = buildStorefrontHref(storefront.owner_id, storefront.id);
+  const summaryText =
+    storefront.description?.trim() ||
+    (storefront.services.length
+      ? `Services: ${storefront.services.slice(0, 3).join(", ")}`
+      : "Public storefront ready for local discovery.");
+
+  return (
+    <div className="storefront-manager-preview">
+      <div className="storefront-manager-preview-hero">
+        <div className="storefront-manager-avatar storefront-manager-avatar-lg" aria-hidden="true">
+          {storefront.logo_url ? (
+            <img src={storefront.logo_url} alt="" className="storefront-manager-avatar-image" />
+          ) : (
+            <span>{getStorefrontInitials(storefront.name)}</span>
+          )}
+        </div>
+
+        <div className="storefront-manager-preview-copy">
+          <h3>{storefront.name}</h3>
+          <p>{summaryText}</p>
+
+          <div className="storefront-manager-preview-meta">
+            {storefront.address ? (
+              <span>
+                <MapPin aria-hidden="true" size={14} strokeWidth={2.1} />
+                <span>{storefront.address}</span>
+              </span>
+            ) : null}
+            {storefront.phone ? (
+              <span>
+                <Phone aria-hidden="true" size={14} strokeWidth={2.1} />
+                <span>{storefront.phone}</span>
+              </span>
+            ) : null}
+            {storefront.website ? (
+              <span>
+                <ExternalLink aria-hidden="true" size={14} strokeWidth={2.1} />
+                <span>{formatStorefrontWebsiteLabel(storefront.website)}</span>
+              </span>
+            ) : null}
+            <span>Updated {formatDate(storefront.updated_at)}</span>
+          </div>
+        </div>
+      </div>
+
+      {storefront.service_areas.length ? (
+        <div className="storefront-manager-chip-row">
+          {storefront.service_areas.map((area) => (
+            <span key={area} className="storefront-manager-chip">
+              {area}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {storefront.services.length ? (
+        <div className="storefront-manager-chip-row is-secondary">
+          {storefront.services.map((service) => (
+            <span key={service} className="storefront-manager-chip">
+              {service}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {hoursRows.length ? (
+        <div className="storefront-manager-hours-card">
+          <div className="storefront-manager-hours-head">
+            <strong>Storefront hours</strong>
+            <span>Shown publicly on this storefront</span>
+          </div>
+
+          <ul className="seller-storefront-hours-list storefront-manager-hours-list">
+            {hoursRows.map((row) => (
+              <li key={row.dayKey}>
+                <span>{row.label}</span>
+                <strong className={row.closed ? "is-closed" : ""}>{row.range}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="storefront-manager-preview-actions">
+        <Link href={publicStorefrontHref} className="button button-secondary">
+          View public storefront
+        </Link>
+      </div>
+
+      <details className="storefront-manager-editor">
+        <summary className="storefront-manager-editor-toggle">
+          <PencilLine aria-hidden="true" size={15} strokeWidth={2.15} />
+          <span>Edit storefront</span>
+        </summary>
+
+        <StorefrontForm
+          title="Edit storefront"
+          submitLabel="Save storefront"
+          defaults={storefront}
+          action={action}
+          deleteAction={deleteAction}
+          embedded
+          returnPath={returnPath}
+        />
+      </details>
+    </div>
+  );
+}
+
 export function AdditionalStorefrontsManager({
   storefronts,
   schemaReady,
@@ -324,14 +478,27 @@ export function AdditionalStorefrontsManager({
               {storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}
             </span>
           ) : null}
-          <a
-            className={`button${accountEnabled ? " button-secondary" : ""}`}
-            href={buildCreateStorefrontHref(returnPath)}
-          >
-            {storefronts.length ? "Create another storefront" : "Create storefront"}
-          </a>
+          {storefronts.length ? (
+            <a
+              className={`button${accountEnabled ? " button-secondary" : ""}`}
+              href={showCreateForm ? buildStorefrontsOverviewHref(returnPath) : buildCreateStorefrontHref(returnPath)}
+            >
+              {showCreateForm ? "Back to storefronts" : "Create storefront"}
+            </a>
+          ) : null}
         </div>
       </div>
+
+      {storefronts.length > 0 && showCreateForm ? (
+        <StorefrontForm
+          title="Create storefront"
+          submitLabel="Create storefront"
+          action={createAction}
+          isNew
+          defaults={suggestedDefaults}
+          returnPath={returnPath}
+        />
+      ) : null}
 
       {storefronts.map((storefront) => {
         const serviceSummary = storefront.services.slice(0, 2).join(" / ");
@@ -344,21 +511,29 @@ export function AdditionalStorefrontsManager({
         return (
           <details
             key={storefront.id}
+            id={`storefront-${storefront.id}`}
             className="storefront-manager-panel"
             open={focusStorefrontId === storefront.id}
           >
             <summary className="storefront-manager-panel-summary">
-              <div className="storefront-manager-panel-copy">
-                <strong>{storefront.name}</strong>
-                <span>{summaryLabel}</span>
+              <div className="storefront-manager-panel-identity">
+                <div className="storefront-manager-avatar" aria-hidden="true">
+                  {storefront.logo_url ? (
+                    <img src={storefront.logo_url} alt="" className="storefront-manager-avatar-image" />
+                  ) : (
+                    <span>{getStorefrontInitials(storefront.name)}</span>
+                  )}
+                </div>
+                <div className="storefront-manager-panel-copy">
+                  <strong>{storefront.name}</strong>
+                  <span>{summaryLabel}</span>
+                </div>
               </div>
-              <span className="storefront-manager-panel-action">Edit storefront</span>
+              <span className="storefront-manager-panel-action">Open storefront</span>
             </summary>
 
-            <StorefrontForm
-              title={storefront.name}
-              submitLabel="Save storefront"
-              defaults={storefront}
+            <StorefrontPreview
+              storefront={storefront}
               action={updateAction.bind(null, storefront.id)}
               deleteAction={deleteAction.bind(null, storefront.id)}
               returnPath={returnPath}
@@ -367,26 +542,7 @@ export function AdditionalStorefrontsManager({
         );
       })}
 
-      {storefronts.length ? (
-        <details className="storefront-manager-panel storefront-manager-create-panel" open={showCreateForm}>
-          <summary className="storefront-manager-panel-summary" id="create-storefront-form">
-            <div className="storefront-manager-panel-copy">
-              <strong>Create another storefront</strong>
-              <span>Add a separate storefront for another service line, crew, or location.</span>
-            </div>
-            <span className="storefront-manager-panel-action">Open form</span>
-          </summary>
-
-          <StorefrontForm
-            title="Create storefront"
-            submitLabel="Create storefront"
-            action={createAction}
-            isNew
-            defaults={suggestedDefaults}
-            returnPath={returnPath}
-          />
-        </details>
-      ) : (
+      {!storefronts.length ? (
         <StorefrontForm
           title="Create storefront"
           submitLabel="Create storefront"
@@ -395,7 +551,7 @@ export function AdditionalStorefrontsManager({
           defaults={suggestedDefaults}
           returnPath={returnPath}
         />
-      )}
+      ) : null}
     </div>
   );
 }
