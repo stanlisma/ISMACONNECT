@@ -124,7 +124,7 @@ export default async function MessagesPage({
   return (
     <section className="section">
       <div className="container messages-page-container">
-        <div className="surface messages-overview-card">
+        <div className="messages-page-header">
           <div className="messages-overview-head">
             <div className="messages-overview-copy">
               <h1 className="section-title">Messages</h1>

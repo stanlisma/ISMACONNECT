@@ -346,17 +346,6 @@ export default async function ListingPage({
               <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} />
 
               <div className="meta-list" style={{ marginTop: "1rem" }}>
-                {!sellerTrustSummary?.review_count ? (
-                  <span>No reviews yet</span>
-                ) : null}
-                <span>
-                  Verification:{" "}
-                  {sellerTrustSummary?.verification_status === "verified"
-                    ? "ID verified"
-                    : sellerTrustSummary?.verification_status === "pending"
-                      ? "Verification pending"
-                      : "Not verified yet"}
-                </span>
                 <span>
                   Member since:{" "}
                   {sellerTrustSummary?.member_since

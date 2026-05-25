@@ -4199,6 +4199,22 @@ code {
   line-height: 1.4;
 }
 
+.notifications-page-header,
+.settings-page-header,
+.messages-page-header,
+.storefront-directory-page-header {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.notifications-page-header .section-title,
+.settings-page-header .section-title,
+.messages-page-header .section-title,
+.storefront-directory-page-header .section-title {
+  margin: 0;
+}
+
 .account-menu-meta {
   display: inline-flex;
   align-items: center;
@@ -5955,7 +5971,7 @@ code {
   }
 
   .account-menu-description {
-    font-size: 0.84rem;
+    display: none;
   }
 
   .settings-overview-card,

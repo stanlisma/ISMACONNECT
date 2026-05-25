@@ -256,10 +256,8 @@ export default async function NotificationsPage() {
   return (
     <section className="section notifications-page">
       <div className="container notifications-page-container">
-        <div className="notifications-hero surface">
-          <div className="notifications-hero-copy">
-            <h1 className="section-title">Notifications</h1>
-          </div>
+        <div className="notifications-page-header">
+          <h1 className="section-title">Notifications</h1>
         </div>
 
         <div className="notifications-stack">
@@ -318,10 +316,6 @@ export default async function NotificationsPage() {
                         </div>
                         <span className="saved-search-alert-badge">{savedSearch.newMatchesCount} new</span>
                       </div>
-
-                      <p className="saved-search-description notification-card-description">
-                        {savedSearch.description}
-                      </p>
 
                       <div className="notification-card-meta">
                         {savedSearch.latestMatches[0]?.title ? (

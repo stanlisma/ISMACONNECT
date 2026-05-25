@@ -33,11 +33,11 @@ export default async function BusinessesPage({
   return (
     <section className="section">
       <div className="container">
-        <div className="surface storefront-directory-hero">
+        <div className="storefront-directory-page-header">
           <SectionHeading
             eyebrow="Local businesses"
             title={category ? `${getCategoryLabel(category)} storefronts` : "Browse local business storefronts"}
-            description="Discover local operators with active listings, service coverage, trust signals, and a cleaner public presence than one-off posts."
+            description="Discover local operators with public storefronts, local service coverage, and trust signals."
           />
 
           <div className="storefront-directory-filter-row">
