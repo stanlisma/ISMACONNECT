@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BrowseFilters } from "@/components/listings/browse-filters";
+import { BrowseViewToggle } from "@/components/listings/browse-view-toggle";
 import { LazyLocalMapExplorer } from "@/components/listings/lazy-local-map-explorer";
 import { ListingCard } from "@/components/listings/listing-card";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
@@ -376,20 +377,13 @@ export default async function CategoryPage({
           </div>
 
           {isMapEligibleCategory ? (
-            <div className="listing-view-toggle browse-view-toggle browse-view-toggle-mobile">
-              <Link href={listViewHref} scroll={false} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
-                List
-              </Link>
-              {mapViewHref ? (
-                <Link
-                  href={mapViewHref}
-                  scroll={false}
-                  className={`listing-view-pill${view === "map" ? " is-active" : ""}`}
-                >
-                  Map
-                </Link>
-              ) : null}
-            </div>
+            <BrowseViewToggle
+              className="listing-view-toggle browse-view-toggle browse-view-toggle-mobile"
+              options={[
+                { href: listViewHref, label: "List", active: view === "list" },
+                ...(mapViewHref ? [{ href: mapViewHref, label: "Map", active: view === "map" }] : [])
+              ]}
+            />
           ) : null}
 
           <div className="mobile-browse-quick-links">
@@ -419,20 +413,13 @@ export default async function CategoryPage({
         </div>
 
         {isMapEligibleCategory ? (
-          <div className="listing-view-toggle browse-view-toggle" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-            <Link href={listViewHref} scroll={false} className={`listing-view-pill${view === "list" ? " is-active" : ""}`}>
-              List view
-            </Link>
-            {mapViewHref ? (
-              <Link
-                href={mapViewHref}
-                scroll={false}
-                className={`listing-view-pill${view === "map" ? " is-active" : ""}`}
-              >
-                Map view
-              </Link>
-            ) : null}
-          </div>
+          <BrowseViewToggle
+            className="listing-view-toggle browse-view-toggle"
+            options={[
+              { href: listViewHref, label: "List view", active: view === "list" },
+              ...(mapViewHref ? [{ href: mapViewHref, label: "Map view", active: view === "map" }] : [])
+            ]}
+          />
         ) : null}
 
         <BrowseFilters
