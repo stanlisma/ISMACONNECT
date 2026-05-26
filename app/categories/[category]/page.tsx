@@ -6,7 +6,6 @@ import { BrowseFilters } from "@/components/listings/browse-filters";
 import { BrowseViewToggle } from "@/components/listings/browse-view-toggle";
 import { LazyLocalMapExplorer } from "@/components/listings/lazy-local-map-explorer";
 import { ListingCard } from "@/components/listings/listing-card";
-import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchRecoveryPanel } from "@/components/ui/search-recovery-panel";
@@ -396,8 +395,6 @@ export default async function CategoryPage({
               {mobilePostNeedLabel}
             </Link>
           </div>
-
-          <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
         </div>
 
         <div className="category-desktop-heading">

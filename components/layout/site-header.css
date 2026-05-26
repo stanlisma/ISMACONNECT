@@ -321,7 +321,7 @@ header.site-header {
   header.site-header {
     position: sticky !important;
     top: 0 !important;
-    --market-mobile-sticky-offset: 4.45rem;
+    --market-mobile-sticky-offset: 3.95rem;
     background: rgba(244, 249, 255, 0.96) !important;
     border-bottom: 1px solid rgba(168, 200, 242, 0.72);
     box-shadow: 0 16px 30px rgba(15, 54, 91, 0.1) !important;
@@ -335,11 +335,11 @@ header.site-header {
   }
 
   .header-inner {
-    padding: 0.56rem 0.72rem 0.52rem;
+    padding: 0.48rem 0.72rem 0.46rem;
   }
 
   .app-standalone .header-inner {
-    padding: calc(0.34rem + env(safe-area-inset-top, 0px)) 0.7rem 0.42rem;
+    padding: calc(0.3rem + env(safe-area-inset-top, 0px)) 0.7rem 0.38rem;
   }
 
   .header-top {
