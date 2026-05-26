@@ -8475,10 +8475,15 @@ code {
     gap: 0.55rem;
   }
 
+  .messages-toolbar-actions .button:first-child {
+    display: none;
+  }
+
   .messages-toolbar-actions .button {
-    flex: 1 1 0;
-    min-height: 2.45rem;
-    padding-inline: 0.85rem;
+    flex: 0 0 auto;
+    min-height: 2.15rem;
+    padding-inline: 0.72rem;
+    font-size: 0.82rem;
   }
 
   .messages-thread-hero {
@@ -10178,6 +10183,10 @@ code {
   .route-loading-form-card {
     padding: 1rem;
     border-radius: 20px;
+  }
+
+  .footer {
+    display: none;
   }
 
   .route-loading-filter-row,

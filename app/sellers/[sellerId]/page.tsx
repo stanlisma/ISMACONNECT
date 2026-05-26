@@ -6,7 +6,6 @@ import { Building2, Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 import { getBusinessHoursRows, getBusinessHoursStatus } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
 import { ListingCard } from "@/components/listings/listing-card";
-import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
 import { SellerReviewForm } from "@/components/trust/seller-review-form";
 import { TrustBadges } from "@/components/trust/trust-badges";
@@ -247,9 +246,6 @@ export default async function SellerStorefrontPage({
                   </div>
                 </>
               ) : null}
-
-              <MobileInstallBanner context="storefront" />
-
               {storefront.is_business ? (
                 <div className="seller-storefront-detail-grid">
                   <div className="seller-storefront-detail-card">

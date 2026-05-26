@@ -43,18 +43,6 @@ export function SiteHeader({
     pathname === "/notifications" ? 0 : unreadNotificationsCount
   );
   const previousUnreadNotificationsMarker = useRef<string | null>(unreadNotificationsMarker);
-  const isExactPath = (path: string) => pathname === path;
-  const isPathGroup = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
-  const isMarketplaceSurface =
-    pathname === "/" ||
-    pathname === "/browse" ||
-    pathname.startsWith("/browse?") ||
-    pathname.startsWith("/categories") ||
-    pathname === "/rentals" ||
-    pathname === "/ride-share" ||
-    pathname === "/jobs" ||
-    pathname === "/services" ||
-    pathname === "/buy-sell";
   const rentalLinks = getSubcategories("rentals").slice(0, HEADER_DROPDOWN_LIMIT);
   const rideShareLinks = getSubcategories("ride-share").slice(0, HEADER_DROPDOWN_LIMIT);
   const jobLinks = getSubcategories("jobs").slice(0, HEADER_DROPDOWN_LIMIT);
@@ -253,46 +241,6 @@ export function SiteHeader({
             </nav>
           )}
         </div>
-
-        {viewer && !isMarketplaceSurface ? (
-          <nav className="mobile-account-nav" aria-label="Mobile account shortcuts">
-            <Link href="/dashboard" className={isExactPath("/dashboard") ? "is-active" : ""}>
-              Listings
-            </Link>
-            <Link href="/dashboard/storefronts" className={isPathGroup("/dashboard/storefronts") ? "is-active" : ""}>
-              My Storefronts
-            </Link>
-            <Link href="/dashboard/searches" className={isPathGroup("/dashboard/searches") ? "is-active" : ""}>
-              Saved Searches
-            </Link>
-            <Link href="/saved" className={isExactPath("/saved") ? "is-active" : ""}>
-              Favourites
-            </Link>
-            <Link href="/settings" className={isPathGroup("/settings") ? "is-active" : ""}>
-              Settings
-            </Link>
-          </nav>
-        ) : null}
-
-        {isMarketplaceSurface ? (
-          <nav className="mobile-marketplace-nav" aria-label="Marketplace shortcuts">
-            <Link href="/browse" className={isExactPath("/browse") ? "is-active" : ""}>
-              Browse
-            </Link>
-            <Link href="/categories/rentals" className={isPathGroup("/categories/rentals") || isPathGroup("/rentals") ? "is-active" : ""}>
-              Rentals
-            </Link>
-            <Link href="/categories/ride-share" className={isPathGroup("/categories/ride-share") || isPathGroup("/ride-share") ? "is-active" : ""}>
-              Ride Share
-            </Link>
-            <Link href="/categories/jobs" className={isPathGroup("/categories/jobs") || isPathGroup("/jobs") ? "is-active" : ""}>
-              Jobs
-            </Link>
-            <Link href="/categories/services" className={isPathGroup("/categories/services") || isPathGroup("/services") ? "is-active" : ""}>
-              Services
-            </Link>
-          </nav>
-        ) : null}
       </div>
     </header>
   );
