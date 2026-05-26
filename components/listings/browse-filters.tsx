@@ -60,6 +60,14 @@ export function BrowseFilters({
   view,
   showCategorySelect = true
 }: any) {
+  const syncFromAppliedFilters = () => {
+    setSearchText(search ?? "");
+    setSelectedCategory(category ?? "");
+    setSelectedIntent(intent ?? "");
+    setSelectedRequestWindow(requestWindow ?? "");
+    setSelectedSubcategory(normalizeSubcategory(category ?? "", subcategory ?? "") ?? "");
+  };
+
   const [searchText, setSearchText] = useState(search ?? "");
   const [selectedCategory, setSelectedCategory] = useState(category ?? "");
   const [selectedIntent, setSelectedIntent] = useState(intent ?? "");
@@ -68,6 +76,11 @@ export function BrowseFilters({
     normalizeSubcategory(category ?? "", subcategory ?? "") ?? ""
   );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    syncFromAppliedFilters();
+    setIsFilterOpen(false);
+  }, [category, intent, requestWindow, search, subcategory]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -195,6 +208,18 @@ export function BrowseFilters({
     subcategory
   ]);
   const activeFilterCount = activeFilterLabels.length;
+  const activeFilterSummary = useMemo(() => {
+    if (!activeFilterCount) {
+      return null;
+    }
+
+    if (activeFilterCount === 1) {
+      return activeFilterLabels[0];
+    }
+
+    const primaryLabel = activeFilterLabels[0];
+    return primaryLabel ? `${primaryLabel} +${activeFilterCount - 1}` : `${activeFilterCount} filters active`;
+  }, [activeFilterCount, activeFilterLabels]);
   const clearHref = buildPathWithQuery(actionPath, {
     view
   });
@@ -311,13 +336,7 @@ export function BrowseFilters({
 
       {activeFilterCount > 0 ? (
         <div className="mobile-applied-filters">
-          <div className="mobile-applied-filter-row">
-            {activeFilterLabels.map((label) => (
-              <span key={label} className="mobile-applied-filter-chip">
-                {label}
-              </span>
-            ))}
-          </div>
+          <span className="mobile-applied-filter-summary">{activeFilterSummary}</span>
           <Link href={clearHref} className="mobile-applied-filter-clear">
             Clear
           </Link>
@@ -518,11 +537,30 @@ export function BrowseFilters({
 
       {/* MOBILE FILTER SHEET */}
       {isFilterOpen ? (
-        <div className="mobile-filter-backdrop" onClick={() => setIsFilterOpen(false)}>
-          <div className="mobile-filter-sheet" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="mobile-filter-backdrop"
+          onClick={() => {
+            syncFromAppliedFilters();
+            setIsFilterOpen(false);
+          }}
+        >
+          <div
+            className="mobile-filter-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Browse filters"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mobile-filter-sheet-header">
               <h3>Filters</h3>
-              <button aria-label="Close filters" type="button" onClick={() => setIsFilterOpen(false)}>
+              <button
+                aria-label="Close filters"
+                type="button"
+                onClick={() => {
+                  syncFromAppliedFilters();
+                  setIsFilterOpen(false);
+                }}
+              >
                 Close
               </button>
             </div>
