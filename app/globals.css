@@ -41,8 +41,11 @@ body {
 
 html.app-standalone,
 body.app-standalone {
-  height: 100svh;
-  overflow: hidden;
+  min-height: 100svh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at top left, rgba(0, 111, 214, 0.1), transparent 24%),
     linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
@@ -90,14 +93,12 @@ code {
 
 .app-standalone .site-shell {
   min-height: 100svh;
-  height: 100svh;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
 }
 
 .app-standalone .site-shell > main {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
+  overflow: visible;
 }
 
 .app-standalone .footer {
