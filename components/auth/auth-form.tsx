@@ -20,15 +20,21 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <span className="eyebrow">
-          {isSignUp ? "Create Account" : "Welcome Back"}
-        </span>
+        <span className="eyebrow">{isSignUp ? "Create Account" : "Welcome Back"}</span>
 
         <div className="auth-title-row">
           <h1>{title}</h1>
           {helpText ? <FieldHelp text={helpText} label={title} /> : null}
         </div>
         {description ? <p>{description}</p> : null}
+        {isSignUp ? (
+          <div className="auth-benefits" aria-label="Account benefits">
+            <span className="auth-benefit-chip">Post rides, rentals, and services</span>
+            <span className="auth-benefit-chip">Save searches and get alerts</span>
+            <span className="auth-benefit-chip">Message locals faster</span>
+            <span className="auth-benefit-chip">Create a storefront later</span>
+          </div>
+        ) : null}
 
         <form
           action={action}
@@ -165,23 +171,25 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
             />
           </label>
 
-          <SubmitButton
-            pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
-          >
+          <SubmitButton pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}>
             {isSignUp ? "Create account" : "Sign in"}
           </SubmitButton>
         </form>
 
-        {/* 🔥 Forgot Password (only for sign-in) */}
-        {!isSignUp && (
+        {isSignUp ? (
+          <p className="auth-next-step">
+            Confirm your email, then you can browse, post, save searches, message locals, and open storefronts from the same account.
+          </p>
+        ) : null}
+
+        {!isSignUp ? (
           <div style={{ marginTop: "0.75rem" }}>
             <Link href="/auth/forgot-password" className="button button-secondary">
               Forgot your password?
             </Link>
           </div>
-        )}
+        ) : null}
 
-        {/* Footer */}
         <p className="auth-footer">
           {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
           <Link href={isSignUp ? "/auth/sign-in" : "/auth/sign-up"}>

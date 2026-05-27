@@ -1513,6 +1513,32 @@ code {
   margin-top: 0.15rem;
 }
 
+.auth-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.auth-benefit-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.95rem;
+  padding: 0.28rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(237, 244, 255, 0.92);
+  color: var(--primary-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.auth-next-step {
+  margin: 0.95rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
 .auth-field-grid {
   display: grid;
   gap: 1rem;
@@ -4254,6 +4280,15 @@ code {
   margin: 0;
 }
 
+.notifications-page-header .section-copy {
+  margin: 0.25rem 0 0;
+}
+
+.notifications-mark-all {
+  align-self: start;
+  justify-self: start;
+}
+
 .account-menu-meta {
   display: inline-flex;
   align-items: center;
@@ -4397,6 +4432,12 @@ code {
   background: #fbfdff;
   content-visibility: auto;
   contain-intrinsic-size: 120px;
+}
+
+.notification-card.is-unread {
+  border-color: rgba(30, 95, 224, 0.22);
+  background: linear-gradient(180deg, #ffffff, #f5f9ff);
+  box-shadow: 0 14px 28px rgba(16, 24, 40, 0.06);
 }
 
 .notification-card-link {
@@ -4564,6 +4605,19 @@ code {
   color: var(--primary-dark);
   font-size: 0.76rem;
   font-weight: 800;
+}
+
+.notification-card-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  padding: 0.16rem 0.52rem;
+  border-radius: 999px;
+  background: rgba(30, 95, 224, 0.12);
+  color: var(--primary-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .notification-card-time,
@@ -7729,6 +7783,32 @@ code {
   align-items: center;
 }
 
+.seller-storefront-quick-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.seller-storefront-quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.05rem;
+  padding: 0.3rem 0.78rem;
+  border-radius: 999px;
+  border: 1px solid rgba(47, 109, 246, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.seller-storefront-quick-link strong {
+  color: var(--primary-dark);
+  font-size: 0.8rem;
+}
+
 .seller-storefront-switcher {
   display: flex;
   flex-wrap: wrap;
@@ -8191,6 +8271,22 @@ code {
     padding-bottom: 0.2rem;
   }
 
+  .seller-storefront-quick-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.55rem;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .seller-storefront-quick-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seller-storefront-quick-link {
+    white-space: nowrap;
+  }
+
   .seller-storefront-category-pill,
   .seller-storefront-category-clear {
     white-space: nowrap;
@@ -8476,6 +8572,14 @@ code {
 
   .seller-storefront-meta::-webkit-scrollbar {
     display: none;
+  }
+
+  .notifications-page-header {
+    gap: 0.7rem;
+  }
+
+  .notifications-mark-all {
+    min-height: 2.55rem;
   }
 
   .seller-storefront-hours-list li {

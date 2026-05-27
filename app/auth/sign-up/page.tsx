@@ -30,6 +30,7 @@ export default async function SignUpPage({
         <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
           action={signUpAction}
+          description="Start with one local account for rideshare, rentals, services, saved searches, and storefronts."
           helpText="Use one account to post rideshare seats or requests, rental listings, local jobs, services, and storefronts without rebuilding your profile every time."
           mode="sign-up"
           title="Create your account"

@@ -12,7 +12,7 @@ import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
-import { CATEGORY_MAP, DEFAULT_MARKETPLACE_CATEGORY } from "@/lib/constants";
+import { CATEGORY_MAP } from "@/lib/constants";
 import {
   getPublicSellerReviews,
   getPublicSellerStorefront,
@@ -190,64 +190,8 @@ export default async function SellerStorefrontPage({
             </div>
 
             <div className="seller-storefront-rail">
-              {!isStorefrontView ? (
-                <>
-                  <div className="seller-storefront-stats">
-                    <div className="seller-storefront-stat">
-                      <span>Active listings</span>
-                      <strong>{storefront.total_active_listings}</strong>
-                    </div>
-                    <div className="seller-storefront-stat">
-                      <span>Categories</span>
-                      <strong>{storefront.active_categories.length}</strong>
-                    </div>
-                    <div className="seller-storefront-stat">
-                      <span>Reviews</span>
-                      <strong>{trustSummary?.review_count ?? 0}</strong>
-                    </div>
-                  </div>
-
-                  <div className="seller-storefront-actions">
-                    {storefront.phone ? (
-                      <a className="button" href={`tel:${storefront.phone}`}>
-                        <Phone aria-hidden="true" size={15} strokeWidth={2.2} />
-                        <span>Call business</span>
-                      </a>
-                    ) : null}
-                    {storefront.business_website ? (
-                      <a
-                        className={`button ${storefront.phone ? "button-secondary" : ""}`}
-                        href={storefront.business_website}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span>Visit website</span>
-                        <ExternalLink aria-hidden="true" size={15} strokeWidth={2.2} />
-                      </a>
-                    ) : (
-                      <Link className={`button ${storefront.phone ? "button-secondary" : ""}`} href="/browse">
-                        Browse all listings
-                      </Link>
-                    )}
-                    <Link
-                      className="button button-secondary"
-                      href={`/categories/${storefront.active_categories[0] ?? DEFAULT_MARKETPLACE_CATEGORY}`}
-                    >
-                      Explore similar listings
-                    </Link>
-                    <Link
-                      className="button button-secondary"
-                      href={buildPathWithQuery("/businesses", {
-                        category: storefront.active_categories[0] ?? undefined
-                      })}
-                    >
-                      Browse businesses
-                    </Link>
-                  </div>
-                </>
-              ) : null}
               {storefront.is_business ? (
-                <div className="seller-storefront-detail-grid">
+                <div className="seller-storefront-detail-grid" id="seller-details">
                   <div className="seller-storefront-detail-card">
                     <h3>Business details</h3>
                     <ul className="seller-storefront-detail-list">
@@ -294,7 +238,7 @@ export default async function SellerStorefrontPage({
           </div>
 
           {storefrontLinks.length ? (
-            <div className="seller-storefront-switcher">
+            <div className="seller-storefront-switcher" id="seller-storefronts">
               <Link
                 className={`seller-storefront-switch-pill${!storefrontId ? " is-active" : ""}`}
                 href={profileHref}
@@ -313,6 +257,30 @@ export default async function SellerStorefrontPage({
               ))}
             </div>
           ) : null}
+
+          <div className="seller-storefront-quick-nav">
+            {!isStorefrontView ? (
+              <a className="seller-storefront-quick-link" href="#seller-listings">
+                <span>Listings</span>
+                <strong>{filteredListings.length}</strong>
+              </a>
+            ) : null}
+            {storefrontLinks.length ? (
+              <a className="seller-storefront-quick-link" href="#seller-storefronts">
+                <span>Storefronts</span>
+                <strong>{storefrontLinks.length}</strong>
+              </a>
+            ) : null}
+            <a className="seller-storefront-quick-link" href="#seller-reviews">
+              <span>Reviews</span>
+              <strong>{trustSummary?.review_count ?? 0}</strong>
+            </a>
+            {showReviewComposer ? (
+              <a className="seller-storefront-quick-link" href="#seller-review">
+                <span>Add review</span>
+              </a>
+            ) : null}
+          </div>
 
           {!isStorefrontView ? (
             <div className="seller-storefront-category-row">
@@ -351,7 +319,7 @@ export default async function SellerStorefrontPage({
           ) : null}
         </div>
 
-        <div className="seller-storefront-reviews-shell">
+        <div className="seller-storefront-reviews-shell" id="seller-reviews">
           <div className="seller-storefront-reviews-head">
             <SectionHeading
               eyebrow="Reviews"
@@ -411,9 +379,9 @@ export default async function SellerStorefrontPage({
         </div>
 
         {!isStorefrontView ? (
-          <div style={{ marginTop: "1.5rem" }}>
+          <div id="seller-listings" style={{ marginTop: "1.5rem" }}>
             <SectionHeading
-              eyebrow="Active Listings"
+              eyebrow="Listings"
               title={
                 categoryFilter
                   ? `${CATEGORY_MAP[categoryFilter].label} from ${storefront.display_name}`

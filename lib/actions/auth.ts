@@ -84,7 +84,7 @@ export async function signUpAction(formData: FormData) {
   redirectWithMessage(
     "/auth/sign-in",
     "success",
-    "Account created. Check your email for the confirmation link, then sign in to continue."
+    "Account created. Check your email for the confirmation link, then sign in to start browsing, posting, saving searches, messaging locals, and creating storefronts."
   );
 }
 
