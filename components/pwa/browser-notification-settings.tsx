@@ -20,6 +20,7 @@ export function BrowserNotificationSettings() {
   );
   const [subscribed, setSubscribed] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
   const [loadingState, setLoadingState] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -147,6 +148,31 @@ export function BrowserNotificationSettings() {
     }
   }
 
+  async function handleSendTest() {
+    setSendingTest(true);
+    setStatusMessage("");
+
+    try {
+      const response = await fetch("/api/push-subscriptions/test", {
+        method: "POST"
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not send a test notification.");
+      }
+
+      setStatusMessage("Test notification sent. Check this device now.");
+    } catch (error) {
+      console.error("Push test failed:", error);
+      setStatusMessage(
+        error instanceof Error ? error.message : "Could not send a test notification."
+      );
+    } finally {
+      setSendingTest(false);
+    }
+  }
+
   const pushSummary =
     !supported
       ? "Push notifications need a supported browser plus VAPID keys configured in the app environment."
@@ -182,7 +208,15 @@ export function BrowserNotificationSettings() {
           </div>
           <button
             className="button button-secondary"
-            disabled={requesting}
+            disabled={requesting || sendingTest}
+            type="button"
+            onClick={handleSendTest}
+          >
+            {sendingTest ? "Sending test..." : "Send test alert"}
+          </button>
+          <button
+            className="button button-secondary"
+            disabled={requesting || sendingTest}
             type="button"
             onClick={handleDisable}
           >

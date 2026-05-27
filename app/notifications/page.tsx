@@ -3,6 +3,7 @@ import {
   Bell,
   ChevronRight,
   MessageCircle,
+  CheckCheck,
   Rocket,
   Search,
   ShieldCheck,
@@ -137,10 +138,10 @@ export default async function NotificationsPage() {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
 
-  let savedSearches = await getSavedSearchesWithStats(viewer.user.id);
-  let savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
+  const savedSearches = await getSavedSearchesWithStats(viewer.user.id);
+  const savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
 
-  let { data: notifications } = await supabase
+  const { data: notifications } = await supabase
     .from("notifications")
     .select("*")
     .eq("user_id", viewer.user.id)
@@ -148,37 +149,7 @@ export default async function NotificationsPage() {
 
   const hasUnreadNotifications = notifications?.some((notification) => !notification.is_read) ?? false;
   const hasSavedSearchAlerts = savedSearchAlerts.length > 0;
-
-  if (hasUnreadNotifications || hasSavedSearchAlerts) {
-    const viewedAt = new Date().toISOString();
-
-    await Promise.all([
-      hasUnreadNotifications
-        ? supabase
-            .from("notifications")
-            .update({ is_read: true })
-            .eq("user_id", viewer.user.id)
-            .eq("is_read", false)
-        : Promise.resolve(),
-      hasSavedSearchAlerts
-        ? supabase
-            .from("saved_searches")
-            .update({ last_checked_at: viewedAt })
-            .eq("user_id", viewer.user.id)
-        : Promise.resolve()
-    ]);
-
-    savedSearches = await getSavedSearchesWithStats(viewer.user.id);
-    savedSearchAlerts = savedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0);
-
-    const refreshedNotifications = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", viewer.user.id)
-      .order("created_at", { ascending: false });
-
-    notifications = refreshedNotifications.data;
-  }
+  const hasUnreadActivity = hasUnreadNotifications || hasSavedSearchAlerts;
 
   const notificationItems = (notifications ?? []) as NotificationRecord[];
   const notificationConversationIds = uniqueStrings(
@@ -257,7 +228,21 @@ export default async function NotificationsPage() {
     <section className="section notifications-page">
       <div className="container notifications-page-container">
         <div className="notifications-page-header">
-          <h1 className="section-title">Notifications</h1>
+          <div>
+            <h1 className="section-title">Notifications</h1>
+            <p className="section-copy">
+              Keep up with replies, saved-search matches, and account updates without losing your place.
+            </p>
+          </div>
+          {hasUnreadActivity ? (
+            <Link
+              href="/notifications/open?all=1&next=/notifications"
+              className="button button-secondary notifications-mark-all"
+            >
+              <CheckCheck aria-hidden="true" size={16} strokeWidth={2.2} />
+              <span>Mark all read</span>
+            </Link>
+          ) : null}
         </div>
 
         <div className="notifications-stack">
@@ -279,7 +264,7 @@ export default async function NotificationsPage() {
                 {savedSearchAlerts.map((savedSearch) => (
                   <Link
                     key={savedSearch.id}
-                    href={savedSearch.href}
+                    href={`/notifications/open?savedSearch=${savedSearch.id}&next=${encodeURIComponent(savedSearch.href)}`}
                     className="notification-card notification-card-search notification-card-link"
                   >
                     <div className="notification-card-media notification-card-search">
@@ -358,6 +343,7 @@ export default async function NotificationsPage() {
               <div className="notifications-list">
                 {enrichedNotifications.map((notification) => {
                   const presentation = getNotificationPresentation(notification.type);
+                  const isUnread = !notification.is_read;
 
                   const cardContent = (
                     <>
@@ -387,6 +373,7 @@ export default async function NotificationsPage() {
                             <span className="notification-type-pill">{presentation.label}</span>
                             <h3>{notification.title}</h3>
                           </div>
+                          {isUnread ? <span className="notification-card-status">New</span> : null}
                         </div>
 
                         {notification.body ? (
@@ -420,8 +407,20 @@ export default async function NotificationsPage() {
                     return (
                       <Link
                         key={notification.id}
-                        href={notification.link}
-                        className={`notification-card notification-card-link ${presentation.className}`}
+                        href={`/notifications/open?notification=${notification.id}&next=${encodeURIComponent(notification.link)}`}
+                        className={`notification-card notification-card-link ${presentation.className}${isUnread ? " is-unread" : ""}`}
+                      >
+                        {cardContent}
+                      </Link>
+                    );
+                  }
+
+                  if (isUnread) {
+                    return (
+                      <Link
+                        key={notification.id}
+                        href={`/notifications/open?notification=${notification.id}&next=/notifications`}
+                        className={`notification-card notification-card-link ${presentation.className} is-unread`}
                       >
                         {cardContent}
                       </Link>

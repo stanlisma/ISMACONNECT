@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, List, MessageCircle, PlusCircle, Search } from "lucide-react";
+import { Bell, CircleUserRound, MessageCircle, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -36,13 +36,13 @@ export function MobileBottomNav({
     pathname === "/dashboard/listings/new" ||
     pathname.endsWith("/edit") ||
     pathname.endsWith("/boost");
-  const isListingsSurface =
+  const isAlertsSurface = pathname === "/notifications";
+  const isAccountSurface =
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
     pathname === "/account" ||
-    pathname.startsWith("/settings") ||
-    pathname === "/notifications";
-  const isSavedSurface = pathname === "/saved";
+    pathname === "/saved" ||
+    pathname.startsWith("/settings");
 
   return (
     <nav className="mobile-nav">
@@ -50,7 +50,7 @@ export function MobileBottomNav({
         <span className="mobile-nav-icon-wrap">
           <Search aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
         </span>
-        <span>Search</span>
+        <span>Browse</span>
       </Link>
 
       <Link href="/messages" className={isChatSurface ? "active" : ""}>
@@ -60,7 +60,7 @@ export function MobileBottomNav({
             <span className="mobile-nav-badge">{formatBadgeCount(unreadMessagesCount)}</span>
           ) : null}
         </span>
-        <span>Chat</span>
+        <span>Messages</span>
       </Link>
 
       <Link
@@ -73,21 +73,21 @@ export function MobileBottomNav({
         <span>Post</span>
       </Link>
 
-      <Link href="/dashboard" className={isListingsSurface ? "active" : ""}>
+      <Link href="/notifications" className={isAlertsSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
-          <List aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
+          <Bell aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
           {viewer && unreadActivityCount > 0 ? (
             <span className="mobile-nav-badge">{formatBadgeCount(unreadActivityCount)}</span>
           ) : null}
         </span>
-        <span>Listings</span>
+        <span>Alerts</span>
       </Link>
 
-      <Link href="/saved" className={isSavedSurface ? "active" : ""}>
+      <Link href="/account" className={isAccountSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
-          <Heart aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
+          <CircleUserRound aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
         </span>
-        <span>Favourites</span>
+        <span>Account</span>
       </Link>
     </nav>
   );
