@@ -15,10 +15,9 @@ function syncStandaloneModeClass() {
     return false;
   }
 
-  const standalone = isStandaloneMode();
-  document.documentElement.classList.toggle("app-standalone", standalone);
-  document.body.classList.toggle("app-standalone", standalone);
-  return standalone;
+  document.documentElement.classList.remove("app-standalone");
+  document.body.classList.remove("app-standalone");
+  return false;
 }
 
 function isStandaloneMode() {
@@ -110,10 +109,7 @@ export function PwaShell() {
     let cancelled = false;
     let timeoutId: number | null = null;
     let idleCallbackId: number | null = null;
-    const shouldAutoApplyUpdate =
-      window.location.pathname === "/" ||
-      window.location.pathname === "/browse" ||
-      window.location.pathname.startsWith("/categories/");
+    const shouldAutoApplyUpdate = true;
     const registerServiceWorker = () => {
       if (cancelled) {
         return;

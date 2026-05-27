@@ -1,5 +1,5 @@
-const CACHE_NAME = "ismaconnect-shell-v4";
-const PAGE_CACHE_NAME = "ismaconnect-pages-v2";
+const CACHE_NAME = "ismaconnect-shell-v5";
+const PAGE_CACHE_NAME = "ismaconnect-pages-v3";
 const OFFLINE_URL = "/offline-fallback.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
