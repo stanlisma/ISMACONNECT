@@ -1,7 +1,7 @@
 "use client";
 
 import { ImagePlus, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { setTypingAction } from "@/lib/actions/typing";
 
@@ -20,6 +20,18 @@ export function MessageComposer({
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      if (!disabled) {
+        void setTypingAction(conversationId, false);
+      }
+    };
+  }, [conversationId, disabled]);
 
   async function handleTyping() {
     if (disabled) {
@@ -79,6 +91,15 @@ export function MessageComposer({
             : "Ask a question or confirm details..."
         }
         onChange={handleTyping}
+        onBlur={() => {
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+
+          if (!disabled) {
+            void setTypingAction(conversationId, false);
+          }
+        }}
         disabled={disabled}
       />
 

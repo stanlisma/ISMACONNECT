@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Inbox, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
+import { MessagesInboxLive } from "@/components/messages/messages-inbox-live";
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSingleParam } from "@/lib/utils";
@@ -28,7 +29,6 @@ export default async function MessagesPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const rawQuery = getSingleParam(resolvedSearchParams?.q)?.trim() ?? "";
   const activeFilter = getSingleParam(resolvedSearchParams?.filter) === "unread" ? "unread" : "all";
-  const normalizedQuery = rawQuery.toLowerCase();
 
   const { data: conversations } = await supabase
     .from("conversations")
@@ -40,6 +40,8 @@ export default async function MessagesPage({
       seller_id,
       buyer_unread_count,
       seller_unread_count,
+      buyer_typing,
+      seller_typing,
       listing:listings(title, slug, image_url),
       seller:profiles!conversations_seller_id_fkey(full_name),
       buyer:profiles!conversations_buyer_id_fkey(full_name)
@@ -54,13 +56,14 @@ export default async function MessagesPage({
       body: string;
       image_url: string | null;
       created_at: string;
+      sender_id: string | null;
     }
   >();
 
   if (conversationIds.length) {
     const { data: messages } = await supabase
       .from("messages")
-      .select("conversation_id, body, image_url, created_at")
+      .select("conversation_id, body, image_url, created_at, sender_id")
       .in("conversation_id", conversationIds)
       .order("created_at", { ascending: false });
 
@@ -69,7 +72,8 @@ export default async function MessagesPage({
         latestMessageMap.set(message.conversation_id, {
           body: message.body ?? "",
           image_url: message.image_url ?? null,
-          created_at: message.created_at
+          created_at: message.created_at,
+          sender_id: message.sender_id ?? null
         });
       }
     });
@@ -87,38 +91,38 @@ export default async function MessagesPage({
         : conversation.buyer?.full_name ?? "Buyer";
 
     const latestMessage = latestMessageMap.get(conversation.id);
+    const otherTyping =
+      conversation.buyer_id === viewer.user.id
+        ? Boolean(conversation.seller_typing)
+        : Boolean(conversation.buyer_typing);
     const preview = latestMessage?.body?.trim()
-      ? latestMessage.body.trim()
+      ? latestMessage.sender_id === viewer.user.id
+        ? `You: ${latestMessage.body.trim()}`
+        : latestMessage.body.trim()
       : latestMessage?.image_url
-        ? "Photo"
+        ? latestMessage.sender_id === viewer.user.id
+          ? "You sent a photo"
+          : "Sent a photo"
         : "No messages yet";
 
     return {
-      ...conversation,
+      id: conversation.id,
+      created_at: conversation.created_at,
+      last_message_at: conversation.last_message_at,
+      buyer_id: conversation.buyer_id,
+      seller_id: conversation.seller_id,
+      buyer_unread_count: conversation.buyer_unread_count ?? 0,
+      seller_unread_count: conversation.seller_unread_count ?? 0,
+      buyer_typing: Boolean(conversation.buyer_typing),
+      seller_typing: Boolean(conversation.seller_typing),
+      listingTitle: conversation.listing?.title ?? null,
+      listingSlug: conversation.listing?.slug ?? null,
+      listingImageUrl: conversation.listing?.image_url ?? null,
       unreadCount,
       otherUserName,
-      preview,
-      listingImageUrl: conversation.listing?.image_url ?? null
+      preview: otherTyping ? `${otherUserName.split(" ")[0] || "Someone"} is typing…` : preview,
+      previewSenderId: latestMessage?.sender_id ?? null
     };
-  });
-
-  const filteredConversations = conversationEntries.filter((conversation) => {
-    if (activeFilter === "unread" && conversation.unreadCount < 1) {
-      return false;
-    }
-
-    if (!normalizedQuery) {
-      return true;
-    }
-
-    return [
-      conversation.listing?.title ?? "",
-      conversation.otherUserName,
-      conversation.preview
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(normalizedQuery);
   });
 
   return (
@@ -173,88 +177,12 @@ export default async function MessagesPage({
           </div>
         </div>
 
-        <div className="surface messages-shell">
-          <div className="messages-list-pane">
-            <div className="messages-list">
-              {filteredConversations.length ? (
-                filteredConversations.map((conversation) => (
-                  <Link
-                    key={conversation.id}
-                    href={`/messages/${conversation.id}`}
-                    className="messages-list-item"
-                  >
-                    <div
-                      className={`messages-list-avatar${conversation.listingImageUrl ? "" : " is-placeholder"}`}
-                    >
-                      {conversation.listingImageUrl ? (
-                        <img
-                          src={conversation.listingImageUrl}
-                          alt={conversation.listing?.title ?? "Listing image"}
-                        />
-                      ) : (
-                        conversation.otherUserName.trim().charAt(0).toUpperCase() || "U"
-                      )}
-                    </div>
-
-                    <div className="messages-list-content">
-                      <div className="messages-list-topline">
-                        <strong>{conversation.listing?.title ?? "Listing conversation"}</strong>
-                        {conversation.unreadCount > 0 ? (
-                          <span className="messages-unread-badge">{conversation.unreadCount}</span>
-                        ) : null}
-                      </div>
-
-                      <div className="messages-list-subline">
-                        <span className="messages-list-name">{conversation.otherUserName}</span>
-                        <span>|</span>
-                        <span>
-                          {conversation.last_message_at
-                            ? new Intl.DateTimeFormat("en-CA", {
-                                month: "short",
-                                day: "numeric",
-                                hour: "numeric",
-                                minute: "2-digit"
-                              }).format(new Date(conversation.last_message_at))
-                            : "No messages yet"}
-                        </span>
-                      </div>
-
-                      <p className="messages-list-preview">
-                        {conversation.preview}
-                      </p>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="messages-empty-list">
-                  {conversationEntries.length ? (
-                    <>
-                      <h3>No conversations match this view</h3>
-                      <p>Try a broader search or switch back to all conversations.</p>
-                    </>
-                  ) : (
-                    <>
-                      <h3>No messages yet</h3>
-                      <p>Your buyer and seller conversations will appear here as soon as someone reaches out.</p>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="messages-empty-pane">
-            <div className="messages-empty-pane-card">
-              <div className="messages-empty-pane-icon">
-                <Inbox aria-hidden="true" size={28} strokeWidth={2.1} />
-              </div>
-              <h3>Select a conversation</h3>
-              <p>
-                Choose a thread on the left to review replies, send a message, or follow up with a buyer or seller.
-              </p>
-            </div>
-          </div>
-        </div>
+        <MessagesInboxLive
+          viewerId={viewer.user.id}
+          activeFilter={activeFilter}
+          rawQuery={rawQuery}
+          initialConversations={conversationEntries}
+        />
       </div>
     </section>
   );
