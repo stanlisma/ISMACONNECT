@@ -71,6 +71,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           viewer={Boolean(viewer)}
           unreadMessagesCount={unreadMessagesCount}
           unreadActivityCount={unreadNotificationsCount}
+          unreadActivityMarker={unreadNotificationsMarker}
         />
         <div className="site-shell">
           <SiteHeader

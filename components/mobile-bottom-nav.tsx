@@ -3,12 +3,16 @@
 import { Bell, CircleUserRound, MessageCircle, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 interface MobileBottomNavProps {
   viewer: boolean;
   unreadMessagesCount: number;
   unreadActivityCount: number;
+  unreadActivityMarker: string | null;
 }
+
+const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
 
 function formatBadgeCount(count: number) {
   return count > 99 ? "99+" : String(count);
@@ -17,9 +21,14 @@ function formatBadgeCount(count: number) {
 export function MobileBottomNav({
   viewer,
   unreadMessagesCount,
-  unreadActivityCount
+  unreadActivityCount,
+  unreadActivityMarker
 }: MobileBottomNavProps) {
   const pathname = usePathname();
+  const [activityBadgeCount, setActivityBadgeCount] = useState(
+    pathname === "/notifications" ? 0 : unreadActivityCount
+  );
+  const previousUnreadActivityMarker = useRef<string | null>(unreadActivityMarker);
 
   const isSearchSurface =
     pathname === "/" ||
@@ -43,6 +52,50 @@ export function MobileBottomNav({
     pathname === "/account" ||
     pathname === "/saved" ||
     pathname.startsWith("/settings");
+
+  useEffect(() => {
+    if (pathname === "/notifications") {
+      setActivityBadgeCount(0);
+
+      if (unreadActivityMarker) {
+        window.localStorage.setItem(CLEARED_NOTIFICATIONS_MARKER_KEY, unreadActivityMarker);
+      } else {
+        window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      }
+    }
+  }, [pathname, unreadActivityMarker]);
+
+  useEffect(() => {
+    const clearedMarker = window.localStorage.getItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+
+    if (pathname === "/notifications") {
+      setActivityBadgeCount(0);
+      return;
+    }
+
+    if (!unreadActivityMarker || unreadActivityCount <= 0) {
+      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      setActivityBadgeCount(0);
+      previousUnreadActivityMarker.current = unreadActivityMarker;
+      return;
+    }
+
+    if (clearedMarker && clearedMarker === unreadActivityMarker) {
+      setActivityBadgeCount(0);
+      previousUnreadActivityMarker.current = unreadActivityMarker;
+      return;
+    }
+
+    if (
+      previousUnreadActivityMarker.current &&
+      previousUnreadActivityMarker.current !== unreadActivityMarker
+    ) {
+      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+    }
+
+    setActivityBadgeCount(unreadActivityCount);
+    previousUnreadActivityMarker.current = unreadActivityMarker;
+  }, [pathname, unreadActivityCount, unreadActivityMarker]);
 
   return (
     <nav className="mobile-nav">
@@ -76,8 +129,8 @@ export function MobileBottomNav({
       <Link href="/notifications" className={isAlertsSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
           <Bell aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
-          {viewer && unreadActivityCount > 0 ? (
-            <span className="mobile-nav-badge">{formatBadgeCount(unreadActivityCount)}</span>
+          {viewer && activityBadgeCount > 0 ? (
+            <span className="mobile-nav-badge">{formatBadgeCount(activityBadgeCount)}</span>
           ) : null}
         </span>
         <span>Alerts</span>
