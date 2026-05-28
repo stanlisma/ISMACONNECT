@@ -313,6 +313,12 @@ export function MessagesInboxLive({
     return unreadCount > 0;
   }).length;
 
+  function openConversation(href: string) {
+    if (typeof window !== "undefined") {
+      window.location.assign(href);
+    }
+  }
+
   return (
     <div className="surface messages-shell messages-shell-single">
       <div className="messages-list-pane">
@@ -339,11 +345,14 @@ export function MessagesInboxLive({
                   : conversation.buyer_typing;
 
               return (
-                <Link
+                <a
                   key={conversation.id}
                   href={`/messages/${conversation.id}`}
-                  prefetch={false}
                   className={`messages-list-item${unreadCount > 0 ? " is-unread" : ""}${otherTyping ? " is-typing" : ""}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    openConversation(`/messages/${conversation.id}`);
+                  }}
                 >
                   <div className="messages-list-leading">
                     <div
@@ -382,7 +391,7 @@ export function MessagesInboxLive({
                       {conversation.preview}
                     </p>
                   </div>
-                </Link>
+                </a>
               );
             })
           ) : (

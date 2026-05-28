@@ -277,15 +277,24 @@ export function LiveMessageProvider({
     };
   }, [toast]);
 
+  function openConversation(href: string) {
+    if (typeof window !== "undefined") {
+      window.location.assign(href);
+    }
+  }
+
   return (
     <LIVE_MESSAGE_CONTEXT.Provider value={{ unreadMessagesCount }}>
       {children}
       {toast ? (
-        <Link
+        <a
           href={`/messages/${toast.conversationId}`}
-          prefetch={false}
           className="live-message-toast"
-          onClick={() => setToast(null)}
+          onClick={(event) => {
+            event.preventDefault();
+            setToast(null);
+            openConversation(`/messages/${toast.conversationId}`);
+          }}
         >
           <div className="live-message-toast-media">
             {toast.listingImageUrl ? (
@@ -301,7 +310,7 @@ export function LiveMessageProvider({
             <span>{toast.listingTitle ?? "New message"}</span>
             <p>{toast.preview}</p>
           </div>
-        </Link>
+        </a>
       ) : null}
     </LIVE_MESSAGE_CONTEXT.Provider>
   );
