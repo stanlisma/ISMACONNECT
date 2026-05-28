@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import { CATEGORIES } from "@/lib/constants";
@@ -42,6 +42,62 @@ function getBrowseSearchPlaceholder(category?: string | null) {
       return "Search furniture, tools, electronics...";
     default:
       return "Search rides, rentals, services, jobs...";
+  }
+}
+
+const compactPriceFormatter = new Intl.NumberFormat("en-CA", {
+  maximumFractionDigits: 1,
+  notation: "compact"
+});
+
+function formatPriceFilterLabel(minPrice?: number | null, maxPrice?: number | null) {
+  if (minPrice !== null && minPrice !== undefined && maxPrice !== null && maxPrice !== undefined) {
+    return `$${compactPriceFormatter.format(minPrice)}-$${compactPriceFormatter.format(maxPrice)}`;
+  }
+
+  if (minPrice !== null && minPrice !== undefined) {
+    return `$${compactPriceFormatter.format(minPrice)}+`;
+  }
+
+  if (maxPrice !== null && maxPrice !== undefined) {
+    return `Up to $${compactPriceFormatter.format(maxPrice)}`;
+  }
+
+  return "Price";
+}
+
+function getSortFilterLabel(sort?: string | null) {
+  switch (sort) {
+    case "price_asc":
+      return "Low-high";
+    case "price_desc":
+      return "High-low";
+    default:
+      return "Newest";
+  }
+}
+
+function getIntentFilterLabel(intent?: string | null) {
+  switch (intent) {
+    case "need":
+      return "Needs";
+    case "offer":
+      return "Offers";
+    default:
+      return "Post type";
+  }
+}
+
+function getRequestWindowFilterLabel(requestWindow?: string | null) {
+  switch (requestWindow) {
+    case "today":
+      return "Today";
+    case "this-week":
+      return "This week";
+    case "flexible":
+      return "Flexible";
+    default:
+      return "Timing";
   }
 }
 
@@ -220,6 +276,73 @@ export function BrowseFilters({
     const primaryLabel = activeFilterLabels[0];
     return primaryLabel ? `${primaryLabel} +${activeFilterCount - 1}` : `${activeFilterCount} filters active`;
   }, [activeFilterCount, activeFilterLabels]);
+  const mobileFilterChips = useMemo(() => {
+    const chips: Array<{ active: boolean; key: string; label: string; primary?: boolean }> = [
+      {
+        key: "filters",
+        label: activeFilterCount > 0 ? `Filters (${activeFilterCount})` : "Filters",
+        active: activeFilterCount > 0,
+        primary: true
+      }
+    ];
+
+    if (showCategorySelect) {
+      chips.push({
+        key: "category",
+        label:
+          CATEGORIES.find((item) => item.value === selectedCategory)?.label ?? "Category",
+        active: Boolean(selectedCategory)
+      });
+    }
+
+    chips.push({
+      key: "intent",
+      label: getIntentFilterLabel(selectedIntent),
+      active: Boolean(selectedIntent)
+    });
+
+    if (selectedIntent === "need" || selectedRequestWindow) {
+      chips.push({
+        key: "requestWindow",
+        label: getRequestWindowFilterLabel(selectedRequestWindow),
+        active: Boolean(selectedRequestWindow)
+      });
+    }
+
+    if (subcategories.length > 0 || selectedSubcategory) {
+      chips.push({
+        key: "subcategory",
+        label:
+          subcategories.find((item) => item.value === selectedSubcategory)?.label ?? "Subcategory",
+        active: Boolean(selectedSubcategory)
+      });
+    }
+
+    chips.push({
+      key: "price",
+      label: formatPriceFilterLabel(minPrice, maxPrice),
+      active: minPrice !== null || maxPrice !== null
+    });
+
+    chips.push({
+      key: "sort",
+      label: getSortFilterLabel(sort),
+      active: Boolean(sort)
+    });
+
+    return chips;
+  }, [
+    activeFilterCount,
+    maxPrice,
+    minPrice,
+    selectedCategory,
+    selectedIntent,
+    selectedRequestWindow,
+    selectedSubcategory,
+    showCategorySelect,
+    sort,
+    subcategories
+  ]);
   const clearHref = buildPathWithQuery(actionPath, {
     view
   });
@@ -297,62 +420,73 @@ export function BrowseFilters({
   return (
     <>
       {/* MOBILE COMPACT SEARCH */}
-      <form
-        action={actionPath}
-        className="mobile-filter-row"
-        method="get"
-        onSubmit={() => trackFilterSubmit("mobile")}
-      >
-        {view ? <input name="view" type="hidden" value={view} /> : null}
-        {category ? <input name="category" type="hidden" value={category} /> : null}
-        {intent ? <input name="intent" type="hidden" value={intent} /> : null}
-        {requestWindow ? <input name="requestWindow" type="hidden" value={requestWindow} /> : null}
-        {communityArea ? <input name="communityArea" type="hidden" value={communityArea} /> : null}
-        {subcategory ? <input name="subcategory" type="hidden" value={subcategory} /> : null}
-        {minPrice ? <input name="minPrice" type="hidden" value={minPrice} /> : null}
-        {maxPrice ? <input name="maxPrice" type="hidden" value={maxPrice} /> : null}
-        {sort ? <input name="sort" type="hidden" value={sort} /> : null}
-        {Object.entries((structuredFilters ?? {}) as Record<string, string | boolean>).map(([key, value]) => (
-          <input key={key} name={key} type="hidden" value={serializeStructuredFilterValue(value)} />
-        ))}
-
-        <input
-          className="input mobile-filter-search"
-          name="q"
-          onChange={(e) => setSearchText(e.target.value)}
-          placeholder={searchPlaceholder}
-          value={searchText}
-        />
-
-        <button
-          className="button button-secondary mobile-filter-submit"
-          type="submit"
-          aria-label="Search listings"
+      <div className="mobile-filter-shell">
+        <form
+          action={actionPath}
+          className="mobile-filter-row"
+          method="get"
+          onSubmit={() => trackFilterSubmit("mobile")}
         >
-          <Search aria-hidden="true" size={18} strokeWidth={2.4} />
-          <span>Search</span>
-        </button>
-      </form>
+          {view ? <input name="view" type="hidden" value={view} /> : null}
+          {category ? <input name="category" type="hidden" value={category} /> : null}
+          {intent ? <input name="intent" type="hidden" value={intent} /> : null}
+          {requestWindow ? <input name="requestWindow" type="hidden" value={requestWindow} /> : null}
+          {communityArea ? <input name="communityArea" type="hidden" value={communityArea} /> : null}
+          {subcategory ? <input name="subcategory" type="hidden" value={subcategory} /> : null}
+          {minPrice ? <input name="minPrice" type="hidden" value={minPrice} /> : null}
+          {maxPrice ? <input name="maxPrice" type="hidden" value={maxPrice} /> : null}
+          {sort ? <input name="sort" type="hidden" value={sort} /> : null}
+          {Object.entries((structuredFilters ?? {}) as Record<string, string | boolean>).map(([key, value]) => (
+            <input key={key} name={key} type="hidden" value={serializeStructuredFilterValue(value)} />
+          ))}
 
-      {activeFilterCount > 0 ? (
-        <div className="mobile-applied-filters">
-          <span className="mobile-applied-filter-summary">{activeFilterSummary}</span>
-          <Link href={clearHref} className="mobile-applied-filter-clear">
-            Clear
-          </Link>
+          <input
+            className="input mobile-filter-search"
+            name="q"
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder={searchPlaceholder}
+            value={searchText}
+          />
+
+          <button
+            className="button button-secondary mobile-filter-submit"
+            type="submit"
+            aria-label="Search listings"
+          >
+            <Search aria-hidden="true" size={18} strokeWidth={2.4} />
+            <span>Search</span>
+          </button>
+        </form>
+
+        <div className="mobile-filter-chip-row" aria-label="Swipe filters">
+          {mobileFilterChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              aria-expanded={isFilterOpen}
+              aria-haspopup="dialog"
+              className={`mobile-filter-chip${chip.active ? " is-active" : ""}${chip.primary ? " is-primary" : ""}`}
+              onClick={() => setIsFilterOpen(true)}
+            >
+              {chip.primary ? <SlidersHorizontal aria-hidden="true" size={15} strokeWidth={2.2} /> : null}
+              <span>{chip.label}</span>
+              <ChevronDown aria-hidden="true" size={15} strokeWidth={2.2} />
+            </button>
+          ))}
+
+          {activeFilterSummary ? (
+            <span className="mobile-filter-chip-summary" aria-hidden="true">
+              {activeFilterSummary}
+            </span>
+          ) : null}
+
+          {activeFilterCount > 0 ? (
+            <Link href={clearHref} className="mobile-filter-clear-chip">
+              Clear
+            </Link>
+          ) : null}
         </div>
-      ) : null}
-
-      <button
-        aria-expanded={isFilterOpen}
-        aria-haspopup="dialog"
-        className={`mobile-floating-filter-button${isFilterOpen ? " is-hidden" : ""}`}
-        type="button"
-        onClick={() => setIsFilterOpen(true)}
-      >
-        <span>Filter</span>
-        {activeFilterCount > 0 ? <span className="mobile-filter-count">{activeFilterCount}</span> : null}
-      </button>
+      </div>
 
       {/* DESKTOP FULL FILTERS */}
       <form
