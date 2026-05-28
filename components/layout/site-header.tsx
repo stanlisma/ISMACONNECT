@@ -117,7 +117,6 @@ export function SiteHeader({
               <option value="ride-share">Ride Share</option>
               <option value="jobs">Jobs</option>
               <option value="services">Services</option>
-              <option value="buy-sell">Buy & Sell</option>
             </select>
 
             <button type="submit" className="header-search-submit" aria-label="Search">
