@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
@@ -101,6 +101,14 @@ function getRequestWindowFilterLabel(requestWindow?: string | null) {
   }
 }
 
+type MobileQuickFilterKey =
+  | "category"
+  | "intent"
+  | "price"
+  | "requestWindow"
+  | "sort"
+  | "subcategory";
+
 export function BrowseFilters({
   actionPath,
   search,
@@ -122,8 +130,11 @@ export function BrowseFilters({
     setSelectedIntent(intent ?? "");
     setSelectedRequestWindow(requestWindow ?? "");
     setSelectedSubcategory(normalizeSubcategory(category ?? "", subcategory ?? "") ?? "");
+    setMinPriceText(minPrice?.toString() ?? "");
+    setMaxPriceText(maxPrice?.toString() ?? "");
   };
 
+  const mobileFilterShellRef = useRef<HTMLDivElement | null>(null);
   const [searchText, setSearchText] = useState(search ?? "");
   const [selectedCategory, setSelectedCategory] = useState(category ?? "");
   const [selectedIntent, setSelectedIntent] = useState(intent ?? "");
@@ -131,12 +142,16 @@ export function BrowseFilters({
   const [selectedSubcategory, setSelectedSubcategory] = useState(
     normalizeSubcategory(category ?? "", subcategory ?? "") ?? ""
   );
+  const [minPriceText, setMinPriceText] = useState(minPrice?.toString() ?? "");
+  const [maxPriceText, setMaxPriceText] = useState(maxPrice?.toString() ?? "");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [quickFilterOpen, setQuickFilterOpen] = useState<MobileQuickFilterKey | null>(null);
 
   useEffect(() => {
     syncFromAppliedFilters();
     setIsFilterOpen(false);
-  }, [category, intent, requestWindow, search, subcategory]);
+    setQuickFilterOpen(null);
+  }, [category, intent, maxPrice, minPrice, requestWindow, search, subcategory]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -156,6 +171,24 @@ export function BrowseFilters({
       document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [isFilterOpen]);
+
+  useEffect(() => {
+    if (!quickFilterOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!mobileFilterShellRef.current?.contains(event.target as Node)) {
+        setQuickFilterOpen(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [quickFilterOpen]);
 
   const subcategories = useMemo(() => getSubcategories(selectedCategory), [selectedCategory]);
   const activeStructuredCategory = (showCategorySelect ? selectedCategory : category) ?? "";
@@ -277,7 +310,12 @@ export function BrowseFilters({
     return primaryLabel ? `${primaryLabel} +${activeFilterCount - 1}` : `${activeFilterCount} filters active`;
   }, [activeFilterCount, activeFilterLabels]);
   const mobileFilterChips = useMemo(() => {
-    const chips: Array<{ active: boolean; key: string; label: string; primary?: boolean }> = [
+    const chips: Array<{
+      active: boolean;
+      key: "filters" | MobileQuickFilterKey;
+      label: string;
+      primary?: boolean;
+    }> = [
       {
         key: "filters",
         label: activeFilterCount > 0 ? `Filters (${activeFilterCount})` : "Filters",
@@ -346,6 +384,44 @@ export function BrowseFilters({
   const clearHref = buildPathWithQuery(actionPath, {
     view
   });
+  const structuredFilterReset = useMemo(
+    () =>
+      Object.fromEntries(Object.keys((structuredFilters ?? {}) as Record<string, unknown>).map((key) => [key, undefined])),
+    [structuredFilters]
+  );
+  const mobileBaseQuery = useMemo(
+    () => ({
+      q: searchText.trim() ? searchText : undefined,
+      category: showCategorySelect ? selectedCategory || undefined : category ?? undefined,
+      intent: selectedIntent || undefined,
+      requestWindow: selectedIntent === "need" ? selectedRequestWindow || undefined : undefined,
+      communityArea:
+        (showCategorySelect ? selectedCategory || category : category) === "ride-share"
+          ? undefined
+          : communityArea ?? undefined,
+      subcategory: selectedSubcategory || undefined,
+      minPrice: minPriceText ? Number(minPriceText) : undefined,
+      maxPrice: maxPriceText ? Number(maxPriceText) : undefined,
+      sort: sort ?? undefined,
+      view: view ?? undefined,
+      ...(structuredFilters ?? {})
+    }),
+    [
+      category,
+      communityArea,
+      maxPriceText,
+      minPriceText,
+      searchText,
+      selectedCategory,
+      selectedIntent,
+      selectedRequestWindow,
+      selectedSubcategory,
+      showCategorySelect,
+      sort,
+      structuredFilters,
+      view
+    ]
+  );
 
   function trackFilterSubmit(surface: "mobile" | "desktop") {
     trackMarketplaceEvent("browse_filters_apply", {
@@ -417,10 +493,242 @@ export function BrowseFilters({
     );
   }
 
+  function openMobileSheet() {
+    setQuickFilterOpen(null);
+    setIsFilterOpen(true);
+  }
+
+  function toggleQuickFilter(filterKey: MobileQuickFilterKey) {
+    setIsFilterOpen(false);
+    setQuickFilterOpen((current) => (current === filterKey ? null : filterKey));
+  }
+
+  function renderQuickFilterPanel() {
+    if (!quickFilterOpen) {
+      return null;
+    }
+
+    if (quickFilterOpen === "category" && showCategorySelect) {
+      return (
+        <div className="mobile-filter-quick-panel" role="menu" aria-label="Category">
+          <div className="mobile-filter-quick-options">
+            <Link
+              href={buildPathWithQuery(actionPath, {
+                ...mobileBaseQuery,
+                category: undefined,
+                subcategory: undefined,
+                communityArea: undefined,
+                ...structuredFilterReset
+              })}
+              className={`mobile-filter-quick-option${!selectedCategory ? " is-active" : ""}`}
+            >
+              All categories
+            </Link>
+            {CATEGORIES.map((item) => (
+              <Link
+                key={item.value}
+                href={buildPathWithQuery(actionPath, {
+                  ...mobileBaseQuery,
+                  category: item.value,
+                  subcategory: undefined,
+                  communityArea: item.value === "ride-share" ? undefined : communityArea ?? undefined,
+                  ...structuredFilterReset
+                })}
+                className={`mobile-filter-quick-option${selectedCategory === item.value ? " is-active" : ""}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (quickFilterOpen === "intent") {
+      return (
+        <div className="mobile-filter-quick-panel" role="menu" aria-label="Post type">
+          <div className="mobile-filter-quick-options">
+            {[
+              { label: "All posts", value: "" },
+              { label: "Offers only", value: "offer" },
+              { label: "Needs only", value: "need" }
+            ].map((option) => (
+              <Link
+                key={option.label}
+                href={buildPathWithQuery(actionPath, {
+                  ...mobileBaseQuery,
+                  intent: option.value || undefined,
+                  requestWindow: option.value === "need" ? selectedRequestWindow || undefined : undefined
+                })}
+                className={`mobile-filter-quick-option${(selectedIntent || "") === option.value ? " is-active" : ""}`}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (quickFilterOpen === "requestWindow") {
+      return (
+        <div className="mobile-filter-quick-panel" role="menu" aria-label="Need timing">
+          <div className="mobile-filter-quick-options">
+            {[
+              { label: "Any timing", value: "" },
+              { label: "Today", value: "today" },
+              { label: "This week", value: "this-week" },
+              { label: "Flexible", value: "flexible" }
+            ].map((option) => (
+              <Link
+                key={option.label}
+                href={buildPathWithQuery(actionPath, {
+                  ...mobileBaseQuery,
+                  requestWindow: option.value || undefined,
+                  intent: "need"
+                })}
+                className={`mobile-filter-quick-option${(selectedRequestWindow || "") === option.value ? " is-active" : ""}`}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (quickFilterOpen === "subcategory" && subcategories.length > 0) {
+      return (
+        <div className="mobile-filter-quick-panel" role="menu" aria-label="Subcategory">
+          <div className="mobile-filter-quick-options">
+            <Link
+              href={buildPathWithQuery(actionPath, {
+                ...mobileBaseQuery,
+                subcategory: undefined
+              })}
+              className={`mobile-filter-quick-option${!selectedSubcategory ? " is-active" : ""}`}
+            >
+              All subcategories
+            </Link>
+            {subcategories.map((item) => (
+              <Link
+                key={item.value}
+                href={buildPathWithQuery(actionPath, {
+                  ...mobileBaseQuery,
+                  subcategory: item.value
+                })}
+                className={`mobile-filter-quick-option${selectedSubcategory === item.value ? " is-active" : ""}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (quickFilterOpen === "sort") {
+      return (
+        <div className="mobile-filter-quick-panel" role="menu" aria-label="Sort">
+          <div className="mobile-filter-quick-options">
+            {[
+              { label: "Newest first", value: "" },
+              { label: "Price: low to high", value: "price_asc" },
+              { label: "Price: high to low", value: "price_desc" }
+            ].map((option) => (
+              <Link
+                key={option.label}
+                href={buildPathWithQuery(actionPath, {
+                  ...mobileBaseQuery,
+                  sort: option.value || undefined
+                })}
+                className={`mobile-filter-quick-option${(sort || "") === option.value ? " is-active" : ""}`}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (quickFilterOpen === "price") {
+      return (
+        <div className="mobile-filter-quick-panel" role="dialog" aria-label="Price">
+          <form
+            action={actionPath}
+            method="get"
+            className="mobile-filter-price-form"
+            onSubmit={() => trackFilterSubmit("mobile")}
+          >
+            {view ? <input name="view" type="hidden" value={view} /> : null}
+            {showCategorySelect ? (
+              selectedCategory ? <input name="category" type="hidden" value={selectedCategory} /> : null
+            ) : category ? (
+              <input name="category" type="hidden" value={category} />
+            ) : null}
+            {selectedIntent ? <input name="intent" type="hidden" value={selectedIntent} /> : null}
+            {selectedIntent === "need" && selectedRequestWindow ? (
+              <input name="requestWindow" type="hidden" value={selectedRequestWindow} />
+            ) : null}
+            {communityArea && (showCategorySelect ? selectedCategory || category : category) !== "ride-share" ? (
+              <input name="communityArea" type="hidden" value={communityArea} />
+            ) : null}
+            {selectedSubcategory ? <input name="subcategory" type="hidden" value={selectedSubcategory} /> : null}
+            {sort ? <input name="sort" type="hidden" value={sort} /> : null}
+            {searchText.trim() ? <input name="q" type="hidden" value={searchText.trim()} /> : null}
+            {Object.entries((structuredFilters ?? {}) as Record<string, string | boolean>).map(([key, value]) => (
+              <input key={key} name={key} type="hidden" value={serializeStructuredFilterValue(value)} />
+            ))}
+
+            <div className="mobile-filter-price-grid">
+              <input
+                className="input"
+                name="minPrice"
+                type="number"
+                inputMode="numeric"
+                placeholder="Min $"
+                value={minPriceText}
+                onChange={(event) => setMinPriceText(event.target.value)}
+              />
+              <input
+                className="input"
+                name="maxPrice"
+                type="number"
+                inputMode="numeric"
+                placeholder="Max $"
+                value={maxPriceText}
+                onChange={(event) => setMaxPriceText(event.target.value)}
+              />
+            </div>
+
+            <div className="mobile-filter-price-actions">
+              <Link
+                href={buildPathWithQuery(actionPath, {
+                  ...mobileBaseQuery,
+                  minPrice: undefined,
+                  maxPrice: undefined
+                })}
+                className="button button-secondary"
+              >
+                Clear
+              </Link>
+              <button className="button" type="submit">
+                Apply
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
   return (
     <>
       {/* MOBILE COMPACT SEARCH */}
-      <div className="mobile-filter-shell">
+      <div className="mobile-filter-shell" ref={mobileFilterShellRef}>
         <form
           action={actionPath}
           className="mobile-filter-row"
@@ -463,10 +771,17 @@ export function BrowseFilters({
             <button
               key={chip.key}
               type="button"
-              aria-expanded={isFilterOpen}
-              aria-haspopup="dialog"
+              aria-expanded={chip.key === "filters" ? isFilterOpen : quickFilterOpen === chip.key}
+              aria-haspopup={chip.key === "filters" ? "dialog" : "menu"}
               className={`mobile-filter-chip${chip.active ? " is-active" : ""}${chip.primary ? " is-primary" : ""}`}
-              onClick={() => setIsFilterOpen(true)}
+              onClick={() => {
+                if (chip.key === "filters") {
+                  openMobileSheet();
+                  return;
+                }
+
+                toggleQuickFilter(chip.key);
+              }}
             >
               {chip.primary ? <SlidersHorizontal aria-hidden="true" size={15} strokeWidth={2.2} /> : null}
               <span>{chip.label}</span>
@@ -486,6 +801,8 @@ export function BrowseFilters({
             </Link>
           ) : null}
         </div>
+
+        {renderQuickFilterPanel()}
       </div>
 
       {/* DESKTOP FULL FILTERS */}
