@@ -98,6 +98,7 @@ export default async function MessageThreadPage({
     slug?: string | null;
     image_url?: string | null;
   } | null;
+  const listingHref = listing?.slug ? `/listings/${listing.slug}` : null;
 
   return (
     <section className="section">
@@ -114,12 +115,21 @@ export default async function MessageThreadPage({
           </div>
 
           <div className="messages-thread-summary">
-            {listing?.image_url ? (
-              <Link href={`/listings/${listing.slug}`} className="messages-thread-listing-thumb">
-                <img
-                  src={listing.image_url}
-                  alt={listing.title ?? "Listing image"}
-                />
+            {listingHref ? (
+              <Link
+                href={listingHref}
+                className={`messages-thread-listing-thumb${listing?.image_url ? "" : " messages-thread-listing-thumb-placeholder"}`}
+              >
+                {listing?.image_url ? (
+                  <img
+                    src={listing.image_url}
+                    alt={listing.title ?? "Listing image"}
+                  />
+                ) : (
+                  <div>
+                    <ImageIcon aria-hidden="true" size={20} strokeWidth={2.1} />
+                  </div>
+                )}
               </Link>
             ) : (
               <div className="messages-thread-listing-thumb messages-thread-listing-thumb-placeholder">
@@ -129,9 +139,9 @@ export default async function MessageThreadPage({
 
             <div className="messages-thread-copy">
               <h1 className="section-title">
-                {listing?.slug ? (
-                  <Link href={`/listings/${listing.slug}`} className="messages-thread-title-link">
-                    {listing.title ?? "Conversation"}
+                {listingHref ? (
+                  <Link href={listingHref} className="messages-thread-title-link">
+                    {listing?.title ?? "Conversation"}
                   </Link>
                 ) : (
                   <span>{listing?.title ?? "Conversation"}</span>
@@ -143,6 +153,14 @@ export default async function MessageThreadPage({
                 {safetyState.viewerBlockedOther ? <span className="badge badge-neutral">Blocked</span> : null}
                 {existingReport ? <span className="badge badge-soft">Reported</span> : null}
               </div>
+
+              {listingHref ? (
+                <div className="messages-thread-actions">
+                  <Link href={listingHref} className="button button-secondary messages-thread-listing-link">
+                    View listing
+                  </Link>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
