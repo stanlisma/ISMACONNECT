@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLiveMessageState } from "@/components/messages/live-message-provider";
 import { getSubcategories } from "@/lib/subcategories";
 import "./site-header.css";
 
@@ -39,6 +40,7 @@ export function SiteHeader({
   unreadNotificationsMarker,
 }: SiteHeaderProps) {
   const pathname = usePathname();
+  const { unreadMessagesCount: liveUnreadMessagesCount } = useLiveMessageState();
   const [notificationBadgeCount, setNotificationBadgeCount] = useState(
     pathname === "/notifications" ? 0 : unreadNotificationsCount
   );
@@ -133,8 +135,10 @@ export function SiteHeader({
                   aria-label="Messages"
                 >
                   <MessageCircle aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
-                  {unreadMessagesCount > 0 ? (
-                    <span className="header-action-badge">{formatBadgeCount(unreadMessagesCount)}</span>
+                  {(liveUnreadMessagesCount || unreadMessagesCount) > 0 ? (
+                    <span className="header-action-badge">
+                      {formatBadgeCount(liveUnreadMessagesCount || unreadMessagesCount)}
+                    </span>
                   ) : null}
                 </Link>
 

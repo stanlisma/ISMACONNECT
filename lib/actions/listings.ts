@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
+import { notifySavedSearchMatchesForListing } from "@/lib/saved-searches";
 import { isAdditionalStorefrontSchemaError } from "@/lib/business-storefronts";
 import { normalizeSubcategory } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -307,7 +308,9 @@ export async function createListingAction(formData: FormData) {
       image_urls: imageUrls,
       structured_data: structuredDataResult.data
     })
-    .select("slug, category")
+    .select(
+      "id, owner_id, slug, title, description, category, subcategory, price, location, listing_intent, request_window, structured_data, status, created_at"
+    )
     .single();
 
   if (error || !data) {
@@ -324,6 +327,12 @@ export async function createListingAction(formData: FormData) {
   revalidatePath(`/categories/${data.category}`);
   revalidatePath(`/listings/${data.slug}`);
   revalidatePath(`/sellers/${viewer.user.id}`);
+
+  try {
+    await notifySavedSearchMatchesForListing(data);
+  } catch (savedSearchNotificationError) {
+    console.error("Saved search match notification failed:", savedSearchNotificationError);
+  }
 
   redirectWithMessage("/dashboard", "success", "Listing published successfully.");
 }

@@ -125,6 +125,12 @@ function getNotificationPresentation(type: string | null | undefined) {
         className: "notification-card-review",
         icon: <Star aria-hidden="true" size={18} strokeWidth={2.2} />
       };
+    case "saved-search":
+      return {
+        label: "Saved search",
+        className: "notification-card-search",
+        icon: <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+      };
     default:
       return {
         label: "Updates",

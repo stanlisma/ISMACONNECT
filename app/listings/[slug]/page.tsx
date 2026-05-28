@@ -18,6 +18,8 @@ import { CATEGORY_MAP, LISTING_INTENT_LABELS, REQUEST_WINDOW_LABELS, SITE_NAME }
 import {
   getConversationForListing,
   getPublicListingBySlug,
+  getPublicSellerStorefront,
+  getPublicSellerStorefrontLinks,
   getRelatedListings,
   getSavedListingIds,
 } from "@/lib/data";
@@ -86,6 +88,8 @@ export default async function ListingPage({
   const relatedListings = await getRelatedListings(listing);
   const relatedTrustMap = await getSellerTrustSummaryMap(relatedListings.map((item) => item.owner_id));
   const sellerTrustSummary = await getSellerTrustSummary(listing.owner_id);
+  const sellerStorefrontProfile = await getPublicSellerStorefront(listing.owner_id, 1);
+  const sellerStorefrontLinks = await getPublicSellerStorefrontLinks(listing.owner_id);
   const category = CATEGORY_MAP[listing.category as keyof typeof CATEGORY_MAP];
 
   const existingConversation =
@@ -339,11 +343,23 @@ export default async function ListingPage({
                   className="button button-secondary"
                   href={selectedStorefrontHref}
                 >
-                  View profile
+                  See profile
                 </Link>
               </div>
 
               <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} />
+
+              <div className="detail-seller-facts">
+                {sellerStorefrontProfile ? (
+                  <span>{sellerStorefrontProfile.total_active_listings} live listing{sellerStorefrontProfile.total_active_listings === 1 ? "" : "s"}</span>
+                ) : null}
+                {sellerStorefrontLinks.length ? (
+                  <span>{sellerStorefrontLinks.length} storefront{sellerStorefrontLinks.length === 1 ? "" : "s"}</span>
+                ) : null}
+                {sellerTrustSummary?.review_count ? (
+                  <span>{sellerTrustSummary.review_count} review{sellerTrustSummary.review_count === 1 ? "" : "s"}</span>
+                ) : null}
+              </div>
 
               <div className="meta-list" style={{ marginTop: "1rem" }}>
                 <span>
