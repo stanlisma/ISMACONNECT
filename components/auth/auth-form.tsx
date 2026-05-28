@@ -26,15 +26,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
           <h1>{title}</h1>
           {helpText ? <FieldHelp text={helpText} label={title} /> : null}
         </div>
-        {description ? <p>{description}</p> : null}
-        {isSignUp ? (
-          <div className="auth-benefits" aria-label="Account benefits">
-            <span className="auth-benefit-chip">Post rides, rentals, and services</span>
-            <span className="auth-benefit-chip">Save searches and get alerts</span>
-            <span className="auth-benefit-chip">Message locals faster</span>
-            <span className="auth-benefit-chip">Create a storefront later</span>
-          </div>
-        ) : null}
+        {!isSignUp && description ? <p>{description}</p> : null}
 
         <form
           action={action}
@@ -47,90 +39,84 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
         >
           {isSignUp ? (
             <>
-              <div className="auth-field-grid">
-                <label className="field">
-                  <span className="field-label">First name</span>
-                  <input
-                    autoComplete="given-name"
-                    className="input"
-                    name="firstName"
-                    placeholder="First name"
-                    required
-                  />
-                </label>
-
-                <label className="field">
-                  <span className="field-label">Last name</span>
-                  <input
-                    autoComplete="family-name"
-                    className="input"
-                    name="lastName"
-                    placeholder="Last name"
-                    required
-                  />
-                </label>
-              </div>
-
-              <div className="auth-field-grid">
-                <label className="field">
-                  <span className="field-label">Email</span>
-                  <input
-                    autoComplete="email"
-                    className="input"
-                    name="email"
-                    placeholder="name@example.com"
-                    required
-                    type="email"
-                  />
-                </label>
-
-                <label className="field">
-                  <span className="field-label">Confirm email</span>
-                  <input
-                    autoComplete="email"
-                    className="input"
-                    name="confirmEmail"
-                    placeholder="Re-enter your email"
-                    required
-                    type="email"
-                  />
-                </label>
-              </div>
-
-              <div className="auth-field-grid">
-                <label className="field">
-                  <FieldLabelWithHelp
-                    label="Phone number"
-                    helpText="Use the number you want tied to listing replies. We will save whether you prefer text or voice verification for this account."
-                  />
-                  <input
-                    autoComplete="tel"
-                    className="input"
-                    name="phone"
-                    placeholder="780-555-0123"
-                    required
-                    type="tel"
-                  />
-                </label>
-
-                <label className="field">
-                  <FieldLabelWithHelp
-                    label="Verify phone by"
-                    helpText="Choose whether this phone should be verified by text message or a voice call when phone verification is enabled for your account."
-                  />
-                  <select
-                    className="select"
-                    name="phoneVerificationMethod"
-                    defaultValue="text"
-                    required
-                  >
-                    <option value="text">Text message</option>
-                    <option value="call">Voice call</option>
-                  </select>
-                </label>
-              </div>
+              <label className="field">
+                <span className="field-label">First name</span>
+                <input
+                  autoComplete="given-name"
+                  className="input"
+                  name="firstName"
+                  placeholder="First name"
+                  required
+                />
+              </label>
 
               <label className="field">
+                <span className="field-label">Last name</span>
+                <input
+                  autoComplete="family-name"
+                  className="input"
+                  name="lastName"
+                  placeholder="Last name"
+                  required
+                />
+              </label>
+
+              <label className="field">
+                <span className="field-label">Email</span>
+                <input
+                  autoComplete="email"
+                  className="input"
+                  name="email"
+                  placeholder="name@example.com"
+                  required
+                  type="email"
+                />
+              </label>
+
+              <label className="field">
+                <span className="field-label">Confirm email</span>
+                <input
+                  autoComplete="email"
+                  className="input"
+                  name="confirmEmail"
+                  placeholder="Re-enter your email"
+                  required
+                  type="email"
+                />
+              </label>
+
+              <label className="field">
+                <FieldLabelWithHelp
+                  label="Phone number"
+                  helpText="Use the number you want tied to listing replies. We will save whether you prefer text or voice verification for this account."
+                />
+                <input
+                  autoComplete="tel"
+                  className="input"
+                  name="phone"
+                  placeholder="780-555-0123"
+                  required
+                  type="tel"
+                />
+              </label>
+
+              <label className="field">
+                <FieldLabelWithHelp
+                  label="Verify phone by"
+                  helpText="Choose whether this phone should be verified by text message or a voice call when phone verification is enabled for your account."
+                />
+                <select
+                  className="select"
+                  name="phoneVerificationMethod"
+                  defaultValue="text"
+                  required
+                >
+                  <option value="text">Text message</option>
+                  <option value="call">Voice call</option>
+                </select>
+              </label>
+
+              <label className="field field-full">
                 <FieldLabelWithHelp
                   label="Address"
                   helpText="Use your usual Fort McMurray area address or community so your account starts with a real local profile."
@@ -145,7 +131,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
               </label>
             </>
           ) : (
-            <label className="field">
+            <label className="field field-full">
               <span className="field-label">Email</span>
               <input
                 autoComplete="email"
@@ -158,7 +144,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
             </label>
           )}
 
-          <label className="field">
+          <label className={`field${isSignUp ? "" : " field-full"}`}>
             <span className="field-label">Password</span>
             <input
               autoComplete={isSignUp ? "new-password" : "current-password"}
@@ -171,7 +157,10 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
             />
           </label>
 
-          <SubmitButton pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}>
+          <SubmitButton
+            className={isSignUp ? "auth-submit-button" : "field-full"}
+            pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
+          >
             {isSignUp ? "Create account" : "Sign in"}
           </SubmitButton>
         </form>
