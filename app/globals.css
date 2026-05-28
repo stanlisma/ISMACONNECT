@@ -4485,8 +4485,6 @@ code {
   border: 1px solid #e0e8f6;
   border-radius: 18px;
   background: #fbfdff;
-  content-visibility: auto;
-  contain-intrinsic-size: 120px;
 }
 
 .notification-card.is-unread {
@@ -5346,8 +5344,6 @@ code {
   text-decoration: none;
   color: inherit;
   transition: background 0.18s ease;
-  content-visibility: auto;
-  contain-intrinsic-size: 92px;
 }
 
 .messages-list-item.is-unread {
