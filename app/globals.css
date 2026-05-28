@@ -5597,6 +5597,17 @@ code {
   color: inherit;
 }
 
+.messages-thread-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.15rem;
+}
+
+.messages-thread-listing-link {
+  min-height: 2.45rem;
+}
+
 .messages-thread-meta {
   display: flex;
   flex-wrap: wrap;
@@ -8871,6 +8882,15 @@ code {
 
   .messages-thread-copy {
     gap: 0.35rem;
+  }
+
+  .messages-thread-actions {
+    width: 100%;
+  }
+
+  .messages-thread-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 
   .messages-thread-copy .section-title {
