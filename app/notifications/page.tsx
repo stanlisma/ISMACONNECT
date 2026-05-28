@@ -454,12 +454,17 @@ export default async function NotificationsPage() {
                 <p className="section-copy">
                   {savedSearchAlerts.length
                     ? "Your saved-search matches are shown above. Message replies and account updates will appear here next."
-                    : "When someone replies to you, leaves a rating, or a saved search finds new matches, they will show up here."}
+                    : "When someone replies to you, leaves a rating, or a saved search finds new matches, they will show up here. Save a search or start a conversation to build your activity feed."}
                 </p>
               </div>
-              <Link href="/browse" className="button button-secondary notifications-empty-action">
-                Explore listings
-              </Link>
+              <div className="notifications-empty-actions">
+                <Link href="/browse" className="button button-secondary notifications-empty-action">
+                  Explore listings
+                </Link>
+                <Link href="/dashboard/searches" className="button notifications-empty-action">
+                  Saved searches
+                </Link>
+              </div>
             </section>
           )}
         </div>

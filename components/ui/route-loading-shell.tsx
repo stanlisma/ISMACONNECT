@@ -1,13 +1,15 @@
 type RouteLoadingShellProps = {
   eyebrow?: string;
   title: string;
+  message?: string;
   detail?: boolean;
   variant?: "feed" | "detail" | "chat" | "storefront" | "form";
 };
 
 export function RouteLoadingShell({
-  eyebrow = "Opening",
+  eyebrow = "Loading",
   title,
+  message = "Finding the latest local activity for you now.",
   detail = false,
   variant = detail ? "detail" : "feed"
 }: RouteLoadingShellProps) {
@@ -19,6 +21,7 @@ export function RouteLoadingShell({
             <div className="route-loading-hero surface">
               <span className="eyebrow">{eyebrow}</span>
               <h1>{title}</h1>
+              <p className="route-loading-copy">{message}</p>
               <div className="route-loading-line is-medium" />
             </div>
 
@@ -56,6 +59,7 @@ export function RouteLoadingShell({
                 <div className="route-loading-storefront-copy">
                   <span className="eyebrow">{eyebrow}</span>
                   <h1>{title}</h1>
+                  <p className="route-loading-copy">{message}</p>
                   <div className="route-loading-line is-medium" />
                   <div className="route-loading-chip-row">
                     <span className="route-loading-chip" />
@@ -102,6 +106,7 @@ export function RouteLoadingShell({
             <div className="route-loading-hero surface">
               <span className="eyebrow">{eyebrow}</span>
               <h1>{title}</h1>
+              <p className="route-loading-copy">{message}</p>
               <div className="route-loading-line is-medium" />
             </div>
 
@@ -137,6 +142,7 @@ export function RouteLoadingShell({
           <div className="route-loading-hero surface">
             <span className="eyebrow">{eyebrow}</span>
             <h1>{title}</h1>
+            <p className="route-loading-copy">{message}</p>
             <div className="route-loading-line is-long" />
             <div className="route-loading-chip-row">
               <span className="route-loading-chip" />

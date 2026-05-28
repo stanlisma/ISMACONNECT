@@ -19,7 +19,7 @@ export function OpenSavedSearchForm({
 }: OpenSavedSearchFormProps) {
   return (
     <form action={openSavedSearchAction.bind(null, savedSearchId, href)}>
-      <SubmitButton className="button-secondary" pendingLabel="Opening...">
+      <SubmitButton className="button-secondary" pendingLabel="Loading results...">
         {hasAlerts ? "Open new matches" : "View search"}
       </SubmitButton>
     </form>
