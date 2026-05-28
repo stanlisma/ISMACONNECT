@@ -7,14 +7,18 @@ import { setTypingAction } from "@/lib/actions/typing";
 
 interface MessageComposerProps {
   conversationId: string;
+  ariaLabel?: string;
   disabled?: boolean;
   disabledMessage?: string | null;
+  placeholder?: string;
 }
 
 export function MessageComposer({
   conversationId,
+  ariaLabel = "Message",
   disabled = false,
-  disabledMessage
+  disabledMessage,
+  placeholder
 }: MessageComposerProps) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [imageUrl, setImageUrl] = useState("");
@@ -85,10 +89,11 @@ export function MessageComposer({
         className="input message-composer-textarea"
         name="body"
         rows={4}
+        aria-label={ariaLabel}
         placeholder={
           disabled
             ? disabledMessage ?? "Messaging is disabled for this conversation."
-            : "Ask a question or confirm details..."
+            : placeholder ?? "Ask a question or confirm details..."
         }
         onChange={handleTyping}
         onBlur={() => {

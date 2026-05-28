@@ -256,20 +256,13 @@ export default async function MessageThreadPage({
         >
           <input type="hidden" name="conversationId" value={id} />
 
-          <div className="messages-reply-head">
-            <div>
-              <h2>Send reply</h2>
-            </div>
-          </div>
-
-          <label className="field messages-reply-field">
-            <span className="field-label">Reply</span>
-            <MessageComposer
-              conversationId={id}
-              disabled={Boolean(messagingDisabledMessage)}
-              disabledMessage={messagingDisabledMessage}
-            />
-          </label>
+          <MessageComposer
+            conversationId={id}
+            ariaLabel="Reply message"
+            disabled={Boolean(messagingDisabledMessage)}
+            disabledMessage={messagingDisabledMessage}
+            placeholder="Write your message..."
+          />
 
           <div className="messages-reply-actions">
             <SubmitButton
@@ -277,7 +270,7 @@ export default async function MessageThreadPage({
               pendingLabel="Sending..."
               disabled={Boolean(messagingDisabledMessage)}
             >
-              {messagingDisabledMessage ? "Messaging disabled" : "Send reply"}
+              {messagingDisabledMessage ? "Messaging disabled" : "Send"}
             </SubmitButton>
           </div>
         </form>
