@@ -283,6 +283,7 @@ export function LiveMessageProvider({
       {toast ? (
         <Link
           href={`/messages/${toast.conversationId}`}
+          prefetch={false}
           className="live-message-toast"
           onClick={() => setToast(null)}
         >

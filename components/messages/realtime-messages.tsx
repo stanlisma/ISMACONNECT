@@ -123,18 +123,14 @@ export function RealtimeMessages({
     const unseenIncomingMessageIds = initialMessages
       .filter((message) => message.sender_id !== viewerId && !message.seen_at)
       .map((message) => message.id);
+    const unreadField = viewerId === buyerId ? "buyer_unread_count" : "seller_unread_count";
 
-    if (!unseenIncomingMessageIds.length) {
-      return;
-    }
+    async function syncOpenedConversation() {
+      const seenAt = new Date().toISOString();
 
-    const seenAt = new Date().toISOString();
+      if (unseenIncomingMessageIds.length) {
+        await supabase.from("messages").update({ seen_at: seenAt }).in("id", unseenIncomingMessageIds);
 
-    void supabase
-      .from("messages")
-      .update({ seen_at: seenAt })
-      .in("id", unseenIncomingMessageIds)
-      .then(() => {
         setMessages((current) =>
           current.map((message) =>
             unseenIncomingMessageIds.includes(message.id)
@@ -142,8 +138,16 @@ export function RealtimeMessages({
               : message
           )
         );
-      });
-  }, [initialMessages, supabase, viewerId]);
+      }
+
+      await supabase
+        .from("conversations")
+        .update({ [unreadField]: 0 })
+        .eq("id", conversationId);
+    }
+
+    void syncOpenedConversation();
+  }, [buyerId, conversationId, initialMessages, supabase, viewerId]);
 
   useEffect(() => {
     const unreadField = viewerId === buyerId ? "buyer_unread_count" : "seller_unread_count";

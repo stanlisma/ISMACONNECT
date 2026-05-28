@@ -342,6 +342,7 @@ export function MessagesInboxLive({
                 <Link
                   key={conversation.id}
                   href={`/messages/${conversation.id}`}
+                  prefetch={false}
                   className={`messages-list-item${unreadCount > 0 ? " is-unread" : ""}${otherTyping ? " is-typing" : ""}`}
                 >
                   <div className="messages-list-leading">
