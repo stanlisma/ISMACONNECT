@@ -9,9 +9,11 @@ import {
   getSubcategoryQueryValues,
   normalizeSubcategory
 } from "@/lib/subcategories";
-import { applyListingKeywordSearch } from "@/lib/listing-search";
+import { applyListingKeywordSearch, matchesListingKeywordSearch } from "@/lib/listing-search";
+import { createNotificationAndPush } from "@/lib/push";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { resolveCategory, resolveListingIntent, resolveRequestWindow } from "@/lib/utils";
 import type { Listing, ListingCategory, ListingIntent, RequestWindow, SavedSearch } from "@/types/database";
 
@@ -350,6 +352,162 @@ function applyListingFilters(query: any, filters: SavedSearchFilters) {
   }
 
   return applyStructuredListingFilters(nextQuery, normalized.category, normalized.extraFilters);
+}
+
+type SavedSearchMatchCandidate = Pick<
+  Listing,
+  | "id"
+  | "owner_id"
+  | "slug"
+  | "title"
+  | "description"
+  | "category"
+  | "subcategory"
+  | "price"
+  | "location"
+  | "listing_intent"
+  | "request_window"
+  | "structured_data"
+  | "status"
+  | "created_at"
+>;
+
+function matchesStructuredFilters(
+  listing: SavedSearchMatchCandidate,
+  category: ListingCategory | null,
+  filters: Record<string, string | boolean>
+) {
+  if (!category) {
+    return true;
+  }
+
+  const structuredData = (listing.structured_data ?? {}) as Record<string, unknown>;
+
+  return Object.entries(normalizeStructuredFilterValues(category, filters)).every(([key, value]) => {
+    return structuredData[key] === value;
+  });
+}
+
+export function doesListingMatchSavedSearch(
+  listing: SavedSearchMatchCandidate,
+  filtersOrSavedSearch: SavedSearchFilters | SavedSearch
+) {
+  const filters =
+    "signature" in filtersOrSavedSearch
+      ? getSavedSearchFiltersFromRecord(filtersOrSavedSearch)
+      : normalizeSavedSearchFilters(filtersOrSavedSearch);
+
+  if (listing.status !== "active") {
+    return false;
+  }
+
+  if (filters.category && listing.category !== filters.category) {
+    return false;
+  }
+
+  if (filters.subcategory) {
+    const subcategoryValues = getSubcategoryQueryValues(filters.category, filters.subcategory);
+
+    if (subcategoryValues.length && !subcategoryValues.includes(listing.subcategory ?? "")) {
+      return false;
+    }
+  }
+
+  if (!matchesListingKeywordSearch(listing, filters.search)) {
+    return false;
+  }
+
+  if (filters.minPrice !== null && (listing.price === null || listing.price < filters.minPrice)) {
+    return false;
+  }
+
+  if (filters.maxPrice !== null && (listing.price === null || listing.price > filters.maxPrice)) {
+    return false;
+  }
+
+  const intentFilter = normalizeIntentFilterValue(filters.extraFilters.intent);
+  const requestWindowFilter = normalizeRequestWindowFilterValue(filters.extraFilters.requestWindow);
+
+  if (intentFilter && listing.listing_intent !== intentFilter) {
+    return false;
+  }
+
+  if (requestWindowFilter && listing.request_window !== requestWindowFilter) {
+    return false;
+  }
+
+  return matchesStructuredFilters(listing, filters.category, filters.extraFilters);
+}
+
+export async function notifySavedSearchMatchesForListing(listing: SavedSearchMatchCandidate) {
+  const supabase = createServiceRoleSupabaseClient();
+  const { data } = await supabase
+    .from("saved_searches")
+    .select("*")
+    .neq("user_id", listing.owner_id)
+    .or(`category.is.null,category.eq.${listing.category}`);
+
+  const savedSearches = (data ?? []) as SavedSearch[];
+
+  if (!savedSearches.length) {
+    return;
+  }
+
+  const listingCreatedAt = new Date(listing.created_at).getTime();
+  const matchesByUser = new Map<
+    string,
+    {
+      count: number;
+      savedSearchId: string;
+      href: string;
+      label: string;
+    }
+  >();
+
+  for (const savedSearch of savedSearches) {
+    if (savedSearch.last_checked_at) {
+      const lastCheckedAt = new Date(savedSearch.last_checked_at).getTime();
+
+      if (Number.isFinite(lastCheckedAt) && listingCreatedAt <= lastCheckedAt) {
+        continue;
+      }
+    }
+
+    if (!doesListingMatchSavedSearch(listing, savedSearch)) {
+      continue;
+    }
+
+    const existing = matchesByUser.get(savedSearch.user_id);
+    const label = getSavedSearchLabel(getSavedSearchFiltersFromRecord(savedSearch));
+    const href = buildSavedSearchHref(getSavedSearchFiltersFromRecord(savedSearch));
+
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+
+    matchesByUser.set(savedSearch.user_id, {
+      count: 1,
+      savedSearchId: savedSearch.id,
+      href,
+      label
+    });
+  }
+
+  await Promise.all(
+    Array.from(matchesByUser.entries()).map(([userId, match]) =>
+      createNotificationAndPush({
+        userId,
+        type: "saved-search",
+        title: "New saved-search match",
+        body:
+          match.count > 1
+            ? `"${listing.title}" matches ${match.count} of your saved searches.`
+            : `"${listing.title}" matches your saved search "${match.label}".`,
+        link: `/notifications/open?savedSearch=${match.savedSearchId}&next=${encodeURIComponent(match.href)}`
+      })
+    )
+  );
 }
 
 export async function getSavedSearchByFilters(userId: string, filters: SavedSearchFilters) {

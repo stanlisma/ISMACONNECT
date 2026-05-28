@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { LiveMessageProvider } from "@/components/messages/live-message-provider";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PwaShell } from "@/components/pwa/pwa-shell";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -67,24 +68,29 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <AnalyticsProvider userId={viewer?.user.id ?? null} />
         <PwaShell />
-        <MobileBottomNav
-          viewer={Boolean(viewer)}
-          unreadMessagesCount={unreadMessagesCount}
-          unreadActivityCount={unreadNotificationsCount}
-          unreadActivityMarker={unreadNotificationsMarker}
-        />
-        <div className="site-shell">
-          <SiteHeader
-            viewer={viewer}
+        <LiveMessageProvider
+          viewerId={viewer?.user.id ?? null}
+          initialUnreadMessagesCount={unreadMessagesCount}
+        >
+          <MobileBottomNav
+            viewer={Boolean(viewer)}
             unreadMessagesCount={unreadMessagesCount}
-            unreadNotificationsCount={unreadNotificationsCount}
-            unreadNotificationsMarker={unreadNotificationsMarker}
+            unreadActivityCount={unreadNotificationsCount}
+            unreadActivityMarker={unreadNotificationsMarker}
           />
+          <div className="site-shell">
+            <SiteHeader
+              viewer={viewer}
+              unreadMessagesCount={unreadMessagesCount}
+              unreadNotificationsCount={unreadNotificationsCount}
+              unreadNotificationsMarker={unreadNotificationsMarker}
+            />
 
-          <main>{children}</main>
+            <main>{children}</main>
 
-          <SiteFooter />
-        </div>
+            <SiteFooter />
+          </div>
+        </LiveMessageProvider>
       </body>
     </html>
   );

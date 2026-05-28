@@ -1,3 +1,5 @@
+import type { Listing } from "@/types/database";
+
 export type ListingKeywordSearchMode = "fts" | "ilike";
 
 function normalizeSearchVariant(value: string) {
@@ -11,7 +13,7 @@ function normalizeSearchVariant(value: string) {
     .trim();
 }
 
-function buildKeywordVariants(search: string) {
+export function buildKeywordVariants(search: string) {
   const normalized = normalizeSearchVariant(search);
   const variants = new Set<string>();
 
@@ -41,6 +43,23 @@ function buildKeywordVariants(search: string) {
   }
 
   return Array.from(variants);
+}
+
+export function matchesListingKeywordSearch(
+  listing: Pick<Listing, "title" | "description" | "location">,
+  search?: string | null
+) {
+  const trimmed = search?.trim();
+
+  if (!trimmed) {
+    return true;
+  }
+
+  const haystack = normalizeSearchVariant(
+    `${listing.title} ${listing.description} ${listing.location}`
+  );
+
+  return buildKeywordVariants(trimmed).some((variant) => haystack.includes(variant));
 }
 
 export function applyListingKeywordSearch(

@@ -4,6 +4,7 @@ import { Bell, CircleUserRound, MessageCircle, PlusCircle, Search } from "lucide
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useLiveMessageState } from "@/components/messages/live-message-provider";
 
 interface MobileBottomNavProps {
   viewer: boolean;
@@ -25,6 +26,7 @@ export function MobileBottomNav({
   unreadActivityMarker
 }: MobileBottomNavProps) {
   const pathname = usePathname();
+  const { unreadMessagesCount: liveUnreadMessagesCount } = useLiveMessageState();
   const [activityBadgeCount, setActivityBadgeCount] = useState(
     pathname === "/notifications" ? 0 : unreadActivityCount
   );
@@ -109,8 +111,10 @@ export function MobileBottomNav({
       <Link href="/messages" className={isChatSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
           <MessageCircle aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
-          {viewer && unreadMessagesCount > 0 ? (
-            <span className="mobile-nav-badge">{formatBadgeCount(unreadMessagesCount)}</span>
+          {viewer && (liveUnreadMessagesCount || unreadMessagesCount) > 0 ? (
+            <span className="mobile-nav-badge">
+              {formatBadgeCount(liveUnreadMessagesCount || unreadMessagesCount)}
+            </span>
           ) : null}
         </span>
         <span>Messages</span>
