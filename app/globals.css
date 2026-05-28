@@ -1551,6 +1551,10 @@ code {
   line-height: 1.55;
 }
 
+.auth-form-grid {
+  grid-template-columns: 1fr;
+}
+
 .auth-field-grid {
   display: grid;
   gap: 1rem;
@@ -1749,7 +1753,7 @@ code {
   user-select: none;
 }
 
-@media (min-width: 760px) {
+@media (min-width: 420px) {
   .auth-field-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

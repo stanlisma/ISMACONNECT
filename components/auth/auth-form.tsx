@@ -38,7 +38,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
 
         <form
           action={action}
-          className="form-grid"
+          className="form-grid auth-form-grid"
           onSubmit={() =>
             trackMarketplaceEvent(isSignUp ? "sign_up_attempt" : "sign_in_attempt", {
               surface: "auth"
