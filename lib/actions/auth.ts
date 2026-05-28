@@ -51,7 +51,8 @@ export async function signUpAction(formData: FormData) {
     phone: formData.get("phone"),
     address: formData.get("address"),
     phoneVerificationMethod: formData.get("phoneVerificationMethod"),
-    password: formData.get("password")
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword")
   });
 
   if (!parsed.success) {
