@@ -6091,9 +6091,10 @@ code {
   display: none;
 }
 
-.message-composer-tip {
-  color: var(--text-soft);
-  font-size: 0.88rem;
+.message-composer-help {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
 }
 
 .message-composer-error {
@@ -8946,7 +8947,7 @@ code {
     font-size: 0.86rem;
   }
 
-  .message-composer-tip,
+  .message-composer-help,
   .message-composer-error {
     font-size: 0.82rem;
   }

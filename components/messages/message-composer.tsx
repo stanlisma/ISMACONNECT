@@ -4,6 +4,7 @@ import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { setTypingAction } from "@/lib/actions/typing";
+import { FieldHelp } from "@/components/ui/field-help";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -120,11 +121,14 @@ export function MessageComposer({
           />
         </label>
 
-        <span className="message-composer-tip">
-          {disabled
-            ? disabledMessage ?? "Messaging is disabled for this conversation."
-            : "Add a photo if it helps."}
-        </span>
+        {!disabled ? (
+          <span className="message-composer-help">
+            <FieldHelp
+              label="Attach image"
+              text="Add a photo if it helps explain the listing, condition, or pickup details faster."
+            />
+          </span>
+        ) : null}
       </div>
 
       {uploadError ? <p className="message-composer-error">{uploadError}</p> : null}
