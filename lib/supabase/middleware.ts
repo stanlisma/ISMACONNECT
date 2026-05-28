@@ -34,5 +34,23 @@ export async function updateSession(request: NextRequest) {
 
   await supabase.auth.getUser();
 
+  const cookieOptions = getSupabaseCookieOptions(request.nextUrl.hostname);
+  const isSupabaseAuthCookie = (name: string) =>
+    name.startsWith("sb-") && name.includes("-auth-token");
+
+  const responseAuthCookies = response.cookies.getAll().filter((cookie) =>
+    isSupabaseAuthCookie(cookie.name)
+  );
+  const requestAuthCookies =
+    responseAuthCookies.length > 0
+      ? responseAuthCookies
+      : request.cookies.getAll().filter((cookie) => isSupabaseAuthCookie(cookie.name));
+
+  if (cookieOptions.domain && requestAuthCookies.length > 0) {
+    requestAuthCookies.forEach(({ name, value }) => {
+      response.cookies.set(name, value, cookieOptions);
+    });
+  }
+
   return response;
 }

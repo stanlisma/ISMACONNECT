@@ -50,6 +50,8 @@ export function getSupabaseCookieOptions(hostname?: string | null) {
 
   return {
     path: "/",
+    httpOnly: false,
+    maxAge: 400 * 24 * 60 * 60,
     sameSite: "lax" as const,
     secure: isSecure,
     ...(domain ? { domain } : {})
