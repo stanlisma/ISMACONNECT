@@ -1,5 +1,12 @@
 import { RouteLoadingShell } from "@/components/ui/route-loading-shell";
 
 export default function MessageThreadLoading() {
-  return <RouteLoadingShell eyebrow="Messages" title="Conversation" variant="chat" />;
+  return (
+    <RouteLoadingShell
+      eyebrow="Messages"
+      title="Conversation"
+      message="Syncing your conversation and the latest replies..."
+      variant="chat"
+    />
+  );
 }

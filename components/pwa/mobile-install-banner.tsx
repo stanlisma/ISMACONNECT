@@ -10,7 +10,9 @@ type DeferredPromptEvent = Event & {
 
 const DISMISS_KEY = "ismaconnect-mobile-install-banner-dismissed";
 const PAGE_VIEWS_KEY = "ismaconnect-mobile-install-banner-page-views";
+const FIRST_BROWSE_AT_KEY = "ismaconnect-mobile-install-banner-first-browse-at";
 const DISMISS_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+const INSTALL_DELAY_MS = 6500;
 
 type MobileInstallBannerContext = "home" | "browse" | "ride-share" | "storefront";
 
@@ -66,6 +68,7 @@ export function MobileInstallBanner({
   const [dismissed, setDismissed] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [showIosSteps, setShowIosSteps] = useState(false);
+  const [readyToPrompt, setReadyToPrompt] = useState(false);
   const contextCopy = getContextCopy(context);
 
   useEffect(() => {
@@ -86,6 +89,18 @@ export function MobileInstallBanner({
       window.localStorage.removeItem(DISMISS_KEY);
     }
 
+    let firstBrowseAt = Number(window.sessionStorage.getItem(FIRST_BROWSE_AT_KEY) ?? "0");
+
+    if (!firstBrowseAt) {
+      firstBrowseAt = Date.now();
+      window.sessionStorage.setItem(FIRST_BROWSE_AT_KEY, String(firstBrowseAt));
+    }
+
+    const remainingDelay = Math.max(0, INSTALL_DELAY_MS - (Date.now() - firstBrowseAt));
+    const readyTimer = window.setTimeout(() => {
+      setReadyToPrompt(true);
+    }, remainingDelay);
+
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as DeferredPromptEvent);
@@ -96,6 +111,7 @@ export function MobileInstallBanner({
       setDeferredPrompt(null);
       window.localStorage.removeItem(DISMISS_KEY);
       window.localStorage.removeItem(PAGE_VIEWS_KEY);
+      window.sessionStorage.removeItem(FIRST_BROWSE_AT_KEY);
       setStatusMessage("Installed");
     };
 
@@ -103,6 +119,7 @@ export function MobileInstallBanner({
     window.addEventListener("appinstalled", handleInstalled);
 
     return () => {
+      window.clearTimeout(readyTimer);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleInstalled);
     };
@@ -158,7 +175,7 @@ export function MobileInstallBanner({
     typeof window !== "undefined"
       ? Number(window.localStorage.getItem(PAGE_VIEWS_KEY) ?? "0") || 0
       : 0;
-  const canShowBanner = pageViews >= 2 || Boolean(deferredPrompt);
+  const canShowBanner = readyToPrompt && (pageViews >= 1 || Boolean(deferredPrompt));
 
   if (installed || dismissed || !copy || !canShowBanner) {
     return null;

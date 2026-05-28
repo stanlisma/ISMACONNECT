@@ -512,6 +512,14 @@ code {
   letter-spacing: -0.04em;
 }
 
+.route-loading-copy {
+  margin: -0.15rem 0 0;
+  max-width: min(720px, 100%);
+  color: var(--text-soft);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
 .route-loading-line,
 .route-loading-chip,
 .route-loading-field,
@@ -4739,6 +4747,12 @@ code {
   min-height: 2.8rem;
 }
 
+.notifications-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
 .badge-urgent {
   background: #fff1f2;
   color: #be123c;
@@ -5491,6 +5505,14 @@ code {
 .messages-empty-pane-card p {
   margin: 0;
   line-height: 1.55;
+}
+
+.messages-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 1rem;
 }
 
 .messages-empty-pane {
@@ -10940,5 +10962,17 @@ code {
 
   .legal-hero-meta {
     grid-template-columns: 1fr;
+  }
+
+  .messages-empty-actions,
+  .notifications-empty-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .messages-empty-actions .button,
+  .notifications-empty-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 }

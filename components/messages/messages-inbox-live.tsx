@@ -390,11 +390,24 @@ export function MessagesInboxLive({
                 <>
                   <h3>No conversations match this view</h3>
                   <p>Try a broader search or switch back to all conversations.</p>
+                  <div className="messages-empty-actions">
+                    <Link href="/messages" className="button button-secondary">
+                      Show all conversations
+                    </Link>
+                  </div>
                 </>
               ) : (
                 <>
                   <h3>No messages yet</h3>
-                  <p>Your buyer and seller conversations will appear here as soon as someone reaches out.</p>
+                  <p>Your buyer and seller conversations will appear here as soon as someone reaches out. Browse local listings or post what you need to start the first reply.</p>
+                  <div className="messages-empty-actions">
+                    <Link href="/browse" className="button button-secondary">
+                      Browse listings
+                    </Link>
+                    <Link href="/dashboard/listings/new?intent=need" className="button">
+                      Post a need
+                    </Link>
+                  </div>
                 </>
               )}
             </div>
