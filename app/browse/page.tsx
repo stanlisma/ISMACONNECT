@@ -33,7 +33,7 @@ import {
 export const metadata: Metadata = {
   title: "Browse Listings",
   description:
-    "Browse jobs, rentals, services, ride shares, and buy & sell listings in Fort McMurray.",
+    "Browse Fort McMurray rides, rentals, jobs, services, storefronts, and local listings.",
 };
 
 const MOBILE_BROWSE_QUICK_LINKS = [

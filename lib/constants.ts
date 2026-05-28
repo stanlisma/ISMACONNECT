@@ -9,7 +9,7 @@ import type {
 export const SITE_NAME = "ISMACONNECT";
 export const SITE_TAGLINE = "Fort McMurray rides, rentals, services, jobs, and worker logistics.";
 export const SITE_DESCRIPTION =
-  "ISMACONNECT helps Fort McMurray locals find rentals, ride shares, jobs, services, and worker logistics first, with local buy and sell available when needed.";
+  "ISMACONNECT helps Fort McMurray locals find rides, rentals, jobs, services, storefronts, and worker logistics first, with local buy and sell available when needed.";
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
 export const DEFAULT_MARKETPLACE_CATEGORY: ListingCategory = "services";
 export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LegalPageControls } from "@/components/legal/legal-page-controls";
 
 type LegalPageProps = {
   eyebrow: string;
@@ -13,6 +14,8 @@ export function LegalPage({ eyebrow, title, description, children, lastUpdated }
   return (
     <section className="section legal-page">
       <div className="container legal-page-container">
+        <LegalPageControls />
+
         <div className="surface legal-hero">
           <div className="legal-hero-copy">
             <span className="eyebrow">{eyebrow}</span>

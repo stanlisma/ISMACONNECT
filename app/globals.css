@@ -21,6 +21,7 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -395,6 +396,8 @@ code {
   margin-top: 0.85rem;
   padding: 0 0 0.15rem;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
 }
 
 .subcategory-link-row::-webkit-scrollbar {
@@ -415,6 +418,7 @@ code {
   font-size: 0.84rem;
   font-weight: 700;
   white-space: nowrap;
+  scroll-snap-align: start;
 }
 
 .subcategory-link-pill.is-active {
@@ -1560,6 +1564,49 @@ code {
 .legal-page-container {
   display: grid;
   gap: 1rem;
+}
+
+.legal-sheet-controls {
+  position: sticky;
+  top: calc(4.4rem + env(safe-area-inset-top, 0px));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid rgba(216, 227, 250, 0.92);
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 14px 28px rgba(15, 54, 91, 0.1);
+  backdrop-filter: blur(14px);
+}
+
+.legal-sheet-close,
+.legal-sheet-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.legal-sheet-close {
+  border: none;
+  background: linear-gradient(135deg, #0f5bd8, #1e6bff);
+  color: #ffffff;
+  box-shadow: 0 12px 22px rgba(30, 107, 255, 0.24);
+  cursor: pointer;
+}
+
+.legal-sheet-link {
+  border: 1px solid rgba(191, 217, 255, 0.92);
+  background: #f8fbff;
+  color: var(--primary-dark);
 }
 
 .legal-hero {
@@ -10864,5 +10911,34 @@ code {
   .storefront-manager-preview-actions .button {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .legal-page {
+    padding-top: 1rem;
+  }
+
+  .legal-sheet-controls {
+    top: calc(4.9rem + env(safe-area-inset-top, 0px));
+    padding: 0.72rem 0.78rem;
+    border-radius: 1rem;
+  }
+
+  .legal-sheet-close,
+  .legal-sheet-link {
+    min-height: 2.3rem;
+    padding: 0 0.78rem;
+    font-size: 0.8rem;
+  }
+
+  .legal-hero,
+  .legal-content {
+    padding: 1rem;
+    border-radius: 1.1rem;
+  }
+
+  .legal-hero-meta {
+    grid-template-columns: 1fr;
   }
 }
