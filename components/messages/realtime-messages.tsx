@@ -40,8 +40,11 @@ function formatDayLabel(value: string) {
   }).format(new Date(value));
 }
 
-function isSameMessageGroup(previousMessage: Message | undefined, currentMessage: Message) {
-  if (!previousMessage) {
+function isSameMessageGroup(
+  previousMessage: Message | undefined,
+  currentMessage: Message | undefined
+) {
+  if (!previousMessage || !currentMessage) {
     return false;
   }
 
@@ -248,7 +251,7 @@ export function RealtimeMessages({
             new Date(previousMessage.created_at).toDateString() !==
               new Date(message.created_at).toDateString();
           const continuesPreviousGroup = isSameMessageGroup(previousMessage, message);
-          const continuesNextGroup = isSameMessageGroup(message, nextMessage as Message);
+          const continuesNextGroup = isSameMessageGroup(message, nextMessage);
           const showMeta = !continuesNextGroup;
 
           return (
