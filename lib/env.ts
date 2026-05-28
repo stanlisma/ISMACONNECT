@@ -15,8 +15,45 @@ const vapidSubject = process.env.VAPID_SUBJECT?.trim() || "";
 const resendApiKey = process.env.RESEND_API_KEY?.trim() || "";
 const emailFrom = process.env.EMAIL_FROM?.trim() || "";
 
+function getAppHostname() {
+  try {
+    return new URL(appUrl).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSupabaseCookieDomain(hostname?: string | null) {
+  const rawHost = hostname?.trim().toLowerCase() || getAppHostname()?.trim().toLowerCase() || "";
+  const host = rawHost.split(":")[0];
+
+  if (!host || host === "localhost" || host === "127.0.0.1" || host === "::1") {
+    return null;
+  }
+
+  if (host === "ismaconnect.ca" || host.endsWith(".ismaconnect.ca")) {
+    return ".ismaconnect.ca";
+  }
+
+  return null;
+}
+
 export function getBaseUrl() {
   return appUrl.replace(/\/$/, "");
+}
+
+export function getSupabaseCookieOptions(hostname?: string | null) {
+  const domain = normalizeSupabaseCookieDomain(hostname);
+  const isSecure =
+    Boolean(domain) ||
+    /^https:\/\//i.test(appUrl);
+
+  return {
+    path: "/",
+    sameSite: "lax" as const,
+    secure: isSecure,
+    ...(domain ? { domain } : {})
+  };
 }
 
 export function isAnalyticsConfigured() {
