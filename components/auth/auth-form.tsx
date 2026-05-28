@@ -20,12 +20,20 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <span className="eyebrow">{isSignUp ? "Create Account" : "Welcome Back"}</span>
-
-        <div className="auth-title-row">
-          <h1>{title}</h1>
-          {helpText ? <FieldHelp text={helpText} label={title} /> : null}
+        <div className="auth-header-row">
+          <span className="eyebrow">{isSignUp ? "Create Account" : "Welcome Back"}</span>
+          {isSignUp && helpText ? <FieldHelp text={helpText} label={title} /> : null}
         </div>
+
+        {isSignUp ? (
+          <h1 className="sr-only">{title}</h1>
+        ) : (
+          <div className="auth-title-row">
+            <h1>{title}</h1>
+            {helpText ? <FieldHelp text={helpText} label={title} /> : null}
+          </div>
+        )}
+
         {!isSignUp && description ? <p>{description}</p> : null}
 
         <form
@@ -157,8 +165,23 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
             />
           </label>
 
+          {isSignUp ? (
+            <label className="field">
+              <span className="field-label">Confirm password</span>
+              <input
+                autoComplete="new-password"
+                className="input"
+                minLength={8}
+                name="confirmPassword"
+                placeholder="Re-enter your password"
+                required
+                type="password"
+              />
+            </label>
+          ) : null}
+
           <SubmitButton
-            className={isSignUp ? "auth-submit-button" : "field-full"}
+            className={isSignUp ? "auth-submit-button field-full" : "field-full"}
             pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
           >
             {isSignUp ? "Create account" : "Sign in"}
