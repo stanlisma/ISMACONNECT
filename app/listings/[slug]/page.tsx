@@ -278,7 +278,7 @@ export default async function ListingPage({
                       title="Conversation open"
                     />
 
-                    <Link href={`/messages/${existingConversation.id}`} className="button">
+                    <Link href={`/messages/${existingConversation.id}`} prefetch={false} className="button">
                       Open conversation
                     </Link>
                   </div>

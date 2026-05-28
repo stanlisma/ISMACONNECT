@@ -202,7 +202,7 @@ export default async function ModerationPage({
               <div className="action-row" style={{ justifyContent: "space-between" }}>
                 <div className="action-row">
                   {report.conversation_id ? (
-                    <Link className="button button-secondary" href={`/messages/${report.conversation_id}`}>
+                    <Link className="button button-secondary" href={`/messages/${report.conversation_id}`} prefetch={false}>
                       Open thread
                     </Link>
                   ) : null}

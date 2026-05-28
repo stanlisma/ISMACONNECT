@@ -43,7 +43,7 @@ export default async function MessageThreadPage({
       buyer:profiles!conversations_buyer_id_fkey(full_name)
     `)
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (!conversation) {
     notFound();
@@ -55,20 +55,6 @@ export default async function MessageThreadPage({
 
   const isBuyer = conversation.buyer_id === viewer.user.id;
   const otherUserId = isBuyer ? conversation.seller_id : conversation.buyer_id;
-
-  await supabase
-    .from("conversations")
-    .update({
-      [isBuyer ? "buyer_unread_count" : "seller_unread_count"]: 0
-    })
-    .eq("id", id);
-
-  await supabase
-    .from("messages")
-    .update({ seen_at: new Date().toISOString() })
-    .eq("conversation_id", id)
-    .neq("sender_id", viewer.user.id)
-    .is("seen_at", null);
 
   const { data: messages } = await supabase
     .from("messages")
