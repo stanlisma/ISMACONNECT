@@ -6046,20 +6046,6 @@ code {
   padding: 1rem;
 }
 
-.messages-reply-head {
-  display: grid;
-}
-
-.messages-reply-head h2 {
-  margin: 0;
-  color: var(--text);
-  font-size: 1.15rem;
-}
-
-.messages-reply-field {
-  display: block;
-}
-
 .messages-reply-actions {
   display: flex;
   justify-content: flex-end;
@@ -8926,8 +8912,7 @@ code {
     padding: 0.8rem;
   }
 
-  .messages-safety-head h2,
-  .messages-reply-head h2 {
+  .messages-safety-head h2 {
     font-size: 0.98rem;
   }
 
