@@ -3615,7 +3615,17 @@ code {
   display: contents;
 }
 
+.mobile-filter-shell {
+  display: none;
+}
+
 .mobile-filter-row {
+  display: none;
+}
+
+.mobile-filter-chip-row,
+.mobile-filter-chip-summary,
+.mobile-filter-clear-chip {
   display: none;
 }
 
@@ -3636,6 +3646,11 @@ code {
     display: none;
   }
 
+  .mobile-filter-shell {
+    display: grid;
+    gap: 0.48rem;
+  }
+
   .home-mobile-browse-controls {
     display: none;
   }
@@ -3647,35 +3662,81 @@ code {
     align-items: center;
   }
 
-  .mobile-applied-filters {
+  .mobile-filter-chip-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin: 0 0 0.65rem;
+    gap: 0.55rem;
+    overflow-x: auto;
+    padding: 0 0 0.12rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
   }
 
-  .mobile-applied-filter-summary {
+  .mobile-filter-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-filter-chip {
     display: inline-flex;
     align-items: center;
-    min-width: 0;
-    min-height: 34px;
-    padding: 0.42rem 0.72rem;
+    gap: 0.36rem;
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0.48rem 0.78rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(207, 224, 251, 0.95);
+    background: rgba(255, 255, 255, 0.94);
     color: #31527d;
     font-size: 0.8rem;
     font-weight: 700;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    box-shadow: 0 6px 16px rgba(15, 54, 91, 0.06);
+    scroll-snap-align: start;
   }
 
-  .mobile-applied-filter-clear {
+  .mobile-filter-chip svg {
+    flex: 0 0 auto;
+  }
+
+  .mobile-filter-chip.is-active:not(.is-primary) {
+    background: #edf4ff;
+    border-color: rgba(154, 185, 255, 0.95);
+    color: #15365b;
+  }
+
+  .mobile-filter-chip.is-primary {
+    background: linear-gradient(135deg, #315bdc, #244fbf);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(49, 91, 220, 0.28);
+  }
+
+  .mobile-filter-chip-summary {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0.48rem 0.78rem;
+    border-radius: 999px;
+    background: rgba(235, 243, 255, 0.92);
+    color: #31527d;
+    font-size: 0.79rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .mobile-filter-clear-chip {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0.48rem 0.78rem;
+    border-radius: 999px;
+    background: transparent;
     width: fit-content;
     color: #0f5bd8;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 700;
   }
 
@@ -6631,15 +6692,24 @@ code {
 /* MOBILE BROWSE UX: sticky search + horizontal categories + floating filter */
 @media (max-width: 760px) {
   /* 1. Sticky search/filter row */
-  .mobile-filter-row {
+  .mobile-filter-shell {
     position: sticky !important;
     top: var(--market-mobile-sticky-offset, 5.25rem) !important;
     z-index: 1000 !important;
     background: rgba(245, 250, 255, 0.96) !important;
     backdrop-filter: blur(12px);
-    padding: 0.34rem 0.65rem !important;
+    padding: 0.34rem 0.65rem 0.45rem !important;
     margin: 0 -0.65rem 0.45rem !important;
     box-shadow: 0 6px 14px rgba(15, 54, 91, 0.08);
+  }
+
+  .mobile-filter-row {
+    position: static !important;
+    top: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
   }
 
   .mobile-filter-search {
@@ -6678,33 +6748,6 @@ code {
 
   .pill-link {
     flex: 0 0 auto !important;
-  }
-
-  /* 3. Floating sort/filter button */
-  .mobile-floating-filter-button {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: calc(4.8rem + env(safe-area-inset-bottom, 0px));
-    z-index: 9998;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-height: 42px;
-    border-radius: 999px;
-    padding: 0 0.92rem;
-    background: #315bdc;
-    color: #fff;
-    font-size: 0.84rem;
-    font-weight: 800;
-    border: 0;
-    box-shadow: 0 10px 25px rgba(49, 91, 220, 0.35);
-  }
-
-  .mobile-floating-filter-button.is-hidden {
-    opacity: 0;
-    pointer-events: none;
   }
 
   .browse-view-toggle {
