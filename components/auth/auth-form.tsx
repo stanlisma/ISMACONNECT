@@ -14,7 +14,17 @@ interface AuthFormProps {
   title: string;
   description?: string;
   helpText?: string;
-  action: (formData: FormData) => Promise<void>;
+  action?: (formData: FormData) => Promise<void>;
+}
+
+function formatClientAuthError(message: string) {
+  const normalizedMessage = message.trim().toLowerCase();
+
+  if (normalizedMessage.includes("rate limit")) {
+    return "Too many sign-in attempts were made from this device or network. Wait a few minutes, then try again once.";
+  }
+
+  return message;
 }
 
 export function AuthForm({ mode, title, description, helpText, action }: AuthFormProps) {
@@ -38,11 +48,11 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
       });
 
       if (error) {
-        setClientError(error.message);
+        setClientError(formatClientAuthError(error.message));
         return;
       }
 
-      window.location.assign("/browse");
+      window.location.replace("/browse");
     } catch (error) {
       setClientError(
         error instanceof Error ? error.message : "Unable to sign in right now. Please try again."
@@ -74,7 +84,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
         {!isSignUp ? <FlashMessage message={clientError} tone="error" /> : null}
 
         <form
-          action={action}
+          action={isSignUp ? action : undefined}
           className="form-grid auth-form-grid"
           onSubmit={async (event) => {
             trackMarketplaceEvent(isSignUp ? "sign_up_attempt" : "sign_in_attempt", {
