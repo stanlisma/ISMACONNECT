@@ -10,6 +10,7 @@ interface SubmitButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   pendingLabel?: string;
   analyticsEvent?: string;
   analyticsParams?: Record<string, string | number | boolean | null | undefined>;
+  forcePending?: boolean;
 }
 
 export function SubmitButton({
@@ -17,16 +18,18 @@ export function SubmitButton({
   className,
   analyticsEvent,
   analyticsParams,
+  forcePending = false,
   pendingLabel = "Saving...",
   ...props
 }: SubmitButtonProps) {
   const { pending } = useFormStatus();
+  const isPending = forcePending || pending;
 
   return (
     <button
       {...props}
       className={cn("button", className)}
-      disabled={pending || props.disabled}
+      disabled={isPending || props.disabled}
       onClick={(event) => {
         if (analyticsEvent) {
           trackMarketplaceEvent(analyticsEvent, analyticsParams);
@@ -36,7 +39,7 @@ export function SubmitButton({
       }}
       type={props.type ?? "submit"}
     >
-      {pending ? pendingLabel : children}
+      {isPending ? pendingLabel : children}
     </button>
   );
 }

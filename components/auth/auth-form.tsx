@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
+import { FlashMessage } from "@/components/ui/flash-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { trackMarketplaceEvent } from "@/lib/analytics";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
@@ -16,6 +19,38 @@ interface AuthFormProps {
 
 export function AuthForm({ mode, title, description, helpText, action }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
+  const [clientError, setClientError] = useState<string | undefined>();
+  const [clientPending, setClientPending] = useState(false);
+
+  async function handleSignInSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setClientError(undefined);
+    setClientPending(true);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const email = String(formData.get("email") ?? "").trim();
+      const password = String(formData.get("password") ?? "");
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        setClientError(error.message);
+        return;
+      }
+
+      window.location.assign("/browse");
+    } catch (error) {
+      setClientError(
+        error instanceof Error ? error.message : "Unable to sign in right now. Please try again."
+      );
+    } finally {
+      setClientPending(false);
+    }
+  }
 
   return (
     <div className="auth-shell">
@@ -36,14 +71,20 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
 
         {!isSignUp && description ? <p>{description}</p> : null}
 
+        {!isSignUp ? <FlashMessage message={clientError} tone="error" /> : null}
+
         <form
           action={action}
           className="form-grid auth-form-grid"
-          onSubmit={() =>
+          onSubmit={async (event) => {
             trackMarketplaceEvent(isSignUp ? "sign_up_attempt" : "sign_in_attempt", {
               surface: "auth"
-            })
-          }
+            });
+
+            if (!isSignUp) {
+              await handleSignInSubmit(event);
+            }
+          }}
         >
           {isSignUp ? (
             <>
@@ -182,6 +223,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
 
           <SubmitButton
             className={isSignUp ? "auth-submit-button field-full" : "field-full"}
+            forcePending={!isSignUp && clientPending}
             pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
           >
             {isSignUp ? "Create account" : "Sign in"}
