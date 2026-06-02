@@ -4,6 +4,16 @@ import { createServerClient } from "@supabase/ssr";
 
 import { getSupabaseCookieOptions, getSupabaseEnv } from "@/lib/env";
 
+function dedupeCookiesByName<T extends { name: string }>(cookieList: T[]) {
+  const cookiesByName = new Map<string, T>();
+
+  cookieList.forEach((cookie) => {
+    cookiesByName.set(cookie.name, cookie);
+  });
+
+  return Array.from(cookiesByName.values());
+}
+
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
   const headerStore = await headers();
@@ -15,7 +25,7 @@ export async function createServerSupabaseClient() {
     cookieOptions,
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return dedupeCookiesByName(cookieStore.getAll());
       },
       setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
         try {
