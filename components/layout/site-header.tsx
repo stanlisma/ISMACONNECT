@@ -130,6 +130,7 @@ export function SiteHeader({
               <>
                 <Link
                   href="/messages"
+                  prefetch={false}
                   className="icon-link header-utility-link header-messages-link"
                   aria-label="Messages"
                 >
@@ -141,18 +142,28 @@ export function SiteHeader({
                   ) : null}
                 </Link>
 
-                <Link href="/notifications" className="icon-link header-utility-link" aria-label="Notifications">
+                <Link
+                  href="/notifications"
+                  prefetch={false}
+                  className="icon-link header-utility-link"
+                  aria-label="Notifications"
+                >
                   <Bell aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
                   {notificationBadgeCount > 0 ? (
                     <span className="header-action-badge">{formatBadgeCount(notificationBadgeCount)}</span>
                   ) : null}
                 </Link>
 
-                <Link href="/account" className="icon-link header-utility-link header-account-link" aria-label="Account">
+                <Link
+                  href="/account"
+                  prefetch={false}
+                  className="icon-link header-utility-link header-account-link"
+                  aria-label="Account"
+                >
                   <User aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
                 </Link>
 
-                <Link href="/dashboard/listings/new" className="post-btn post-btn-market">
+                <Link href="/dashboard/listings/new" prefetch={false} className="post-btn post-btn-market">
                   <Plus aria-hidden="true" className="post-btn-icon" strokeWidth={2.6} />
                   <span>Post</span>
                 </Link>
@@ -223,11 +234,11 @@ export function SiteHeader({
 
           {viewer && (
             <nav className="account-nav">
-              <Link href="/dashboard">My Listings</Link>
-              <Link href="/dashboard/storefronts">My Storefronts</Link>
-              <Link href="/dashboard/searches">Saved Searches</Link>
-              <Link href="/saved">Favourites</Link>
-              <Link href="/settings">Settings</Link>
+              <Link href="/dashboard" prefetch={false}>My Listings</Link>
+              <Link href="/dashboard/storefronts" prefetch={false}>My Storefronts</Link>
+              <Link href="/dashboard/searches" prefetch={false}>Saved Searches</Link>
+              <Link href="/saved" prefetch={false}>Favourites</Link>
+              <Link href="/settings" prefetch={false}>Settings</Link>
 
               <button
                 className="plain-link"
