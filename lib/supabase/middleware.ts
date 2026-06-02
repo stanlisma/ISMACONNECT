@@ -8,6 +8,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const cookieOptions = getSupabaseCookieOptions(request.nextUrl.hostname);
   let response = NextResponse.next({
     request
   });
@@ -15,18 +16,25 @@ export async function updateSession(request: NextRequest) {
   const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookieOptions: getSupabaseCookieOptions(request.nextUrl.hostname),
+    cookieOptions,
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+
         response = NextResponse.next({
           request
         });
 
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, {
+            ...options,
+            ...cookieOptions
+          });
         });
       }
     }
@@ -34,7 +42,6 @@ export async function updateSession(request: NextRequest) {
 
   await supabase.auth.getUser();
 
-  const cookieOptions = getSupabaseCookieOptions(request.nextUrl.hostname);
   const isSupabaseAuthCookie = (name: string) =>
     name.startsWith("sb-") && name.includes("-auth-token");
 
