@@ -30,11 +30,13 @@ function formatClientAuthError(message: string) {
 export function AuthForm({ mode, title, description, helpText, action }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
   const [clientError, setClientError] = useState<string | undefined>();
+  const [clientSuccess, setClientSuccess] = useState<string | undefined>();
   const [clientPending, setClientPending] = useState(false);
 
   async function handleSignInSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setClientError(undefined);
+    setClientSuccess(undefined);
     setClientPending(true);
 
     try {
@@ -62,6 +64,43 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
     }
   }
 
+  async function handleMagicLinkSignIn() {
+    setClientError(undefined);
+    setClientSuccess(undefined);
+    setClientPending(true);
+
+    try {
+      const emailInput = document.querySelector<HTMLInputElement>('input[name="email"]');
+      const email = emailInput?.value.trim() ?? "";
+
+      if (!email) {
+        setClientError("Enter your email first, then request a sign-in link.");
+        return;
+      }
+
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/browse`
+        }
+      });
+
+      if (error) {
+        setClientError(formatClientAuthError(error.message));
+        return;
+      }
+
+      setClientSuccess("Check your email for a sign-in link. Open it on this device to continue.");
+    } catch (error) {
+      setClientError(
+        error instanceof Error ? error.message : "Unable to send a sign-in link right now."
+      );
+    } finally {
+      setClientPending(false);
+    }
+  }
+
   return (
     <div className="auth-shell">
       <div className="auth-card">
@@ -82,6 +121,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
         {!isSignUp && description ? <p>{description}</p> : null}
 
         {!isSignUp ? <FlashMessage message={clientError} tone="error" /> : null}
+        {!isSignUp ? <FlashMessage message={clientSuccess} tone="success" /> : null}
 
         <form
           action={isSignUp ? action : undefined}
@@ -238,6 +278,17 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
           >
             {isSignUp ? "Create account" : "Sign in"}
           </SubmitButton>
+
+          {!isSignUp ? (
+            <button
+              className="button button-secondary field-full"
+              disabled={clientPending}
+              onClick={handleMagicLinkSignIn}
+              type="button"
+            >
+              Email me a sign-in link
+            </button>
+          ) : null}
         </form>
 
         {isSignUp ? (
