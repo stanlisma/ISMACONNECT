@@ -3,6 +3,25 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabaseCookieOptions, getSupabaseEnv, isSupabaseConfigured } from "@/lib/env";
 
+function dedupeCookiesByName<T extends { name: string }>(cookieList: T[]) {
+  const cookiesByName = new Map<string, T>();
+
+  cookieList.forEach((cookie) => {
+    cookiesByName.set(cookie.name, cookie);
+  });
+
+  return Array.from(cookiesByName.values());
+}
+
+function appendHostOnlyCookieDeletion(response: NextResponse, name: string, secure: boolean) {
+  response.headers.append(
+    "Set-Cookie",
+    `${name}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${
+      secure ? "; Secure" : ""
+    }`
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured()) {
     return NextResponse.next({ request });
@@ -19,7 +38,7 @@ export async function updateSession(request: NextRequest) {
     cookieOptions,
     cookies: {
       getAll() {
-        return request.cookies.getAll();
+        return dedupeCookiesByName(request.cookies.getAll());
       },
       setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
         cookiesToSet.forEach(({ name, value }) => {
@@ -45,16 +64,19 @@ export async function updateSession(request: NextRequest) {
   const isSupabaseAuthCookie = (name: string) =>
     name.startsWith("sb-") && name.includes("-auth-token");
 
-  const responseAuthCookies = response.cookies.getAll().filter((cookie) =>
-    isSupabaseAuthCookie(cookie.name)
+  const responseAuthCookies = dedupeCookiesByName(
+    response.cookies.getAll().filter((cookie) => isSupabaseAuthCookie(cookie.name))
   );
   const requestAuthCookies =
     responseAuthCookies.length > 0
       ? responseAuthCookies
-      : request.cookies.getAll().filter((cookie) => isSupabaseAuthCookie(cookie.name));
+      : dedupeCookiesByName(
+          request.cookies.getAll().filter((cookie) => isSupabaseAuthCookie(cookie.name))
+        );
 
   if (cookieOptions.domain && requestAuthCookies.length > 0) {
     requestAuthCookies.forEach(({ name, value }) => {
+      appendHostOnlyCookieDeletion(response, name, cookieOptions.secure);
       response.cookies.set(name, value, cookieOptions);
     });
   }
