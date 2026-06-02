@@ -14,32 +14,62 @@ function dedupeCookiesByName<T extends { name: string }>(cookieList: T[]) {
   return Array.from(cookiesByName.values());
 }
 
-export async function createServerSupabaseClient() {
+async function getServerSupabaseCookieConfig(mutable: boolean) {
   const cookieStore = await cookies();
   const headerStore = await headers();
-  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
   const requestHost = headerStore.get("x-forwarded-host") || headerStore.get("host");
   const cookieOptions = getSupabaseCookieOptions(requestHost);
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return {
     cookieOptions,
     cookies: {
       getAll() {
         return dedupeCookiesByName(cookieStore.getAll());
       },
       setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, {
-              ...options,
-              ...cookieOptions
+        if (!mutable) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, {
+                ...options,
+                ...cookieOptions
+              });
             });
-          });
-        } catch {
-          // Server components can't always mutate cookies. Middleware handles refresh.
+          } catch {
+            // Server components can't always mutate cookies. Middleware handles refresh.
+          }
+
+          return;
         }
+
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookieStore.set(name, value, {
+            ...options,
+            ...cookieOptions
+          });
+        });
       }
     }
+  };
+}
+
+export async function createServerSupabaseClient() {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
+  const config = await getServerSupabaseCookieConfig(false);
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: config.cookieOptions,
+    cookies: config.cookies
+  });
+}
+
+export async function createMutableServerSupabaseClient() {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
+  const config = await getServerSupabaseCookieConfig(true);
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: config.cookieOptions,
+    cookies: config.cookies
   });
 }
 

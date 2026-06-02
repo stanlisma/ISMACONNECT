@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { getBaseUrl, isSupabaseConfigured } from "@/lib/env";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validation/auth";
 import { firstMessage } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export async function signInAction(formData: FormData) {
     redirectWithMessage("/auth/sign-in", "error", firstMessage(parsed.error));
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createMutableServerSupabaseClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data!.email,
     password: parsed.data!.password
@@ -61,7 +61,7 @@ export async function signUpAction(formData: FormData) {
 
   const fullName = `${parsed.data!.firstName} ${parsed.data!.lastName}`.trim();
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createMutableServerSupabaseClient();
   const { error } = await supabase.auth.signUp({
     email: parsed.data!.email,
     password: parsed.data!.password,
@@ -91,7 +91,7 @@ export async function signUpAction(formData: FormData) {
 
 export async function signOutAction() {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createMutableServerSupabaseClient();
     await supabase.auth.signOut();
   }
 
@@ -113,7 +113,7 @@ export async function forgotPasswordAction(formData: FormData) {
     redirectWithMessage("/auth/forgot-password", "error", "Email is required.");
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createMutableServerSupabaseClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${getBaseUrl()}/auth/callback?next=/auth/reset-password`
   });
@@ -157,7 +157,7 @@ export async function resetPasswordAction(formData: FormData) {
     redirectWithMessage("/auth/reset-password", "error", "Passwords do not match.");
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createMutableServerSupabaseClient();
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
