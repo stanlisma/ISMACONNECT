@@ -23,19 +23,31 @@ function getAppHostname() {
   }
 }
 
+function normalizeHost(hostname?: string | null) {
+  return hostname?.trim().toLowerCase().split(":")[0] || "";
+}
+
 function normalizeSupabaseCookieDomain(hostname?: string | null) {
-  const rawHost = hostname?.trim().toLowerCase() || getAppHostname()?.trim().toLowerCase() || "";
-  const host = rawHost.split(":")[0];
+  const host = normalizeHost(hostname);
+  const appHost = normalizeHost(getAppHostname());
 
-  if (!host || host === "localhost" || host === "127.0.0.1" || host === "::1") {
+  const resolveCookieDomain = (candidate: string) => {
+    if (!candidate || candidate === "localhost" || candidate === "127.0.0.1" || candidate === "::1") {
+      return null;
+    }
+
+    if (candidate === "ismaconnect.ca" || candidate.endsWith(".ismaconnect.ca")) {
+      return ".ismaconnect.ca";
+    }
+
     return null;
-  }
+  };
 
-  if (host === "ismaconnect.ca" || host.endsWith(".ismaconnect.ca")) {
-    return ".ismaconnect.ca";
-  }
+  return resolveCookieDomain(host) || resolveCookieDomain(appHost);
+}
 
-  return null;
+export function getCanonicalAppHostname() {
+  return normalizeHost(getAppHostname()) || null;
 }
 
 export function getBaseUrl() {
