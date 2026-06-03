@@ -88,7 +88,7 @@ export async function getServerAuthDiagnostics(): Promise<ServerAuthDiagnostics>
       .filter((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"))
       .map((cookie) => ({
         name: cookie.name,
-        valueLength: cookie.value.length
+        valueLength: String(cookie.value ?? "").length
       }));
 
     const diagnostics: ServerAuthDiagnostics = {
