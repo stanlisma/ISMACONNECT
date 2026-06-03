@@ -5,7 +5,6 @@ import { StorefrontLogoField } from "@/components/settings/storefront-logo-field
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
-import { formatDate } from "@/lib/utils";
 import type { AdditionalBusinessStorefront } from "@/types/database";
 
 type AdditionalStorefrontsManagerProps = {
@@ -53,6 +52,13 @@ function getStorefrontInitials(name: string) {
 
 function formatStorefrontWebsiteLabel(website: string) {
   return website.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+}
+
+function getPreviewChips(items: string[], max = 4) {
+  return {
+    visible: items.slice(0, max),
+    hiddenCount: Math.max(0, items.length - max)
+  };
 }
 
 function StorefrontForm({
@@ -303,6 +309,8 @@ function StorefrontPreview({
 }) {
   const hoursRows = hasConfiguredBusinessHours(storefront.hours) ? getBusinessHoursRows(storefront.hours) : [];
   const publicStorefrontHref = buildStorefrontHref(storefront.owner_id, storefront.id);
+  const areaChips = getPreviewChips(storefront.service_areas);
+  const serviceChips = getPreviewChips(storefront.services);
   const summaryText =
     storefront.description?.trim() ||
     (storefront.services.length
@@ -343,28 +351,33 @@ function StorefrontPreview({
                 <span>{formatStorefrontWebsiteLabel(storefront.website)}</span>
               </span>
             ) : null}
-            <span>Updated {formatDate(storefront.updated_at)}</span>
           </div>
         </div>
       </div>
 
-      {storefront.service_areas.length ? (
+      {areaChips.visible.length ? (
         <div className="storefront-manager-chip-row">
-          {storefront.service_areas.map((area) => (
+          {areaChips.visible.map((area) => (
             <span key={area} className="storefront-manager-chip">
               {area}
             </span>
           ))}
+          {areaChips.hiddenCount ? (
+            <span className="storefront-manager-chip is-muted">+{areaChips.hiddenCount} more</span>
+          ) : null}
         </div>
       ) : null}
 
-      {storefront.services.length ? (
+      {serviceChips.visible.length ? (
         <div className="storefront-manager-chip-row is-secondary">
-          {storefront.services.map((service) => (
+          {serviceChips.visible.map((service) => (
             <span key={service} className="storefront-manager-chip">
               {service}
             </span>
           ))}
+          {serviceChips.hiddenCount ? (
+            <span className="storefront-manager-chip is-muted">+{serviceChips.hiddenCount} more</span>
+          ) : null}
         </div>
       ) : null}
 
@@ -449,17 +462,6 @@ export function AdditionalStorefrontsManager({
 
   return (
     <div className="settings-block-stack">
-      {storefronts.length ? (
-        <div className="storefront-manager-overview surface">
-          <div className="storefront-manager-overview-copy">
-            <strong>
-              {storefronts.length} storefront{storefronts.length === 1 ? "" : "s"} on this account
-            </strong>
-            <span>Open a storefront to edit it, or create another one for a different brand, service, or location.</span>
-          </div>
-        </div>
-      ) : null}
-
       <div className="storefront-manager-toolbar">
         <div>
           <div className="business-profile-title-row">
@@ -472,16 +474,11 @@ export function AdditionalStorefrontsManager({
         </div>
         <div className="storefront-manager-toolbar-side">
           {storefronts.length ? (
-            <span className="account-menu-pill is-muted">
-              {storefronts.length} storefront{storefronts.length === 1 ? "" : "s"}
-            </span>
-          ) : null}
-          {storefronts.length ? (
             <a
               className="button button-secondary"
               href={showCreateForm ? buildStorefrontsOverviewHref(returnPath) : buildCreateStorefrontHref(returnPath)}
             >
-              {showCreateForm ? "Back to storefronts" : "Create storefront"}
+              {showCreateForm ? "Back" : "New storefront"}
             </a>
           ) : null}
         </div>
@@ -501,10 +498,10 @@ export function AdditionalStorefrontsManager({
       {storefronts.map((storefront) => {
         const serviceSummary = storefront.services.slice(0, 2).join(" / ");
         const summaryLabel =
-          serviceSummary ||
           storefront.address ||
+          serviceSummary ||
           storefront.phone ||
-          "Storefront settings";
+          "Ready to manage";
 
         return (
           <details
@@ -527,7 +524,7 @@ export function AdditionalStorefrontsManager({
                   <span>{summaryLabel}</span>
                 </div>
               </div>
-              <span className="storefront-manager-panel-action">Open storefront</span>
+              <span className="storefront-manager-panel-action">Open</span>
             </summary>
 
             <StorefrontPreview

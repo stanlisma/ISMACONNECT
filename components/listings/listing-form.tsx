@@ -371,8 +371,8 @@ function getContactHint(listingIntent: ListingIntent) {
 
 function getPhotoPanelCopy(listingIntent: ListingIntent) {
   return listingIntent === "need"
-    ? "Upload reference photos only if they help explain the job, item, or location. We optimize them before upload."
-    : `Upload up to ${MAX_IMAGE_COUNT} images. We optimize them before upload so feeds load faster.`;
+    ? "Add photos only if they help explain the request."
+    : `Upload up to ${MAX_IMAGE_COUNT} photos. We optimize them automatically.`;
 }
 
 function normalizeContactValue(value?: string | null) {
@@ -593,7 +593,9 @@ export function ListingForm({
   }, [listingIntent, submitLabel]);
   const stickyHint = isUploading
     ? "Uploading photos..."
-    : `${listingIntent === "need" ? "Need" : "Listing"} | ${imageUrls.length}/${MAX_IMAGE_COUNT} photos | ${description.length}/3000 chars`;
+    : descriptionReady
+      ? `${imageUrls.length}/${MAX_IMAGE_COUNT} photos ready`
+      : `${imageUrls.length}/${MAX_IMAGE_COUNT} photos | Add a little more detail`;
 
   useEffect(() => {
     if (storefrontId === previousStorefrontIdRef.current) {
@@ -1187,7 +1189,7 @@ export function ListingForm({
                 </div>
               </dl>
               <p className="listing-contact-summary-note">
-                Replies still go to your account email unless you choose a different contact for this listing.
+                Replies still use your account email.
               </p>
             </div>
 
@@ -1289,7 +1291,6 @@ export function ListingForm({
 
             <div className="listing-media-panel-meta">
               <span>{imageUrls.length}/{MAX_IMAGE_COUNT} photos</span>
-              <span>{listingIntent === "need" ? "First image appears first in replies" : "First image becomes the cover"}</span>
             </div>
           </div>
 
@@ -1304,7 +1305,7 @@ export function ListingForm({
             <div className="listing-upload-dropzone-copy">
               <strong>{isUploading ? "Uploading your photos..." : listingIntent === "need" ? "Add reference photos" : "Add listing photos"}</strong>
               <span>
-                JPG, PNG, or WebP. We compress them automatically and keep the sharpest first image at the front.
+                JPG, PNG, or WebP. We optimize them automatically.
               </span>
             </div>
             <span className="listing-upload-dropzone-action">
@@ -1415,7 +1416,7 @@ export function ListingForm({
               <Sparkles aria-hidden="true" size={18} strokeWidth={2.2} />
               <span>
                 {listingIntent === "need"
-                  ? "Add a photo if it helps explain the request faster."
+                  ? "Add a photo only if it helps explain the request."
                   : "Add at least one clear photo so your listing feels trustworthy and complete."}
               </span>
             </div>
