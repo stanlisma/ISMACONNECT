@@ -3,7 +3,7 @@ import { ExternalLink, MapPin, Phone } from "lucide-react";
 
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
-import { excerpt, formatDate, getCategoryLabel } from "@/lib/utils";
+import { excerpt } from "@/lib/utils";
 import type { PublicBusinessStorefrontDirectoryItem, SellerTrustSummary } from "@/types/database";
 
 export function StorefrontDirectoryCard({
@@ -32,7 +32,7 @@ export function StorefrontDirectoryCard({
             <h3>{storefront.name}</h3>
             <p>
               {storefront.description
-                ? excerpt(storefront.description, 150)
+                ? excerpt(storefront.description, 110)
                 : "Local business storefront with active listings on ISMACONNECT."}
             </p>
           </div>
@@ -47,24 +47,13 @@ export function StorefrontDirectoryCard({
           <span>{storefront.primary_location}</span>
         </span>
         <span>{storefront.active_listing_count} active listing{storefront.active_listing_count === 1 ? "" : "s"}</span>
-        {storefront.latest_listing_created_at ? <span>Updated {formatDate(storefront.latest_listing_created_at)}</span> : null}
       </div>
 
       {storefront.services.length ? (
         <div className="storefront-directory-chip-row">
-          {storefront.services.slice(0, 4).map((service) => (
+          {storefront.services.slice(0, 3).map((service) => (
             <span key={service} className="seller-storefront-specialty-chip">
               {service}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      {storefront.active_categories.length ? (
-        <div className="storefront-directory-chip-row">
-          {storefront.active_categories.map((category) => (
-            <span key={category} className="seller-storefront-service-chip">
-              {getCategoryLabel(category)}
             </span>
           ))}
         </div>

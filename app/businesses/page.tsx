@@ -37,7 +37,7 @@ export default async function BusinessesPage({
           <SectionHeading
             eyebrow="Local businesses"
             title={category ? `${getCategoryLabel(category)} storefronts` : "Browse local business storefronts"}
-            description="Discover local operators with public storefronts, local service coverage, and trust signals."
+            description="Discover local operators, open a storefront, and message with more confidence."
           />
 
           <div className="storefront-directory-filter-row">
@@ -81,8 +81,8 @@ export default async function BusinessesPage({
             title={category ? `No ${getCategoryLabel(category).toLowerCase()} storefronts yet` : "No business storefronts yet"}
             description={
               category
-                ? "No storefronts in this category are live yet. Check back after more businesses post listings."
-                : "No public storefronts are live yet. The first service and rental businesses will appear here."
+                ? "No storefronts in this category are live yet."
+                : "No public storefronts are live yet."
             }
             actionHref="/dashboard/storefronts"
             actionLabel="Create storefront"

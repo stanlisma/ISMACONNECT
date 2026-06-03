@@ -252,7 +252,6 @@ export default async function SellerStorefrontPage({
                   href={buildPathWithQuery(buildStorefrontHref(sellerId, item.storefront_id), preservedSellerQuery)}
                 >
                   <span>{item.name}</span>
-                  <strong>{item.active_listing_count}</strong>
                 </Link>
               ))}
             </div>

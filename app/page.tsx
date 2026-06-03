@@ -114,11 +114,11 @@ export default async function HomePage() {
         </div>
 
         <h1 style={titleStyle}>
-          Find camp rides, rentals, services, and local work without chasing Facebook threads.
+          Fort McMurray rides, rentals, services, and local work in one place.
         </h1>
 
         <p style={subtitleStyle}>
-          Local listings for rides, rentals, services, jobs, and worker logistics across Fort McMurray.
+          Search the local worker marketplace without digging through scattered posts and group chats.
         </p>
 
         <div style={searchBoxStyle}>
@@ -130,7 +130,7 @@ export default async function HomePage() {
             />
 
             <button type="submit" style={primaryButtonStyle}>
-              Search local listings
+              Search
             </button>
           </form>
 
@@ -142,20 +142,12 @@ export default async function HomePage() {
 
         </div>
 
-        <div className="home-camp-focus">
-          <div className="home-camp-focus-copy">
-            <span className="eyebrow">Camp Transport</span>
-            <h2>Camp rides by site, route, and rotation</h2>
-            <p>Browse worker transport by site, shift pattern, and pickup window before you message.</p>
-          </div>
-
-          <div className="home-camp-link-row">
-            {CAMP_TRANSPORT_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="home-camp-link">
-                {link.label}
-              </Link>
-            ))}
-          </div>
+        <div className="home-desktop-query-row">
+          {POPULAR_QUERIES.map((query) => (
+            <Link key={query.label} href={query.href} className="home-desktop-query-chip">
+              {query.label}
+            </Link>
+          ))}
         </div>
 
       </section>
@@ -264,14 +256,6 @@ export default async function HomePage() {
                 Explore {category.label}
               </Link>
             </article>
-          ))}
-        </div>
-
-        <div className="home-desktop-query-row">
-          {POPULAR_QUERIES.map((query) => (
-            <Link key={query.label} href={query.href} className="home-desktop-query-chip">
-              {query.label}
-            </Link>
           ))}
         </div>
       </section>
