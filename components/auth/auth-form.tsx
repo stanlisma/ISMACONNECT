@@ -190,16 +190,14 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
 
         {isSignUp ? (
           <p className="auth-next-step">
-            Confirm your email, then you can browse, post, save searches, message locals, and open storefronts from the same account.
+            Confirm your email, then you are ready to browse, post, message, and open storefronts.
           </p>
         ) : null}
 
         {!isSignUp ? (
-          <div style={{ marginTop: "0.75rem" }}>
-            <Link href="/auth/forgot-password" className="button button-secondary">
-              Forgot your password?
-            </Link>
-          </div>
+          <p className="auth-inline-link">
+            <Link href="/auth/forgot-password">Forgot your password?</Link>
+          </p>
         ) : null}
 
         <p className="auth-footer">

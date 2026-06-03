@@ -120,7 +120,7 @@ export default async function DashboardPage({
       <div className="surface dashboard-controls-panel" style={{ marginTop: "1.25rem" }}>
         <div className="dashboard-controls-head">
           <div>
-            <h2 style={{ marginBottom: "0.5rem" }}>Listing controls</h2>
+            <h2 style={{ marginBottom: "0.5rem" }}>Manage listings</h2>
           </div>
         </div>
 

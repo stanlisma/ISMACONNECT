@@ -17,6 +17,9 @@ export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
   const isOverviewPath = pathname === "/dashboard";
   const isStorefrontsPath = pathname.startsWith("/dashboard/storefronts");
   const heading = isStorefrontsPath ? "My storefronts" : "My listings";
+  const subheading = isStorefrontsPath
+    ? "Keep your public business pages sharp and easy to trust."
+    : "Edit live posts, refresh details, and keep replies moving.";
 
   if (isListingEditorPath(pathname)) {
     return null;
@@ -26,7 +29,7 @@ export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
     <div className="dashboard-header dashboard-header-compact">
       <div className="dashboard-header-main">
         <h1>{heading}</h1>
-        {fullName ? <p className="dashboard-header-meta">{fullName}</p> : null}
+        <p className="dashboard-header-meta">{fullName ? `${fullName} · ${subheading}` : subheading}</p>
       </div>
 
       <div className="dashboard-nav dashboard-nav-compact">
@@ -35,17 +38,11 @@ export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
             Overview
           </Link>
         ) : null}
-        <Link className="button button-secondary" href="/saved">
-          Favourites
-        </Link>
-        <Link className="button button-secondary" href="/dashboard/searches">
-          Saved
-        </Link>
         <Link className="button button-secondary" href="/dashboard/storefronts">
           Storefronts
         </Link>
-        <Link className="button button-secondary" href="/dashboard/boosts">
-          Boosts
+        <Link className="button button-secondary" href="/dashboard/searches">
+          Searches
         </Link>
         <Link className="button" href="/dashboard/listings/new">
           New listing

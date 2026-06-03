@@ -236,9 +236,6 @@ export default async function NotificationsPage() {
         <div className="notifications-page-header">
           <div>
             <h1 className="section-title">Notifications</h1>
-            <p className="section-copy">
-              Keep up with replies, saved-search matches, and account updates without losing your place.
-            </p>
           </div>
           {hasUnreadActivity ? (
             <Link
