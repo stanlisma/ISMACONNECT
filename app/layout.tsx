@@ -74,6 +74,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         >
           <MobileBottomNav
             viewer={Boolean(viewer)}
+            viewerId={viewer?.user.id ?? null}
             unreadMessagesCount={unreadMessagesCount}
             unreadActivityCount={unreadNotificationsCount}
             unreadActivityMarker={unreadNotificationsMarker}

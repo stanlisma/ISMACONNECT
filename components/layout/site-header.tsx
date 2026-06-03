@@ -24,6 +24,11 @@ interface SiteHeaderProps {
 }
 
 const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
+
+function getClearedNotificationsMarkerKey(viewerId?: string | null) {
+  return viewerId ? `${CLEARED_NOTIFICATIONS_MARKER_KEY}:${viewerId}` : null;
+}
+
 function formatBadgeCount(count: number) {
   if (count > 99) {
     return "99+";
@@ -40,6 +45,7 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const { unreadMessagesCount: liveUnreadMessagesCount } = useLiveMessageState();
+  const viewerId = viewer?.user.id ?? null;
   const [notificationBadgeCount, setNotificationBadgeCount] = useState(
     pathname === "/notifications" ? 0 : unreadNotificationsCount
   );
@@ -50,19 +56,36 @@ export function SiteHeader({
   }));
 
   useEffect(() => {
+    if (!viewerId) {
+      return;
+    }
+
+    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
+
     if (pathname === "/notifications") {
       setNotificationBadgeCount(0);
 
-      if (unreadNotificationsMarker) {
-        window.localStorage.setItem(CLEARED_NOTIFICATIONS_MARKER_KEY, unreadNotificationsMarker);
-      } else {
-        window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      if (markerStorageKey) {
+        if (unreadNotificationsMarker) {
+          window.localStorage.setItem(markerStorageKey, unreadNotificationsMarker);
+        } else {
+          window.localStorage.removeItem(markerStorageKey);
+        }
       }
     }
-  }, [pathname, unreadNotificationsMarker]);
+  }, [pathname, unreadNotificationsMarker, viewerId]);
 
   useEffect(() => {
-    const clearedMarker = window.localStorage.getItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+    if (!viewerId) {
+      setNotificationBadgeCount(0);
+      previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
+      return;
+    }
+
+    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
+    const clearedMarker = markerStorageKey
+      ? window.localStorage.getItem(markerStorageKey)
+      : null;
 
     if (pathname === "/notifications") {
       setNotificationBadgeCount(0);
@@ -70,7 +93,9 @@ export function SiteHeader({
     }
 
     if (!unreadNotificationsMarker || unreadNotificationsCount <= 0) {
-      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      if (markerStorageKey) {
+        window.localStorage.removeItem(markerStorageKey);
+      }
       setNotificationBadgeCount(0);
       previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
       return;
@@ -86,12 +111,14 @@ export function SiteHeader({
       previousUnreadNotificationsMarker.current &&
       previousUnreadNotificationsMarker.current !== unreadNotificationsMarker
     ) {
-      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      if (markerStorageKey) {
+        window.localStorage.removeItem(markerStorageKey);
+      }
     }
 
     setNotificationBadgeCount(unreadNotificationsCount);
     previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
-  }, [pathname, unreadNotificationsCount, unreadNotificationsMarker]);
+  }, [pathname, unreadNotificationsCount, unreadNotificationsMarker, viewerId]);
 
   return (
     <header className="site-header">
