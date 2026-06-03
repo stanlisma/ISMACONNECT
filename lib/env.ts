@@ -27,25 +27,6 @@ function normalizeHost(hostname?: string | null) {
   return hostname?.trim().toLowerCase().split(":")[0] || "";
 }
 
-function normalizeSupabaseCookieDomain(hostname?: string | null) {
-  const host = normalizeHost(hostname);
-  const appHost = normalizeHost(getAppHostname());
-
-  const resolveCookieDomain = (candidate: string) => {
-    if (!candidate || candidate === "localhost" || candidate === "127.0.0.1" || candidate === "::1") {
-      return null;
-    }
-
-    if (candidate === "ismaconnect.ca" || candidate.endsWith(".ismaconnect.ca")) {
-      return ".ismaconnect.ca";
-    }
-
-    return null;
-  };
-
-  return resolveCookieDomain(host) || resolveCookieDomain(appHost);
-}
-
 export function getCanonicalAppHostname() {
   return normalizeHost(getAppHostname()) || null;
 }
@@ -55,18 +36,17 @@ export function getBaseUrl() {
 }
 
 export function getSupabaseCookieOptions(hostname?: string | null) {
-  const domain = normalizeSupabaseCookieDomain(hostname);
-  const isSecure =
-    Boolean(domain) ||
-    /^https:\/\//i.test(appUrl);
+  const host = normalizeHost(hostname);
+  const isLocalHost =
+    host === "localhost" || host === "127.0.0.1" || host === "::1";
+  const isSecure = !isLocalHost && /^https:\/\//i.test(appUrl);
 
   return {
     path: "/",
     httpOnly: false,
     maxAge: 400 * 24 * 60 * 60,
     sameSite: "lax" as const,
-    secure: isSecure,
-    ...(domain ? { domain } : {})
+    secure: isSecure
   };
 }
 
