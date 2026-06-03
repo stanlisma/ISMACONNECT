@@ -26,6 +26,7 @@ type ClientAuthDiagnostics = {
     sessionExpiresAt: number | null;
     sessionError: string | null;
   };
+  browserError: string | null;
 };
 
 function formatCookieNames(cookieString: string) {
@@ -66,19 +67,11 @@ export function AuthDebugClient({
           (name) => name.startsWith("sb-") && name.includes("-auth-token")
         );
         const supabase = createBrowserSupabaseClient();
-        const [
-          { data: sessionData, error: sessionError },
-          { data: userData, error: userError },
-          serverDiagnosticsResponse
-        ] = await Promise.all([
-          supabase.auth.getSession(),
-          supabase.auth.getUser(),
-          fetch("/api/auth-debug", {
-            cache: "no-store"
-          })
-        ]);
-
+        const serverDiagnosticsResponse = await fetch("/api/auth-debug", {
+          cache: "no-store"
+        });
         const serverDiagnostics = (await serverDiagnosticsResponse.json()) as ServerAuthDiagnostics;
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
         if (isCancelled) {
           return;
@@ -97,21 +90,46 @@ export function AuthDebugClient({
             authCookieNames
           },
           auth: {
-            user: userData.user
+            user: sessionData.session?.user
               ? {
-                  id: userData.user.id,
-                  email: userData.user.email ?? null
+                  id: sessionData.session.user.id,
+                  email: sessionData.session.user.email ?? null
                 }
               : null,
-            userError: userError?.message ?? null,
+            userError: null,
             sessionUserId: sessionData.session?.user?.id ?? null,
             sessionExpiresAt: sessionData.session?.expires_at ?? null,
             sessionError: sessionError?.message ?? null
-          }
+          },
+          browserError: null
         });
       } catch (error) {
         if (!isCancelled) {
-          setLoadError(error instanceof Error ? error.message : "Unable to load auth diagnostics.");
+          const message =
+            error instanceof Error ? error.message : "Unable to load auth diagnostics.";
+          setLoadError(message);
+          setClientDiagnostics({
+            timestamp: new Date().toISOString(),
+            location: {
+              href: window.location.href,
+              host: window.location.host,
+              origin: window.location.origin
+            },
+            cookies: {
+              names: formatCookieNames(document.cookie),
+              authCookieNames: formatCookieNames(document.cookie).filter(
+                (name) => name.startsWith("sb-") && name.includes("-auth-token")
+              )
+            },
+            auth: {
+              user: null,
+              userError: null,
+              sessionUserId: null,
+              sessionExpiresAt: null,
+              sessionError: null
+            },
+            browserError: message
+          });
         }
       }
     }
