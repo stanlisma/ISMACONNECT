@@ -8,6 +8,7 @@ import { useLiveMessageState } from "@/components/messages/live-message-provider
 
 interface MobileBottomNavProps {
   viewer: boolean;
+  viewerId?: string | null;
   unreadMessagesCount: number;
   unreadActivityCount: number;
   unreadActivityMarker: string | null;
@@ -15,12 +16,17 @@ interface MobileBottomNavProps {
 
 const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
 
+function getClearedNotificationsMarkerKey(viewerId?: string | null) {
+  return viewerId ? `${CLEARED_NOTIFICATIONS_MARKER_KEY}:${viewerId}` : null;
+}
+
 function formatBadgeCount(count: number) {
   return count > 99 ? "99+" : String(count);
 }
 
 export function MobileBottomNav({
   viewer,
+  viewerId = null,
   unreadMessagesCount,
   unreadActivityCount,
   unreadActivityMarker
@@ -56,19 +62,36 @@ export function MobileBottomNav({
     pathname.startsWith("/settings");
 
   useEffect(() => {
+    if (!viewerId) {
+      return;
+    }
+
+    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
+
     if (pathname === "/notifications") {
       setActivityBadgeCount(0);
 
-      if (unreadActivityMarker) {
-        window.localStorage.setItem(CLEARED_NOTIFICATIONS_MARKER_KEY, unreadActivityMarker);
-      } else {
-        window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      if (markerStorageKey) {
+        if (unreadActivityMarker) {
+          window.localStorage.setItem(markerStorageKey, unreadActivityMarker);
+        } else {
+          window.localStorage.removeItem(markerStorageKey);
+        }
       }
     }
-  }, [pathname, unreadActivityMarker]);
+  }, [pathname, unreadActivityMarker, viewerId]);
 
   useEffect(() => {
-    const clearedMarker = window.localStorage.getItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+    if (!viewerId) {
+      setActivityBadgeCount(0);
+      previousUnreadActivityMarker.current = unreadActivityMarker;
+      return;
+    }
+
+    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
+    const clearedMarker = markerStorageKey
+      ? window.localStorage.getItem(markerStorageKey)
+      : null;
 
     if (pathname === "/notifications") {
       setActivityBadgeCount(0);
@@ -76,7 +99,9 @@ export function MobileBottomNav({
     }
 
     if (!unreadActivityMarker || unreadActivityCount <= 0) {
-      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      if (markerStorageKey) {
+        window.localStorage.removeItem(markerStorageKey);
+      }
       setActivityBadgeCount(0);
       previousUnreadActivityMarker.current = unreadActivityMarker;
       return;
@@ -92,12 +117,14 @@ export function MobileBottomNav({
       previousUnreadActivityMarker.current &&
       previousUnreadActivityMarker.current !== unreadActivityMarker
     ) {
-      window.localStorage.removeItem(CLEARED_NOTIFICATIONS_MARKER_KEY);
+      if (markerStorageKey) {
+        window.localStorage.removeItem(markerStorageKey);
+      }
     }
 
     setActivityBadgeCount(unreadActivityCount);
     previousUnreadActivityMarker.current = unreadActivityMarker;
-  }, [pathname, unreadActivityCount, unreadActivityMarker]);
+  }, [pathname, unreadActivityCount, unreadActivityMarker, viewerId]);
 
   return (
     <nav className="mobile-nav">
