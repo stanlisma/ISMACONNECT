@@ -1526,6 +1526,44 @@ code {
   width: min(620px, 100%);
 }
 
+.auth-debug-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.auth-debug-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-debug-card,
+.auth-debug-notice {
+  overflow: hidden;
+}
+
+.auth-debug-card h2,
+.auth-debug-notice h2 {
+  margin-bottom: 0.75rem;
+}
+
+.auth-debug-card pre {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.95);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.auth-debug-error {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
 .auth-header-row {
   display: inline-flex;
   align-items: center;
