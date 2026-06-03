@@ -135,7 +135,7 @@ header.site-header {
 }
 
 .header-account-link {
-  display: none;
+  display: inline-flex;
 }
 
 .header-action-badge {
@@ -201,6 +201,7 @@ header.site-header {
 .account-nav {
   margin-left: auto;
   overflow-x: auto;
+  gap: 14px;
 }
 
 .mobile-account-nav {

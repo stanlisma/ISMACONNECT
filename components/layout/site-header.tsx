@@ -117,6 +117,7 @@ export function SiteHeader({
               <option value="ride-share">Ride Share</option>
               <option value="jobs">Jobs</option>
               <option value="services">Services</option>
+              <option value="buy-sell">Buy & Sell</option>
             </select>
 
             <button type="submit" className="header-search-submit" aria-label="Search">
@@ -235,23 +236,8 @@ export function SiteHeader({
           {viewer && (
             <nav className="account-nav">
               <Link href="/dashboard" prefetch={false}>My Listings</Link>
-              <Link href="/dashboard/storefronts" prefetch={false}>My Storefronts</Link>
+              <Link href="/dashboard/storefronts" prefetch={false}>Storefronts</Link>
               <Link href="/dashboard/searches" prefetch={false}>Saved Searches</Link>
-              <Link href="/saved" prefetch={false}>Favourites</Link>
-              <Link href="/settings" prefetch={false}>Settings</Link>
-
-              <button
-                className="plain-link"
-                onClick={async () => {
-                  const { createBrowserSupabaseClient } = await import("@/lib/supabase/client");
-                  const supabase = createBrowserSupabaseClient();
-
-                  await supabase.auth.signOut();
-                  window.location.href = "/";
-                }}
-              >
-                Sign Out
-              </button>
             </nav>
           )}
         </div>
