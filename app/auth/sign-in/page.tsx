@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { FlashMessage } from "@/components/ui/flash-message";
+import { signInAction } from "@/lib/actions/auth";
 import { getViewer } from "@/lib/auth";
 import { getSingleParam } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ export default async function SignInPage({
         <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
         <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
+          action={signInAction}
           description="Sign in to browse local listings, publish your own posts, and manage your account."
           mode="sign-in"
           title="Sign in to ISMACONNECT"

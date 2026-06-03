@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 
-import { FlashMessage } from "@/components/ui/flash-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { trackMarketplaceEvent } from "@/lib/analytics";
-import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
@@ -17,89 +14,8 @@ interface AuthFormProps {
   action?: (formData: FormData) => Promise<void>;
 }
 
-function formatClientAuthError(message: string) {
-  const normalizedMessage = message.trim().toLowerCase();
-
-  if (normalizedMessage.includes("rate limit")) {
-    return "Too many sign-in attempts were made from this device or network. Wait a few minutes, then try again once.";
-  }
-
-  return message;
-}
-
 export function AuthForm({ mode, title, description, helpText, action }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
-  const [clientError, setClientError] = useState<string | undefined>();
-  const [clientSuccess, setClientSuccess] = useState<string | undefined>();
-  const [clientPending, setClientPending] = useState(false);
-
-  async function handleSignInSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setClientError(undefined);
-    setClientSuccess(undefined);
-    setClientPending(true);
-
-    try {
-      const formData = new FormData(event.currentTarget);
-      const email = String(formData.get("email") ?? "").trim();
-      const password = String(formData.get("password") ?? "");
-      const supabase = createBrowserSupabaseClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        setClientError(formatClientAuthError(error.message));
-        return;
-      }
-
-      window.location.replace("/browse");
-    } catch (error) {
-      setClientError(
-        error instanceof Error ? error.message : "Unable to sign in right now. Please try again."
-      );
-    } finally {
-      setClientPending(false);
-    }
-  }
-
-  async function handleMagicLinkSignIn() {
-    setClientError(undefined);
-    setClientSuccess(undefined);
-    setClientPending(true);
-
-    try {
-      const emailInput = document.querySelector<HTMLInputElement>('input[name="email"]');
-      const email = emailInput?.value.trim() ?? "";
-
-      if (!email) {
-        setClientError("Enter your email first, then request a sign-in link.");
-        return;
-      }
-
-      const supabase = createBrowserSupabaseClient();
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/browse`
-        }
-      });
-
-      if (error) {
-        setClientError(formatClientAuthError(error.message));
-        return;
-      }
-
-      setClientSuccess("Check your email for a sign-in link. Open it on this device to continue.");
-    } catch (error) {
-      setClientError(
-        error instanceof Error ? error.message : "Unable to send a sign-in link right now."
-      );
-    } finally {
-      setClientPending(false);
-    }
-  }
 
   return (
     <div className="auth-shell">
@@ -120,20 +36,13 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
 
         {!isSignUp && description ? <p>{description}</p> : null}
 
-        {!isSignUp ? <FlashMessage message={clientError} tone="error" /> : null}
-        {!isSignUp ? <FlashMessage message={clientSuccess} tone="success" /> : null}
-
         <form
-          action={isSignUp ? action : undefined}
+          action={action}
           className="form-grid auth-form-grid"
-          onSubmit={async (event) => {
+          onSubmit={() => {
             trackMarketplaceEvent(isSignUp ? "sign_up_attempt" : "sign_in_attempt", {
               surface: "auth"
             });
-
-            if (!isSignUp) {
-              await handleSignInSubmit(event);
-            }
           }}
         >
           {isSignUp ? (
@@ -273,22 +182,10 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
 
           <SubmitButton
             className={isSignUp ? "auth-submit-button field-full" : "field-full"}
-            forcePending={!isSignUp && clientPending}
             pendingLabel={isSignUp ? "Creating account..." : "Signing in..."}
           >
             {isSignUp ? "Create account" : "Sign in"}
           </SubmitButton>
-
-          {!isSignUp ? (
-            <button
-              className="button button-secondary field-full"
-              disabled={clientPending}
-              onClick={handleMagicLinkSignIn}
-              type="button"
-            >
-              Email me a sign-in link
-            </button>
-          ) : null}
         </form>
 
         {isSignUp ? (
