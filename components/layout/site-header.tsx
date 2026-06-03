@@ -5,6 +5,7 @@ import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLiveMessageState } from "@/components/messages/live-message-provider";
+import { CATEGORIES } from "@/lib/constants";
 import { getSubcategories } from "@/lib/subcategories";
 import "./site-header.css";
 
@@ -23,8 +24,6 @@ interface SiteHeaderProps {
 }
 
 const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
-const HEADER_DROPDOWN_LIMIT = 6;
-
 function formatBadgeCount(count: number) {
   if (count > 99) {
     return "99+";
@@ -45,10 +44,10 @@ export function SiteHeader({
     pathname === "/notifications" ? 0 : unreadNotificationsCount
   );
   const previousUnreadNotificationsMarker = useRef<string | null>(unreadNotificationsMarker);
-  const rentalLinks = getSubcategories("rentals").slice(0, HEADER_DROPDOWN_LIMIT);
-  const rideShareLinks = getSubcategories("ride-share").slice(0, HEADER_DROPDOWN_LIMIT);
-  const jobLinks = getSubcategories("jobs").slice(0, HEADER_DROPDOWN_LIMIT);
-  const serviceLinks = getSubcategories("services").slice(0, HEADER_DROPDOWN_LIMIT);
+  const headerCategoryLinks = CATEGORIES.map((category) => ({
+    ...category,
+    subcategories: getSubcategories(category.value)
+  }));
 
   useEffect(() => {
     if (pathname === "/notifications") {
@@ -113,11 +112,11 @@ export function SiteHeader({
 
             <select name="category" defaultValue="" className="header-search-select" aria-label="Choose a category">
               <option value="">All categories</option>
-              <option value="rentals">Rentals</option>
-              <option value="ride-share">Ride Share</option>
-              <option value="jobs">Jobs</option>
-              <option value="services">Services</option>
-              <option value="buy-sell">Buy & Sell</option>
+              {CATEGORIES.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
             </select>
 
             <button type="submit" className="header-search-submit" aria-label="Search">
@@ -183,53 +182,23 @@ export function SiteHeader({
 
             <Link href="/browse" className="market-nav-link market-nav-link-all">Browse</Link>
 
-            {/* RENTALS */}
-            <div className="nav-dropdown">
-              <Link href="/categories/rentals" className="market-nav-link">Rentals</Link>
-              <div className="nav-dropdown-menu">
-                {rentalLinks.map((item) => (
-                  <Link key={item.value} href={`/categories/rentals?subcategory=${item.value}`}>
-                    {item.label}
-                  </Link>
-                ))}
+            {headerCategoryLinks.map((category) => (
+              <div key={category.value} className="nav-dropdown">
+                <Link href={category.href} className="market-nav-link">
+                  {category.label}
+                </Link>
+                <div className="nav-dropdown-menu">
+                  {category.subcategories.map((item) => (
+                    <Link
+                      key={item.value}
+                      href={`${category.href}?subcategory=${item.value}`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* RIDE SHARE */}
-            <div className="nav-dropdown">
-              <Link href="/categories/ride-share" className="market-nav-link">Ride Share</Link>
-              <div className="nav-dropdown-menu">
-                {rideShareLinks.map((item) => (
-                  <Link key={item.value} href={`/categories/ride-share?subcategory=${item.value}&view=map`}>
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* JOBS */}
-            <div className="nav-dropdown">
-              <Link href="/categories/jobs" className="market-nav-link">Jobs</Link>
-              <div className="nav-dropdown-menu">
-                {jobLinks.map((item) => (
-                  <Link key={item.value} href={`/categories/jobs?subcategory=${item.value}`}>
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* SERVICES */}
-            <div className="nav-dropdown">
-              <Link href="/categories/services" className="market-nav-link">Services</Link>
-              <div className="nav-dropdown-menu">
-                {serviceLinks.map((item) => (
-                  <Link key={item.value} href={`/categories/services?subcategory=${item.value}`}>
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            ))}
 
           </nav>
 
