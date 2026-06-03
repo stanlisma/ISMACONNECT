@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { Analytics } from "@vercel/analytics/next";
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { LiveMessageProvider } from "@/components/messages/live-message-provider";
@@ -91,6 +92,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <SiteFooter />
           </div>
         </LiveMessageProvider>
+        <Analytics />
       </body>
     </html>
   );
