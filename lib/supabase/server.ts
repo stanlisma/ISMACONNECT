@@ -8,7 +8,19 @@ function dedupeCookiesByName<T extends { name: string }>(cookieList: T[]) {
   const cookiesByName = new Map<string, T>();
 
   cookieList.forEach((cookie) => {
-    cookiesByName.set(cookie.name, cookie);
+    const existing = cookiesByName.get(cookie.name);
+
+    if (!existing) {
+      cookiesByName.set(cookie.name, cookie);
+      return;
+    }
+
+    const existingLength = String((existing as T & { value?: unknown }).value ?? "").length;
+    const nextLength = String((cookie as T & { value?: unknown }).value ?? "").length;
+
+    if (nextLength >= existingLength) {
+      cookiesByName.set(cookie.name, cookie);
+    }
   });
 
   return Array.from(cookiesByName.values());
