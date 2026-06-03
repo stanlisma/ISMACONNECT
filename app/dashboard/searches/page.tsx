@@ -33,36 +33,23 @@ export default async function DashboardSavedSearchesPage({
 
   return (
     <div className="stack-md">
-      <div className="saved-searches-summary surface">
-        <div>
-          <h2 style={{ marginBottom: "0.35rem" }}>Saved searches</h2>
-        </div>
+      <div className="saved-searches-header">
+        <h2>Saved searches</h2>
+      </div>
 
-        <div className="saved-search-summary-stats">
-          <div className="saved-search-summary-pill">
-            <strong>{savedSearches.length}</strong>
-            <span>Saved</span>
-          </div>
-          <div className="saved-search-summary-pill">
-            <strong>{searchAlertsCount}</strong>
-            <span>With alerts</span>
-          </div>
-        </div>
-
-        <div className="pill-row saved-search-filter-row">
-          <Link
-            className={`account-menu-pill ${filter === "all" ? "is-active" : ""}`}
-            href="/dashboard/searches"
-          >
-            All searches
-          </Link>
-          <Link
-            className={`account-menu-pill ${filter === "alerts" ? "is-active" : ""}`}
-            href={buildPathWithQuery("/dashboard/searches", { filter: "alerts" })}
-          >
-            New matches
-          </Link>
-        </div>
+      <div className="pill-row saved-search-filter-row">
+        <Link
+          className={`account-menu-pill ${filter === "all" ? "is-active" : ""}`}
+          href="/dashboard/searches"
+        >
+          All
+        </Link>
+        <Link
+          className={`account-menu-pill ${filter === "alerts" ? "is-active" : ""}`}
+          href={buildPathWithQuery("/dashboard/searches", { filter: "alerts" })}
+        >
+          New matches{searchAlertsCount > 0 ? ` (${searchAlertsCount})` : ""}
+        </Link>
       </div>
 
       {!savedSearches.length ? (
@@ -87,13 +74,11 @@ export default async function DashboardSavedSearchesPage({
                   <span className="saved-search-alert-badge">
                     {savedSearch.newMatchesCount} new
                   </span>
-                ) : (
-                  <span className="saved-search-muted-badge">Up to date</span>
-                )}
+                ) : null}
               </div>
 
               <p className="saved-search-meta">
-                Last checked {formatDate(savedSearch.last_checked_at)} | Created {formatDate(savedSearch.created_at)}
+                Checked {formatDate(savedSearch.last_checked_at)}
               </p>
 
               {savedSearch.latestMatches.length ? (
@@ -106,7 +91,7 @@ export default async function DashboardSavedSearchesPage({
                   ))}
                 </div>
               ) : (
-                <p className="saved-search-meta">No active listings match this search right now.</p>
+                <p className="saved-search-meta">No matches right now.</p>
               )}
 
               <div className="action-row saved-search-actions">
