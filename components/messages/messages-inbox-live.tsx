@@ -128,7 +128,7 @@ function mapConversationEntries(
         : Boolean(conversation.buyer_typing);
 
     const preview = otherTyping
-      ? `${otherUserName.split(" ")[0] || "Someone"} is typing…`
+      ? `${otherUserName.split(" ")[0] || "Someone"} is typing...`
       : latestMessage?.body?.trim()
         ? latestMessage.sender_id === viewerId
           ? `You: ${latestMessage.body.trim()}`

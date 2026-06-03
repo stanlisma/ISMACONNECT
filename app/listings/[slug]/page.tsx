@@ -151,6 +151,9 @@ export default async function ListingPage({
       ? [{ label: "Urgent until", value: formatDate(listing.urgent_until), isRepeated: false }]
       : [])
   ];
+  const detailFactLabels = detailFacts.map((item) =>
+    item.label === "Detail" ? item.value : `${item.label} ${item.value}`
+  );
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -254,15 +257,15 @@ export default async function ListingPage({
               </div>
             </div>
 
-            {detailFacts.length ? (
+            {detailFactLabels.length ? (
               <div className="detail-card">
               <div className="meta-list detail-fact-list">
-                {detailFacts.map((item) => (
+                {detailFactLabels.map((item) => (
                   <span
-                    key={`${item.label}-${item.value}`}
-                    className={`detail-fact-item${item.isRepeated ? " is-repeated" : ""}`}
+                    key={item}
+                    className="detail-fact-item"
                   >
-                    <strong>{item.label}:</strong> {item.value}
+                    {item}
                   </span>
                 ))}
               </div>

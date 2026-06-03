@@ -120,10 +120,11 @@ export default async function MessagesPage({
       listingImageUrl: conversation.listing?.image_url ?? null,
       unreadCount,
       otherUserName,
-      preview: otherTyping ? `${otherUserName.split(" ")[0] || "Someone"} is typing…` : preview,
+      preview: otherTyping ? `${otherUserName.split(" ")[0] || "Someone"} is typing...` : preview,
       previewSenderId: latestMessage?.sender_id ?? null
     };
   });
+  const unreadThreadCount = conversationEntries.filter((conversation) => conversation.unreadCount > 0).length;
 
   return (
     <section className="section">
@@ -142,7 +143,7 @@ export default async function MessagesPage({
                   type="search"
                   name="q"
                   defaultValue={rawQuery}
-                  placeholder="Search by listing, person, or preview"
+                  placeholder="Search threads"
                 />
               </label>
 
@@ -168,12 +169,14 @@ export default async function MessagesPage({
             >
               All threads
             </Link>
-            <Link
-              className={`account-menu-pill ${activeFilter === "unread" ? "is-active" : ""}`}
-              href={buildMessagesHref({ q: rawQuery || null, filter: "unread" })}
-            >
-              Unread
-            </Link>
+            {unreadThreadCount > 0 || activeFilter === "unread" ? (
+              <Link
+                className={`account-menu-pill ${activeFilter === "unread" ? "is-active" : ""}`}
+                href={buildMessagesHref({ q: rawQuery || null, filter: "unread" })}
+              >
+                Unread{unreadThreadCount > 0 ? ` (${unreadThreadCount})` : ""}
+              </Link>
+            ) : null}
           </div>
         </div>
 

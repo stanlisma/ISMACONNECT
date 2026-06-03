@@ -248,6 +248,26 @@ export default async function CategoryPage({
         ]
       : localContent.quickLinks.slice(0, 3);
   const mobileQuickLinksVisible = mobileQuickLinks.slice(0, category === "ride-share" ? 4 : 3);
+  const hasActiveFilters =
+    Boolean(search) ||
+    Boolean(intent) ||
+    Boolean(requestWindow) ||
+    Boolean(communityArea) ||
+    Boolean(subcategory) ||
+    minPrice !== null ||
+    maxPrice !== null ||
+    Boolean(sort) ||
+    Object.keys(structuredFilters).length > 0;
+  const shouldShowQuickLinks = !hasActiveFilters;
+  const shouldShowSaveSearch =
+    Boolean(search) ||
+    Boolean(subcategory) ||
+    Boolean(intent) ||
+    Boolean(requestWindow) ||
+    Boolean(communityArea) ||
+    minPrice !== null ||
+    maxPrice !== null ||
+    Object.keys(structuredFilters).length > 0;
   const mobilePostNeedHref = buildPathWithQuery("/dashboard/listings/new", {
     intent: "need",
     category
@@ -255,6 +275,12 @@ export default async function CategoryPage({
   const mobilePostNeedLabel = category === "ride-share" ? "Post ride need" : "Post need";
   const firstVisibleResult = listings.length ? (page - 1) * pageSize + 1 : 0;
   const lastVisibleResult = listings.length ? firstVisibleResult + listings.length - 1 : 0;
+  const resultsSummary =
+    totalCount > 0
+      ? firstVisibleResult > 1 || totalCount !== listings.length
+        ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount}`
+        : `${totalCount} results`
+      : "0 results";
   const previousPageHref =
     page > 1
       ? buildPathWithQuery(categoryInfo.href, {
@@ -386,16 +412,18 @@ export default async function CategoryPage({
             />
           ) : null}
 
-          <div className="mobile-browse-quick-links">
-            {mobileQuickLinksVisible.map((link) => (
-              <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
-                {link.label}
+          {shouldShowQuickLinks ? (
+            <div className="mobile-browse-quick-links">
+              {mobileQuickLinksVisible.map((link) => (
+                <Link key={link.href} href={link.href} className="mobile-browse-quick-link">
+                  {link.label}
+                </Link>
+              ))}
+              <Link href={mobilePostNeedHref} className="mobile-browse-quick-link is-secondary">
+                {mobilePostNeedLabel}
               </Link>
-            ))}
-            <Link href={mobilePostNeedHref} className="mobile-browse-quick-link is-secondary">
-              {mobilePostNeedLabel}
-            </Link>
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
@@ -409,7 +437,7 @@ export default async function CategoryPage({
               </Link>
             ) : null}
           </div>
-          <SectionHeading title={pageTitle} description={localContent.heroDescription} />
+          <SectionHeading title={pageTitle} description={shouldShowQuickLinks ? localContent.heroDescription : undefined} />
         </div>
 
         {isMapEligibleCategory ? (
@@ -438,27 +466,25 @@ export default async function CategoryPage({
           showCategorySelect={false}
         />
 
-        <SaveSearchToggle
-          anchorId="browse-save-search"
-          viewerId={viewer?.user.id}
-          actionPath={categoryInfo.href}
-          returnTo={returnTo}
-          search={search}
-          category={category}
-          subcategory={subcategory}
-          minPrice={minPrice}
-          maxPrice={maxPrice}
-          sort={sort}
-          extraFilters={searchExtraFilters}
-          isSaved={Boolean(savedSearch)}
-          compactOnMobile
-        />
+        {shouldShowSaveSearch ? (
+          <SaveSearchToggle
+            anchorId="browse-save-search"
+            viewerId={viewer?.user.id}
+            actionPath={categoryInfo.href}
+            returnTo={returnTo}
+            search={search}
+            category={category}
+            subcategory={subcategory}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            sort={sort}
+            extraFilters={searchExtraFilters}
+            isSaved={Boolean(savedSearch)}
+            compactOnMobile
+          />
+        ) : null}
 
-        <p className="category-results-count" style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#667085" }}>
-          {totalCount > 0
-            ? `Showing ${firstVisibleResult}-${lastVisibleResult} of ${totalCount} results`
-            : "0 results found"}
-        </p>
+        <p className="category-results-count">{resultsSummary}</p>
 
         {subcategoryLinks.length ? (
           <div className="subcategory-link-row">
