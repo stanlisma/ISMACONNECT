@@ -50,7 +50,7 @@ export function SiteHeader({
     pathname === "/notifications" ? 0 : unreadNotificationsCount
   );
   const previousUnreadNotificationsMarker = useRef<string | null>(unreadNotificationsMarker);
-  const headerCategoryLinks = CATEGORIES.map((category) => ({
+  const headerCategoryLinks = CATEGORIES.filter((category) => category.value !== "buy-sell").map((category) => ({
     ...category,
     subcategories: getSubcategories(category.value)
   }));
