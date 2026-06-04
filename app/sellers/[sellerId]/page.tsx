@@ -6,6 +6,7 @@ import { Building2, Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 import { getBusinessHoursRows, getBusinessHoursStatus } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
 import { ListingCard } from "@/components/listings/listing-card";
+import { SellerTrustHighlights } from "@/components/trust/seller-trust-highlights";
 import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
 import { SellerReviewForm } from "@/components/trust/seller-review-form";
 import { TrustBadges } from "@/components/trust/trust-badges";
@@ -21,6 +22,7 @@ import {
 } from "@/lib/data";
 import {
   canViewerRateSeller,
+  getPublicSellerSignals,
   getSellerTrustSummary,
   getSellerTrustSummaryMap,
   getViewerSellerReview
@@ -83,6 +85,7 @@ export default async function SellerStorefrontPage({
   const storefrontLinks = await getPublicSellerStorefrontLinks(sellerId);
   const publicReviews = await getPublicSellerReviews(sellerId, 6);
   const trustSummary = await getSellerTrustSummary(sellerId);
+  const sellerSignals = await getPublicSellerSignals(sellerId);
   const trustMap = await getSellerTrustSummaryMap(storefront.listings.map((listing) => listing.owner_id));
   const existingReview =
     viewer && reviewListingId && viewer.user.id !== sellerId
@@ -186,6 +189,11 @@ export default async function SellerStorefrontPage({
 
                 <SellerRatingInline summary={trustSummary} />
                 <TrustBadges summary={trustSummary} showReviewBadge={false} />
+                <SellerTrustHighlights
+                  signals={sellerSignals}
+                  showActiveListings={false}
+                  showConversationCount
+                />
               </div>
             </div>
 

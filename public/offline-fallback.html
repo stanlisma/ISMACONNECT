@@ -68,7 +68,21 @@
         margin-top: 22px;
       }
 
-      a {
+      .tips {
+        display: grid;
+        gap: 8px;
+        margin: 18px 0 0;
+        padding-left: 18px;
+        color: var(--text-soft);
+        line-height: 1.55;
+      }
+
+      .tips strong {
+        color: var(--text);
+      }
+
+      a,
+      button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -77,6 +91,7 @@
         border-radius: 999px;
         text-decoration: none;
         font-weight: 700;
+        font: inherit;
       }
 
       .primary {
@@ -89,6 +104,16 @@
         background: white;
         color: var(--text);
       }
+
+      .retry {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .note {
+        margin-top: 18px;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
@@ -99,10 +124,17 @@
         You can still reopen pages you&apos;ve already visited, but fresh marketplace data,
         messages, and posting tools need a connection.
       </p>
+      <ul class="tips">
+        <li><strong>Browse</strong> and public listing pages you opened earlier may still be available.</li>
+        <li><strong>Messages, posting, and new alerts</strong> will sync again as soon as your connection returns.</li>
+        <li><strong>Installed app users</strong> can reopen the app once service comes back and keep moving where they left off.</li>
+      </ul>
       <div class="actions">
-        <a class="primary" href="/browse">Browse cached listings</a>
+        <button class="primary retry" type="button" onclick="window.location.reload()">Try again</button>
+        <a class="secondary" href="/browse">Browse cached listings</a>
         <a class="secondary" href="/">Back home</a>
       </div>
+      <p class="note">Fort McMurray rides, rentals, jobs, services, and storefronts will refresh automatically when you&apos;re back online.</p>
     </main>
   </body>
   </html>

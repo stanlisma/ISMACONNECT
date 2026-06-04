@@ -40,9 +40,12 @@ function shouldDisableServiceWorker() {
   return host === "localhost" || host === "127.0.0.1" || host === "::1";
 }
 
+const STANDALONE_WELCOME_KEY = "ismaconnect-standalone-welcome-dismissed";
+
 export function PwaShell() {
   const [updateReady, setUpdateReady] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [showStandaloneWelcome, setShowStandaloneWelcome] = useState(false);
   const reloadingRef = useRef(false);
 
   useEffect(() => {
@@ -52,7 +55,11 @@ export function PwaShell() {
 
     const mediaQuery = window.matchMedia?.("(display-mode: standalone)");
     const refreshStandaloneMode = () => {
+      const standalone = isStandaloneMode();
       syncStandaloneModeClass();
+      setShowStandaloneWelcome(
+        standalone && window.localStorage.getItem(STANDALONE_WELCOME_KEY) !== "1"
+      );
     };
 
     refreshStandaloneMode();
@@ -207,8 +214,25 @@ export function PwaShell() {
     registration.waiting.postMessage({ type: "SKIP_WAITING" });
   }
 
+  function dismissStandaloneWelcome() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STANDALONE_WELCOME_KEY, "1");
+    }
+
+    setShowStandaloneWelcome(false);
+  }
+
   return (
     <>
+      {showStandaloneWelcome ? (
+        <div className="app-status-banner app-status-banner-standalone">
+          <span>Installed on your home screen. Browse, post, save alerts, and jump back into messages faster.</span>
+          <button className="button button-secondary" type="button" onClick={dismissStandaloneWelcome}>
+            Dismiss
+          </button>
+        </div>
+      ) : null}
+
       {offline ? (
         <div className="app-status-banner app-status-banner-offline">
           You&apos;re offline. ISMACONNECT will keep the last-loaded pages available and refresh when you&apos;re back online.
