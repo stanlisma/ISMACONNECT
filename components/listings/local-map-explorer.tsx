@@ -169,7 +169,7 @@ function buildMapOptions(center: LatLngLike, zoom: number, mapId?: string) {
     streetViewControl: false,
     fullscreenControl: false,
     clickableIcons: false,
-    gestureHandling: "greedy" as const
+    gestureHandling: "cooperative" as const
   };
 }
 
