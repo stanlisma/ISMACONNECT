@@ -98,29 +98,36 @@ export default async function DashboardPage({
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
       <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
 
-      <div className="stats-grid dashboard-stats-grid">
-        <div className="stat-card dashboard-stat-card">
-          <span>Total listings</span>
-          <strong>{listings.length}</strong>
-        </div>
-        <div className="stat-card dashboard-stat-card">
-          <span>Active listings</span>
-          <strong>{activeCount}</strong>
-        </div>
-        <div className="stat-card dashboard-stat-card">
-          <span>Flagged listings</span>
-          <strong>{flaggedCount}</strong>
-        </div>
-        <div className="stat-card dashboard-stat-card">
-          <span>Live promotions</span>
-          <strong>{boostedCount}</strong>
-        </div>
-      </div>
-
-      <div className="surface dashboard-controls-panel" style={{ marginTop: "1.25rem" }}>
+      <div className="surface dashboard-controls-panel dashboard-controls-panel-compact">
         <div className="dashboard-controls-head">
-          <div>
-            <h2 style={{ marginBottom: "0.5rem" }}>Manage listings</h2>
+          <div className="dashboard-controls-copy">
+            <h2>Your listings</h2>
+            <p className="section-copy">
+              {filteredListings.length === listings.length
+                ? "Keep live posts current, easy to find, and easy to reply to."
+                : `${filteredListings.length} of ${listings.length} listings match these filters.`}
+            </p>
+          </div>
+
+          <div className="dashboard-overview-inline" aria-label="Listing overview">
+            <span className="dashboard-overview-chip">
+              <strong>{listings.length}</strong>
+              <span>Total</span>
+            </span>
+            <span className="dashboard-overview-chip">
+              <strong>{activeCount}</strong>
+              <span>Active</span>
+            </span>
+            <span className="dashboard-overview-chip">
+              <strong>{boostedCount}</strong>
+              <span>Promos</span>
+            </span>
+            {flaggedCount > 0 ? (
+              <span className="dashboard-overview-chip is-warning">
+                <strong>{flaggedCount}</strong>
+                <span>Flagged</span>
+              </span>
+            ) : null}
           </div>
         </div>
 

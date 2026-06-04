@@ -29,7 +29,7 @@ export function DashboardHeader({ fullName, isAdmin }: DashboardHeaderProps) {
     <div className="dashboard-header dashboard-header-compact">
       <div className="dashboard-header-main">
         <h1>{heading}</h1>
-        <p className="dashboard-header-meta">{fullName ? `${fullName} · ${subheading}` : subheading}</p>
+        <p className="dashboard-header-meta">{fullName ? `${fullName} - ${subheading}` : subheading}</p>
       </div>
 
       <div className="dashboard-nav dashboard-nav-compact">

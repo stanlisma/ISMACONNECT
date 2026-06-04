@@ -41,7 +41,7 @@ export function DashboardListingControls({
           name="q"
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
-          placeholder="Search by title or location"
+          placeholder="Search your listings"
         />
 
         <button
@@ -51,7 +51,7 @@ export function DashboardListingControls({
           aria-expanded={isFilterOpen}
           onClick={() => setIsFilterOpen(true)}
         >
-          Filter
+          Filters
         </button>
       </form>
 
@@ -64,7 +64,7 @@ export function DashboardListingControls({
               type="search"
               name="q"
               defaultValue={searchQuery}
-              placeholder="Search by title or location"
+              placeholder="Search your listings"
             />
           </label>
 
@@ -94,7 +94,7 @@ export function DashboardListingControls({
             <span className="field-label">Promotion</span>
             <select className="select" name="promotion" defaultValue={promotionFilter}>
               <option value="all">All</option>
-              <option value="promoted">Any active promo</option>
+              <option value="promoted">Any promo</option>
               <option value="featured">Featured</option>
               <option value="boosted">Boosted</option>
               <option value="urgent">Urgent</option>
@@ -104,12 +104,12 @@ export function DashboardListingControls({
 
         <div className="dashboard-filter-actions">
           <span className="section-copy" style={{ marginBottom: 0 }}>
-            Showing {filteredCount} of {totalCount} listings
+            {filteredCount} of {totalCount} shown
           </span>
 
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button className="button" type="submit">
-              Apply filters
+              Apply
             </button>
             <Link className="button button-secondary" href="/dashboard">
               Clear
@@ -119,14 +119,14 @@ export function DashboardListingControls({
       </form>
 
       <p className="dashboard-filter-summary section-copy">
-        Showing {filteredCount} of {totalCount} listings
+        {filteredCount} of {totalCount} shown
       </p>
 
       {isFilterOpen ? (
         <div className="mobile-filter-backdrop" onClick={() => setIsFilterOpen(false)}>
           <div className="mobile-filter-sheet" onClick={(event) => event.stopPropagation()}>
             <div className="mobile-filter-sheet-header">
-              <h3>Filters</h3>
+              <h3>Filter listings</h3>
               <button type="button" aria-label="Close filters" onClick={() => setIsFilterOpen(false)}>
                 X
               </button>
@@ -141,7 +141,7 @@ export function DashboardListingControls({
                   name="q"
                   value={searchText}
                   onChange={(event) => setSearchText(event.target.value)}
-                  placeholder="Search by title or location"
+                  placeholder="Search your listings"
                 />
               </label>
 
@@ -186,7 +186,7 @@ export function DashboardListingControls({
                   onChange={(event) => setSelectedPromotion(event.target.value)}
                 >
                   <option value="all">All</option>
-                  <option value="promoted">Any active promo</option>
+                  <option value="promoted">Any promo</option>
                   <option value="featured">Featured</option>
                   <option value="boosted">Boosted</option>
                   <option value="urgent">Urgent</option>
@@ -199,7 +199,7 @@ export function DashboardListingControls({
                 </Link>
 
                 <button className="button" type="submit">
-                  Apply filters
+                  Apply
                 </button>
               </div>
             </form>

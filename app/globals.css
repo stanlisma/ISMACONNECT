@@ -2529,6 +2529,71 @@ code {
   margin-top: 1rem;
 }
 
+.dashboard-controls-panel {
+  display: grid;
+  gap: 0.95rem;
+  margin-top: 1.25rem;
+}
+
+.dashboard-controls-panel-compact {
+  padding: 1rem !important;
+}
+
+.dashboard-controls-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-controls-copy h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.dashboard-controls-copy .section-copy {
+  margin: 0.3rem 0 0;
+  max-width: 58ch;
+}
+
+.dashboard-overview-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.dashboard-overview-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.38rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 200, 242, 0.6);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.dashboard-overview-chip strong {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.dashboard-overview-chip span {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.dashboard-overview-chip.is-warning {
+  border-color: rgba(215, 168, 0, 0.35);
+  background: rgba(255, 250, 232, 0.94);
+  color: #8a5b00;
+}
+
 .dashboard-listing h3 {
   margin: 0 0 0.55rem;
 }
@@ -4682,6 +4747,11 @@ code {
   letter-spacing: -0.03em;
 }
 
+.notifications-section-head-compact h2 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
 .notifications-section-head .section-copy {
   margin: 0.3rem 0 0;
   max-width: 60ch;
@@ -6484,6 +6554,22 @@ code {
 
   .dashboard-stats-grid {
     gap: 0.65rem;
+  }
+
+  .dashboard-controls-panel-compact {
+    padding: 0.9rem !important;
+  }
+
+  .dashboard-controls-head {
+    gap: 0.85rem;
+  }
+
+  .dashboard-overview-inline {
+    width: 100%;
+  }
+
+  .dashboard-overview-chip {
+    padding-inline: 0.72rem;
   }
 
   .dashboard-stat-card {

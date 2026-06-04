@@ -251,16 +251,8 @@ export default async function NotificationsPage() {
         <div className="notifications-stack">
           {savedSearchAlerts.length ? (
             <section className="surface notifications-section notifications-section-priority">
-              <div className="notifications-section-head">
-                <div>
-                  <span className="notifications-section-label">Priority</span>
-                  <h2>Saved search alerts</h2>
-                </div>
-
-                <div className="notifications-section-count">
-                  <Search aria-hidden="true" size={18} strokeWidth={2.2} />
-                  <strong>{savedSearchAlerts.length}</strong>
-                </div>
+              <div className="notifications-section-head notifications-section-head-compact">
+                <h2>Saved search alerts</h2>
               </div>
 
               <div className="notifications-list">
@@ -331,16 +323,8 @@ export default async function NotificationsPage() {
 
           {notificationItems.length ? (
             <section className="surface notifications-section">
-              <div className="notifications-section-head">
-                <div>
-                  <span className="notifications-section-label">Activity feed</span>
-                  <h2>Recent updates</h2>
-                </div>
-
-                <div className="notifications-section-count">
-                  <Bell aria-hidden="true" size={18} strokeWidth={2.2} />
-                  <strong>{notificationItems.length}</strong>
-                </div>
+              <div className="notifications-section-head notifications-section-head-compact">
+                <h2>Recent updates</h2>
               </div>
 
               <div className="notifications-list">
