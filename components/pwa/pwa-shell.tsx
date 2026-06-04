@@ -225,7 +225,7 @@ export function PwaShell() {
   return (
     <>
       {showStandaloneWelcome ? (
-        <div className="app-status-banner app-status-banner-standalone">
+        <div className="app-status-banner app-status-banner-standalone app-status-banner-floating">
           <span>Installed on your home screen. Browse, post, save alerts, and jump back into messages faster.</span>
           <button className="button button-secondary" type="button" onClick={dismissStandaloneWelcome}>
             Dismiss

@@ -1511,6 +1511,25 @@ code {
   color: #1549b7;
 }
 
+.app-status-banner-floating {
+  position: fixed;
+  top: auto;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  width: min(720px, calc(100% - 2rem));
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border: 1px solid #c9ddff;
+  border-radius: 18px;
+  background: rgba(237, 246, 255, 0.98);
+  box-shadow: 0 16px 34px rgba(18, 83, 158, 0.16);
+  transform: translateX(-50%);
+}
+
+.app-status-banner-floating span {
+  flex: 1 1 18rem;
+}
+
 .app-status-banner .button {
   min-height: 2.35rem;
   padding: 0.55rem 0.9rem;
@@ -8993,6 +9012,15 @@ code {
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0.65rem;
     padding: 0.8rem 0.9rem;
+  }
+
+  .app-status-banner-floating {
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+    bottom: calc(5.7rem + env(safe-area-inset-bottom));
+    padding: 0.85rem 0.9rem;
+    border-radius: 16px;
   }
 
   .messages-list-avatar {
