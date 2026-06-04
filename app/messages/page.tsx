@@ -143,7 +143,7 @@ export default async function MessagesPage({
                   type="search"
                   name="q"
                   defaultValue={rawQuery}
-                  placeholder="Search threads"
+                  placeholder="Search messages"
                 />
               </label>
 
@@ -167,7 +167,7 @@ export default async function MessagesPage({
               className={`account-menu-pill ${activeFilter === "all" ? "is-active" : ""}`}
               href={buildMessagesHref({ q: rawQuery || null })}
             >
-              All threads
+              All
             </Link>
             {unreadThreadCount > 0 || activeFilter === "unread" ? (
               <Link
