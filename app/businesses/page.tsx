@@ -78,14 +78,21 @@ export default async function BusinessesPage({
           </div>
         ) : (
           <EmptyState
+            eyebrow="Open a storefront"
             title={category ? `No ${getCategoryLabel(category).toLowerCase()} storefronts yet` : "No business storefronts yet"}
             description={
               category
-                ? "No storefronts in this category are live yet."
-                : "No public storefronts are live yet."
+                ? "No storefronts in this category are live yet. Be the first local operator to show services, hours, and contact details here."
+                : "No public storefronts are live yet. Open one so locals can trust who they are messaging before the first listing even goes live."
             }
             actionHref="/dashboard/storefronts"
             actionLabel="Create storefront"
+            secondaryActionHref={category ? `/browse?category=${category}` : "/browse?category=services"}
+            secondaryActionLabel={category ? `Browse ${getCategoryLabel(category)}` : "Browse local services"}
+            tips={[
+              "Add service areas and business hours so people can judge fit quickly.",
+              "A storefront can earn trust before you publish your first listing."
+            ]}
           />
         )}
       </div>

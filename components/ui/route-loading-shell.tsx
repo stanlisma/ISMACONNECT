@@ -6,6 +6,22 @@ type RouteLoadingShellProps = {
   variant?: "feed" | "detail" | "chat" | "storefront" | "form";
 };
 
+function getLoadingHighlights(variant: NonNullable<RouteLoadingShellProps["variant"]>) {
+  switch (variant) {
+    case "chat":
+      return ["Syncing conversation", "Checking unread replies", "Preparing composer"];
+    case "storefront":
+      return ["Loading business details", "Checking live listings", "Preparing contact options"];
+    case "form":
+      return ["Restoring draft fields", "Preparing uploads", "Checking contact settings"];
+    case "detail":
+      return ["Loading photos", "Checking seller info", "Preparing reply actions"];
+    case "feed":
+    default:
+      return ["Checking newest local posts", "Preparing filters", "Loading cards"];
+  }
+}
+
 export function RouteLoadingShell({
   eyebrow = "Loading",
   title,
@@ -13,6 +29,8 @@ export function RouteLoadingShell({
   detail = false,
   variant = detail ? "detail" : "feed"
 }: RouteLoadingShellProps) {
+  const highlights = getLoadingHighlights(variant);
+
   if (variant === "chat") {
     return (
       <section className="section">
@@ -22,6 +40,14 @@ export function RouteLoadingShell({
               <span className="eyebrow">{eyebrow}</span>
               <h1>{title}</h1>
               <p className="route-loading-copy">{message}</p>
+              <div className="route-loading-status-row">
+                {highlights.map((item) => (
+                  <span key={item} className="route-loading-status-pill">
+                    <span className="route-loading-status-dot" />
+                    <span>{item}</span>
+                  </span>
+                ))}
+              </div>
               <div className="route-loading-line is-medium" />
             </div>
 
@@ -60,6 +86,14 @@ export function RouteLoadingShell({
                   <span className="eyebrow">{eyebrow}</span>
                   <h1>{title}</h1>
                   <p className="route-loading-copy">{message}</p>
+                  <div className="route-loading-status-row">
+                    {highlights.map((item) => (
+                      <span key={item} className="route-loading-status-pill">
+                        <span className="route-loading-status-dot" />
+                        <span>{item}</span>
+                      </span>
+                    ))}
+                  </div>
                   <div className="route-loading-line is-medium" />
                   <div className="route-loading-chip-row">
                     <span className="route-loading-chip" />
@@ -107,6 +141,14 @@ export function RouteLoadingShell({
               <span className="eyebrow">{eyebrow}</span>
               <h1>{title}</h1>
               <p className="route-loading-copy">{message}</p>
+              <div className="route-loading-status-row">
+                {highlights.map((item) => (
+                  <span key={item} className="route-loading-status-pill">
+                    <span className="route-loading-status-dot" />
+                    <span>{item}</span>
+                  </span>
+                ))}
+              </div>
               <div className="route-loading-line is-medium" />
             </div>
 
@@ -143,6 +185,14 @@ export function RouteLoadingShell({
             <span className="eyebrow">{eyebrow}</span>
             <h1>{title}</h1>
             <p className="route-loading-copy">{message}</p>
+            <div className="route-loading-status-row">
+              {highlights.map((item) => (
+                <span key={item} className="route-loading-status-pill">
+                  <span className="route-loading-status-dot" />
+                  <span>{item}</span>
+                </span>
+              ))}
+            </div>
             <div className="route-loading-line is-long" />
             <div className="route-loading-chip-row">
               <span className="route-loading-chip" />
