@@ -56,6 +56,25 @@ const HOME_FIRST_STEPS = [
 
 const HOME_TRUST_SIGNALS = ["Private replies", "Storefront profiles", "Saved alerts", "Home-screen install"];
 
+const HOME_ADVANTAGES = [
+  {
+    title: "Private replies stay tidy",
+    description: "Move from public comments into one clean conversation instead of losing leads in group threads."
+  },
+  {
+    title: "Saved alerts bring people back",
+    description: "Locals can watch routes, rentals, jobs, and services without checking the app all day."
+  },
+  {
+    title: "Storefronts build trust fast",
+    description: "Businesses can show logos, hours, reviews, and service areas before someone even opens a post."
+  },
+  {
+    title: "Ride-share search is purpose-built",
+    description: "Camp routes, airport trips, rotations, and site filters are easier to search than generic marketplaces."
+  }
+];
+
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -71,6 +90,7 @@ export default async function HomePage() {
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
   const activeCategoryCounts = activitySnapshot.heroCategoryCounts.filter((item) => item.count > 0);
+  const activeResponseCounts = activitySnapshot.heroCategoryResponseCounts.filter((item) => item.count > 0);
 
   return (
     <main className="homepage-main" style={pageStyle}>
@@ -226,6 +246,16 @@ export default async function HomePage() {
               ))}
             </div>
           ) : null}
+
+          {activeResponseCounts.length ? (
+            <div className="home-activity-response-row">
+              {activeResponseCounts.map((item) => (
+                <span key={item.category} className="home-activity-response-pill">
+                  Replies moving in {CATEGORIES.find((category) => category.value === item.category)?.label}: {item.count}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -254,6 +284,15 @@ export default async function HomePage() {
               <span key={signal} className="badge badge-soft">
                 {signal}
               </span>
+            ))}
+          </div>
+
+          <div className="home-advantage-grid">
+            {HOME_ADVANTAGES.map((item) => (
+              <article key={item.title} className="home-advantage-card">
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
             ))}
           </div>
         </section>

@@ -8,6 +8,7 @@ import { FlagListingForm } from "@/components/listings/flag-listing-form";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingImageGallery } from "@/components/listings/listing-image-gallery";
 import { SaveListingButton } from "@/components/listings/save-listing-button";
+import { SellerTrustHighlights } from "@/components/trust/seller-trust-highlights";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -30,6 +31,7 @@ import {
   getStructuredDetailItems
 } from "@/lib/listing-structured-fields";
 import {
+  getPublicSellerSignals,
   getSellerTrustSummary,
   getSellerTrustSummaryMap
 } from "@/lib/trust";
@@ -88,6 +90,7 @@ export default async function ListingPage({
   const relatedListings = await getRelatedListings(listing);
   const relatedTrustMap = await getSellerTrustSummaryMap(relatedListings.map((item) => item.owner_id));
   const sellerTrustSummary = await getSellerTrustSummary(listing.owner_id);
+  const sellerSignals = await getPublicSellerSignals(listing.owner_id);
   const sellerStorefrontProfile = await getPublicSellerStorefront(listing.owner_id, 1);
   const sellerStorefrontLinks = await getPublicSellerStorefrontLinks(listing.owner_id);
   const category = CATEGORY_MAP[listing.category as keyof typeof CATEGORY_MAP];
@@ -254,6 +257,13 @@ export default async function ListingPage({
                     Profile
                   </Link>
                 </div>
+                <SellerTrustHighlights
+                  signals={sellerSignals}
+                  compact
+                  showActiveListings={false}
+                  showConversationCount={false}
+                  showStorefrontCount={false}
+                />
               </div>
             </div>
 
@@ -351,6 +361,13 @@ export default async function ListingPage({
               </div>
 
               <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} />
+              <SellerTrustHighlights
+                signals={sellerSignals}
+                compact
+                showActiveListings={false}
+                showConversationCount={false}
+                showStorefrontCount={false}
+              />
 
               <div className="detail-seller-facts">
                 {sellerStorefrontProfile ? (
