@@ -36,6 +36,26 @@ const CAMP_TRANSPORT_LINKS = [
   }
 ];
 
+const HOME_FIRST_STEPS = [
+  {
+    title: "Browse by local intent",
+    description:
+      "Jump straight into camp rides, airport trips, rentals, jobs, and move-out services without digging through scattered posts."
+  },
+  {
+    title: "Post what you need fast",
+    description:
+      "If nothing matches yet, post a need so locals can reply directly instead of losing the conversation in group threads."
+  },
+  {
+    title: "Save searches and install the app",
+    description:
+      "Stay close to fresh Fort McMurray activity with saved alerts and one-tap return from your home screen."
+  }
+];
+
+const HOME_TRUST_SIGNALS = ["Private replies", "Storefront profiles", "Saved alerts", "Home-screen install"];
+
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -209,6 +229,36 @@ export default async function HomePage() {
         </section>
       ) : null}
 
+      {isConfigured ? (
+        <section className="home-first-steps surface">
+          <div className="home-first-steps-copy">
+            <span className="eyebrow">New here?</span>
+            <h2>ISMACONNECT works best when locals can move fast</h2>
+            <p>
+              Use it like a Fort McMurray utility app: search by need, post when nothing fits, and keep fresh replies
+              within reach.
+            </p>
+          </div>
+
+          <div className="home-first-steps-grid">
+            {HOME_FIRST_STEPS.map((step) => (
+              <article key={step.title} className="home-first-step-card">
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="home-first-steps-trust-row">
+            {HOME_TRUST_SIGNALS.map((signal) => (
+              <span key={signal} className="badge badge-soft">
+                {signal}
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
           <div className="home-section-head">
@@ -234,7 +284,32 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <p>No listings yet</p>
+            <div className="home-launch-empty-state">
+              <div className="empty-state">
+                <span className="eyebrow">Early local launch</span>
+                <h3>Be one of the first locals to post here</h3>
+                <p>
+                  ISMACONNECT is ready for rides, rentals, jobs, services, and storefronts. Start with what you need
+                  or publish the first offer so the next visitor sees something real to reply to.
+                </p>
+                <ul className="empty-state-tip-list">
+                  <li>Camp rides and airport trips usually drive the fastest replies.</li>
+                  <li>Saved searches help locals return as soon as new matches land.</li>
+                  <li>Storefronts let service businesses build trust before a listing is opened.</li>
+                </ul>
+                <div className="empty-state-actions">
+                  <Link
+                    href={viewer ? "/dashboard/listings/new?intent=need" : "/auth/sign-up"}
+                    className="button button-secondary"
+                  >
+                    {viewer ? "Post a need" : "Create account"}
+                  </Link>
+                  <Link href="/businesses" className="button button-ghost">
+                    Browse storefronts
+                  </Link>
+                </div>
+              </div>
+            </div>
           )}
 
         </div>
