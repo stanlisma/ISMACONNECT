@@ -255,13 +255,6 @@ export default async function HomePage() {
 
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
-          <div className="home-section-head">
-            <h2>Popular listings by category</h2>
-            <Link href="/browse" className="home-section-link">
-              Browse all
-            </Link>
-          </div>
-
           {!isConfigured ? (
             <p>Setup required</p>
           ) : latestListings.length > 0 ? (
