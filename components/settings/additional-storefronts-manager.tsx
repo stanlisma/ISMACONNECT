@@ -467,7 +467,7 @@ export function AdditionalStorefrontsManager({
               className="button button-secondary"
               href={showCreateForm ? buildStorefrontsOverviewHref(returnPath) : buildCreateStorefrontHref(returnPath)}
             >
-              {showCreateForm ? "Back" : "New storefront"}
+              {showCreateForm ? "Back to storefronts" : "New storefront"}
             </a>
           ) : null}
         </div>

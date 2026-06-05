@@ -30,6 +30,7 @@ export default async function DashboardSavedSearchesPage({
     filter === "alerts"
       ? sortedSearches.filter((savedSearch) => savedSearch.newMatchesCount > 0)
       : sortedSearches;
+  const showFilterRow = searchAlertsCount > 0 || filter === "alerts";
 
   return (
     <div className="stack-md">
@@ -37,20 +38,22 @@ export default async function DashboardSavedSearchesPage({
         <h2>Saved searches</h2>
       </div>
 
-      <div className="pill-row saved-search-filter-row">
-        <Link
-          className={`account-menu-pill ${filter === "all" ? "is-active" : ""}`}
-          href="/dashboard/searches"
-        >
-          All
-        </Link>
-        <Link
-          className={`account-menu-pill ${filter === "alerts" ? "is-active" : ""}`}
-          href={buildPathWithQuery("/dashboard/searches", { filter: "alerts" })}
-        >
-          New matches{searchAlertsCount > 0 ? ` (${searchAlertsCount})` : ""}
-        </Link>
-      </div>
+      {showFilterRow ? (
+        <div className="pill-row saved-search-filter-row">
+          <Link
+            className={`account-menu-pill ${filter === "all" ? "is-active" : ""}`}
+            href="/dashboard/searches"
+          >
+            All
+          </Link>
+          <Link
+            className={`account-menu-pill ${filter === "alerts" ? "is-active" : ""}`}
+            href={buildPathWithQuery("/dashboard/searches", { filter: "alerts" })}
+          >
+            New matches{searchAlertsCount > 0 ? ` (${searchAlertsCount})` : ""}
+          </Link>
+        </div>
+      ) : null}
 
       {!savedSearches.length ? (
         <EmptyState
@@ -77,9 +80,7 @@ export default async function DashboardSavedSearchesPage({
                 ) : null}
               </div>
 
-              <p className="saved-search-meta">
-                Checked {formatDate(savedSearch.last_checked_at)}
-              </p>
+              <p className="saved-search-meta">Last checked {formatDate(savedSearch.last_checked_at)}</p>
 
               {savedSearch.latestMatches.length ? (
                 <div className="saved-search-match-list">
@@ -108,7 +109,7 @@ export default async function DashboardSavedSearchesPage({
             <EmptyState
               actionHref="/dashboard/searches"
               actionLabel="Show all saved searches"
-              title="No active alerts right now"
+              title="No new matches right now"
               description="Your saved searches are still active, but none have new matching listings at the moment."
             />
           )}
