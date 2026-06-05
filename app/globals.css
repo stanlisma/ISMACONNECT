@@ -1517,7 +1517,9 @@ code {
   left: 50%;
   bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   width: min(720px, calc(100% - 2rem));
+  max-width: calc(100% - 1.5rem);
   justify-content: space-between;
+  align-items: flex-start;
   padding: 0.9rem 1rem;
   border: 1px solid #c9ddff;
   border-radius: 18px;
@@ -9104,9 +9106,15 @@ code {
     right: 0.75rem;
     left: 0.75rem;
     width: auto;
-    bottom: calc(5.7rem + env(safe-area-inset-bottom));
+    bottom: calc(6.6rem + env(safe-area-inset-bottom));
     padding: 0.85rem 0.9rem;
     border-radius: 16px;
+    gap: 0.7rem;
+    text-align: left;
+  }
+
+  .app-status-banner-floating .button {
+    width: 100%;
   }
 
   .messages-list-avatar {
