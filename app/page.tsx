@@ -256,9 +256,9 @@ export default async function HomePage() {
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
           <div className="home-section-head">
-            <h2>{hasFreshListings ? "Fresh local activity" : "Latest local posts"}</h2>
+            <h2>Popular listings by category</h2>
             <Link href="/browse" className="home-section-link">
-              See all
+              Browse all
             </Link>
           </div>
 
@@ -269,9 +269,9 @@ export default async function HomePage() {
               {homepageListingGroups.map(({ category, listings }) => (
                 <section key={category.value} className="home-category-group">
                   <div className="home-category-group-head">
-                    <h3>{category.label}</h3>
+                    <h3>Popular listings in {category.label}</h3>
                     <Link href={category.href} className="home-secondary-link">
-                      Browse {category.label}
+                      See all
                     </Link>
                   </div>
 
