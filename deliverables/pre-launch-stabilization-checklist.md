@@ -18,6 +18,7 @@ Last updated: 2026-06-05
 - 2026-06-05: Simplified saved-search management when there are no active alerts and clarified storefront-manager return actions.
 - 2026-06-05: Hardened remaining auth-callback and notification-read redirects to stay inside safe in-app paths.
 - 2026-06-05: Added confirmation guards to destructive listing and storefront management actions.
+- 2026-06-05: Limited the standalone welcome prompt to browse/home discovery surfaces so it stays out of posting and account-management flows.
 
 ## P0 Auth
 
