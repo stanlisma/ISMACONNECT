@@ -37,8 +37,8 @@ export default async function ResetPasswordPage({
                 type="password"
                 name="password"
                 required
-                minLength={6}
-                placeholder="Enter new password"
+                minLength={8}
+                placeholder="Use at least 8 characters"
               />
             </label>
 
@@ -49,8 +49,8 @@ export default async function ResetPasswordPage({
                 type="password"
                 name="confirmPassword"
                 required
-                minLength={6}
-                placeholder="Confirm new password"
+                minLength={8}
+                placeholder="Confirm your new password"
               />
             </label>
 

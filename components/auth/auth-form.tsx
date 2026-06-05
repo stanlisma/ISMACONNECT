@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { FlashMessage } from "@/components/ui/flash-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { trackMarketplaceEvent } from "@/lib/analytics";
@@ -11,10 +12,20 @@ interface AuthFormProps {
   title: string;
   description?: string;
   helpText?: string;
+  message?: string;
+  messageTone?: "error" | "success";
   action?: (formData: FormData) => Promise<void>;
 }
 
-export function AuthForm({ mode, title, description, helpText, action }: AuthFormProps) {
+export function AuthForm({
+  mode,
+  title,
+  description,
+  helpText,
+  message,
+  messageTone = "error",
+  action
+}: AuthFormProps) {
   const isSignUp = mode === "sign-up";
 
   return (
@@ -35,6 +46,7 @@ export function AuthForm({ mode, title, description, helpText, action }: AuthFor
         )}
 
         {!isSignUp && description ? <p>{description}</p> : null}
+        {message ? <FlashMessage message={message} tone={messageTone} /> : null}
 
         <form
           action={action}

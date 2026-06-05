@@ -5,6 +5,7 @@ import { StorefrontDirectoryCard } from "@/components/storefronts/storefront-dir
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
+import { getViewer } from "@/lib/auth";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getPublicBusinessStorefrontDirectory } from "@/lib/data";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
@@ -23,6 +24,7 @@ export default async function BusinessesPage({
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const category = resolveCategory(getSingleParam(resolvedSearchParams?.category));
+  const viewer = await getViewer();
   const { isConfigured, schemaReady, storefronts } = await getPublicBusinessStorefrontDirectory({
     category,
     limit: 48
@@ -85,8 +87,8 @@ export default async function BusinessesPage({
                 ? "No storefronts in this category are live yet. Be the first local operator to show services, hours, and contact details here."
                 : "No public storefronts are live yet. Open one so locals can trust who they are messaging before the first listing even goes live."
             }
-            actionHref="/dashboard/storefronts"
-            actionLabel="Create storefront"
+            actionHref={viewer ? "/dashboard/storefronts" : "/auth/sign-up"}
+            actionLabel={viewer ? "Create storefront" : "Create account"}
             secondaryActionHref={category ? `/browse?category=${category}` : "/browse?category=services"}
             secondaryActionLabel={category ? `Browse ${getCategoryLabel(category)}` : "Browse local services"}
             tips={[

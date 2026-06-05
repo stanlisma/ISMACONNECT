@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import { FlashMessage } from "@/components/ui/flash-message";
 import { getViewer } from "@/lib/auth";
 import { signUpAction } from "@/lib/actions/auth";
 import { getSingleParam } from "@/lib/utils";
@@ -27,11 +26,11 @@ export default async function SignUpPage({
   return (
     <section className="section">
       <div className="container">
-        <FlashMessage message={getSingleParam(resolvedSearchParams?.error)} tone="error" />
         <AuthForm
           action={signUpAction}
           description="Start with one local account for rideshare, rentals, services, saved searches, and storefronts."
           helpText="Use one account to post rideshare seats or requests, rental listings, local jobs, services, and storefronts without rebuilding your profile every time."
+          message={getSingleParam(resolvedSearchParams?.error)}
           mode="sign-up"
           title="Create your account"
         />

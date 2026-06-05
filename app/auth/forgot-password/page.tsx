@@ -27,7 +27,7 @@ export default async function ForgotPasswordPage({
           <p className="eyebrow">Account recovery</p>
           <h1 className="section-title">Forgot your password?</h1>
           <p className="section-copy">
-            Enter the email linked to your account and we’ll send you a password reset link.
+            Enter the email linked to your account and we'll send you a password reset link.
           </p>
 
           <form action={forgotPasswordAction} className="stack-md" style={{ marginTop: "1.5rem" }}>
