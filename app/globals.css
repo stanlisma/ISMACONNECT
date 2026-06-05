@@ -9111,6 +9111,7 @@ code {
     border-radius: 16px;
     gap: 0.7rem;
     text-align: left;
+    transform: none;
   }
 
   .app-status-banner-floating .button {
