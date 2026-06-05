@@ -34,13 +34,6 @@ const CAMP_TRANSPORT_LINKS = [
   }
 ];
 
-interface GuideStep {
-  title: string;
-  description: string;
-  href: string;
-  actionLabel: string;
-}
-
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -60,72 +53,6 @@ export default async function HomePage() {
       listings: visibleListings.filter((listing) => listing.category === category.value)
     }))
     .filter((group) => group.listings.length > 0);
-  const accountHref = viewer ? "/settings" : "/auth/sign-up";
-  const storefrontHref = viewer ? "/dashboard/storefronts" : "/auth/sign-up";
-  const listingHref = viewer ? "/dashboard/listings/new" : "/auth/sign-up";
-  const promotionHref = viewer ? "/dashboard/boosts" : "/auth/sign-up";
-  const verificationHref = viewer ? "/settings#verification" : "/auth/sign-up";
-  const messagesHref = viewer ? "/messages" : "/auth/sign-in";
-  const notificationsHref = viewer ? "/settings#notifications" : "/auth/sign-in";
-
-  const guideSteps: GuideStep[] = [
-    {
-      title: "Create and finish your account",
-      description:
-        "Use your real name, phone, and local details so people feel comfortable replying to you.",
-      href: accountHref,
-      actionLabel: viewer ? "Open settings" : "Create account"
-    },
-    {
-      title: "Search first, then save what matters",
-      description:
-        "Use browse filters for routes, rentals, jobs, and services, then save searches so new matches come back to you.",
-      href: "/browse",
-      actionLabel: "Open browse"
-    },
-    {
-      title: "Post offers or needs clearly",
-      description:
-        "If you have something to offer, post it. If nothing fits your situation, post a need so locals can reply directly.",
-      href: listingHref,
-      actionLabel: viewer ? "Create listing" : "Sign up to post"
-    },
-    {
-      title: "Create storefronts if you run a business",
-      description:
-        "Storefronts help service businesses show logos, hours, service areas, and reviews before anyone opens a post.",
-      href: storefrontHref,
-      actionLabel: viewer ? "Manage storefronts" : "Sign up for storefronts"
-    },
-    {
-      title: "Request verification once your profile is ready",
-      description:
-        "Verification works best after your contact details and storefront basics are filled out cleanly.",
-      href: verificationHref,
-      actionLabel: viewer ? "Open verification" : "Sign up first"
-    },
-    {
-      title: "Use promotions when timing matters",
-      description:
-        "Boosts are best for urgent routes, quick rentals, last-minute jobs, and time-sensitive service posts.",
-      href: promotionHref,
-      actionLabel: viewer ? "Open promotions" : "Sign up first"
-    },
-    {
-      title: "Keep replies in Messages",
-      description:
-        "Use private replies instead of scattered comments so leads stay tidy and easier to follow up.",
-      href: messagesHref,
-      actionLabel: viewer ? "Open messages" : "Sign in to message"
-    },
-    {
-      title: "Turn on alerts and install the app",
-      description:
-        "Saved searches, push alerts, and the home-screen app are the fastest way to stay close to fresh local activity.",
-      href: notificationsHref,
-      actionLabel: viewer ? "Manage alerts" : "Sign in for alerts"
-    }
-  ];
 
   return (
     <main className="homepage-main" style={pageStyle}>
@@ -175,13 +102,6 @@ export default async function HomePage() {
           ))}
         </div>
 
-        <div className="home-mobile-support-row">
-          <span className="home-support-label">New to ISMACONNECT?</span>
-          <Link href="/#start-here-guide" className="home-secondary-link">
-            Get started
-          </Link>
-        </div>
-
         <MobileInstallBanner context="home" />
       </section>
 
@@ -214,9 +134,6 @@ export default async function HomePage() {
               Browse listings
             </Link>
           ) : null}
-          <Link href="/#start-here-guide" className="button button-ghost">
-            Get started
-          </Link>
         </div>
 
         <div className="home-desktop-query-row">
@@ -307,65 +224,6 @@ export default async function HomePage() {
               </Link>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section id="start-here-guide" className="section">
-        <div className="container get-started-shell">
-          <div className="surface get-started-hero">
-            <span className="eyebrow">Get started</span>
-            <h2 className="section-title">Start using ISMACONNECT with less guesswork</h2>
-            <p className="section-copy">
-              This guide walks new locals through the setup flow that matters most: account basics, storefronts,
-              search, saved alerts, promotions, verification, and replies.
-            </p>
-            <div className="action-row">
-              <Link href={viewer ? "/browse" : "/auth/sign-up"} className="button">
-                {viewer ? "Browse listings" : "Create account"}
-              </Link>
-              <Link href="/browse" className="button button-secondary">
-                Open browse
-              </Link>
-            </div>
-          </div>
-
-          <div className="get-started-grid">
-            {guideSteps.map((step) => (
-              <article key={step.title} className="surface get-started-card">
-                <div className="get-started-card-copy">
-                  <h2>{step.title}</h2>
-                  <p>{step.description}</p>
-                </div>
-                <Link href={step.href} className="button button-ghost get-started-card-link">
-                  {step.actionLabel}
-                </Link>
-              </article>
-            ))}
-          </div>
-
-          <div className="info-grid">
-            <div className="surface get-started-panel">
-              <span className="eyebrow">Quick checklist</span>
-              <h2>Before you post</h2>
-              <ul className="get-started-list">
-                <li>Use a clear title, accurate location, and real photos when possible.</li>
-                <li>Post a need when nothing already fits your route, rental, job, or service request.</li>
-                <li>Save searches for anything you check more than once a day.</li>
-                <li>Keep replies in Messages so you do not lose people in comments or group threads.</li>
-              </ul>
-            </div>
-
-            <div className="surface get-started-panel">
-              <span className="eyebrow">Local advantage</span>
-              <h2>What helps most on ISMACONNECT</h2>
-              <ul className="get-started-list">
-                <li>Storefronts build trust fastest for cleaning, hauling, trades, and local service businesses.</li>
-                <li>Verification matters more after your profile and storefront details already look complete.</li>
-                <li>Promotions are best used on urgent or time-sensitive listings, not every post.</li>
-                <li>Install the app and turn on alerts if you want quick replies without checking all day.</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </section>
     </main>

@@ -145,11 +145,11 @@ export async function resetPasswordAction(formData: FormData) {
     redirectWithMessage("/auth/reset-password", "error", "Password is required.");
   }
 
-  if (password.length < 6) {
+  if (password.length < 8) {
     redirectWithMessage(
       "/auth/reset-password",
       "error",
-      "Password must be at least 6 characters."
+      "Password must be at least 8 characters."
     );
   }
 

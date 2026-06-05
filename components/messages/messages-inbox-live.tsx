@@ -325,7 +325,7 @@ export function MessagesInboxLive({
         <div className="messages-list-status">
           <span className={`messages-live-indicator${isRefreshing ? " is-refreshing" : ""}`}>
             <span className="messages-live-dot" />
-            <span>{isRefreshing ? "Refreshing…" : "Live inbox"}</span>
+            <span>{isRefreshing ? "Refreshing..." : "Live inbox"}</span>
           </span>
           <span className="messages-list-status-meta">
             {unreadThreadCount > 0 ? `${unreadThreadCount} unread` : "All caught up"}
@@ -381,7 +381,7 @@ export function MessagesInboxLive({
                     <div className="messages-list-subline">
                       <span className="messages-list-name">{conversation.otherUserName}</span>
                       {otherTyping ? (
-                        <span className="messages-list-live">Typing…</span>
+                        <span className="messages-list-live">Typing...</span>
                       ) : unreadCount > 0 ? (
                         <span className="messages-unread-badge">{unreadCount}</span>
                       ) : null}

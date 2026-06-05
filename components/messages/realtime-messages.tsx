@@ -307,7 +307,7 @@ export function RealtimeMessages({
                 <span />
                 <span />
               </div>
-              <small className="messages-typing-indicator">{otherUserName} is typing…</small>
+              <small className="messages-typing-indicator">{otherUserName} is typing...</small>
             </div>
           </div>
         ) : null}
