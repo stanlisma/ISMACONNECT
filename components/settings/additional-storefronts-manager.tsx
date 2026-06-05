@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExternalLink, PencilLine, Phone, MapPin, Trash2 } from "lucide-react";
 
 import { StorefrontLogoField } from "@/components/settings/storefront-logo-field";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
@@ -103,10 +104,14 @@ function StorefrontForm({
         {deleteAction ? (
           <form action={deleteAction}>
             <input type="hidden" name="return_path" value={returnPath} />
-            <button className="button button-ghost storefront-manager-delete" type="submit">
+            <ConfirmSubmitButton
+              className="button button-ghost storefront-manager-delete"
+              confirmMessage="Delete this storefront? This will remove its public profile."
+              pendingLabel="Deleting..."
+            >
               <Trash2 aria-hidden="true" size={14} strokeWidth={2.2} />
               <span>Delete</span>
-            </button>
+            </ConfirmSubmitButton>
           </form>
         ) : null}
       </div>
