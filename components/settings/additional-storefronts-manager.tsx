@@ -319,39 +319,28 @@ function StorefrontPreview({
 
   return (
     <div className="storefront-manager-preview">
-      <div className="storefront-manager-preview-hero">
-        <div className="storefront-manager-avatar storefront-manager-avatar-lg" aria-hidden="true">
-          {storefront.logo_url ? (
-            <img src={storefront.logo_url} alt="" className="storefront-manager-avatar-image" />
-          ) : (
-            <span>{getStorefrontInitials(storefront.name)}</span>
-          )}
-        </div>
+      <div className="storefront-manager-preview-copy storefront-manager-preview-copy-compact">
+        <p>{summaryText}</p>
 
-        <div className="storefront-manager-preview-copy">
-          <h3>{storefront.name}</h3>
-          <p>{summaryText}</p>
-
-          <div className="storefront-manager-preview-meta">
-            {storefront.address ? (
-              <span>
-                <MapPin aria-hidden="true" size={14} strokeWidth={2.1} />
-                <span>{storefront.address}</span>
-              </span>
-            ) : null}
-            {storefront.phone ? (
-              <span>
-                <Phone aria-hidden="true" size={14} strokeWidth={2.1} />
-                <span>{storefront.phone}</span>
-              </span>
-            ) : null}
-            {storefront.website ? (
-              <span>
-                <ExternalLink aria-hidden="true" size={14} strokeWidth={2.1} />
-                <span>{formatStorefrontWebsiteLabel(storefront.website)}</span>
-              </span>
-            ) : null}
-          </div>
+        <div className="storefront-manager-preview-meta">
+          {storefront.address ? (
+            <span>
+              <MapPin aria-hidden="true" size={14} strokeWidth={2.1} />
+              <span>{storefront.address}</span>
+            </span>
+          ) : null}
+          {storefront.phone ? (
+            <span>
+              <Phone aria-hidden="true" size={14} strokeWidth={2.1} />
+              <span>{storefront.phone}</span>
+            </span>
+          ) : null}
+          {storefront.website ? (
+            <span>
+              <ExternalLink aria-hidden="true" size={14} strokeWidth={2.1} />
+              <span>{formatStorefrontWebsiteLabel(storefront.website)}</span>
+            </span>
+          ) : null}
         </div>
       </div>
 
