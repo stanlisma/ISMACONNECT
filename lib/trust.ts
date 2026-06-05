@@ -8,17 +8,10 @@ import type {
   SellerTrustSummary
 } from "@/types/database";
 
-const SELLER_RECENT_POST_WINDOW_DAYS = 14;
-
 export interface PublicSellerSignals {
   seller_id: string;
   email_confirmed: boolean;
   phone_verified: boolean;
-  last_active_at: string | null;
-  last_active_label: string | null;
-  active_listing_count: number;
-  recent_listing_count: number;
-  conversation_count: number;
 }
 
 function normalizeTrustSummary(row: any): SellerTrustSummary {
@@ -44,40 +37,6 @@ export function isVerifiedSeller(summary?: SellerTrustSummary | null) {
 
 export function isTrustedSeller(summary?: SellerTrustSummary | null) {
   return Boolean(summary?.top_rated);
-}
-
-export function formatSellerActivityLabel(lastActiveAt?: string | null) {
-  if (!lastActiveAt) {
-    return null;
-  }
-
-  const activityDate = new Date(lastActiveAt);
-
-  if (Number.isNaN(activityDate.getTime())) {
-    return null;
-  }
-
-  const diffMs = Math.max(0, Date.now() - activityDate.getTime());
-  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffHours < 24) {
-    return "Active today";
-  }
-
-  if (diffDays < 7) {
-    return "Active this week";
-  }
-
-  if (diffDays < 30) {
-    return "Active this month";
-  }
-
-  return `Last active ${new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC"
-  }).format(activityDate)}`;
 }
 
 export async function getSellerTrustSummaryMap(sellerIds: string[]) {
@@ -110,41 +69,17 @@ export async function getPublicSellerSignals(sellerId: string): Promise<PublicSe
     return null;
   }
 
-  const recentWindowStart = new Date();
-  recentWindowStart.setDate(recentWindowStart.getDate() - SELLER_RECENT_POST_WINDOW_DAYS);
-
   const supabase = isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
     : await createServerSupabaseClient();
 
-  const [profileResponse, activeListingsResponse, recentListingsResponse, conversationResponse] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("phone_verified_at")
-        .eq("id", sellerId)
-        .maybeSingle(),
-      supabase
-        .from("listings")
-        .select("id", { count: "exact", head: true })
-        .eq("owner_id", sellerId)
-        .eq("status", "active"),
-      supabase
-        .from("listings")
-        .select("id", { count: "exact", head: true })
-        .eq("owner_id", sellerId)
-        .eq("status", "active")
-        .gte("created_at", recentWindowStart.toISOString()),
-      isSupabaseServiceRoleConfigured()
-        ? supabase
-            .from("conversations")
-            .select("id", { count: "exact", head: true })
-            .eq("seller_id", sellerId)
-        : Promise.resolve({ count: 0, data: null, error: null })
-    ]);
+  const profileResponse = await supabase
+    .from("profiles")
+    .select("phone_verified_at")
+    .eq("id", sellerId)
+    .maybeSingle();
 
   let emailConfirmed = false;
-  let lastActiveAt: string | null = null;
 
   if (isSupabaseServiceRoleConfigured()) {
     try {
@@ -153,7 +88,6 @@ export async function getPublicSellerSignals(sellerId: string): Promise<PublicSe
 
       if (!error && data.user) {
         emailConfirmed = Boolean(data.user.email_confirmed_at);
-        lastActiveAt = data.user.last_sign_in_at ?? null;
       }
     } catch (error) {
       console.error("Public seller auth signal lookup failed:", error);
@@ -163,12 +97,7 @@ export async function getPublicSellerSignals(sellerId: string): Promise<PublicSe
   return {
     seller_id: sellerId,
     email_confirmed: emailConfirmed,
-    phone_verified: Boolean(profileResponse.data?.phone_verified_at),
-    last_active_at: lastActiveAt,
-    last_active_label: formatSellerActivityLabel(lastActiveAt),
-    active_listing_count: activeListingsResponse.count ?? 0,
-    recent_listing_count: recentListingsResponse.count ?? 0,
-    conversation_count: conversationResponse.count ?? 0
+    phone_verified: Boolean(profileResponse.data?.phone_verified_at)
   };
 }
 

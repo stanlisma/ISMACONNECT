@@ -1,25 +1,15 @@
-import { Clock3, FileText, MailCheck, MessageSquareMore, Phone, Store } from "lucide-react";
+import { MailCheck, Phone } from "lucide-react";
 
 import type { PublicSellerSignals } from "@/lib/trust";
 
 interface SellerTrustHighlightsProps {
   signals?: PublicSellerSignals | null;
   compact?: boolean;
-  storefrontCount?: number;
-  showActiveListings?: boolean;
-  showRecentPosts?: boolean;
-  showConversationCount?: boolean;
-  showStorefrontCount?: boolean;
 }
 
 export function SellerTrustHighlights({
   signals,
-  compact = false,
-  storefrontCount = 0,
-  showActiveListings = true,
-  showRecentPosts = true,
-  showConversationCount = false,
-  showStorefrontCount = false
+  compact = false
 }: SellerTrustHighlightsProps) {
   if (!signals) {
     return null;
@@ -47,51 +37,6 @@ export function SellerTrustHighlights({
       icon: Phone,
       label: "Phone confirmed",
       tone: "verified"
-    });
-  }
-
-  if (signals.last_active_label) {
-    items.push({
-      key: "active",
-      icon: Clock3,
-      label: signals.last_active_label,
-      tone: "activity"
-    });
-  }
-
-  if (showRecentPosts && signals.recent_listing_count > 0) {
-    items.push({
-      key: "recent",
-      icon: FileText,
-      label: `${signals.recent_listing_count} recent post${signals.recent_listing_count === 1 ? "" : "s"}`,
-      tone: "activity"
-    });
-  }
-
-  if (showActiveListings && signals.active_listing_count > 0) {
-    items.push({
-      key: "live",
-      icon: FileText,
-      label: `${signals.active_listing_count} live post${signals.active_listing_count === 1 ? "" : "s"}`,
-      tone: "neutral"
-    });
-  }
-
-  if (showStorefrontCount && storefrontCount > 0) {
-    items.push({
-      key: "storefronts",
-      icon: Store,
-      label: `${storefrontCount} storefront${storefrontCount === 1 ? "" : "s"}`,
-      tone: "neutral"
-    });
-  }
-
-  if (showConversationCount && signals.conversation_count > 0) {
-    items.push({
-      key: "conversations",
-      icon: MessageSquareMore,
-      label: `${signals.conversation_count} local chat${signals.conversation_count === 1 ? "" : "s"}`,
-      tone: "activity"
     });
   }
 

@@ -33,7 +33,7 @@ export function StorefrontDirectoryCard({
             <p>
               {storefront.description
                 ? excerpt(storefront.description, 110)
-                : "Local business storefront with active listings on ISMACONNECT."}
+                : "Local business storefront on ISMACONNECT."}
             </p>
           </div>
         </div>
@@ -46,7 +46,6 @@ export function StorefrontDirectoryCard({
           <MapPin aria-hidden="true" size={14} strokeWidth={2.1} />
           <span>{storefront.primary_location}</span>
         </span>
-        <span>{storefront.active_listing_count} active listing{storefront.active_listing_count === 1 ? "" : "s"}</span>
       </div>
 
       {storefront.services.length ? (
