@@ -3995,14 +3995,16 @@ code {
   }
 
   .mobile-filter-sheet-header button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
     min-height: 38px;
-    padding: 0 0.9rem;
+    padding: 0;
     border: 0;
     border-radius: 999px;
     background: #edf4ff;
     color: #15365b;
-    font-size: 0.85rem;
-    font-weight: 700;
     cursor: pointer;
   }
 
@@ -10694,7 +10696,7 @@ code {
     position: fixed;
     left: 0.75rem;
     right: 0.75rem;
-    bottom: 5.25rem;
+    bottom: calc(5.75rem + env(safe-area-inset-bottom));
     z-index: 1200;
     display: flex;
     align-items: center;
