@@ -1,5 +1,5 @@
 import { deleteListingAction } from "@/lib/actions/listings";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 
 interface DeleteListingFormProps {
   listingId: string;
@@ -8,10 +8,13 @@ interface DeleteListingFormProps {
 export function DeleteListingForm({ listingId }: DeleteListingFormProps) {
   return (
     <form action={deleteListingAction.bind(null, listingId)}>
-      <SubmitButton className="button button-ghost button-danger" pendingLabel="Deleting...">
+      <ConfirmSubmitButton
+        className="button button-ghost button-danger"
+        confirmMessage="Delete this listing? This cannot be undone."
+        pendingLabel="Deleting..."
+      >
         Delete
-      </SubmitButton>
+      </ConfirmSubmitButton>
     </form>
   );
 }
-
