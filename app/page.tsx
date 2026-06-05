@@ -60,11 +60,6 @@ export default async function HomePage() {
         <div className="home-mobile-hero-copy">
           <div className="marketplace-page-utility-row">
             <span className="eyebrow">Fort McMurray</span>
-            {viewer ? (
-              <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
-                My Storefronts
-              </Link>
-            ) : null}
           </div>
           <h1>Find rides, rentals, services, and jobs in Fort McMurray</h1>
         </div>
@@ -108,11 +103,6 @@ export default async function HomePage() {
       <section className="home-hero-section" style={heroCardStyle}>
         <div className="marketplace-page-utility-row home-hero-utility-row">
           <span className="eyebrow">Fort McMurray</span>
-          {viewer ? (
-            <Link href="/dashboard/storefronts" className="marketplace-page-utility-link">
-              My Storefronts
-            </Link>
-          ) : null}
         </div>
 
         <h1 style={titleStyle}>
