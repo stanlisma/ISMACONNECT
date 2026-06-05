@@ -9827,38 +9827,6 @@ code {
   text-decoration: none;
 }
 
-.home-get-started {
-  display: grid;
-  gap: 1rem;
-  margin: 1rem 0 1.25rem;
-  padding: 1.1rem 1.15rem;
-  border-radius: 22px;
-}
-
-.home-get-started-copy {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.home-get-started-copy h2 {
-  margin: 0;
-  color: var(--text);
-  font-size: 1.3rem;
-  letter-spacing: -0.03em;
-}
-
-.home-get-started-copy p {
-  margin: 0;
-  color: var(--text-soft);
-  line-height: 1.6;
-}
-
-.home-get-started-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
 .get-started-shell {
   display: grid;
   gap: 1rem;
@@ -10367,21 +10335,6 @@ code {
 
   .home-camp-link {
     white-space: nowrap;
-  }
-
-  .home-get-started {
-    margin: 0 0.75rem 0.8rem;
-    padding: 1rem;
-    border-radius: 22px;
-  }
-
-  .home-get-started-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .home-get-started-actions .button {
-    width: 100%;
   }
 
   .get-started-grid {
