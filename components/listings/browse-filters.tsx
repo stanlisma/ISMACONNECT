@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import { CATEGORIES } from "@/lib/constants";
@@ -1012,7 +1012,7 @@ export function BrowseFilters({
                   setIsFilterOpen(false);
                 }}
               >
-                Close
+                <X aria-hidden="true" size={18} strokeWidth={2.4} />
               </button>
             </div>
 

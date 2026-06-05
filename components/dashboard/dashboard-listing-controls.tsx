@@ -26,6 +26,11 @@ export function DashboardListingControls({
   const [selectedPromotion, setSelectedPromotion] = useState(promotionFilter);
   const [selectedCategory, setSelectedCategory] = useState(categoryFilter ?? "");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const hasActiveFilters =
+    Boolean(searchQuery.trim()) ||
+    statusFilter !== "all" ||
+    promotionFilter !== "all" ||
+    Boolean(categoryFilter);
 
   return (
     <>
@@ -119,9 +124,11 @@ export function DashboardListingControls({
         </div>
       </form>
 
-      <p className="dashboard-filter-summary section-copy">
-        {filteredCount} of {totalCount} shown
-      </p>
+      {hasActiveFilters ? (
+        <p className="dashboard-filter-summary section-copy">
+          {filteredCount} of {totalCount} shown
+        </p>
+      ) : null}
 
       {isFilterOpen ? (
         <div className="mobile-filter-backdrop" onClick={() => setIsFilterOpen(false)}>
