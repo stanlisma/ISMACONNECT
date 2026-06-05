@@ -7781,6 +7781,10 @@ code {
   flex: 1;
 }
 
+.storefront-manager-preview-copy-compact {
+  gap: 0.7rem;
+}
+
 .storefront-manager-preview-copy h3 {
   margin: 0;
   color: var(--text);
