@@ -260,9 +260,6 @@ export default async function ListingPage({
                 <SellerTrustHighlights
                   signals={sellerSignals}
                   compact
-                  showActiveListings={false}
-                  showConversationCount={false}
-                  showStorefrontCount={false}
                 />
               </div>
             </div>
@@ -364,9 +361,6 @@ export default async function ListingPage({
               <SellerTrustHighlights
                 signals={sellerSignals}
                 compact
-                showActiveListings={false}
-                showConversationCount={false}
-                showStorefrontCount={false}
               />
 
               <div className="detail-seller-facts">

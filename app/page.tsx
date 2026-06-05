@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 
-import { BrowseFilters } from "@/components/listings/browse-filters";
 import { ListingCard } from "@/components/listings/listing-card";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { HOMEPAGE_FRESH_DAYS, isFreshListing } from "@/lib/listing-freshness";
-import { getSoftLaunchSnapshot } from "@/lib/launch-metrics";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 const POPULAR_QUERIES = [
@@ -36,49 +34,16 @@ const CAMP_TRANSPORT_LINKS = [
   }
 ];
 
-const HOME_FIRST_STEPS = [
-  {
-    title: "Browse by local intent",
-    description:
-      "Jump straight into camp rides, airport trips, rentals, jobs, and move-out services without digging through scattered posts."
-  },
-  {
-    title: "Post what you need fast",
-    description:
-      "If nothing matches yet, post a need so locals can reply directly instead of losing the conversation in group threads."
-  },
-  {
-    title: "Save searches and install the app",
-    description:
-      "Stay close to fresh Fort McMurray activity with saved alerts and one-tap return from your home screen."
-  }
-];
-
-const HOME_TRUST_SIGNALS = ["Private replies", "Storefront profiles", "Saved alerts", "Home-screen install"];
-
-const HOME_ADVANTAGES = [
-  {
-    title: "Private replies stay tidy",
-    description: "Move from public comments into one clean conversation instead of losing leads in group threads."
-  },
-  {
-    title: "Saved alerts bring people back",
-    description: "Locals can watch routes, rentals, jobs, and services without checking the app all day."
-  },
-  {
-    title: "Storefronts build trust fast",
-    description: "Businesses can show logos, hours, reviews, and service areas before someone even opens a post."
-  },
-  {
-    title: "Ride-share search is purpose-built",
-    description: "Camp routes, airport trips, rotations, and site filters are easier to search than generic marketplaces."
-  }
-];
+interface GuideStep {
+  title: string;
+  description: string;
+  href: string;
+  actionLabel: string;
+}
 
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
-  const activitySnapshot = await getSoftLaunchSnapshot();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const freshListings = latestListings.filter((listing) =>
     isFreshListing(listing.created_at, HOMEPAGE_FRESH_DAYS)
@@ -89,8 +54,72 @@ export default async function HomePage() {
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
-  const activeCategoryCounts = activitySnapshot.heroCategoryCounts.filter((item) => item.count > 0);
-  const activeResponseCounts = activitySnapshot.heroCategoryResponseCounts.filter((item) => item.count > 0);
+  const accountHref = viewer ? "/settings" : "/auth/sign-up";
+  const storefrontHref = viewer ? "/dashboard/storefronts" : "/auth/sign-up";
+  const listingHref = viewer ? "/dashboard/listings/new" : "/auth/sign-up";
+  const promotionHref = viewer ? "/dashboard/boosts" : "/auth/sign-up";
+  const verificationHref = viewer ? "/settings#verification" : "/auth/sign-up";
+  const messagesHref = viewer ? "/messages" : "/auth/sign-in";
+  const notificationsHref = viewer ? "/settings#notifications" : "/auth/sign-in";
+
+  const guideSteps: GuideStep[] = [
+    {
+      title: "Create and finish your account",
+      description:
+        "Use your real name, phone, and local details so people feel comfortable replying to you.",
+      href: accountHref,
+      actionLabel: viewer ? "Open settings" : "Create account"
+    },
+    {
+      title: "Search first, then save what matters",
+      description:
+        "Use browse filters for routes, rentals, jobs, and services, then save searches so new matches come back to you.",
+      href: "/browse",
+      actionLabel: "Open browse"
+    },
+    {
+      title: "Post offers or needs clearly",
+      description:
+        "If you have something to offer, post it. If nothing fits your situation, post a need so locals can reply directly.",
+      href: listingHref,
+      actionLabel: viewer ? "Create listing" : "Sign up to post"
+    },
+    {
+      title: "Create storefronts if you run a business",
+      description:
+        "Storefronts help service businesses show logos, hours, service areas, and reviews before anyone opens a post.",
+      href: storefrontHref,
+      actionLabel: viewer ? "Manage storefronts" : "Sign up for storefronts"
+    },
+    {
+      title: "Request verification once your profile is ready",
+      description:
+        "Verification works best after your contact details and storefront basics are filled out cleanly.",
+      href: verificationHref,
+      actionLabel: viewer ? "Open verification" : "Sign up first"
+    },
+    {
+      title: "Use promotions when timing matters",
+      description:
+        "Boosts are best for urgent routes, quick rentals, last-minute jobs, and time-sensitive service posts.",
+      href: promotionHref,
+      actionLabel: viewer ? "Open promotions" : "Sign up first"
+    },
+    {
+      title: "Keep replies in Messages",
+      description:
+        "Use private replies instead of scattered comments so leads stay tidy and easier to follow up.",
+      href: messagesHref,
+      actionLabel: viewer ? "Open messages" : "Sign in to message"
+    },
+    {
+      title: "Turn on alerts and install the app",
+      description:
+        "Saved searches, push alerts, and the home-screen app are the fastest way to stay close to fresh local activity.",
+      href: notificationsHref,
+      actionLabel: viewer ? "Manage alerts" : "Sign in for alerts"
+    }
+  ];
 
   return (
     <main className="homepage-main" style={pageStyle}>
@@ -140,6 +169,13 @@ export default async function HomePage() {
           ))}
         </div>
 
+        <div className="home-mobile-support-row">
+          <span className="home-support-label">New to ISMACONNECT?</span>
+          <Link href="/#start-here-guide" className="home-secondary-link">
+            Get started
+          </Link>
+        </div>
+
         <MobileInstallBanner context="home" />
       </section>
 
@@ -161,25 +197,20 @@ export default async function HomePage() {
           Search the local worker marketplace without digging through scattered posts and group chats.
         </p>
 
-        <div style={searchBoxStyle}>
-          <form action="/browse" style={searchFormStyle}>
-            <input
-              name="q"
-              placeholder="Camp rides, dump runs, rentals, cleaners, jobs..."
-              style={inputStyle}
-            />
-
-            <button type="submit" style={primaryButtonStyle}>
-              Search
-            </button>
-          </form>
-
+        <div className="action-row home-hero-actions">
           {!viewer && (
-            <Link href="/auth/sign-up" style={secondaryButtonStyle}>
+            <Link href="/auth/sign-up" className="button button-secondary">
               Create account
             </Link>
           )}
-
+          {viewer ? (
+            <Link href="/browse" className="button">
+              Browse listings
+            </Link>
+          ) : null}
+          <Link href="/#start-here-guide" className="button button-ghost">
+            Get started
+          </Link>
         </div>
 
         <div className="home-desktop-query-row">
@@ -192,108 +223,26 @@ export default async function HomePage() {
 
       </section>
 
-      <div className="home-mobile-browse-controls">
-        <BrowseFilters
-          actionPath="/browse"
-          category={undefined}
-          subcategory={undefined}
-          search={undefined}
-          minPrice={undefined}
-          maxPrice={undefined}
-          sort={undefined}
-        />
-      </div>
-
-      {isConfigured && activitySnapshot.recentListingCount > 0 ? (
-        <section className="home-activity-strip surface">
-          <div className="home-activity-copy">
-            <span className="eyebrow">Recent local movement</span>
-            <h2>Locals are already posting and replying here</h2>
-          </div>
-
-          <div className="dashboard-stats-grid home-activity-grid">
-            <div className="surface dashboard-stat-card home-activity-card">
-              <span>Recent posts</span>
-              <strong>{activitySnapshot.recentListingCount}</strong>
-              <p>Live offers and needs posted in the last 30 days.</p>
-            </div>
-
-            <div className="surface dashboard-stat-card home-activity-card">
-              <span>Conversations started</span>
-              <strong>{activitySnapshot.conversationCount}</strong>
-              <p>{activitySnapshot.responseRate}% of recent posts received at least one reply.</p>
-            </div>
-
-            <div className="surface dashboard-stat-card home-activity-card">
-              <span>Need posts</span>
-              <strong>{activitySnapshot.recentNeedCount}</strong>
-              <p>Urgent local asks that can turn into fast replies.</p>
-            </div>
-
-            <div className="surface dashboard-stat-card home-activity-card">
-              <span>Saved-search locals</span>
-              <strong>{activitySnapshot.activeSavedSearchUserCount}</strong>
-              <p>People watching for new Fort McMurray matches right now.</p>
-            </div>
-          </div>
-
-          {activeCategoryCounts.length ? (
-            <div className="home-activity-chip-row">
-              {activeCategoryCounts.map((item) => (
-                <span key={item.category} className="badge badge-soft">
-                  {CATEGORIES.find((category) => category.value === item.category)?.label}: {item.count}
-                </span>
-              ))}
-            </div>
-          ) : null}
-
-          {activeResponseCounts.length ? (
-            <div className="home-activity-response-row">
-              {activeResponseCounts.map((item) => (
-                <span key={item.category} className="home-activity-response-pill">
-                  Replies moving in {CATEGORIES.find((category) => category.value === item.category)?.label}: {item.count}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
       {isConfigured ? (
-        <section className="home-first-steps surface">
-          <div className="home-first-steps-copy">
-            <span className="eyebrow">New here?</span>
-            <h2>ISMACONNECT works best when locals can move fast</h2>
+        <section className="home-get-started surface">
+          <div className="home-get-started-copy">
+            <span className="eyebrow">Get started</span>
+            <h2>Set up ISMACONNECT the right way from day one</h2>
             <p>
-              Use it like a Fort McMurray utility app: search by need, post when nothing fits, and keep fresh replies
-              within reach.
+              Learn how to set up your account, storefronts, saved searches, promotions, verification, and replies
+              before you start posting.
             </p>
           </div>
-
-          <div className="home-first-steps-grid">
-            {HOME_FIRST_STEPS.map((step) => (
-              <article key={step.title} className="home-first-step-card">
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="home-first-steps-trust-row">
-            {HOME_TRUST_SIGNALS.map((signal) => (
-              <span key={signal} className="badge badge-soft">
-                {signal}
-              </span>
-            ))}
-          </div>
-
-          <div className="home-advantage-grid">
-            {HOME_ADVANTAGES.map((item) => (
-              <article key={item.title} className="home-advantage-card">
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
-            ))}
+          <div className="home-get-started-actions">
+            <Link href="/#start-here-guide" className="button button-secondary">
+              Open guide
+            </Link>
+            <Link
+              href={viewer ? "/dashboard/listings/new" : "/auth/sign-up"}
+              className="button button-ghost"
+            >
+              {viewer ? "Post your first listing" : "Create account"}
+            </Link>
           </div>
         </section>
       ) : null}
@@ -373,6 +322,65 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      <section id="start-here-guide" className="section">
+        <div className="container get-started-shell">
+          <div className="surface get-started-hero">
+            <span className="eyebrow">Get started</span>
+            <h2 className="section-title">Start using ISMACONNECT with less guesswork</h2>
+            <p className="section-copy">
+              This guide walks new locals through the setup flow that matters most: account basics, storefronts,
+              search, saved alerts, promotions, verification, and replies.
+            </p>
+            <div className="action-row">
+              <Link href={viewer ? "/browse" : "/auth/sign-up"} className="button">
+                {viewer ? "Browse listings" : "Create account"}
+              </Link>
+              <Link href="/browse" className="button button-secondary">
+                Open browse
+              </Link>
+            </div>
+          </div>
+
+          <div className="get-started-grid">
+            {guideSteps.map((step) => (
+              <article key={step.title} className="surface get-started-card">
+                <div className="get-started-card-copy">
+                  <h2>{step.title}</h2>
+                  <p>{step.description}</p>
+                </div>
+                <Link href={step.href} className="button button-ghost get-started-card-link">
+                  {step.actionLabel}
+                </Link>
+              </article>
+            ))}
+          </div>
+
+          <div className="info-grid">
+            <div className="surface get-started-panel">
+              <span className="eyebrow">Quick checklist</span>
+              <h2>Before you post</h2>
+              <ul className="get-started-list">
+                <li>Use a clear title, accurate location, and real photos when possible.</li>
+                <li>Post a need when nothing already fits your route, rental, job, or service request.</li>
+                <li>Save searches for anything you check more than once a day.</li>
+                <li>Keep replies in Messages so you do not lose people in comments or group threads.</li>
+              </ul>
+            </div>
+
+            <div className="surface get-started-panel">
+              <span className="eyebrow">Local advantage</span>
+              <h2>What helps most on ISMACONNECT</h2>
+              <ul className="get-started-list">
+                <li>Storefronts build trust fastest for cleaning, hauling, trades, and local service businesses.</li>
+                <li>Verification matters more after your profile and storefront details already look complete.</li>
+                <li>Promotions are best used on urgent or time-sensitive listings, not every post.</li>
+                <li>Install the app and turn on alerts if you want quick replies without checking all day.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
@@ -414,46 +422,6 @@ const titleStyle = {
 const subtitleStyle = {
   marginTop: "16px",
   color: "#5b6f99",
-};
-
-const searchBoxStyle = {
-  maxWidth: "560px",
-  margin: "28px auto 0",
-  border: "1px solid #c7d7f5",
-  borderRadius: "20px",
-  padding: "18px",
-};
-
-const searchFormStyle = {
-  display: "flex",
-  gap: "12px",
-};
-
-const inputStyle = {
-  flex: 1,
-  border: "1px solid #bcd0f7",
-  borderRadius: "12px",
-  padding: "12px 14px",
-};
-
-const primaryButtonStyle = {
-  background: "#2557d6",
-  color: "#ffffff",
-  border: "none",
-  borderRadius: "14px",
-  padding: "12px 18px",
-  fontWeight: 800,
-};
-
-const secondaryButtonStyle = {
-  display: "inline-block",
-  marginTop: "12px",
-  border: "1px solid #bcd0f7",
-  borderRadius: "14px",
-  padding: "10px 18px",
-  color: "#0a2540",
-  textDecoration: "none",
-  fontWeight: 800,
 };
 
 const categoriesSectionStyle = {

@@ -189,11 +189,7 @@ export default async function SellerStorefrontPage({
 
                 <SellerRatingInline summary={trustSummary} />
                 <TrustBadges summary={trustSummary} showReviewBadge={false} />
-                <SellerTrustHighlights
-                  signals={sellerSignals}
-                  showActiveListings={false}
-                  showConversationCount
-                />
+                <SellerTrustHighlights signals={sellerSignals} />
               </div>
             </div>
 
