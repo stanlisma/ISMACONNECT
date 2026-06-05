@@ -10,14 +10,14 @@ type WindowWithIdleCallback = Window & {
   cancelIdleCallback?: (handle: number) => void;
 };
 
-function syncStandaloneModeClass(standalone: boolean) {
+function syncStandaloneModeClass() {
   if (typeof window === "undefined") {
     return false;
   }
 
-  document.documentElement.classList.toggle("app-standalone", standalone);
-  document.body.classList.toggle("app-standalone", standalone);
-  return standalone;
+  document.documentElement.classList.remove("app-standalone");
+  document.body.classList.remove("app-standalone");
+  return false;
 }
 
 function isStandaloneMode() {
@@ -56,7 +56,7 @@ export function PwaShell() {
     const mediaQuery = window.matchMedia?.("(display-mode: standalone)");
     const refreshStandaloneMode = () => {
       const standalone = isStandaloneMode();
-      syncStandaloneModeClass(standalone);
+      syncStandaloneModeClass();
       setShowStandaloneWelcome(
         standalone && window.localStorage.getItem(STANDALONE_WELCOME_KEY) !== "1"
       );
