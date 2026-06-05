@@ -16,6 +16,7 @@ Last updated: 2026-06-05
 - 2026-06-05: Reduced messaging typing-indicator chatter and reset message-image upload inputs so re-uploading the same file is less frustrating.
 - 2026-06-05: Normalized mobile filter-sheet close controls, hid the duplicate dashboard result summary when nothing is filtered, and raised the mobile listing publish bar higher above the bottom nav and safe area.
 - 2026-06-05: Simplified saved-search management when there are no active alerts and clarified storefront-manager return actions.
+- 2026-06-05: Hardened remaining auth-callback and notification-read redirects to stay inside safe in-app paths.
 
 ## P0 Auth
 

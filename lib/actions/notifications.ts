@@ -5,6 +5,14 @@ import { redirect } from "next/navigation";
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+function getSafeAppPath(path: string | null | undefined, fallback = "/notifications") {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) {
+    return fallback;
+  }
+
+  return path;
+}
+
 export async function markNotificationReadAction(notificationId: string, link?: string) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
@@ -15,5 +23,5 @@ export async function markNotificationReadAction(notificationId: string, link?: 
     .eq("id", notificationId)
     .eq("user_id", viewer.user.id);
 
-  redirect(link || "/notifications");
+  redirect(getSafeAppPath(link, "/notifications"));
 }
