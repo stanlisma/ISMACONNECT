@@ -47,7 +47,7 @@ Last updated: 2026-06-05
 
 - [ ] Storefront creation, editing, and opening works
 - [ ] Public storefront reads professionally
-- [ ] No duplicate logo, name, address, hours, or review/trust content
+- [x] No duplicate logo, name, address, hours, or review/trust content
 - [ ] Seller page links work from listings
 - [x] Trust cues feel clear without clutter
 - [ ] Business/storefront cards stay readable on mobile

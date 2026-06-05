@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { X } from "lucide-react";
 import { useState } from "react";
 
 interface DashboardListingControlsProps {
@@ -128,7 +129,7 @@ export function DashboardListingControls({
             <div className="mobile-filter-sheet-header">
               <h3>Filter listings</h3>
               <button type="button" aria-label="Close filters" onClick={() => setIsFilterOpen(false)}>
-                X
+                <X aria-hidden="true" size={18} strokeWidth={2.4} />
               </button>
             </div>
 

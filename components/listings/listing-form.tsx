@@ -339,8 +339,8 @@ function getTitlePlaceholder(category: string, listingIntent: ListingIntent, sub
   const categoryMap = TITLE_PLACEHOLDER_MAP[category];
   const fallback =
     listingIntent === "need"
-      ? "Post what you need in Fort McMurray"
-      : "Create a clear local listing for Fort McMurray";
+      ? "Post what you need"
+      : "Create a clear local listing";
 
   if (!categoryMap) {
     return fallback;
