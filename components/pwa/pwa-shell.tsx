@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type WindowWithIdleCallback = Window & {
   requestIdleCallback?: (
@@ -40,9 +41,23 @@ function shouldDisableServiceWorker() {
   return host === "localhost" || host === "127.0.0.1" || host === "::1";
 }
 
+function isStandaloneWelcomeSurface(pathname: string) {
+  return (
+    pathname === "/" ||
+    pathname === "/browse" ||
+    pathname === "/rentals" ||
+    pathname === "/ride-share" ||
+    pathname === "/jobs" ||
+    pathname === "/services" ||
+    pathname === "/buy-sell" ||
+    pathname.startsWith("/categories/")
+  );
+}
+
 const STANDALONE_WELCOME_KEY = "ismaconnect-standalone-welcome-dismissed";
 
 export function PwaShell() {
+  const pathname = usePathname();
   const [updateReady, setUpdateReady] = useState(false);
   const [offline, setOffline] = useState(false);
   const [showStandaloneWelcome, setShowStandaloneWelcome] = useState(false);
@@ -58,7 +73,9 @@ export function PwaShell() {
       const standalone = isStandaloneMode();
       syncStandaloneModeClass();
       setShowStandaloneWelcome(
-        standalone && window.localStorage.getItem(STANDALONE_WELCOME_KEY) !== "1"
+        standalone &&
+          isStandaloneWelcomeSurface(pathname) &&
+          window.localStorage.getItem(STANDALONE_WELCOME_KEY) !== "1"
       );
     };
 
@@ -79,7 +96,7 @@ export function PwaShell() {
       window.removeEventListener("appinstalled", refreshStandaloneMode);
       mediaQuery?.removeEventListener?.("change", refreshStandaloneMode);
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
