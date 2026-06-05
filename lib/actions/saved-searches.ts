@@ -17,6 +17,14 @@ function getFormValue(formData: FormData, key: string) {
   return typeof value === "string" ? value : null;
 }
 
+function getSafeAppPath(path: string | null | undefined, fallback = "/browse") {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) {
+    return fallback;
+  }
+
+  return path;
+}
+
 function getRevalidationPaths(path: string) {
   return Array.from(
     new Set([
@@ -47,9 +55,9 @@ export async function toggleSavedSearchAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
 
-  const returnTo = getFormValue(formData, "returnTo") || "/browse";
+  const returnTo = getSafeAppPath(getFormValue(formData, "returnTo"), "/browse");
   const filtersInput: SavedSearchFilters = {
-    path: getFormValue(formData, "path") || "/browse",
+    path: getSafeAppPath(getFormValue(formData, "path"), "/browse"),
     search: getFormValue(formData, "search"),
     category: getFormValue(formData, "category"),
     subcategory: getFormValue(formData, "subcategory"),
@@ -133,5 +141,5 @@ export async function openSavedSearchAction(savedSearchId: string, href: string)
   revalidatePath("/dashboard/searches");
   revalidatePath("/notifications");
 
-  redirect(href);
+  redirect(getSafeAppPath(href, "/dashboard/searches"));
 }

@@ -22,6 +22,7 @@ export function MessageComposer({
   placeholder
 }: MessageComposerProps) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -35,22 +36,28 @@ export function MessageComposer({
       if (!disabled) {
         void setTypingAction(conversationId, false);
       }
+
+      isTypingRef.current = false;
     };
   }, [conversationId, disabled]);
 
-  async function handleTyping() {
+  function handleTyping() {
     if (disabled) {
       return;
     }
 
-    await setTypingAction(conversationId, true);
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      void setTypingAction(conversationId, true);
+    }
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    timeoutRef.current = setTimeout(async () => {
-      await setTypingAction(conversationId, false);
+    timeoutRef.current = setTimeout(() => {
+      isTypingRef.current = false;
+      void setTypingAction(conversationId, false);
     }, 1200);
   }
 
@@ -81,6 +88,7 @@ export function MessageComposer({
       setUploadError(error instanceof Error ? error.message : "Upload failed.");
     } finally {
       setIsUploading(false);
+      event.target.value = "";
     }
   }
 
@@ -105,6 +113,8 @@ export function MessageComposer({
           if (!disabled) {
             void setTypingAction(conversationId, false);
           }
+
+          isTypingRef.current = false;
         }}
         disabled={disabled}
       />
