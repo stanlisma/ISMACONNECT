@@ -54,6 +54,12 @@ export default async function HomePage() {
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
+  const homepageListingGroups = CATEGORIES
+    .map((category) => ({
+      category,
+      listings: visibleListings.filter((listing) => listing.category === category.value)
+    }))
+    .filter((group) => group.listings.length > 0);
   const accountHref = viewer ? "/settings" : "/auth/sign-up";
   const storefrontHref = viewer ? "/dashboard/storefronts" : "/auth/sign-up";
   const listingHref = viewer ? "/dashboard/listings/new" : "/auth/sign-up";
@@ -259,16 +265,29 @@ export default async function HomePage() {
           {!isConfigured ? (
             <p>Setup required</p>
           ) : latestListings.length > 0 ? (
-            <div className="listing-grid listing-feed-grid">
-              {visibleListings.map((listing) => (
-                <ListingCard
-                  key={listing.id}
-                  listing={listing}
-                  isSaved={savedIds.has(listing.id)}
-                  canSave
-                  pathToRevalidate="/"
-                  trustSummary={trustMap.get(listing.owner_id)}
-                />
+            <div className="home-category-groups">
+              {homepageListingGroups.map(({ category, listings }) => (
+                <section key={category.value} className="home-category-group">
+                  <div className="home-category-group-head">
+                    <h3>{category.label}</h3>
+                    <Link href={category.href} className="home-secondary-link">
+                      Browse {category.label}
+                    </Link>
+                  </div>
+
+                  <div className="listing-grid listing-feed-grid">
+                    {listings.map((listing) => (
+                      <ListingCard
+                        key={listing.id}
+                        listing={listing}
+                        isSaved={savedIds.has(listing.id)}
+                        canSave
+                        pathToRevalidate="/"
+                        trustSummary={trustMap.get(listing.owner_id)}
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           ) : (
