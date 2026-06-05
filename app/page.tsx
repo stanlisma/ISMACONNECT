@@ -228,31 +228,6 @@ export default async function HomePage() {
         </div>
 
       </section>
-
-      {isConfigured ? (
-        <section className="home-get-started surface">
-          <div className="home-get-started-copy">
-            <span className="eyebrow">Get started</span>
-            <h2>Set up ISMACONNECT the right way from day one</h2>
-            <p>
-              Learn how to set up your account, storefronts, saved searches, promotions, verification, and replies
-              before you start posting.
-            </p>
-          </div>
-          <div className="home-get-started-actions">
-            <Link href="/#start-here-guide" className="button button-secondary">
-              Open guide
-            </Link>
-            <Link
-              href={viewer ? "/dashboard/listings/new" : "/auth/sign-up"}
-              className="button button-ghost"
-            >
-              {viewer ? "Post your first listing" : "Create account"}
-            </Link>
-          </div>
-        </section>
-      ) : null}
-
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
           {!isConfigured ? (
