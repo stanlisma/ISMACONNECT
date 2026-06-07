@@ -489,7 +489,7 @@ export function AdditionalStorefrontsManager({
           </div>
         </div>
         <div className="storefront-manager-toolbar-side">
-          {storefronts.length || !showCreateForm ? (
+          {storefronts.length > 0 ? (
             <a
               className="button button-secondary"
               href={showCreateForm ? buildStorefrontsOverviewHref(returnPath) : buildCreateStorefrontHref(returnPath)}
