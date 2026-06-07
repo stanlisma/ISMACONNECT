@@ -307,6 +307,7 @@ export interface PublicSellerStorefront {
   is_business: boolean;
   business_description: string | null;
   business_logo_url: string | null;
+  business_image_urls: string[];
   business_website: string | null;
   business_address?: string | null;
   show_exact_business_location?: boolean | null;
@@ -344,6 +345,7 @@ export interface PublicBusinessStorefrontDirectoryItem {
   name: string;
   description: string | null;
   logo_url: string | null;
+  image_urls: string[];
   website: string | null;
   phone: string | null;
   address: string | null;
@@ -363,6 +365,7 @@ export interface AdditionalBusinessStorefront {
   name: string;
   description: string | null;
   logo_url: string | null;
+  image_urls: string[];
   website: string | null;
   phone: string | null;
   address: string | null;

@@ -48,6 +48,12 @@ export function StorefrontDirectoryCard({
         </span>
       </div>
 
+      {storefront.image_urls.length ? (
+        <div className="storefront-directory-cover">
+          <img src={storefront.image_urls[0]} alt="" className="storefront-directory-cover-image" />
+        </div>
+      ) : null}
+
       {storefront.services.length ? (
         <div className="storefront-directory-chip-row">
           {storefront.services.slice(0, 3).map((service) => (

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ExternalLink, PencilLine, Phone, MapPin, Trash2 } from "lucide-react";
 
+import { StorefrontGalleryField } from "@/components/settings/storefront-gallery-field";
 import { StorefrontLogoField } from "@/components/settings/storefront-logo-field";
+import { StorefrontImageGallery } from "@/components/storefronts/storefront-image-gallery";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
@@ -196,6 +198,8 @@ function StorefrontForm({
           />
         </label>
 
+        <StorefrontGalleryField defaultValue={defaults?.image_urls ?? []} />
+
         <div className="storefront-manager-grid">
           <label className="field">
             <FieldLabelWithHelp
@@ -348,6 +352,10 @@ function StorefrontPreview({
           ) : null}
         </div>
       </div>
+
+      {storefront.image_urls.length ? (
+        <StorefrontImageGallery images={storefront.image_urls} title={storefront.name} compact />
+      ) : null}
 
       {areaChips.visible.length ? (
         <div className="storefront-manager-chip-row">

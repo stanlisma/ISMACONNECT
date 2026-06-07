@@ -195,6 +195,7 @@ export default async function SettingsPage({
                     name: businessProfile.business_name ?? "",
                     description: businessProfile.business_description ?? null,
                     logo_url: businessProfile.business_logo_url ?? null,
+                    image_urls: [],
                     website: businessProfile.business_website ?? null,
                     phone: null,
                     address: businessProfile.business_address ?? null,

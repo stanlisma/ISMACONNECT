@@ -9,6 +9,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { SellerTrustHighlights } from "@/components/trust/seller-trust-highlights";
 import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
 import { SellerReviewForm } from "@/components/trust/seller-review-form";
+import { StorefrontImageGallery } from "@/components/storefronts/storefront-image-gallery";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -284,6 +285,13 @@ export default async function SellerStorefrontPage({
               </a>
             ) : null}
           </div>
+
+          {storefront.business_image_urls.length ? (
+            <StorefrontImageGallery
+              images={storefront.business_image_urls}
+              title={storefront.display_name}
+            />
+          ) : null}
 
           {!isStorefrontView ? (
             <div className="seller-storefront-category-row">

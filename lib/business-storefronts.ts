@@ -11,6 +11,8 @@ import {
 import { slugify } from "@/lib/utils";
 import type { AdditionalBusinessStorefront, BusinessHours } from "@/types/database";
 
+export const MAX_STOREFRONT_IMAGE_COUNT = 8;
+
 export function isAdditionalStorefrontSchemaError(error: {
   message?: string | null;
   details?: string | null;
@@ -28,8 +30,23 @@ export function isAdditionalStorefrontSchemaError(error: {
     message.includes("geocoded_formatted_address") ||
     message.includes("service_areas") ||
     message.includes("services") ||
-    message.includes("hours")
+    message.includes("hours") ||
+    message.includes("image_urls")
   );
+}
+
+function normalizeStorefrontImageUrls(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [] as string[];
+  }
+
+  return Array.from(
+    new Set(
+      value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter(Boolean)
+    )
+  ).slice(0, MAX_STOREFRONT_IMAGE_COUNT);
 }
 
 export function normalizeAdditionalStorefrontRow(row: any): AdditionalBusinessStorefront {
@@ -40,6 +57,7 @@ export function normalizeAdditionalStorefrontRow(row: any): AdditionalBusinessSt
     name: typeof row?.name === "string" ? row.name.trim() : "",
     description: typeof row?.description === "string" && row.description.trim() ? row.description.trim() : null,
     logo_url: typeof row?.logo_url === "string" && row.logo_url.trim() ? row.logo_url.trim() : null,
+    image_urls: normalizeStorefrontImageUrls(row?.image_urls),
     website: normalizeBusinessWebsite(row?.website ?? null),
     phone: typeof row?.phone === "string" && row.phone.trim() ? row.phone.trim() : null,
     address: normalizeBusinessAddress(row?.address ?? null),
@@ -72,6 +90,14 @@ export function parseAdditionalStorefrontFormData(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
   const logoUrl = String(formData.get("logo_url") ?? "").trim() || null;
+  const imageUrls = Array.from(
+    new Set(
+      formData
+        .getAll("image_urls")
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter(Boolean)
+    )
+  ).slice(0, MAX_STOREFRONT_IMAGE_COUNT);
   const website = normalizeBusinessWebsite(String(formData.get("website") ?? ""));
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const address = normalizeBusinessAddress(String(formData.get("address") ?? ""));
@@ -84,6 +110,7 @@ export function parseAdditionalStorefrontFormData(formData: FormData) {
     name,
     description,
     logoUrl,
+    imageUrls,
     website,
     phone,
     address,
