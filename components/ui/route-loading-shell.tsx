@@ -18,10 +18,15 @@ export function RouteLoadingShell({
       <section className="section">
         <div className="container">
           <div className="route-loading-shell route-loading-shell-chat">
-            <div className="route-loading-hero surface">
-              <span className="eyebrow">{eyebrow}</span>
-              <h1>{title}</h1>
-              <p className="route-loading-copy">{message}</p>
+            <div className="route-loading-hero surface" aria-busy="true">
+              <span className="sr-only">{eyebrow}</span>
+              <h1 className="sr-only">{title}</h1>
+              <p className="sr-only">{message}</p>
+              <div className="route-loading-title-block" aria-hidden="true">
+                <div className="route-loading-line is-short" />
+                <div className="route-loading-line is-medium" />
+                <div className="route-loading-line is-long" />
+              </div>
               <div className="route-loading-line is-medium" />
             </div>
 
@@ -53,13 +58,18 @@ export function RouteLoadingShell({
       <section className="section">
         <div className="container">
           <div className="route-loading-shell route-loading-shell-storefront">
-            <div className="route-loading-storefront-hero surface">
+            <div className="route-loading-storefront-hero surface" aria-busy="true">
               <div className="route-loading-storefront-profile">
                 <div className="route-loading-storefront-avatar" />
                 <div className="route-loading-storefront-copy">
-                  <span className="eyebrow">{eyebrow}</span>
-                  <h1>{title}</h1>
-                  <p className="route-loading-copy">{message}</p>
+                  <span className="sr-only">{eyebrow}</span>
+                  <h1 className="sr-only">{title}</h1>
+                  <p className="sr-only">{message}</p>
+                  <div className="route-loading-title-block" aria-hidden="true">
+                    <div className="route-loading-line is-short" />
+                    <div className="route-loading-line is-medium" />
+                    <div className="route-loading-line is-long" />
+                  </div>
                   <div className="route-loading-line is-medium" />
                   <div className="route-loading-chip-row">
                     <span className="route-loading-chip" />
@@ -103,10 +113,15 @@ export function RouteLoadingShell({
       <section className="section">
         <div className="container">
           <div className="route-loading-shell route-loading-shell-form">
-            <div className="route-loading-hero surface">
-              <span className="eyebrow">{eyebrow}</span>
-              <h1>{title}</h1>
-              <p className="route-loading-copy">{message}</p>
+            <div className="route-loading-hero surface" aria-busy="true">
+              <span className="sr-only">{eyebrow}</span>
+              <h1 className="sr-only">{title}</h1>
+              <p className="sr-only">{message}</p>
+              <div className="route-loading-title-block" aria-hidden="true">
+                <div className="route-loading-line is-short" />
+                <div className="route-loading-line is-medium" />
+                <div className="route-loading-line is-long" />
+              </div>
               <div className="route-loading-line is-medium" />
             </div>
 
@@ -139,10 +154,15 @@ export function RouteLoadingShell({
     <section className="section">
       <div className="container">
         <div className="route-loading-shell">
-          <div className="route-loading-hero surface">
-            <span className="eyebrow">{eyebrow}</span>
-            <h1>{title}</h1>
-            <p className="route-loading-copy">{message}</p>
+          <div className="route-loading-hero surface" aria-busy="true">
+            <span className="sr-only">{eyebrow}</span>
+            <h1 className="sr-only">{title}</h1>
+            <p className="sr-only">{message}</p>
+            <div className="route-loading-title-block" aria-hidden="true">
+              <div className="route-loading-line is-short" />
+              <div className="route-loading-line is-medium" />
+              <div className="route-loading-line is-long" />
+            </div>
             <div className="route-loading-line is-long" />
             <div className="route-loading-chip-row">
               <span className="route-loading-chip" />

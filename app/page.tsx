@@ -17,23 +17,6 @@ const POPULAR_QUERIES = [
   { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
 ];
 
-const MOBILE_POPULAR_QUERIES = POPULAR_QUERIES.slice(0, 4);
-
-const CAMP_TRANSPORT_LINKS = [
-  {
-    label: "Browse camp rides",
-    href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map"
-  },
-  {
-    label: "14 on / 7 off rides",
-    href: "/browse?category=ride-share&schedulePattern=14-on-7-off&view=map"
-  },
-  {
-    label: "Horizon pickups",
-    href: "/browse?category=ride-share&siteCamp=cnrl-horizon&view=map"
-  }
-];
-
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -56,51 +39,7 @@ export default async function HomePage() {
 
   return (
     <main className="homepage-main" style={pageStyle}>
-      <section className="home-mobile-hero surface">
-        <div className="home-mobile-hero-copy">
-          <div className="marketplace-page-utility-row">
-            <span className="eyebrow">Fort McMurray</span>
-          </div>
-          <h1>Find rides, rentals, services, and jobs in Fort McMurray</h1>
-        </div>
-
-        <form action="/browse" className="home-mobile-search-form">
-          <label className="home-mobile-search-field">
-            <input name="q" placeholder="Search rentals, rides, jobs..." aria-label="Search local listings" />
-          </label>
-          <button type="submit" className="button home-mobile-search-button">
-            Search
-          </button>
-        </form>
-
-        <div className="home-camp-focus">
-          <div className="home-camp-focus-copy">
-            <span className="eyebrow">Camp Transport</span>
-            <h2>Find site rides by route and rotation</h2>
-            <p>Filter by site, shift pattern, and pickup window instead of digging through Facebook threads.</p>
-          </div>
-
-          <div className="home-camp-link-row">
-            {CAMP_TRANSPORT_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="home-camp-link">
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="home-mobile-query-row">
-          {MOBILE_POPULAR_QUERIES.map((query) => (
-            <Link key={query.label} href={query.href} className="home-mobile-query-chip">
-              {query.label}
-            </Link>
-          ))}
-        </div>
-
-        <MobileInstallBanner context="home" />
-      </section>
-
-      <section className="home-hero-section" style={heroCardStyle}>
+      <section className="home-hero-section home-unified-hero surface" style={heroCardStyle}>
         <div className="marketplace-page-utility-row home-hero-utility-row">
           <span className="eyebrow">Fort McMurray</span>
         </div>
@@ -113,27 +52,32 @@ export default async function HomePage() {
           Search the local worker marketplace without digging through scattered posts and group chats.
         </p>
 
-        <div className="action-row home-hero-actions">
-          {!viewer && (
-            <Link href="/auth/sign-up" className="button button-secondary">
-              Create account
-            </Link>
-          )}
-          {viewer ? (
-            <Link href="/browse" className="button">
-              Browse listings
-            </Link>
-          ) : null}
-        </div>
+        <form action="/browse" className="home-mobile-search-form home-unified-search-form">
+          <label className="home-mobile-search-field">
+            <input name="q" placeholder="Search rentals, rides, jobs..." aria-label="Search local listings" />
+          </label>
+          <button type="submit" className="button home-mobile-search-button">
+            Search
+          </button>
+        </form>
 
-        <div className="home-desktop-query-row">
+        <div className="home-mobile-query-row home-unified-query-row">
           {POPULAR_QUERIES.map((query) => (
-            <Link key={query.label} href={query.href} className="home-desktop-query-chip">
+            <Link key={query.label} href={query.href} className="home-mobile-query-chip">
               {query.label}
             </Link>
           ))}
         </div>
 
+        {!viewer ? (
+          <div className="action-row home-hero-actions">
+            <Link href="/auth/sign-up" className="button button-secondary">
+              Create account
+            </Link>
+          </div>
+        ) : null}
+
+        <MobileInstallBanner context="home" />
       </section>
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">

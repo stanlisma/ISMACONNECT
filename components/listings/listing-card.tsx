@@ -309,9 +309,9 @@ export function ListingCard({
 
         {structuredHighlights.length ? (
           <div className="listing-card-signals listing-card-structured-signals">
-            {structuredHighlights.map((item, index) => (
+            {structuredHighlights.map((item) => (
               <span key={item}>
-                {index > 0 ? <span style={{ opacity: 0.5 }}>|</span> : null} {item}
+                {item}
               </span>
             ))}
           </div>
