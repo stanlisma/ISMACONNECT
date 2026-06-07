@@ -8,15 +8,6 @@ import { getHomepageData, getSavedListingIds } from "@/lib/data";
 import { HOMEPAGE_FRESH_DAYS, isFreshListing } from "@/lib/listing-freshness";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
-const POPULAR_QUERIES = [
-  { label: "Timberlea rentals", href: "/browse?category=rentals&q=timberlea" },
-  { label: "Camp rides", href: "/browse?category=ride-share&subcategory=camp-site-transport&view=map" },
-  { label: "Airport rides", href: "/browse?category=ride-share&subcategory=airport-ride&view=map" },
-  { label: "Local businesses", href: "/businesses" },
-  { label: "Move-out cleaners", href: "/browse?category=services&q=move-out+cleaning" },
-  { label: "Dump runs", href: "/browse?category=services&q=dump+run" }
-];
-
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
@@ -30,6 +21,10 @@ export default async function HomePage() {
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
+  const heroCategories = [
+    ...priorityCategories.map((category) => ({ label: category.label, href: category.href })),
+    { label: "Storefronts", href: "/businesses" }
+  ];
   const homepageListingGroups = CATEGORIES
     .map((category) => ({
       category,
@@ -52,19 +47,10 @@ export default async function HomePage() {
           Search the local worker marketplace without digging through scattered posts and group chats.
         </p>
 
-        <form action="/browse" className="home-mobile-search-form home-unified-search-form">
-          <label className="home-mobile-search-field">
-            <input name="q" placeholder="Search rentals, rides, jobs..." aria-label="Search local listings" />
-          </label>
-          <button type="submit" className="button home-mobile-search-button">
-            Search
-          </button>
-        </form>
-
-        <div className="home-mobile-query-row home-unified-query-row">
-          {POPULAR_QUERIES.map((query) => (
-            <Link key={query.label} href={query.href} className="home-mobile-query-chip">
-              {query.label}
+        <div className="home-hero-category-row">
+          {heroCategories.map((category) => (
+            <Link key={category.label} href={category.href} className="home-hero-category-pill">
+              {category.label}
             </Link>
           ))}
         </div>

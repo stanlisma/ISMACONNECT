@@ -1,4 +1,4 @@
-const CACHE_NAME = "ismaconnect-shell-v8";
+const CACHE_NAME = "ismaconnect-shell-v9";
 const OFFLINE_URL = "/offline-fallback.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
