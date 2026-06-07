@@ -39,6 +39,18 @@ function buildStorefrontsOverviewHref(returnPath: string) {
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
 
+function getStorefrontEmptyCopy(returnPath: string) {
+  const isDashboard = returnPath.startsWith("/dashboard/storefronts");
+
+  return {
+    title: isDashboard ? "You do not have a storefront yet" : "No storefront yet",
+    description: isDashboard
+      ? "Create a storefront to showcase your business, services, photos, hours, and contact details if you have a business to highlight."
+      : "Create a storefront to showcase your business if you have one. Add your branding, services, photos, hours, and contact details in one public page.",
+    actionLabel: "Create storefront"
+  };
+}
+
 function getStorefrontInitials(name: string) {
   const words = name
     .split(/\s+/)
@@ -462,6 +474,8 @@ export function AdditionalStorefrontsManager({
     );
   }
 
+  const emptyCopy = getStorefrontEmptyCopy(returnPath);
+
   return (
     <div className="settings-block-stack">
       <div className="storefront-manager-toolbar">
@@ -475,12 +489,12 @@ export function AdditionalStorefrontsManager({
           </div>
         </div>
         <div className="storefront-manager-toolbar-side">
-          {storefronts.length ? (
+          {storefronts.length || !showCreateForm ? (
             <a
               className="button button-secondary"
               href={showCreateForm ? buildStorefrontsOverviewHref(returnPath) : buildCreateStorefrontHref(returnPath)}
             >
-              {showCreateForm ? "Back to storefronts" : "New storefront"}
+              {showCreateForm ? "Back to storefronts" : emptyCopy.actionLabel}
             </a>
           ) : null}
         </div>
@@ -540,14 +554,37 @@ export function AdditionalStorefrontsManager({
       })}
 
       {!storefronts.length ? (
-        <StorefrontForm
-          title="Create storefront"
-          submitLabel="Create storefront"
-          action={createAction}
-          isNew
-          defaults={suggestedDefaults}
-          returnPath={returnPath}
-        />
+        showCreateForm ? (
+          <StorefrontForm
+            title="Create storefront"
+            submitLabel="Create storefront"
+            action={createAction}
+            isNew
+            defaults={suggestedDefaults}
+            returnPath={returnPath}
+          />
+        ) : (
+          <div className="surface storefront-manager-card storefront-manager-empty-card">
+            <div className="storefront-manager-card-head">
+              <div>
+                <div className="business-profile-title-row">
+                  <h3>{emptyCopy.title}</h3>
+                  <FieldHelp
+                    label={emptyCopy.title}
+                    text="Storefronts give businesses one public page for branding, services, images, hours, and contact details."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="storefront-manager-empty-state">
+              <p>{emptyCopy.description}</p>
+              <a className="button" href={buildCreateStorefrontHref(returnPath)}>
+                {emptyCopy.actionLabel}
+              </a>
+            </div>
+          </div>
+        )
       ) : null}
     </div>
   );

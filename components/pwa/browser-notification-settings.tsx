@@ -194,7 +194,11 @@ export function BrowserNotificationSettings() {
 
       await saveSubscriptionToServer(subscription);
       await syncSubscriptionState({ repair: false });
-      setStatusMessage("Browser push notifications are enabled.");
+      setStatusMessage(
+        serverConfigured
+          ? "Browser push notifications are enabled."
+          : "This device is connected. Push delivery is still being finalized for the app."
+      );
     } catch (error) {
       console.error("Push subscribe failed:", error);
       setStatusMessage(
@@ -290,7 +294,7 @@ export function BrowserNotificationSettings() {
     !supported
       ? "Push notifications need a supported browser plus VAPID keys configured in the app environment."
       : !serverConfigured
-        ? "Push notifications are not fully configured on the server yet. Add the VAPID keys in production before turning this on."
+        ? "Push notifications are still being finalized for the app. You can still allow notifications on this device, then test again once delivery is fully ready."
       : permission === "denied"
         ? "Notifications are blocked in this browser. Re-enable them from browser site settings to keep marketplace alerts active."
         : "Turn on browser push notifications to get instant alerts for new messages, saved-search matches, boost activity, and verification updates even when ISMACONNECT is closed.";
@@ -316,13 +320,6 @@ export function BrowserNotificationSettings() {
           <div className="browser-notification-pill-row">
             <span className="account-menu-pill is-muted">Checking this device</span>
           </div>
-        </div>
-      ) : !serverConfigured ? (
-        <div className="browser-notification-actions">
-          <div className="browser-notification-pill-row">
-            <span className="account-menu-pill is-danger">Server setup needed</span>
-          </div>
-          {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
       ) : permission === "granted" && subscribed && serverConnected ? (
         <div className="browser-notification-actions">
@@ -383,7 +380,9 @@ export function BrowserNotificationSettings() {
       ) : permission === "granted" ? (
         <div className="browser-notification-actions">
           <div className="browser-notification-pill-row">
-            <span className="account-menu-pill is-muted">Permission granted</span>
+            <span className="account-menu-pill is-muted">
+              {serverConfigured ? "Permission granted" : "Permission granted"}
+            </span>
           </div>
           <button
             className="button button-secondary"
@@ -391,7 +390,11 @@ export function BrowserNotificationSettings() {
             type="button"
             onClick={handleEnable}
           >
-            {requesting ? "Connecting..." : "Finish enabling push"}
+            {requesting
+              ? "Connecting..."
+              : serverConfigured
+                ? "Finish enabling push"
+                : "Connect this device"}
           </button>
           {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
@@ -413,7 +416,11 @@ export function BrowserNotificationSettings() {
             type="button"
             onClick={handleEnable}
           >
-            {requesting ? "Enabling..." : "Enable notifications"}
+            {requesting
+              ? "Enabling..."
+              : serverConfigured
+                ? "Enable notifications"
+                : "Allow notifications"}
           </button>
           {statusMessage ? <span className="browser-notification-note">{statusMessage}</span> : null}
         </div>
