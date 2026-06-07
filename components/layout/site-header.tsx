@@ -157,7 +157,6 @@ export function SiteHeader({
               <>
                 <Link
                   href="/messages"
-                  prefetch={false}
                   className="icon-link header-utility-link header-messages-link"
                   aria-label="Messages"
                 >
@@ -171,7 +170,6 @@ export function SiteHeader({
 
                 <Link
                   href="/notifications"
-                  prefetch={false}
                   className="icon-link header-utility-link"
                   aria-label="Notifications"
                 >
@@ -183,14 +181,13 @@ export function SiteHeader({
 
                 <Link
                   href="/account"
-                  prefetch={false}
                   className="icon-link header-utility-link header-account-link"
                   aria-label="Account"
                 >
                   <User aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
                 </Link>
 
-                <Link href="/dashboard/listings/new" prefetch={false} className="post-btn post-btn-market">
+                <Link href="/dashboard/listings/new" className="post-btn post-btn-market">
                   <Plus aria-hidden="true" className="post-btn-icon" strokeWidth={2.6} />
                   <span>Post</span>
                 </Link>
@@ -231,9 +228,9 @@ export function SiteHeader({
 
           {viewer && (
             <nav className="account-nav">
-              <Link href="/dashboard" prefetch={false}>My Listings</Link>
-              <Link href="/dashboard/storefronts" prefetch={false}>Storefronts</Link>
-              <Link href="/dashboard/searches" prefetch={false}>Saved Searches</Link>
+              <Link href="/dashboard">My Listings</Link>
+              <Link href="/dashboard/storefronts">Storefronts</Link>
+              <Link href="/dashboard/searches">Saved Searches</Link>
             </nav>
           )}
         </div>

@@ -5,7 +5,7 @@ export default function NotificationsLoading() {
     <RouteLoadingShell
       eyebrow="Notifications"
       title="Activity"
-      message="Gathering replies, saved-search matches, and account updates..."
+      message="Opening your alerts..."
     />
   );
 }

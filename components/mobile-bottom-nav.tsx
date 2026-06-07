@@ -135,7 +135,7 @@ export function MobileBottomNav({
         <span>Browse</span>
       </Link>
 
-      <Link href="/messages" prefetch={false} className={isChatSurface ? "active" : ""}>
+      <Link href="/messages" className={isChatSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
           <MessageCircle aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
           {viewer && (liveUnreadMessagesCount || unreadMessagesCount) > 0 ? (
@@ -149,7 +149,6 @@ export function MobileBottomNav({
 
       <Link
         href="/dashboard/listings/new"
-        prefetch={false}
         className={`post-button ${isPostSurface ? "active" : ""}`}
       >
         <span className="mobile-nav-icon-wrap">
@@ -158,7 +157,7 @@ export function MobileBottomNav({
         <span>Post</span>
       </Link>
 
-      <Link href="/notifications" prefetch={false} className={isAlertsSurface ? "active" : ""}>
+      <Link href="/notifications" className={isAlertsSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
           <Bell aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
           {viewer && activityBadgeCount > 0 ? (
@@ -168,7 +167,7 @@ export function MobileBottomNav({
         <span>Alerts</span>
       </Link>
 
-      <Link href="/account" prefetch={false} className={isAccountSurface ? "active" : ""}>
+      <Link href="/account" className={isAccountSurface ? "active" : ""}>
         <span className="mobile-nav-icon-wrap">
           <CircleUserRound aria-hidden="true" className="mobile-nav-icon" strokeWidth={2.25} />
         </span>

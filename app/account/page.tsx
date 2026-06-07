@@ -150,7 +150,7 @@ export default async function AccountPage() {
             </div>
 
             <div className="account-menu">
-              <Link href="/dashboard" prefetch={false} className="account-menu-item">
+              <Link href="/dashboard" className="account-menu-item">
                 <span className="account-menu-icon">
                   <ListChecks aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -163,7 +163,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/dashboard/storefronts" prefetch={false} className="account-menu-item">
+              <Link href="/dashboard/storefronts" className="account-menu-item">
                 <span className="account-menu-icon">
                   <Store aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -176,7 +176,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/dashboard/searches" prefetch={false} className="account-menu-item">
+              <Link href="/dashboard/searches" className="account-menu-item">
                 <span className="account-menu-icon">
                   <Search aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -194,7 +194,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/saved" prefetch={false} className="account-menu-item">
+              <Link href="/saved" className="account-menu-item">
                 <span className="account-menu-icon">
                   <Heart aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -207,7 +207,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/messages" prefetch={false} className="account-menu-item">
+              <Link href="/messages" className="account-menu-item">
                 <span className="account-menu-icon">
                   <MessageCircle aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -223,7 +223,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/notifications" prefetch={false} className="account-menu-item">
+              <Link href="/notifications" className="account-menu-item">
                 <span className="account-menu-icon">
                   <Bell aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -239,7 +239,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/dashboard/boosts" prefetch={false} className="account-menu-item">
+              <Link href="/dashboard/boosts" className="account-menu-item">
                 <span className="account-menu-icon">
                   <Megaphone aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
@@ -252,7 +252,7 @@ export default async function AccountPage() {
                 </span>
               </Link>
 
-              <Link href="/settings" prefetch={false} className="account-menu-item">
+              <Link href="/settings" className="account-menu-item">
                 <span className="account-menu-icon">
                   <ShieldCheck aria-hidden="true" size={18} strokeWidth={2.2} />
                 </span>
