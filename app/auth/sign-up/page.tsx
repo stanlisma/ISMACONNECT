@@ -8,7 +8,7 @@ import { getSingleParam } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Create Account",
-  description: "Create an ISMACONNECT account and start posting local marketplace listings."
+  description: "Create an ISMACONNECT account to message posters, save searches, post listings, and manage your activity."
 };
 
 export default async function SignUpPage({
@@ -28,8 +28,8 @@ export default async function SignUpPage({
       <div className="container">
         <AuthForm
           action={signUpAction}
-          description="Start with one local account for rideshare, rentals, services, saved searches, and storefronts."
-          helpText="Use one account to post rideshare seats or requests, rental listings, local jobs, services, and storefronts without rebuilding your profile every time."
+          description="Message posters, save searches, post listings, and manage your activity on ISMACONNECT."
+          helpText="Use one account to browse, message, save searches, post rides, rentals, jobs, services, and manage storefront activity when you need it."
           message={getSingleParam(resolvedSearchParams?.error)}
           mode="sign-up"
           title="Create your account"
