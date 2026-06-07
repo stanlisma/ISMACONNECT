@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireViewer } from "@/lib/auth";
+import { isWebPushConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function extractKeys(subscription: any) {
@@ -16,11 +17,12 @@ export async function GET() {
 
   const { data } = await supabase
     .from("push_subscriptions")
-    .select("id, endpoint, p256dh, auth")
+    .select("endpoint, last_success_at, last_failure_at, failure_reason, created_at")
     .eq("user_id", viewer.user.id);
 
   return NextResponse.json({
-    subscriptions: data ?? []
+    subscriptions: data ?? [],
+    webPushConfigured: isWebPushConfigured()
   });
 }
 

@@ -11,6 +11,15 @@ type NotificationPayload = {
   tag?: string | null;
 };
 
+export type PushDeliveryResult = {
+  configured: boolean;
+  total: number;
+  delivered: number;
+  failed: number;
+  staleRemoved: number;
+  lastFailureReason: string | null;
+};
+
 let vapidConfigured = false;
 
 function ensureWebPushConfigured() {
@@ -64,7 +73,14 @@ export async function createNotificationAndPush(params: {
 
 export async function sendPushToUser(userId: string, payload: NotificationPayload) {
   if (!ensureWebPushConfigured()) {
-    return;
+    return {
+      configured: false,
+      total: 0,
+      delivered: 0,
+      failed: 0,
+      staleRemoved: 0,
+      lastFailureReason: "Web push is not configured."
+    } satisfies PushDeliveryResult;
   }
 
   const supabase = createServiceRoleSupabaseClient();
@@ -76,10 +92,25 @@ export async function sendPushToUser(userId: string, payload: NotificationPayloa
   const records = ((subscriptions ?? []) as PushSubscriptionRecord[]).filter(Boolean);
 
   if (!records.length) {
-    return;
+    return {
+      configured: true,
+      total: 0,
+      delivered: 0,
+      failed: 0,
+      staleRemoved: 0,
+      lastFailureReason: null
+    } satisfies PushDeliveryResult;
   }
 
   const serializedPayload = JSON.stringify(payload);
+  const result: PushDeliveryResult = {
+    configured: true,
+    total: records.length,
+    delivered: 0,
+    failed: 0,
+    staleRemoved: 0,
+    lastFailureReason: null
+  };
 
   await Promise.all(
     records.map(async (record) => {
@@ -88,6 +119,7 @@ export async function sendPushToUser(userId: string, payload: NotificationPayloa
           mapRecordToSubscription(record),
           serializedPayload
         );
+        result.delivered += 1;
 
         await supabase
           .from("push_subscriptions")
@@ -103,9 +135,13 @@ export async function sendPushToUser(userId: string, payload: NotificationPayloa
           error instanceof Error ? error.message : "Push notification failed.";
 
         if (statusCode === 404 || statusCode === 410) {
+          result.staleRemoved += 1;
           await supabase.from("push_subscriptions").delete().eq("id", record.id);
           return;
         }
+
+        result.failed += 1;
+        result.lastFailureReason = failureReason;
 
         await supabase
           .from("push_subscriptions")
@@ -117,4 +153,6 @@ export async function sendPushToUser(userId: string, payload: NotificationPayloa
       }
     })
   );
+
+  return result;
 }
