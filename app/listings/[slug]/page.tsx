@@ -10,6 +10,7 @@ import { ListingImageGallery } from "@/components/listings/listing-image-gallery
 import { SaveListingButton } from "@/components/listings/save-listing-button";
 import { SellerTrustHighlights } from "@/components/trust/seller-trust-highlights";
 import { TrustBadges } from "@/components/trust/trust-badges";
+import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
@@ -244,8 +245,9 @@ export default async function ListingPage({
 
                 <div className="detail-mobile-seller-strip">
                   <div className="detail-mobile-seller-copy">
-                    <Link href={sellerProfileHref} className="detail-seller-name-link">
-                      {sellerDisplayName}
+                    <Link href={sellerProfileHref} className="detail-seller-name-link verified-name-inline">
+                      <span>{sellerDisplayName}</span>
+                      <VerifiedNameBadge summary={sellerTrustSummary} compact />
                     </Link>
                     <span>{isNeed ? "Local requester" : "Local seller"}</span>
                   </div>
@@ -339,8 +341,9 @@ export default async function ListingPage({
             <div className="detail-card detail-seller-card">
               <div className="section-heading">
                 <span className="eyebrow">{isNeed ? "Poster Trust" : "Seller Trust"}</span>
-                <Link href={sellerProfileHref} className="section-title detail-seller-name-link">
-                  {sellerDisplayName}
+                <Link href={sellerProfileHref} className="section-title detail-seller-name-link verified-name-inline">
+                  <span>{sellerDisplayName}</span>
+                  <VerifiedNameBadge summary={sellerTrustSummary} />
                 </Link>
               </div>
 
