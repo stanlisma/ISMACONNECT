@@ -173,6 +173,38 @@ function buildMapOptions(center: LatLngLike, zoom: number, mapId?: string) {
   };
 }
 
+async function getRoadRoutePath(
+  googleMaps: GoogleMapsNamespace,
+  origin: LatLngLike,
+  destination: LatLngLike
+) {
+  const directionsService = new googleMaps.DirectionsService();
+
+  return new Promise<LatLngLike[]>((resolve) => {
+    directionsService.route(
+      {
+        origin,
+        destination,
+        travelMode: googleMaps.TravelMode.DRIVING,
+        provideRouteAlternatives: false
+      },
+      (result: any, status: string) => {
+        if (status === "OK" && result?.routes?.[0]?.overview_path?.length) {
+          resolve(
+            result.routes[0].overview_path.map((point: any) => ({
+              lat: point.lat(),
+              lng: point.lng()
+            }))
+          );
+          return;
+        }
+
+        resolve([origin, destination]);
+      }
+    );
+  });
+}
+
 function useGoogleMapsConfig() {
   const [config, setConfig] = useState<GoogleMapsConfig | null>(() =>
     EMBEDDED_GOOGLE_MAPS_API_KEY
@@ -1447,49 +1479,42 @@ function RideShareMapExplorer({
           markersRef.current[endpoint.value] = marker;
         });
 
-        topRoutes
-          .filter((route) => route.departure !== route.destination)
-          .forEach((route) => {
-            const polyline = new googleMaps.Polyline({
-              map,
-              path: [
-                { lat: route.departurePoint.lat, lng: route.departurePoint.lng },
-                { lat: route.destinationPoint.lat, lng: route.destinationPoint.lng }
-              ],
-              geodesic: true,
-              strokeColor: "#2F6DF6",
-              strokeOpacity: 0.72,
-              strokeWeight: Math.min(7, 2.2 + route.count * 0.75),
-              icons: [
-                {
-                  icon: {
-                    path: googleMaps.SymbolPath.FORWARD_CLOSED_ARROW,
-                    scale: 3.5,
-                    strokeColor: "#1549B7",
-                    fillColor: "#1549B7",
-                    fillOpacity: 1
-                  },
-                  offset: "100%"
-                }
-              ]
-            });
+        for (const route of topRoutes.filter((item) => item.departure !== item.destination)) {
+          const path = await getRoadRoutePath(
+            googleMaps,
+            { lat: route.departurePoint.lat, lng: route.departurePoint.lng },
+            { lat: route.destinationPoint.lat, lng: route.destinationPoint.lng }
+          );
 
-            polyline.addListener("click", (event: { latLng?: any }) => {
-              setSelectedEndpoint(route.departure);
-              if (event.latLng) {
-                infoWindowRef.current?.setPosition(event.latLng);
-                infoWindowRef.current?.setContent(
-                  createInfoContent(
-                    `${route.departureLabel} → ${route.destinationLabel}`,
-                    `${route.count} active ride${route.count === 1 ? "" : "s"} currently follow this route.`
-                  )
-                );
-                infoWindowRef.current?.open({ map });
-              }
-            });
+          if (cancelled) {
+            return;
+          }
 
-            routeRefs.current.push({ route, polyline });
+          const polyline = new googleMaps.Polyline({
+            map,
+            path,
+            geodesic: false,
+            strokeColor: "#2F6DF6",
+            strokeOpacity: 0.72,
+            strokeWeight: Math.min(7, 2.2 + route.count * 0.75)
           });
+
+          polyline.addListener("click", (event: { latLng?: any }) => {
+            setSelectedEndpoint(route.departure);
+            if (event.latLng) {
+              infoWindowRef.current?.setPosition(event.latLng);
+              infoWindowRef.current?.setContent(
+                createInfoContent(
+                  `${route.departureLabel} → ${route.destinationLabel}`,
+                  `${route.count} active ride${route.count === 1 ? "" : "s"} currently follow this route.`
+                )
+              );
+              infoWindowRef.current?.open({ map });
+            }
+          });
+
+          routeRefs.current.push({ route, polyline });
+        }
 
         const routePoints = [
           ...mappedRouteListings.flatMap((item) =>
@@ -1539,7 +1564,6 @@ function RideShareMapExplorer({
     routeDataKey,
     endpoints,
     topRoutes,
-    selectedEndpoint
   ]);
   useEffect(() => {
     if (mapRef.current && googleMapsConfig?.mapId) {
