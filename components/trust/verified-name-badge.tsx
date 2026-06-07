@@ -17,8 +17,8 @@ export function VerifiedNameBadge({
   return (
     <span
       className={`verified-name-badge${compact ? " is-compact" : ""}`}
-      aria-label="Verified account"
-      title="Verified account"
+      aria-label="ID Verified"
+      title="ID Verified"
     >
       <BadgeCheck aria-hidden="true" size={compact ? 15 : 17} strokeWidth={2.3} />
     </span>
