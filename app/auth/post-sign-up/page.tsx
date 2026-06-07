@@ -34,10 +34,10 @@ export default async function PostSignUpPage() {
 
             <div className="auth-post-signup-card">
               <div className="settings-title-row">
-                <h2>Want a verified seller badge later?</h2>
+                <h2>Want an ID Verified badge later?</h2>
                 <FieldHelp
                   label="Seller verification"
-                  text="Verification is optional. Verified accounts build stronger trust on listings and storefronts, which can help people feel more confident about replying. After you confirm your email and sign in, you can start verification any time from Settings."
+                  text="Verification is optional. An ID Verified badge builds stronger trust on listings and storefronts, which can help people feel more confident about replying. After you confirm your email and sign in, you can start verification any time from Settings."
                 />
               </div>
               <p className="section-copy">

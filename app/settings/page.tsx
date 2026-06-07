@@ -226,7 +226,7 @@ export default async function SettingsPage({
 
           {profile?.verification_status === "verified" ? (
             <div className="browser-notification-pill-row settings-inline-status">
-              <span className="account-menu-pill is-success">Seller badge live</span>
+              <span className="account-menu-pill is-success">ID Verified live</span>
             </div>
           ) : (
             <>

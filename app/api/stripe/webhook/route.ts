@@ -150,7 +150,7 @@ async function syncIdentityVerificationSession(
             : "Stripe ID verification needs attention",
         body:
           nextStatus === "verified"
-            ? "Your verified seller badge is now active on ISMACONNECT."
+            ? "Your ID Verified badge is now active on ISMACONNECT."
             : session.last_error?.reason ||
               "Stripe needs more information before your seller badge can be approved.",
         link: "/settings"

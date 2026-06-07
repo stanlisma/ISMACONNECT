@@ -178,7 +178,7 @@ export default async function SellerStorefrontPage({
                 {storefront.is_business && trustSummary?.verification_status === "verified" ? (
                   <div className="seller-storefront-business-badge">
                     <Building2 aria-hidden="true" size={16} strokeWidth={2.1} />
-                    <span>ID-verified business storefront</span>
+                    <span>ID Verified business storefront</span>
                   </div>
                 ) : null}
 

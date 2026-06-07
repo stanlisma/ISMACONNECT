@@ -169,7 +169,7 @@ export async function requestSellerVerificationAction() {
         amountCents: getIdentityVerificationPriceCents(),
         currency: getIdentityVerificationCurrency(),
         name: "Seller verification",
-        description: "Unlock Stripe ID verification and a verified seller badge on ISMACONNECT.",
+        description: "Unlock Stripe ID verification and an ID Verified badge on ISMACONNECT.",
         successUrl: `${getBaseUrl()}/settings?success=${encodeURIComponent(
           "Payment received. Start your Stripe ID verification below once payment confirmation finishes."
         )}&session_id={CHECKOUT_SESSION_ID}`,
@@ -298,7 +298,7 @@ export async function reviewVerificationRequestAction(
           : "Seller verification declined",
       body:
         decision === "approve"
-          ? "Your verified seller badge is now active on ISMACONNECT."
+          ? "Your ID Verified badge is now active on ISMACONNECT."
           : "Your verification request was declined. You can try again from settings.",
       link: "/settings"
     });
