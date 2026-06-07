@@ -149,6 +149,23 @@ export function AuthForm({
                   required
                 />
               </label>
+
+              <label className="business-profile-toggle field-full">
+                <input type="checkbox" name="verifyAccount" />
+                <span>
+                  <span className="listing-toggle-title">
+                    Plan to verify this account
+                    <FieldHelp
+                      label="Account verification"
+                      text="Verification is optional. Verified accounts earn stronger trust on listings and storefronts, which can help buyers and renters feel more confident. You can start or finish verification later from Settings after you sign in."
+                    />
+                  </span>
+                  <span className="business-profile-inline-note">
+                    Optional. You can browse, post, message, and open storefronts first, then verify later
+                    from Settings any time.
+                  </span>
+                </span>
+              </label>
             </>
           ) : (
             <label className="field field-full">
@@ -203,6 +220,7 @@ export function AuthForm({
         {isSignUp ? (
           <p className="auth-next-step">
             Confirm your email, then you are ready to browse, post, message, and open storefronts.
+            Verification is optional and can be started later from Settings.
           </p>
         ) : null}
 
