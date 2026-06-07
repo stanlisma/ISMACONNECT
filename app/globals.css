@@ -1643,6 +1643,30 @@ code {
   font-weight: 700;
 }
 
+.auth-post-signup-card {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+}
+
+.auth-post-signup-card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-post-signup-card .section-copy {
+  margin: 0;
+}
+
+.auth-post-signup-actions {
+  margin-top: 1.2rem;
+}
+
 .legal-page {
   padding-top: 2rem;
 }

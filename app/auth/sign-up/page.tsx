@@ -29,7 +29,7 @@ export default async function SignUpPage({
         <AuthForm
           action={signUpAction}
           description="Start with one local account for rideshare, rentals, services, saved searches, and storefronts."
-          helpText="Use one account to post rideshare seats or requests, rental listings, local jobs, services, and storefronts without rebuilding your profile every time. Verification is optional and can be started later from Settings."
+          helpText="Use one account to post rideshare seats or requests, rental listings, local jobs, services, and storefronts without rebuilding your profile every time."
           message={getSingleParam(resolvedSearchParams?.error)}
           mode="sign-up"
           title="Create your account"

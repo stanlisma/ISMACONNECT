@@ -21,7 +21,6 @@ export const signUpSchema = z
       .refine((value) => value.replace(/\D/g, "").length >= 10, "Enter a valid phone number."),
     address: z.string().trim().min(6, "Enter your address or community.").max(140, "Address is too long."),
     phoneVerificationMethod: phoneVerificationMethodSchema,
-    verifyAccount: z.enum(["on"]).optional(),
     password: z.string().min(8, "Password must be at least 8 characters."),
     confirmPassword: z.string().min(8, "Confirm your password.")
   })
