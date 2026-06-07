@@ -1,10 +1,26 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
-import { retrieveStripeCheckoutSession } from "@/lib/stripe";
-import type { IdentityVerificationOrder } from "@/types/database";
+import {
+  retrieveStripeCheckoutSession,
+  retrieveStripeIdentityVerificationSession
+} from "@/lib/stripe";
+import { isStripeConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
+import type { IdentityVerificationOrder, Profile } from "@/types/database";
 
 const DEFAULT_IDENTITY_VERIFICATION_PRICE_CENTS = 499;
 const DEFAULT_IDENTITY_VERIFICATION_CURRENCY = "cad";
+
+type VerificationProfileSnapshot = Pick<
+  Profile,
+  | "email_notifications"
+  | "verification_status"
+  | "verification_requested_at"
+  | "verified_at"
+  | "stripe_identity_verification_session_id"
+  | "stripe_identity_session_status"
+  | "stripe_identity_last_error_code"
+  | "stripe_identity_last_error_reason"
+>;
 
 export function getIdentityVerificationPriceCents() {
   const rawValue = Number(process.env.STRIPE_IDENTITY_VERIFICATION_PRICE_CENTS ?? "");
@@ -187,4 +203,80 @@ export async function reconcileLatestIdentityVerificationPayment(userId: string)
   }
 
   return latestOrder;
+}
+
+export async function reconcileIdentityVerificationProfile(userId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select(
+      "email_notifications, verification_status, verification_requested_at, verified_at, stripe_identity_verification_session_id, stripe_identity_session_status, stripe_identity_last_error_code, stripe_identity_last_error_reason"
+    )
+    .eq("id", userId)
+    .maybeSingle();
+
+  const profile = (data as VerificationProfileSnapshot | null) ?? null;
+
+  if (
+    !profile ||
+    !profile.stripe_identity_verification_session_id ||
+    !isStripeConfigured()
+  ) {
+    return profile;
+  }
+
+  try {
+    const session = await retrieveStripeIdentityVerificationSession(
+      profile.stripe_identity_verification_session_id
+    );
+
+    const nextProfile: VerificationProfileSnapshot = {
+      ...profile,
+      verification_status:
+        session.status === "verified"
+          ? "verified"
+          : session.status === "processing"
+            ? "pending"
+            : "unverified",
+      verification_requested_at:
+        session.status === "processing"
+          ? profile.verification_requested_at ?? new Date().toISOString()
+          : null,
+      verified_at:
+        session.status === "verified"
+          ? profile.verified_at ?? new Date().toISOString()
+          : null,
+      stripe_identity_session_status: session.status,
+      stripe_identity_last_error_code: session.last_error?.code ?? null,
+      stripe_identity_last_error_reason: session.last_error?.reason ?? null
+    };
+
+    const hasChanges =
+      nextProfile.verification_status !== profile.verification_status ||
+      nextProfile.verification_requested_at !== profile.verification_requested_at ||
+      nextProfile.verified_at !== profile.verified_at ||
+      nextProfile.stripe_identity_session_status !== profile.stripe_identity_session_status ||
+      nextProfile.stripe_identity_last_error_code !== profile.stripe_identity_last_error_code ||
+      nextProfile.stripe_identity_last_error_reason !== profile.stripe_identity_last_error_reason;
+
+    if (hasChanges && isSupabaseServiceRoleConfigured()) {
+      const serviceSupabase = createServiceRoleSupabaseClient();
+      await serviceSupabase
+        .from("profiles")
+        .update({
+          verification_status: nextProfile.verification_status,
+          verification_requested_at: nextProfile.verification_requested_at,
+          verified_at: nextProfile.verified_at,
+          stripe_identity_verification_session_id: profile.stripe_identity_verification_session_id,
+          stripe_identity_session_status: nextProfile.stripe_identity_session_status,
+          stripe_identity_last_error_code: nextProfile.stripe_identity_last_error_code,
+          stripe_identity_last_error_reason: nextProfile.stripe_identity_last_error_reason
+        })
+        .eq("id", userId);
+    }
+
+    return nextProfile;
+  } catch {
+    return profile;
+  }
 }
