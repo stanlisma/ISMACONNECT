@@ -5,7 +5,7 @@ export default function MessagesLoading() {
     <RouteLoadingShell
       eyebrow="Messages"
       title="Messages"
-      message="Loading your latest conversations, unread replies, and active chats..."
+      message="Opening your conversations..."
     />
   );
 }

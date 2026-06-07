@@ -5,7 +5,7 @@ export default function BrowseLoading() {
     <RouteLoadingShell
       eyebrow="Browse"
       title="Local listings"
-      message="Finding local rides, rentals, jobs, services, and storefronts near Fort McMurray..."
+      message="Loading local listings..."
       variant="feed"
     />
   );
