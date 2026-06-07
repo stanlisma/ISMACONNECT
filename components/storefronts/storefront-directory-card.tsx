@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExternalLink, MapPin, Phone } from "lucide-react";
 
 import { TrustBadges } from "@/components/trust/trust-badges";
+import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
 import { excerpt } from "@/lib/utils";
 import type { PublicBusinessStorefrontDirectoryItem, SellerTrustSummary } from "@/types/database";
@@ -29,7 +30,10 @@ export function StorefrontDirectoryCard({
 
           <div className="storefront-directory-copy">
             <span className="eyebrow">Local storefront</span>
-            <h3>{storefront.name}</h3>
+            <h3 className="verified-name-inline">
+              <span>{storefront.name}</span>
+              <VerifiedNameBadge summary={trustSummary} compact />
+            </h3>
             <p>
               {storefront.description
                 ? excerpt(storefront.description, 110)

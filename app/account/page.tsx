@@ -14,6 +14,7 @@ import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
+import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { requireViewer } from "@/lib/auth";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -117,7 +118,10 @@ export default async function AccountPage() {
                       ? "Business Account"
                       : "Member Account"}
                 </span>
-                <h1 className="section-title">{fullName}</h1>
+                <h1 className="section-title verified-name-inline">
+                  <span>{fullName}</span>
+                  <VerifiedNameBadge summary={trustSummary} />
+                </h1>
                 <p className="section-copy account-email">{email}</p>
 
                 <div className="account-trust-summary">

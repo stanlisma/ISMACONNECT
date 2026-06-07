@@ -11,6 +11,7 @@ import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
 import { SellerReviewForm } from "@/components/trust/seller-review-form";
 import { StorefrontImageGallery } from "@/components/storefronts/storefront-image-gallery";
 import { TrustBadges } from "@/components/trust/trust-badges";
+import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
@@ -148,7 +149,10 @@ export default async function SellerStorefrontPage({
 
               <div className="seller-storefront-copy">
                 <span className="eyebrow">{storefront.is_business ? "Business storefront" : "Seller storefront"}</span>
-                <h1 className="section-title">{storefront.display_name}</h1>
+                <h1 className="section-title verified-name-inline">
+                  <span>{storefront.display_name}</span>
+                  <VerifiedNameBadge summary={trustSummary} />
+                </h1>
                 <p className="section-copy">{storefrontDescription}</p>
 
                 <div className="seller-storefront-meta">
