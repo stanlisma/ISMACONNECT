@@ -225,9 +225,9 @@ export default async function SettingsPage({
           <TrustBadges summary={trustSummary} />
 
           {profile?.verification_status === "verified" ? (
-            <div className="browser-notification-pill-row settings-inline-status">
-              <span className="account-menu-pill is-success">ID Verified live</span>
-            </div>
+            <p className="browser-notification-note">
+              Your ID Verified badge is already live across your listings and storefronts.
+            </p>
           ) : (
             <>
               <div className="browser-notification-pill-row settings-inline-status">
