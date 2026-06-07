@@ -9141,6 +9141,16 @@ code {
   .local-map-stage,
   .local-map-google-stage {
     min-height: 250px;
+    touch-action: pan-y pinch-zoom !important;
+  }
+
+  .local-map-stage {
+    cursor: default;
+  }
+
+  .local-map-google-stage .gm-style,
+  .local-map-google-stage .gm-style > div {
+    touch-action: pan-y pinch-zoom !important;
   }
 
   .seller-storefront-header {
@@ -10435,6 +10445,11 @@ code {
     line-height: 1.35;
   }
 
+  .browse-mobile-overview .marketplace-page-utility-link,
+  .category-mobile-overview .marketplace-page-utility-link {
+    display: none;
+  }
+
   .home-mobile-search-form {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -10559,6 +10574,19 @@ code {
 
   .browse-results-count {
     font-size: 0.82rem;
+  }
+
+  .subcategory-link-row {
+    gap: 0.45rem;
+    margin: 0.18rem -0.06rem 0.42rem;
+    padding: 0 0.06rem 0.18rem;
+    scroll-padding-inline: 0.06rem;
+  }
+
+  .subcategory-link-pill {
+    min-height: 34px;
+    padding: 0 0.78rem;
+    font-size: 0.8rem;
   }
 
   .pill-links {
