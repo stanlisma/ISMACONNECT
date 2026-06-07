@@ -259,15 +259,7 @@ export default async function CategoryPage({
     Boolean(sort) ||
     Object.keys(structuredFilters).length > 0;
   const shouldShowQuickLinks = !hasActiveFilters;
-  const shouldShowSaveSearch =
-    Boolean(search) ||
-    Boolean(subcategory) ||
-    Boolean(intent) ||
-    Boolean(requestWindow) ||
-    Boolean(communityArea) ||
-    minPrice !== null ||
-    maxPrice !== null ||
-    Object.keys(structuredFilters).length > 0;
+  const shouldShowSaveSearch = true;
   const mobilePostNeedHref = buildPathWithQuery("/dashboard/listings/new", {
     intent: "need",
     category
@@ -481,6 +473,8 @@ export default async function CategoryPage({
             extraFilters={searchExtraFilters}
             isSaved={Boolean(savedSearch)}
             compactOnMobile
+            variant="notify"
+            subjectLabel={categoryInfo.label}
           />
         ) : null}
 

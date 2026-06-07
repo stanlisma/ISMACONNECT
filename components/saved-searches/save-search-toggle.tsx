@@ -21,6 +21,8 @@ interface SaveSearchToggleProps {
   extraFilters?: Record<string, string | boolean>;
   isSaved: boolean;
   compactOnMobile?: boolean;
+  variant?: "default" | "notify";
+  subjectLabel?: string | null;
 }
 
 export function SaveSearchToggle({
@@ -36,7 +38,9 @@ export function SaveSearchToggle({
   sort,
   extraFilters,
   isSaved,
-  compactOnMobile = false
+  compactOnMobile = false,
+  variant = "default",
+  subjectLabel
 }: SaveSearchToggleProps) {
   const canSaveSearch = hasMeaningfulSavedSearchCriteria({
     path: actionPath,
@@ -48,29 +52,56 @@ export function SaveSearchToggle({
     sort,
     extraFilters
   });
+  const isNotifyVariant = variant === "notify";
+  const buttonLabel = isNotifyVariant ? "Notify me" : "Save search";
+  const savedLabel = isNotifyVariant ? "Notifications on" : "Saved";
+  const helpLabel = isNotifyVariant ? "Notify me" : "Save search";
+  const subjectText = subjectLabel?.trim() ? subjectLabel.trim() : "this category";
 
   const helpText = !canSaveSearch
-    ? "Add a keyword, category, price, or local filter before saving this search."
+    ? isNotifyVariant
+      ? "Pick a category, search, or filter first so we know which new listings to watch for."
+      : "Add a keyword, category, price, or local filter before saving this search."
     : !viewerId
-      ? "Sign in to save this ride-share, rental, service, job, or storefront search and get alerts when new matches appear."
+      ? isNotifyVariant
+        ? `Sign in to get notified when new listings are posted in ${subjectText}.`
+        : "Sign in to save this ride-share, rental, service, job, or storefront search and get alerts when new matches appear."
       : isSaved
-        ? "This search is already saved. New matching listings will show up in your saved-search alerts."
-        : "Save this filter set to get alerts when new matching listings appear.";
+        ? isNotifyVariant
+          ? `Alerts are on for ${subjectText}. You can manage them later from Saved Searches or Notifications.`
+          : "This search is already saved. New matching listings will show up in your saved-search alerts."
+        : isNotifyVariant
+          ? `Turn this on to get notified when new listings are posted in ${subjectText}.`
+          : "Save this filter set to get alerts when new matching listings appear.";
+  const wrapperClassName = [
+    "saved-search-inline",
+    compactOnMobile ? "saved-search-inline-compact-mobile" : "",
+    isNotifyVariant ? "saved-search-inline-notify" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const buttonClassName = [
+    isSaved ? "button-secondary saved-search-submit" : "saved-search-submit",
+    isNotifyVariant ? "saved-search-submit-notify" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   if (!canSaveSearch) {
     return (
-      <div
-        id={anchorId}
-        className={`saved-search-inline${compactOnMobile ? " saved-search-inline-compact-mobile" : ""}`}
-      >
+      <div id={anchorId} className={wrapperClassName}>
         <div className="saved-search-inline-actions">
-          <button type="button" className="button button-secondary saved-search-submit" disabled>
+          <button
+            type="button"
+            className={`button button-secondary saved-search-submit${isNotifyVariant ? " saved-search-submit-notify" : ""}`}
+            disabled
+          >
             <BellRing aria-hidden="true" size={18} strokeWidth={2.3} />
-            <span>Save search</span>
+            <span>{buttonLabel}</span>
           </button>
 
           <span className="saved-search-inline-help">
-            <FieldHelp text={helpText} label="Save search" />
+            <FieldHelp text={helpText} label={helpLabel} />
           </span>
         </div>
       </div>
@@ -79,18 +110,18 @@ export function SaveSearchToggle({
 
   if (!viewerId) {
     return (
-      <div
-        id={anchorId}
-        className={`saved-search-inline${compactOnMobile ? " saved-search-inline-compact-mobile" : ""}`}
-      >
+      <div id={anchorId} className={wrapperClassName}>
         <div className="saved-search-inline-actions">
-          <Link href="/auth/sign-in" className="button button-secondary saved-search-submit">
+          <Link
+            href="/auth/sign-in"
+            className={`button button-secondary saved-search-submit${isNotifyVariant ? " saved-search-submit-notify" : ""}`}
+          >
             <BellRing aria-hidden="true" size={18} strokeWidth={2.3} />
-            <span>Save search</span>
+            <span>{buttonLabel}</span>
           </Link>
 
           <span className="saved-search-inline-help">
-            <FieldHelp text={helpText} label="Save search" />
+            <FieldHelp text={helpText} label={helpLabel} />
           </span>
         </div>
       </div>
@@ -98,10 +129,7 @@ export function SaveSearchToggle({
   }
 
   return (
-    <div
-      id={anchorId}
-      className={`saved-search-inline${compactOnMobile ? " saved-search-inline-compact-mobile" : ""}`}
-    >
+    <div id={anchorId} className={wrapperClassName}>
       <div className="saved-search-inline-actions">
         <form action={toggleSavedSearchAction} className="saved-search-form">
           <input type="hidden" name="returnTo" value={returnTo} />
@@ -121,25 +149,30 @@ export function SaveSearchToggle({
               category: category ?? "all",
               has_query: Boolean(search?.trim())
             }}
-            className={isSaved ? "button-secondary saved-search-submit" : "saved-search-submit"}
+            aria-pressed={isSaved}
+            className={buttonClassName}
             pendingLabel={isSaved ? "Updating..." : "Saving..."}
           >
             {isSaved ? (
               <>
-                <SearchCheck aria-hidden="true" size={18} strokeWidth={2.3} />
-                <span>Saved</span>
+                {isNotifyVariant ? (
+                  <BellRing aria-hidden="true" size={18} strokeWidth={2.3} />
+                ) : (
+                  <SearchCheck aria-hidden="true" size={18} strokeWidth={2.3} />
+                )}
+                <span>{savedLabel}</span>
               </>
             ) : (
               <>
                 <BellRing aria-hidden="true" size={18} strokeWidth={2.3} />
-                <span>Save search</span>
+                <span>{buttonLabel}</span>
               </>
             )}
           </SubmitButton>
         </form>
 
         <span className="saved-search-inline-help">
-          <FieldHelp text={helpText} label="Save search" />
+          <FieldHelp text={helpText} label={helpLabel} />
         </span>
       </div>
     </div>

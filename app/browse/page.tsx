@@ -485,6 +485,8 @@ export default async function BrowsePage({
             extraFilters={searchExtraFilters}
             isSaved={Boolean(savedSearch)}
             compactOnMobile
+            variant={category ? "notify" : "default"}
+            subjectLabel={categoryLabel}
           />
         ) : null}
 
