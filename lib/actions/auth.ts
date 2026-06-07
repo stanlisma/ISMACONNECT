@@ -51,7 +51,6 @@ export async function signUpAction(formData: FormData) {
     phone: formData.get("phone"),
     address: formData.get("address"),
     phoneVerificationMethod: formData.get("phoneVerificationMethod"),
-    verifyAccount: formData.get("verifyAccount"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword")
   });
@@ -61,7 +60,6 @@ export async function signUpAction(formData: FormData) {
   }
 
   const fullName = `${parsed.data!.firstName} ${parsed.data!.lastName}`.trim();
-  const wantsVerification = parsed.data!.verifyAccount === "on";
 
   const supabase = await createMutableServerSupabaseClient();
   const { error } = await supabase.auth.signUp({
@@ -75,8 +73,7 @@ export async function signUpAction(formData: FormData) {
         full_name: fullName,
         phone: parsed.data!.phone,
         address: parsed.data!.address,
-        phone_verification_method: parsed.data!.phoneVerificationMethod,
-        verification_interest: wantsVerification ? "requested-at-signup" : "verify-later"
+        phone_verification_method: parsed.data!.phoneVerificationMethod
       }
     }
   });
@@ -85,13 +82,7 @@ export async function signUpAction(formData: FormData) {
     redirectWithMessage("/auth/sign-up", "error", error.message);
   }
 
-  redirectWithMessage(
-    "/auth/sign-in",
-    "success",
-    wantsVerification
-      ? "Account created. Check your email for the confirmation link, then sign in. You can start account verification from Settings as soon as your account is confirmed."
-      : "Account created. Check your email for the confirmation link, then sign in to start browsing, posting, saving searches, messaging locals, and creating storefronts. Verification is optional and can be started later from Settings."
-  );
+  redirect("/auth/post-sign-up");
 }
 
 export async function signOutAction() {
