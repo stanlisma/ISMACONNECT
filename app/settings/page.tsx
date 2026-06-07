@@ -13,6 +13,7 @@ import {
 } from "@/lib/business-profile";
 import {
   getIdentityVerificationPriceLabel,
+  reconcileIdentityVerificationProfile,
   reconcileLatestIdentityVerificationPayment
 } from "@/lib/identity-verification";
 import {
@@ -44,14 +45,7 @@ export default async function SettingsPage({
   const emailDeliveryReady = isEmailConfigured();
   const latestVerificationOrder = await reconcileLatestIdentityVerificationPayment(viewer.user.id);
   const verificationPriceLabel = getIdentityVerificationPriceLabel();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select(
-      "email_notifications, verification_status, verification_requested_at, verified_at, stripe_identity_session_status, stripe_identity_last_error_code, stripe_identity_last_error_reason"
-    )
-    .eq("id", viewer.user.id)
-    .single();
+  const profile = await reconcileIdentityVerificationProfile(viewer.user.id);
 
   const businessProfileResponse = await supabase
     .from("profiles")
