@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { FlashMessage } from "@/components/ui/flash-message";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import { FieldHelp } from "@/components/ui/field-help";
 import { trackMarketplaceEvent } from "@/lib/analytics";
 
 interface AuthFormProps {
@@ -92,64 +92,6 @@ export function AuthForm({
                   type="email"
                 />
               </label>
-
-              <label className="field">
-                <span className="field-label">Confirm email</span>
-                <input
-                  autoComplete="email"
-                  className="input"
-                  name="confirmEmail"
-                  placeholder="Re-enter your email"
-                  required
-                  type="email"
-                />
-              </label>
-
-              <label className="field">
-                <FieldLabelWithHelp
-                  label="Phone number"
-                  helpText="Use the number you want tied to listing replies. We will save whether you prefer text or voice verification for this account."
-                />
-                <input
-                  autoComplete="tel"
-                  className="input"
-                  name="phone"
-                  placeholder="780-555-0123"
-                  required
-                  type="tel"
-                />
-              </label>
-
-              <label className="field">
-                <FieldLabelWithHelp
-                  label="Verify phone by"
-                  helpText="Choose whether this phone should be verified by text message or a voice call when phone verification is enabled for your account."
-                />
-                <select
-                  className="select"
-                  name="phoneVerificationMethod"
-                  defaultValue="text"
-                  required
-                >
-                  <option value="text">Text message</option>
-                  <option value="call">Voice call</option>
-                </select>
-              </label>
-
-              <label className="field field-full">
-                <FieldLabelWithHelp
-                  label="Address"
-                  helpText="Use your usual Fort McMurray area address or community so your account starts with a real local profile."
-                />
-                <input
-                  autoComplete="street-address"
-                  className="input"
-                  name="address"
-                  placeholder="Thickwood, Fort McMurray"
-                  required
-                />
-              </label>
-
             </>
           ) : (
             <label className="field field-full">
