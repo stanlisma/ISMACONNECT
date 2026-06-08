@@ -126,26 +126,6 @@ export default async function HomePage() {
 
         </div>
       </section>
-
-      <section style={categoriesSectionStyle}>
-        <span style={badgeStyle}>LOCAL PRIORITIES</span>
-
-        <h2 style={sectionTitleStyle}>
-          Start with the categories Fort McMurray checks most
-        </h2>
-
-        <div style={cardGridStyle}>
-          {priorityCategories.map((category) => (
-            <article key={category.value} style={cardStyle}>
-              <h3 style={cardTitleStyle}>{category.label}</h3>
-              <p style={cardTextStyle}>{category.description}</p>
-              <Link href={category.href} style={cardLinkStyle}>
-                Explore {category.label}
-              </Link>
-            </article>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }
@@ -165,16 +145,6 @@ const heroCardStyle = {
   boxShadow: "0 24px 70px rgba(30, 107, 255, 0.08)",
 };
 
-const badgeStyle = {
-  display: "inline-block",
-  background: "#dbeafe",
-  color: "#1d4ed8",
-  borderRadius: "999px",
-  padding: "6px 14px",
-  fontSize: "12px",
-  fontWeight: 800,
-};
-
 const titleStyle = {
   maxWidth: "950px",
   margin: "18px auto 0",
@@ -187,48 +157,4 @@ const titleStyle = {
 const subtitleStyle = {
   marginTop: "16px",
   color: "#5b6f99",
-};
-
-const categoriesSectionStyle = {
-  marginTop: "56px",
-};
-
-const sectionTitleStyle = {
-  marginTop: "14px",
-  color: "#172554",
-  fontSize: "32px",
-  fontWeight: 900,
-};
-
-const cardGridStyle = {
-  marginTop: "24px",
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-  gap: "16px",
-};
-
-const cardStyle = {
-  background: "#ffffff",
-  border: "1px solid #dbe4f0",
-  borderRadius: "16px",
-  padding: "22px",
-};
-
-const cardTitleStyle = {
-  color: "#0a2540",
-  fontSize: "18px",
-  fontWeight: 800,
-};
-
-const cardTextStyle = {
-  marginTop: "10px",
-  color: "#5b6f99",
-};
-
-const cardLinkStyle = {
-  display: "inline-flex",
-  marginTop: "14px",
-  color: "#1549b7",
-  fontWeight: 800,
-  textDecoration: "none",
 };

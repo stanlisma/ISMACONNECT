@@ -651,7 +651,7 @@ function optionLabel(options: readonly StructuredFieldOption[] | undefined, valu
     return null;
   }
 
-  return options.find((option) => option.value === value)?.label ?? value;
+  return options.find((option) => option.value === value)?.label ?? null;
 }
 
 function booleanLabel(value: boolean) {
