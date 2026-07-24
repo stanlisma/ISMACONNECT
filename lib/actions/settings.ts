@@ -14,6 +14,8 @@ import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
+import { personalProfileSchema } from "@/lib/validation/settings";
+import { firstMessage } from "@/lib/utils";
 
 function resolveSettingsReturnPath(formData: FormData, fallbackPath = "/settings") {
   const rawPath = formData.get("return_path");
@@ -107,6 +109,40 @@ async function createSettingsMutationClient() {
   return isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
     : await createServerSupabaseClient();
+}
+
+export async function updatePersonalProfileAction(formData: FormData) {
+  const viewer = await requireViewer();
+  const returnPath = resolveSettingsReturnPath(formData);
+
+  const parsed = personalProfileSchema.safeParse({
+    fullName: formData.get("full_name"),
+    phone: formData.get("phone"),
+    address: formData.get("address")
+  });
+
+  if (!parsed.success) {
+    redirect(buildReturnPathWithMessage(returnPath, "error", firstMessage(parsed.error)));
+  }
+
+  const supabase = await createSettingsMutationClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      full_name: parsed.data!.fullName,
+      phone: parsed.data!.phone,
+      address: parsed.data!.address
+    })
+    .eq("id", viewer.user.id);
+
+  if (error) {
+    redirect(buildReturnPathWithMessage(returnPath, "error", error.message));
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/account");
+  revalidatePath(`/sellers/${viewer.user.id}`);
+  redirect(buildReturnPathWithMessage(returnPath, "success", "Personal info updated"));
 }
 
 export async function updateNotificationSettingsAction(formData: FormData) {

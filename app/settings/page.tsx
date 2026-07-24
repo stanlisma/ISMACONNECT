@@ -4,7 +4,7 @@ import { AdditionalStorefrontsManager } from "@/components/settings/additional-s
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { FlashMessage } from "@/components/ui/flash-message";
-import { FieldHelp } from "@/components/ui/field-help";
+import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import {
   EMPTY_BUSINESS_PROFILE,
@@ -20,7 +20,8 @@ import {
   createAdditionalStorefrontAction,
   deleteAdditionalStorefrontAction,
   updateAdditionalStorefrontAction,
-  updateNotificationSettingsAction
+  updateNotificationSettingsAction,
+  updatePersonalProfileAction
 } from "@/lib/actions/settings";
 import { requestSellerVerificationAction } from "@/lib/actions/trust";
 import { requireViewer } from "@/lib/auth";
@@ -40,6 +41,8 @@ export default async function SettingsPage({
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const showCreateStorefrontForm = getSingleParam(resolvedSearchParams?.create) === "1";
+  const focusStorefrontId = getSingleParam(resolvedSearchParams?.storefront);
   const trustSummary = await getSellerTrustSummary(viewer.user.id);
   const stripeIdentityReady = isStripeWebhookConfigured();
   const emailDeliveryReady = isEmailConfigured();
@@ -117,7 +120,10 @@ export default async function SettingsPage({
         <div className="settings-page-header">
           <h1 className="section-title">Settings</h1>
           <div className="pill-row settings-jump-row">
-            <a className="account-menu-pill is-active" href="#notifications">
+            <a className="account-menu-pill is-active" href="#personal">
+              Personal info
+            </a>
+            <a className="account-menu-pill" href="#notifications">
               Notifications
             </a>
             <a className="account-menu-pill" href="#storefronts">
@@ -127,6 +133,71 @@ export default async function SettingsPage({
               Verification
             </a>
           </div>
+        </div>
+
+        <div className="surface settings-section-card" id="personal">
+          <div className="settings-title-row">
+            <h2>Personal Info</h2>
+            <FieldHelp
+              label="Personal Info"
+              text="This is your own contact info, used for your account and shown to locals you message. It's separate from any business storefront details."
+            />
+          </div>
+
+          <form action={updatePersonalProfileAction} className="settings-block-stack">
+            <input type="hidden" name="return_path" value="/settings" />
+
+            <label className="field">
+              <FieldLabelWithHelp label="Full name" />
+              <input
+                className="input"
+                type="text"
+                name="full_name"
+                defaultValue={viewer.profile.full_name ?? ""}
+                placeholder="Your name"
+                required
+              />
+            </label>
+
+            <label className="field">
+              <FieldLabelWithHelp
+                label="Phone"
+                helpText="Optional. Used for your own reference and any messages where you choose to share it."
+              />
+              <input
+                className="input"
+                type="tel"
+                name="phone"
+                defaultValue={viewer.profile.phone ?? ""}
+                placeholder="(780) 555-0123"
+              />
+            </label>
+
+            <label className="field">
+              <FieldLabelWithHelp
+                label="Address"
+                helpText="Optional. This is your personal location and is not shown publicly."
+              />
+              <input
+                className="input"
+                type="text"
+                name="address"
+                defaultValue={viewer.profile.address ?? ""}
+                placeholder="Thickwood, Fort McMurray"
+              />
+            </label>
+
+            <label className="field">
+              <FieldLabelWithHelp label="Email" />
+              <input className="input" type="email" value={viewer.user.email ?? ""} disabled readOnly />
+            </label>
+
+            <div className="business-profile-actions">
+              <button className="button" type="submit">
+                Save personal info
+              </button>
+            </div>
+          </form>
         </div>
 
         <div className="surface settings-section-card" id="notifications">
@@ -173,6 +244,8 @@ export default async function SettingsPage({
           <AdditionalStorefrontsManager
             storefronts={additionalStorefrontsResult.storefronts}
             schemaReady={additionalStorefrontsResult.schemaReady}
+            focusStorefrontId={focusStorefrontId}
+            showCreateForm={showCreateStorefrontForm}
             createAction={createAdditionalStorefrontAction}
             updateAction={updateAdditionalStorefrontAction}
             deleteAction={deleteAdditionalStorefrontAction}

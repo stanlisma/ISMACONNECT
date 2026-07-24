@@ -684,11 +684,24 @@ export async function getPublicSellerStorefront(
         .eq("id", sellerId)
         .maybeSingle();
 
-      businessProfile = {
-        ...EMPTY_BUSINESS_PROFILE,
-        full_name: fallbackProfile.data?.full_name ?? null,
-        phone: fallbackProfile.data?.phone ?? null
-      };
+      if (fallbackProfile.error && isBusinessProfileSchemaError(fallbackProfile.error)) {
+        const nameOnlyProfile = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", sellerId)
+          .maybeSingle();
+
+        businessProfile = {
+          ...EMPTY_BUSINESS_PROFILE,
+          full_name: nameOnlyProfile.data?.full_name ?? null
+        };
+      } else {
+        businessProfile = {
+          ...EMPTY_BUSINESS_PROFILE,
+          full_name: fallbackProfile.data?.full_name ?? null,
+          phone: fallbackProfile.data?.phone ?? null
+        };
+      }
     } else {
       logDataError("Public seller business profile query failed", businessProfileResponse.error);
     }

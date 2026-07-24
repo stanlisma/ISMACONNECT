@@ -54,10 +54,16 @@ export function isBusinessProfileSchemaError(error: {
   message?: string | null;
   details?: string | null;
   hint?: string | null;
+  code?: string | null;
 } | null | undefined) {
+  if (error?.code === "42703") {
+    return true;
+  }
+
   const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
 
   return (
+    /column .*does not exist/.test(message) ||
     message.includes("is_business") ||
     message.includes("business_name") ||
     message.includes("business_description") ||
@@ -72,7 +78,8 @@ export function isBusinessProfileSchemaError(error: {
     message.includes("business_geocoded_at") ||
     message.includes("service_areas") ||
     message.includes("business_services") ||
-    message.includes("business_hours")
+    message.includes("business_hours") ||
+    message.includes("phone")
   );
 }
 
