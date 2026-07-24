@@ -51,6 +51,24 @@ export default function SafetyPage() {
         </section>
 
         <section className="legal-section">
+          <h2>Riding with someone new</h2>
+          <p>
+            Before you get in a vehicle, share the driver's name, the ride details, and your expected arrival time
+            with a friend or family member. Check for an ID Verified badge on the driver's profile, agree on the
+            cost before the trip starts, and trust your judgment if something feels off enough to cancel.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <h2>Keep it on ISMACONNECT</h2>
+          <p>
+            Keep conversations inside ISMACONNECT messaging for as long as you can. It keeps a record you can refer
+            back to and share with support if something goes wrong. Be cautious if someone pushes hard to move a
+            conversation off-platform right away.
+          </p>
+        </section>
+
+        <section className="legal-section">
           <h2>Use the built-in safety tools</h2>
           <p>
             If someone behaves suspiciously, use the block and report tools inside the conversation. Do not keep
