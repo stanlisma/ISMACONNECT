@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { requireAdminViewer } from "@/lib/auth";
 import { getFlaggedListings } from "@/lib/data";
-import { getOpenUserReports } from "@/lib/message-safety";
+import { getOpenUserReports, getResolvedUserReports } from "@/lib/message-safety";
 import { getRecentAppErrorLogs } from "@/lib/monitoring";
 import { getPendingVerificationProfiles } from "@/lib/trust";
 import { excerpt, formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/lib/utils";
@@ -19,12 +19,14 @@ export default async function ModerationPage({
 }) {
   await requireAdminViewer();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const [flaggedListings, pendingProfiles, openUserReports, recentAppErrorLogs] = await Promise.all([
-    getFlaggedListings(),
-    getPendingVerificationProfiles(),
-    getOpenUserReports(),
-    getRecentAppErrorLogs()
-  ]);
+  const [flaggedListings, pendingProfiles, openUserReports, resolvedUserReports, recentAppErrorLogs] =
+    await Promise.all([
+      getFlaggedListings(),
+      getPendingVerificationProfiles(),
+      getOpenUserReports(),
+      getResolvedUserReports(),
+      getRecentAppErrorLogs()
+    ]);
 
   return (
     <>
@@ -133,6 +135,55 @@ export default async function ModerationPage({
             </div>
           ))}
         </div>
+      ) : null}
+
+      {resolvedUserReports.length ? (
+        <details className="surface" style={{ marginBottom: "1.25rem" }}>
+          <summary style={{ cursor: "pointer" }}>
+            <span className="eyebrow">User report history</span>
+            <span className="section-copy" style={{ display: "block" }}>
+              {resolvedUserReports.length} resolved or dismissed report{resolvedUserReports.length === 1 ? "" : "s"}
+            </span>
+          </summary>
+
+          <div className="dashboard-list" style={{ marginTop: "1rem" }}>
+            {resolvedUserReports.map((report) => (
+              <div className="dashboard-listing" key={report.id}>
+                <div className="badge-row">
+                  <span className="badge badge-soft">User report</span>
+                  <span className={report.status === "resolved" ? "badge badge-neutral" : "badge badge-soft"}>
+                    {report.status === "resolved" ? "Resolved" : "Dismissed"}
+                  </span>
+                </div>
+
+                <h3>{report.reported_user?.full_name || report.reported_user?.email || "Reported user"}</h3>
+                <p>
+                  Reported by {report.reporter?.full_name || report.reporter?.email || "a member"} on{" "}
+                  {formatDate(report.created_at)} · Updated {formatDate(report.updated_at)}
+                </p>
+
+                <div className="meta-list">
+                  <span>Reason: {report.reason}</span>
+                  {report.listing?.title ? <span>Listing: {report.listing.title}</span> : null}
+                  {report.conversation_id ? <span>Conversation ID: {report.conversation_id.slice(0, 8)}</span> : null}
+                </div>
+
+                <div className="action-row">
+                  {report.conversation_id ? (
+                    <Link className="button button-secondary" href={`/messages/${report.conversation_id}`} prefetch={false}>
+                      Open thread
+                    </Link>
+                  ) : null}
+                  {report.listing?.slug ? (
+                    <Link className="button button-ghost" href={`/listings/${report.listing.slug}`}>
+                      Open listing
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
       ) : null}
 
       {flaggedListings.length === 0 ? (

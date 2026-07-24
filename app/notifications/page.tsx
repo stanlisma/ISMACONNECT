@@ -6,6 +6,7 @@ import {
   CheckCheck,
   Rocket,
   Search,
+  ShieldAlert,
   ShieldCheck,
   Star
 } from "lucide-react";
@@ -130,6 +131,12 @@ function getNotificationPresentation(type: string | null | undefined) {
         label: "Saved search",
         className: "notification-card-search",
         icon: <Search aria-hidden="true" size={18} strokeWidth={2.2} />
+      };
+    case "moderation":
+      return {
+        label: "Moderation",
+        className: "notification-card-verification",
+        icon: <ShieldAlert aria-hidden="true" size={18} strokeWidth={2.2} />
       };
     default:
       return {

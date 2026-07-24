@@ -5,7 +5,30 @@ import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { getConversationSafetyState } from "@/lib/message-safety";
+import { createNotificationAndPush } from "@/lib/push";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
+
+async function notifyAdminsOfUserReport(reason: string) {
+  try {
+    const serviceSupabase = createServiceRoleSupabaseClient();
+    const { data: admins } = await serviceSupabase.from("profiles").select("id").eq("role", "admin");
+
+    await Promise.all(
+      (admins ?? []).map((admin: { id: string }) =>
+        createNotificationAndPush({
+          userId: admin.id,
+          type: "moderation",
+          title: "New user report",
+          body: `A member reported another user (reason: ${reason}). Review it in moderation.`,
+          link: "/admin/moderation"
+        })
+      )
+    );
+  } catch (notificationError) {
+    console.error("Admin report notification failed:", notificationError);
+  }
+}
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -63,6 +86,33 @@ export async function blockConversationUserAction(formData: FormData) {
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/admin/moderation");
   redirectWithMessage(`/messages/${conversationId}`, "success", "User blocked. Messaging has been turned off.");
+}
+
+export async function unblockConversationUserAction(formData: FormData) {
+  const viewer = await requireViewer();
+  const conversationId = String(formData.get("conversationId") ?? "").trim();
+  const blockedUserId = String(formData.get("blockedUserId") ?? "").trim();
+
+  if (!conversationId || !blockedUserId) {
+    redirectWithMessage("/messages", "error", "Conversation details are missing.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  const { error } = await supabase
+    .from("blocked_users")
+    .delete()
+    .eq("blocker_id", viewer.user.id)
+    .eq("blocked_id", blockedUserId);
+
+  if (error) {
+    redirectWithMessage(`/messages/${conversationId}`, "error", error.message);
+  }
+
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${conversationId}`);
+  revalidatePath("/admin/moderation");
+  redirectWithMessage(`/messages/${conversationId}`, "success", "User unblocked. Messaging is turned back on.");
 }
 
 export async function reportConversationUserAction(formData: FormData) {
@@ -125,6 +175,8 @@ export async function reportConversationUserAction(formData: FormData) {
   if (error) {
     redirectWithMessage(`/messages/${conversationId}`, "error", error.message);
   }
+
+  await notifyAdminsOfUserReport(reason);
 
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/admin/moderation");

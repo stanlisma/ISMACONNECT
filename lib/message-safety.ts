@@ -80,29 +80,23 @@ export async function getExistingConversationReport(
   return (data as UserReport | null) ?? null;
 }
 
-export async function getOpenUserReports() {
-  const supabase = await createServerSupabaseClient();
+const USER_REPORT_SELECT = `
+  id,
+  reporter_id,
+  reported_user_id,
+  conversation_id,
+  listing_id,
+  reason,
+  status,
+  created_at,
+  updated_at,
+  reporter:profiles!user_reports_reporter_id_fkey(full_name, email),
+  reported_user:profiles!user_reports_reported_user_id_fkey(full_name, email),
+  listing:listings(title, slug)
+`;
 
-  const { data } = await supabase
-    .from("user_reports")
-    .select(`
-      id,
-      reporter_id,
-      reported_user_id,
-      conversation_id,
-      listing_id,
-      reason,
-      status,
-      created_at,
-      updated_at,
-      reporter:profiles!user_reports_reporter_id_fkey(full_name, email),
-      reported_user:profiles!user_reports_reported_user_id_fkey(full_name, email),
-      listing:listings(title, slug)
-    `)
-    .eq("status", "open")
-    .order("created_at", { ascending: false });
-
-  return (data ?? []).map((report: any) => ({
+function mapUserReportRow(report: any): ModerationUserReport {
+  return {
     id: report.id,
     reporter_id: report.reporter_id,
     reported_user_id: report.reported_user_id,
@@ -117,5 +111,30 @@ export async function getOpenUserReports() {
       ? report.reported_user[0] ?? null
       : report.reported_user ?? null,
     listing: Array.isArray(report.listing) ? report.listing[0] ?? null : report.listing ?? null
-  })) as ModerationUserReport[];
+  };
+}
+
+export async function getOpenUserReports() {
+  const supabase = await createServerSupabaseClient();
+
+  const { data } = await supabase
+    .from("user_reports")
+    .select(USER_REPORT_SELECT)
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
+
+  return (data ?? []).map(mapUserReportRow) as ModerationUserReport[];
+}
+
+export async function getResolvedUserReports(limit = 50) {
+  const supabase = await createServerSupabaseClient();
+
+  const { data } = await supabase
+    .from("user_reports")
+    .select(USER_REPORT_SELECT)
+    .neq("status", "open")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  return (data ?? []).map(mapUserReportRow) as ModerationUserReport[];
 }

@@ -6,7 +6,11 @@ import { MessageComposer } from "@/components/messages/message-composer";
 import { RealtimeMessages } from "@/components/messages/realtime-messages";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FlashMessage } from "@/components/ui/flash-message";
-import { blockConversationUserAction, reportConversationUserAction } from "@/lib/actions/message-safety";
+import {
+  blockConversationUserAction,
+  reportConversationUserAction,
+  unblockConversationUserAction
+} from "@/lib/actions/message-safety";
 import { sendThreadMessageAction } from "@/lib/actions/thread-messages";
 import { requireViewer } from "@/lib/auth";
 import {
@@ -191,24 +195,36 @@ export default async function MessageThreadPage({
             ) : null}
 
             <div className="messages-safety-grid">
-              <form action={blockConversationUserAction} className="messages-safety-card is-block">
-                <input type="hidden" name="conversationId" value={id} />
-                <input type="hidden" name="blockedUserId" value={otherUserId} />
-                <input type="hidden" name="reason" value="Blocked from conversation" />
+              {safetyState.viewerBlockedOther ? (
+                <form action={unblockConversationUserAction} className="messages-safety-card is-block">
+                  <input type="hidden" name="conversationId" value={id} />
+                  <input type="hidden" name="blockedUserId" value={otherUserId} />
 
-                <div className="messages-safety-card-copy">
-                  <strong>Block user</strong>
-                  <p>Stop replies from this person in this thread immediately.</p>
-                </div>
+                  <div className="messages-safety-card-copy">
+                    <strong>User blocked</strong>
+                    <p>You blocked this person. Unblock them to allow messaging again.</p>
+                  </div>
 
-                <SubmitButton
-                  className="button button-ghost button-danger"
-                  pendingLabel="Blocking..."
-                  disabled={safetyState.viewerBlockedOther}
-                >
-                  {safetyState.viewerBlockedOther ? "User blocked" : "Block user"}
-                </SubmitButton>
-              </form>
+                  <SubmitButton className="button button-secondary" pendingLabel="Unblocking...">
+                    Unblock user
+                  </SubmitButton>
+                </form>
+              ) : (
+                <form action={blockConversationUserAction} className="messages-safety-card is-block">
+                  <input type="hidden" name="conversationId" value={id} />
+                  <input type="hidden" name="blockedUserId" value={otherUserId} />
+                  <input type="hidden" name="reason" value="Blocked from conversation" />
+
+                  <div className="messages-safety-card-copy">
+                    <strong>Block user</strong>
+                    <p>Stop replies from this person in this thread immediately.</p>
+                  </div>
+
+                  <SubmitButton className="button button-ghost button-danger" pendingLabel="Blocking...">
+                    Block user
+                  </SubmitButton>
+                </form>
+              )}
 
               <form action={reportConversationUserAction} className="messages-safety-card is-report">
                 <input type="hidden" name="conversationId" value={id} />

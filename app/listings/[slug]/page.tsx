@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ShieldBan } from "lucide-react";
 
 import { ContactSellerForm } from "@/components/messages/contact-seller-form";
 import { ListingViewTracker } from "@/components/listings/listing-view-tracker";
@@ -25,6 +26,8 @@ import {
 } from "@/lib/data";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getPublicListingImages } from "@/lib/listing-media";
+import { getConversationSafetyState, getMessagingDisabledMessage } from "@/lib/message-safety";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   getStructuredCrossListingMatchHints,
   getStructuredDetailItems
@@ -95,6 +98,13 @@ export default async function ListingPage({
   const existingConversation =
     viewer && viewer.user.id !== listing.owner_id
       ? await getConversationForListing(listing.id, viewer.user.id)
+      : null;
+
+  const listingMessagingDisabledMessage =
+    viewer && viewer.user.id !== listing.owner_id && !existingConversation
+      ? getMessagingDisabledMessage(
+          await getConversationSafetyState(await createServerSupabaseClient(), viewer.user.id, listing.owner_id)
+        )
       : null;
 
   const success = getSingleParam(resolvedSearchParams?.success);
@@ -295,12 +305,21 @@ export default async function ListingPage({
                     <SectionHeading
                       title={contactTitle}
                     />
-                    <ContactSellerForm listingId={listing.id} listingIntent={listingIntent} />
-                    {listing.category === "ride-share" ? (
-                      <Link href="/safety" className="detail-mobile-safety-link">
-                        Ride-share safety guide
-                      </Link>
-                    ) : null}
+                    {listingMessagingDisabledMessage ? (
+                      <div className="messages-safety-notice is-blocked">
+                        <ShieldBan aria-hidden="true" size={18} strokeWidth={2.2} />
+                        <span>{listingMessagingDisabledMessage}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <ContactSellerForm listingId={listing.id} listingIntent={listingIntent} />
+                        {listing.category === "ride-share" ? (
+                          <Link href="/safety" className="detail-mobile-safety-link">
+                            Ride-share safety guide
+                          </Link>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                 )
               ) : (
