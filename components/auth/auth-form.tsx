@@ -33,19 +33,14 @@ export function AuthForm({
       <div className="auth-card">
         <div className="auth-header-row">
           <span className="eyebrow">{isSignUp ? "Create Account" : "Welcome Back"}</span>
-          {isSignUp && helpText ? <FieldHelp text={helpText} label={title} /> : null}
         </div>
 
-        {isSignUp ? (
-          <h1 className="sr-only">{title}</h1>
-        ) : (
-          <div className="auth-title-row">
-            <h1>{title}</h1>
-            {helpText ? <FieldHelp text={helpText} label={title} /> : null}
-          </div>
-        )}
+        <div className="auth-title-row">
+          <h1>{title}</h1>
+          {helpText ? <FieldHelp text={helpText} label={title} /> : null}
+        </div>
 
-        {!isSignUp && description ? <p>{description}</p> : null}
+        {description ? <p>{description}</p> : null}
         {message ? <FlashMessage message={message} tone={messageTone} /> : null}
 
         <form

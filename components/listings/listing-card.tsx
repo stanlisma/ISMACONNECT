@@ -215,12 +215,6 @@ export function ListingCard({
               </>
             ) : null}
 
-            <div className="mobile-marketplace-overlay">
-              <span className="mobile-marketplace-price">
-                {formatListingPrice(listing.price, listing.price_type, listingIntent)}
-              </span>
-              <span className="mobile-marketplace-title">{listing.title}</span>
-            </div>
           </div>
         ) : (
           <div>
@@ -229,6 +223,13 @@ export function ListingCard({
             </div>
           </div>
         )}
+      </div>
+
+      <div className="mobile-marketplace-overlay">
+        <span className="mobile-marketplace-title">{listing.title}</span>
+        <span className="mobile-marketplace-price">
+          {formatListingPrice(listing.price, listing.price_type, listingIntent)}
+        </span>
       </div>
 
       <div className="mobile-marketplace-meta">

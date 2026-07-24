@@ -61,6 +61,10 @@ export function MobileBottomNav({
     pathname === "/saved" ||
     pathname.startsWith("/settings");
 
+  if (pathname.startsWith("/auth/")) {
+    return null;
+  }
+
   useEffect(() => {
     if (!viewerId) {
       return;
