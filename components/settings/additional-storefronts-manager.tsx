@@ -6,6 +6,7 @@ import { StorefrontLogoField } from "@/components/settings/storefront-logo-field
 import { StorefrontImageGallery } from "@/components/storefronts/storefront-image-gallery";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import { ScrollToHash } from "@/components/ui/scroll-to-hash";
 import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
 import type { AdditionalBusinessStorefront } from "@/types/database";
@@ -478,6 +479,7 @@ export function AdditionalStorefrontsManager({
 
   return (
     <div className="settings-block-stack">
+      <ScrollToHash />
       <div className="storefront-manager-toolbar">
         <div>
           <div className="business-profile-title-row">

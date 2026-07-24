@@ -1948,6 +1948,15 @@ code {
   color: var(--text);
 }
 
+.input {
+  text-overflow: ellipsis;
+}
+
+.input:disabled {
+  color: var(--text-soft);
+  opacity: 1;
+}
+
 .textarea {
   min-height: 9rem;
   resize: vertical;
@@ -2710,6 +2719,18 @@ code {
 .footer-links {
   flex-direction: column;
   align-items: flex-start;
+}
+
+.footer-bottom {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(168, 200, 242, 0.45);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.footer-bottom p {
+  margin: 0;
 }
 
 @media (min-width: 720px) {
@@ -3867,6 +3888,8 @@ code {
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .mobile-filter-chip-row::-webkit-scrollbar {
@@ -8835,6 +8858,8 @@ code {
     overflow-x: auto;
     padding-bottom: 0.15rem;
     scrollbar-width: none;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .seller-storefront-specialties::-webkit-scrollbar {
@@ -10558,6 +10583,8 @@ code {
     overflow-x: auto;
     scrollbar-width: none;
     padding-bottom: 0.05rem;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .home-hero-category-row::-webkit-scrollbar {
@@ -10948,10 +10975,6 @@ code {
 
   .contact-seller-form {
     gap: 0.7rem;
-  }
-
-  .detail-main {
-    padding-bottom: 150px;
   }
 
   .listing-editor-page-head {
@@ -11420,6 +11443,8 @@ code {
     overflow-x: auto;
     scrollbar-width: none;
     padding-bottom: 0.05rem;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .mobile-browse-quick-links::-webkit-scrollbar {

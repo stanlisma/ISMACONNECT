@@ -89,7 +89,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
             <main>{children}</main>
 
-            <SiteFooter />
+            <SiteFooter viewer={Boolean(viewer)} />
           </div>
         </LiveMessageProvider>
       </body>

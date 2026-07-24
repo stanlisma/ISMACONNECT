@@ -320,7 +320,7 @@ header.site-header {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1023px) {
   header.site-header {
     position: sticky !important;
     top: 0 !important;
@@ -469,6 +469,8 @@ header.site-header {
     margin: 0;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .market-main-nav::-webkit-scrollbar {
@@ -522,6 +524,8 @@ header.site-header {
     padding: 0 0 0.15rem;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .mobile-account-nav::-webkit-scrollbar {
@@ -566,6 +570,8 @@ header.site-header {
     padding: 0 0 0.1rem;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
   }
 
   .mobile-marketplace-nav::-webkit-scrollbar {

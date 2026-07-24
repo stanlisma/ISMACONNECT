@@ -1,8 +1,14 @@
 import Link from "next/link";
 
-import { CATEGORIES, SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
+import { CATEGORIES, SITE_DESCRIPTION, SITE_NAME, SITE_SUPPORT_EMAIL } from "@/lib/constants";
 
-export function SiteFooter() {
+interface SiteFooterProps {
+  viewer?: boolean;
+}
+
+export function SiteFooter({ viewer = false }: SiteFooterProps) {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="footer">
       <div className="container footer-grid">
@@ -16,7 +22,7 @@ export function SiteFooter() {
           <div className="footer-links">
             <Link href="/browse">Browse listings</Link>
             <Link href="/auth/sign-up">Create an account</Link>
-            <Link href="/auth/sign-in">My Listings</Link>
+            <Link href={viewer ? "/dashboard" : "/auth/sign-in"}>My Listings</Link>
           </div>
         </div>
 
@@ -38,8 +44,15 @@ export function SiteFooter() {
             <Link href="/terms">Terms of Use</Link>
             <Link href="/safety">Safety Tips</Link>
             <Link href="/contact">Contact Support</Link>
+            <a href={`mailto:${SITE_SUPPORT_EMAIL}`}>{SITE_SUPPORT_EMAIL}</a>
           </div>
         </div>
+      </div>
+
+      <div className="container footer-bottom">
+        <p>
+          © {currentYear} {SITE_NAME}. All rights reserved. Fort McMurray, AB.
+        </p>
       </div>
     </footer>
   );

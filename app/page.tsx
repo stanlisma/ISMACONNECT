@@ -57,8 +57,8 @@ export default async function HomePage() {
 
         {!viewer ? (
           <div className="action-row home-hero-actions">
-            <Link href="/auth/sign-up" className="button button-secondary">
-              Create account
+            <Link href="/browse" className="button button-secondary">
+              Browse listings
             </Link>
           </div>
         ) : null}
