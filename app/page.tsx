@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { getViewer } from "@/lib/auth";
 
 import { ListingCard } from "@/components/listings/listing-card";
@@ -46,6 +47,16 @@ export default async function HomePage() {
         <p style={subtitleStyle}>
           Search the local worker marketplace without digging through scattered posts and group chats.
         </p>
+
+        <form action="/browse" className="home-hero-search">
+          <label className="home-hero-search-field">
+            <Search aria-hidden="true" className="home-hero-search-icon" strokeWidth={2.2} />
+            <input name="q" placeholder="Search Fort McMurray listings" aria-label="Search listings" />
+          </label>
+          <button type="submit" className="button home-hero-search-submit">
+            Search
+          </button>
+        </form>
 
         <div className="home-hero-category-row">
           {heroCategories.map((category) => (

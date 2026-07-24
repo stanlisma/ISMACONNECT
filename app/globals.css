@@ -10030,6 +10030,58 @@ code {
   flex-wrap: wrap;
 }
 
+.home-hero-search {
+  display: flex;
+  gap: 0.6rem;
+  max-width: 480px;
+  margin: 1.1rem auto 0;
+}
+
+.home-hero-search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 1rem;
+  background: #fcfeff;
+}
+
+.home-hero-search-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #1e6bff;
+}
+
+.home-hero-search-field input {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.home-hero-search-submit {
+  flex-shrink: 0;
+  min-height: 3rem;
+  padding: 0 1.3rem;
+}
+
+@media (max-width: 480px) {
+  .home-hero-search {
+    flex-direction: column;
+  }
+
+  .home-hero-search-submit {
+    width: 100%;
+  }
+}
+
 .home-hero-category-row {
   display: flex;
   flex-wrap: wrap;
