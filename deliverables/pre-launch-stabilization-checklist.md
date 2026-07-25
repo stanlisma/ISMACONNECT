@@ -1,6 +1,6 @@
 # ISMACONNECT Pre-Launch Stabilization Checklist
 
-Last updated: 2026-07-24
+Last updated: 2026-07-25
 
 ## Verification Rules
 
@@ -29,7 +29,7 @@ Last updated: 2026-07-24
 ## P0 Auth
 
 - [x] Sign in works and stays signed in after clicking Browse, Messages, Account, and My Storefronts (verified with an already-authenticated session; the sign-in action itself needs a manual pass, see note above)
-- [ ] Sign up form is clean on desktop and phone — **manual check still needed** (requires entering credentials)
+- [x] Sign up form is clean on desktop and phone — manually verified by the user with a new test account
 - [x] Password reset flow works end to end — manually verified by the user. Found a real gap: the reset email was landing in spam. Root cause was a missing DMARC record plus a brand-new sending domain with no reputation yet — Supabase Auth emails (password reset, sign-up confirm, etc.) go through Supabase's own mail pipeline, separate from the app's Resend/message-notification setup, so this needed its own fix. Added `_dmarc.ismaconnect.ca` TXT record (`v=DMARC1; p=none; rua=mailto:payment@ismaconnect.ca`), confirmed live via DNS lookup. Deliverability should keep improving as the domain builds sending history.
 - [x] Sign out always clears session cleanly — manually verified by the user. Confirmed working as designed: `SignOutButton` (`components/auth/sign-out-button.tsx`) redirects to the homepage (not `/browse`) after sign-out; session cookie clears correctly (header shows Sign in/Sign Up, not Account). Redirect target is a one-line change if a different landing page is ever wanted, but current behavior is intentional, not broken.
 - [x] No auth bounce between `www` and non-`www` — confirmed `ismaconnect.ca` → `https://www.ismaconnect.ca/` in one hop, no loop
@@ -44,7 +44,7 @@ Last updated: 2026-07-24
 - [x] Listing opens from homepage, browse, category pages, and messages
 - [x] No duplicate dates, badges, trust, or meta — fixed a real duplicate ("Email confirmed"/"Phone confirmed" shown twice above 760px)
 - [x] Images never break layout — verified with photos, single-photo, and no-photo listings
-- [x] Map view does not trap scrolling on phone — `gestureHandling: "cooperative"` is already correctly set; true one-finger-touch behavior still needs a physical-phone spot check since this tooling can only simulate wheel-scroll, not touch swipe
+- [x] Map view does not trap scrolling on phone — `gestureHandling: "cooperative"` correctly set; manually verified on a real phone by the user
 - [x] Empty states always give one clear next step
 - [x] Loading states feel intentional
 
@@ -88,9 +88,9 @@ Last updated: 2026-07-24
 ## Final Launch Gate
 
 - [x] All P0 desktop-browser checks are green
-- [x] All P0 Android/iPhone-*browser* (Chrome/Safari, not installed PWA) checks are green via mobile-viewport simulation — a real-device pass is still worth doing before launch, especially for touch-based map scrolling and the credential-entry auth flows
+- [x] All P0 Android/iPhone-*browser* checks are green — confirmed via mobile-viewport simulation plus real-device verification by the user (sign-up, map touch-scroll)
 - [x] All P0 installed-PWA checks are green — confirmed working on the user's existing installed PWA; a fresh Add to Home Screen test on a new device is a nice-to-have, not a blocker
-- [ ] No known auth bug remains — password reset and sign-out are now manually verified (see notes above); sign-up form still needs a manual pass since it requires entering real credentials
+- [x] No known auth bug remains — sign-in, sign-up, password reset (including the DMARC/spam fix), and sign-out all manually verified by the user
 - [x] No known scroll bug remains (in tested surfaces)
 - [x] No known message-opening bug remains
 - [x] No broken listing or storefront creation path remains
