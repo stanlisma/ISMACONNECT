@@ -26,13 +26,25 @@ export async function signInAction(formData: FormData) {
   }
 
   const supabase = await createMutableServerSupabaseClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email: parsed.data!.email,
     password: parsed.data!.password
   });
 
   if (error) {
     redirectWithMessage("/auth/sign-in", "error", error.message);
+  }
+
+  if (signInData.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("deactivated_at")
+      .eq("id", signInData.user.id)
+      .maybeSingle();
+
+    if (profile?.deactivated_at) {
+      redirect("/account/reactivate");
+    }
   }
 
   redirect("/browse");
