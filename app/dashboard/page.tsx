@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DashboardListingControls } from "@/components/dashboard/dashboard-listing-controls";
 import { DeleteListingForm } from "@/components/listings/delete-listing-form";
+import { ListingStatusToggleForm } from "@/components/listings/listing-status-toggle-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { requireViewer } from "@/lib/auth";
@@ -242,7 +243,9 @@ export default async function DashboardPage({
                           ? "badge-danger"
                           : listing.status === "removed"
                             ? "badge-neutral"
-                            : "badge-featured"
+                            : listing.status === "paused" || listing.status === "deactivated"
+                              ? "badge-soft"
+                              : "badge-featured"
                       }`}
                     >
                       {LISTING_STATUS_LABELS[listing.status]}
@@ -292,6 +295,9 @@ export default async function DashboardPage({
                       <Link className="button button-secondary" href={`/dashboard/listings/${listing.id}/boost`}>
                         Promote
                       </Link>
+                    ) : null}
+                    {listing.status === "active" || listing.status === "paused" ? (
+                      <ListingStatusToggleForm listingId={listing.id} status={listing.status} />
                     ) : null}
                     <DeleteListingForm listingId={listing.id} />
                   </div>

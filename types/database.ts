@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 
 export type AppRole = "user" | "admin";
 export type ListingCategory = "rentals" | "ride-share" | "jobs" | "services" | "buy-sell";
-export type ListingStatus = "active" | "flagged" | "removed";
+export type ListingStatus = "active" | "flagged" | "removed" | "paused" | "deactivated";
 export type ListingIntent = "offer" | "need";
 export type RequestWindow = "today" | "this-week" | "flexible";
 export type ListingPriceType =

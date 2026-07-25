@@ -477,6 +477,70 @@ export async function deleteListingAction(listingId: string) {
   redirectWithMessage("/dashboard", "success", "Listing deleted successfully.");
 }
 
+export async function pauseListingAction(listingId: string) {
+  const viewer = await requireViewer();
+  const existing = await loadListingForMutation(listingId);
+
+  if (!existing || (existing.owner_id !== viewer.user.id && viewer.profile.role !== "admin")) {
+    redirectWithMessage("/dashboard", "error", "You do not have access to pause this listing.");
+  }
+
+  if (existing.status !== "active") {
+    redirectWithMessage("/dashboard", "error", "Only active listings can be paused.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase
+    .from("listings")
+    .update({ status: "paused" })
+    .eq("id", listingId);
+
+  if (error) {
+    redirectWithMessage("/dashboard", "error", error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/browse");
+  revalidatePath("/dashboard");
+  revalidatePath(`/categories/${existing.category}`);
+  revalidatePath(`/listings/${existing.slug}`);
+  revalidatePath(`/sellers/${existing.owner_id}`);
+
+  redirectWithMessage("/dashboard", "success", "Listing paused. It's hidden from other users until you resume it.");
+}
+
+export async function resumeListingAction(listingId: string) {
+  const viewer = await requireViewer();
+  const existing = await loadListingForMutation(listingId);
+
+  if (!existing || (existing.owner_id !== viewer.user.id && viewer.profile.role !== "admin")) {
+    redirectWithMessage("/dashboard", "error", "You do not have access to resume this listing.");
+  }
+
+  if (existing.status !== "paused") {
+    redirectWithMessage("/dashboard", "error", "Only paused listings can be resumed.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase
+    .from("listings")
+    .update({ status: "active" })
+    .eq("id", listingId);
+
+  if (error) {
+    redirectWithMessage("/dashboard", "error", error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/browse");
+  revalidatePath("/dashboard");
+  revalidatePath(`/categories/${existing.category}`);
+  revalidatePath(`/listings/${existing.slug}`);
+  revalidatePath(`/sellers/${existing.owner_id}`);
+
+  redirectWithMessage("/dashboard", "success", "Listing resumed and visible again.");
+}
+
 export async function flagListingAction(listingId: string, formData: FormData) {
   const viewer = await requireViewer();
   const existing = await loadListingForMutation(listingId);

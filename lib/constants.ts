@@ -125,7 +125,9 @@ export const CATEGORY_MAP = Object.fromEntries(
 export const LISTING_STATUS_LABELS: Record<ListingStatus, string> = {
   active: "Active",
   flagged: "Flagged",
-  removed: "Removed"
+  removed: "Removed",
+  paused: "Paused",
+  deactivated: "Paused"
 };
 
 export const HOMEPAGE_FEATURES = [

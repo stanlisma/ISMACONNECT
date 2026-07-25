@@ -170,12 +170,12 @@ export async function deactivateAccountAction() {
 
   const { error: listingsError } = await supabase
     .from("listings")
-    .update({ status: "paused" })
+    .update({ status: "deactivated" })
     .eq("owner_id", userId)
     .eq("status", "active");
 
   if (listingsError) {
-    console.error("Failed to pause listings on deactivation:", listingsError);
+    console.error("Failed to hide listings on deactivation:", listingsError);
   }
 
   const { error: storefrontsError } = await supabase
@@ -236,7 +236,7 @@ export async function reactivateAccountAction() {
     .from("listings")
     .update({ status: "active" })
     .eq("owner_id", userId)
-    .eq("status", "paused");
+    .eq("status", "deactivated");
 
   if (listingsError) {
     console.error("Failed to restore listings on reactivation:", listingsError);
