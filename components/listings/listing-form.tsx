@@ -331,10 +331,6 @@ const TITLE_PLACEHOLDER_MAP: Record<
   }
 };
 
-function getRandomItem<T>(items: T[]) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
 function getTitlePlaceholder(category: string, listingIntent: ListingIntent, subcategory?: string) {
   const categoryMap = TITLE_PLACEHOLDER_MAP[category];
   const fallback =
@@ -354,7 +350,7 @@ function getTitlePlaceholder(category: string, listingIntent: ListingIntent, sub
     .map((item) => item?.[listingIntent])
     .filter((value): value is string => Boolean(value));
 
-  return examples.length ? getRandomItem(examples) : fallback;
+  return examples.length ? examples[0] : fallback;
 }
 
 function getDescriptionHint(listingIntent: ListingIntent) {
