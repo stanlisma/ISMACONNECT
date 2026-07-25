@@ -11,6 +11,7 @@ export type InboxConversationEntry = {
   id: string;
   created_at: string;
   last_message_at: string | null;
+  sortTimestamp: string;
   buyer_id: string;
   seller_id: string;
   buyer_unread_count: number;
@@ -122,6 +123,8 @@ function mapConversationEntries(
         : conversation.buyer?.full_name?.trim() || "Buyer";
 
     const latestMessage = latestMessageMap.get(conversation.id) ?? null;
+    const sortTimestamp =
+      latestMessage?.created_at ?? conversation.last_message_at ?? conversation.created_at;
     const otherTyping =
       conversation.buyer_id === viewerId
         ? Boolean(conversation.seller_typing)
@@ -143,6 +146,7 @@ function mapConversationEntries(
       id: conversation.id,
       created_at: conversation.created_at,
       last_message_at: conversation.last_message_at,
+      sortTimestamp,
       buyer_id: conversation.buyer_id,
       seller_id: conversation.seller_id,
       buyer_unread_count: conversation.buyer_unread_count ?? 0,
@@ -156,7 +160,8 @@ function mapConversationEntries(
       preview,
       previewSenderId: latestMessage?.sender_id ?? null
     } satisfies InboxConversationEntry;
-  });
+  })
+  .sort((a, b) => new Date(b.sortTimestamp).getTime() - new Date(a.sortTimestamp).getTime());
 }
 
 export function MessagesInboxLive({
@@ -374,7 +379,7 @@ export function MessagesInboxLive({
                     <div className="messages-list-topline">
                       <strong>{conversation.listingTitle ?? "Listing conversation"}</strong>
                       <span className="messages-list-time">
-                        {formatInboxTimestamp(conversation.last_message_at, conversation.created_at)}
+                        {formatInboxTimestamp(conversation.sortTimestamp, conversation.created_at)}
                       </span>
                     </div>
 

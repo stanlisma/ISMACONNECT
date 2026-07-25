@@ -104,11 +104,14 @@ export default async function MessagesPage({
           ? "You sent a photo"
           : "Sent a photo"
         : "No messages yet";
+    const sortTimestamp =
+      latestMessage?.created_at ?? conversation.last_message_at ?? conversation.created_at;
 
     return {
       id: conversation.id,
       created_at: conversation.created_at,
       last_message_at: conversation.last_message_at,
+      sortTimestamp,
       buyer_id: conversation.buyer_id,
       seller_id: conversation.seller_id,
       buyer_unread_count: conversation.buyer_unread_count ?? 0,
@@ -124,6 +127,9 @@ export default async function MessagesPage({
       previewSenderId: latestMessage?.sender_id ?? null
     };
   });
+  conversationEntries.sort(
+    (a, b) => new Date(b.sortTimestamp).getTime() - new Date(a.sortTimestamp).getTime()
+  );
   const unreadThreadCount = conversationEntries.filter((conversation) => conversation.unreadCount > 0).length;
 
   return (
