@@ -171,7 +171,9 @@ async function generateUniqueSlug(title: string) {
 }
 
 async function loadListingForMutation(listingId: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
 
   const { data } = await supabase
     .from("listings")
