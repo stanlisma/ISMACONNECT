@@ -58,3 +58,113 @@ ${args.conversationUrl}
     throw new Error(error.message);
   }
 }
+
+function wrapEmailShell(bodyHtml: string) {
+  return `
+    <div style="font-family: Arial, sans-serif; color: #15365b; line-height: 1.6;">
+      ${bodyHtml}
+    </div>
+  `;
+}
+
+async function sendAccountStatusEmail(args: {
+  to: string;
+  recipientName?: string | null;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  const { resendApiKey, emailFrom } = getEmailEnv();
+  const resend = new Resend(resendApiKey);
+
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: [args.to],
+    subject: args.subject,
+    html: args.html,
+    text: args.text
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function sendAccountDeactivatedEmail(args: { to: string; recipientName?: string | null }) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = "Your ISMACONNECT account has been deactivated";
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">Your account has been deactivated</h2>
+      <p>Hello ${greeting},</p>
+      <p>
+        Your ISMACONNECT account, listings, and storefronts are now hidden from other users. Nothing was
+        deleted — sign back in anytime to reactivate and pick up exactly where you left off.
+      </p>
+      <p>If you did not make this change, please contact us right away at admin@ismaconnect.ca.</p>
+    `),
+    text: `Your account has been deactivated
+
+Hello ${greeting},
+
+Your ISMACONNECT account, listings, and storefronts are now hidden from other users. Nothing was deleted —
+sign back in anytime to reactivate and pick up exactly where you left off.
+
+If you did not make this change, please contact us right away at admin@ismaconnect.ca.`
+  });
+}
+
+export async function sendAccountReactivatedEmail(args: { to: string; recipientName?: string | null }) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = "Your ISMACONNECT account is active again";
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">Welcome back!</h2>
+      <p>Hello ${greeting},</p>
+      <p>Your ISMACONNECT account, listings, and storefronts are active and visible to other users again.</p>
+      <p>If you did not make this change, please contact us right away at admin@ismaconnect.ca.</p>
+    `),
+    text: `Welcome back!
+
+Hello ${greeting},
+
+Your ISMACONNECT account, listings, and storefronts are active and visible to other users again.
+
+If you did not make this change, please contact us right away at admin@ismaconnect.ca.`
+  });
+}
+
+export async function sendAccountDeletedEmail(args: { to: string; recipientName?: string | null }) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = "Your ISMACONNECT account has been deleted";
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">Your account has been deleted</h2>
+      <p>Hello ${greeting},</p>
+      <p>
+        Your ISMACONNECT profile, listings, and storefronts have been removed, and you can no longer sign in
+        to this account. Some records, such as payment history and conversations with other users, are
+        retained where we have a legal or fraud-prevention reason to keep them.
+      </p>
+      <p>If you did not make this change, please contact us right away at admin@ismaconnect.ca.</p>
+    `),
+    text: `Your account has been deleted
+
+Hello ${greeting},
+
+Your ISMACONNECT profile, listings, and storefronts have been removed, and you can no longer sign in to this
+account. Some records, such as payment history and conversations with other users, are retained where we have
+a legal or fraud-prevention reason to keep them.
+
+If you did not make this change, please contact us right away at admin@ismaconnect.ca.`
+  });
+}

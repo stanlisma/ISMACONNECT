@@ -4,9 +4,29 @@ import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 
 import { getViewer, requireViewer } from "@/lib/auth";
-import { isSupabaseServiceRoleConfigured } from "@/lib/env";
+import { isEmailConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
+import {
+  sendAccountDeactivatedEmail,
+  sendAccountDeletedEmail,
+  sendAccountReactivatedEmail
+} from "@/lib/email";
 import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
+
+async function sendAccountStatusEmailSafely(
+  send: () => Promise<void>,
+  context: string
+) {
+  if (!isEmailConfigured()) {
+    return;
+  }
+
+  try {
+    await send();
+  } catch (error) {
+    console.error(`Failed to send ${context} email:`, error);
+  }
+}
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -112,6 +132,13 @@ export async function deleteAccountAction(formData: FormData) {
     );
   }
 
+  if (viewer.user.email) {
+    await sendAccountStatusEmailSafely(
+      () => sendAccountDeletedEmail({ to: viewer.user.email!, recipientName: viewer.profile.full_name }),
+      "account deleted"
+    );
+  }
+
   const mutableSupabase = await createMutableServerSupabaseClient();
   await mutableSupabase.auth.signOut();
 
@@ -158,6 +185,13 @@ export async function deactivateAccountAction() {
 
   if (storefrontsError) {
     console.error("Failed to hide storefronts on deactivation:", storefrontsError);
+  }
+
+  if (viewer.user.email) {
+    await sendAccountStatusEmailSafely(
+      () => sendAccountDeactivatedEmail({ to: viewer.user.email!, recipientName: viewer.profile.full_name }),
+      "account deactivated"
+    );
   }
 
   const mutableSupabase = await createMutableServerSupabaseClient();
@@ -215,6 +249,13 @@ export async function reactivateAccountAction() {
 
   if (storefrontsError) {
     console.error("Failed to restore storefronts on reactivation:", storefrontsError);
+  }
+
+  if (viewer.user.email) {
+    await sendAccountStatusEmailSafely(
+      () => sendAccountReactivatedEmail({ to: viewer.user.email!, recipientName: viewer.profile.full_name }),
+      "account reactivated"
+    );
   }
 
   redirectWithMessage("/account", "success", "Welcome back! Your account is active again.");
