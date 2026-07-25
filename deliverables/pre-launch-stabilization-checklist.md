@@ -29,9 +29,9 @@ Last updated: 2026-07-24
 ## P0 Auth
 
 - [x] Sign in works and stays signed in after clicking Browse, Messages, Account, and My Storefronts (verified with an already-authenticated session; the sign-in action itself needs a manual pass, see note above)
-- [ ] Sign up form is clean on desktop and phone — **manual check needed** (requires entering credentials)
-- [ ] Password reset flow works end to end — **manual check needed** (requires entering credentials)
-- [ ] Sign out always clears session cleanly — **manual check needed** (requires entering credentials to sign back in and confirm)
+- [ ] Sign up form is clean on desktop and phone — **manual check still needed** (requires entering credentials)
+- [x] Password reset flow works end to end — manually verified by the user. Found a real gap: the reset email was landing in spam. Root cause was a missing DMARC record plus a brand-new sending domain with no reputation yet — Supabase Auth emails (password reset, sign-up confirm, etc.) go through Supabase's own mail pipeline, separate from the app's Resend/message-notification setup, so this needed its own fix. Added `_dmarc.ismaconnect.ca` TXT record (`v=DMARC1; p=none; rua=mailto:payment@ismaconnect.ca`), confirmed live via DNS lookup. Deliverability should keep improving as the domain builds sending history.
+- [x] Sign out always clears session cleanly — manually verified by the user. Confirmed working as designed: `SignOutButton` (`components/auth/sign-out-button.tsx`) redirects to the homepage (not `/browse`) after sign-out; session cookie clears correctly (header shows Sign in/Sign Up, not Account). Redirect target is a one-line change if a different landing page is ever wanted, but current behavior is intentional, not broken.
 - [x] No auth bounce between `www` and non-`www` — confirmed `ismaconnect.ca` → `https://www.ismaconnect.ca/` in one hop, no loop
 - [x] Auth validation errors are clear and inline
 
@@ -79,7 +79,7 @@ Last updated: 2026-07-24
 
 ## P0 PWA / Mobile Shell
 
-- [x] Installed PWA scroll works on key pages — verified in a mobile-width browser viewport; a true installed-PWA (Add to Home Screen) pass on a physical phone is still recommended
+- [x] Installed PWA scroll works on key pages — verified in a mobile-width browser viewport, and the user confirmed the already-installed PWA on their own device works correctly (existing install, not a fresh Add to Home Screen test — worth a fresh-install spot check on a different/new device at some point, but not blocking)
 - [x] Bottom nav never blocks content
 - [x] Prompts and helpers are fully visible
 - [x] Install / open flow is clean — manifest is well-formed (icons, shortcuts, standalone display)
@@ -89,8 +89,8 @@ Last updated: 2026-07-24
 
 - [x] All P0 desktop-browser checks are green
 - [x] All P0 Android/iPhone-*browser* (Chrome/Safari, not installed PWA) checks are green via mobile-viewport simulation — a real-device pass is still worth doing before launch, especially for touch-based map scrolling and the credential-entry auth flows
-- [ ] All P0 installed-PWA checks are green — needs a physical-device Add to Home Screen pass
-- [ ] No known auth bug remains — sign-in/sign-up/reset/sign-out flows specifically need a human's manual pass since they require entering real credentials
+- [x] All P0 installed-PWA checks are green — confirmed working on the user's existing installed PWA; a fresh Add to Home Screen test on a new device is a nice-to-have, not a blocker
+- [ ] No known auth bug remains — password reset and sign-out are now manually verified (see notes above); sign-up form still needs a manual pass since it requires entering real credentials
 - [x] No known scroll bug remains (in tested surfaces)
 - [x] No known message-opening bug remains
 - [x] No broken listing or storefront creation path remains
