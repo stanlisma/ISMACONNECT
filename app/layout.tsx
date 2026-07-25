@@ -9,7 +9,7 @@ import { PwaShell } from "@/components/pwa/pwa-shell";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
-import { getSavedSearchAlertState } from "@/lib/saved-searches";
+import { getUnreadActivitySummary } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 import "./globals.css";
@@ -24,19 +24,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   if (viewer) {
     const supabase = await createServerSupabaseClient();
 
-    const [conversationsResult, notificationsResult, unreadSavedSearchAlertsState] = await Promise.all([
+    const [conversationsResult, activitySummary] = await Promise.all([
       supabase
         .from("conversations")
         .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
         .or(`buyer_id.eq.${viewer.user.id},seller_id.eq.${viewer.user.id}`),
-      supabase
-        .from("notifications")
-        .select("created_at", { count: "exact" })
-        .eq("user_id", viewer.user.id)
-        .eq("is_read", false)
-        .order("created_at", { ascending: false })
-        .limit(1),
-      getSavedSearchAlertState(viewer.user.id)
+      getUnreadActivitySummary(viewer.user.id)
     ]);
 
     unreadMessagesCount =
@@ -52,15 +45,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         return total;
       }, 0) ?? 0;
 
-    unreadNotificationsCount = (notificationsResult.count ?? 0) + unreadSavedSearchAlertsState.count;
-
-    const latestUnreadNotificationAt = notificationsResult.data?.[0]?.created_at ?? null;
-    const latestUnreadSavedSearchAt = unreadSavedSearchAlertsState.latestCreatedAt ?? null;
-
-    unreadNotificationsMarker =
-      [latestUnreadNotificationAt, latestUnreadSavedSearchAt]
-        .filter((value): value is string => Boolean(value))
-        .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null;
+    unreadNotificationsCount = activitySummary.count;
+    unreadNotificationsMarker = activitySummary.marker;
   }
 
   return (

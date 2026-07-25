@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLiveMessageState } from "@/components/messages/live-message-provider";
 import { CATEGORIES } from "@/lib/constants";
+import { useClearedActivityBadgeCount } from "@/lib/hooks/use-cleared-activity-badge";
 import { getSubcategories } from "@/lib/subcategories";
 import "./site-header.css";
 
@@ -21,12 +21,6 @@ interface SiteHeaderProps {
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
   unreadNotificationsMarker: string | null;
-}
-
-const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
-
-function getClearedNotificationsMarkerKey(viewerId?: string | null) {
-  return viewerId ? `${CLEARED_NOTIFICATIONS_MARKER_KEY}:${viewerId}` : null;
 }
 
 function formatBadgeCount(count: number) {
@@ -46,79 +40,15 @@ export function SiteHeader({
   const pathname = usePathname();
   const { unreadMessagesCount: liveUnreadMessagesCount } = useLiveMessageState();
   const viewerId = viewer?.user.id ?? null;
-  const [notificationBadgeCount, setNotificationBadgeCount] = useState(
-    pathname === "/notifications" ? 0 : unreadNotificationsCount
+  const notificationBadgeCount = useClearedActivityBadgeCount(
+    viewerId,
+    unreadNotificationsCount,
+    unreadNotificationsMarker
   );
-  const previousUnreadNotificationsMarker = useRef<string | null>(unreadNotificationsMarker);
   const headerCategoryLinks = CATEGORIES.filter((category) => category.value !== "buy-sell").map((category) => ({
     ...category,
     subcategories: getSubcategories(category.value)
   }));
-
-  useEffect(() => {
-    if (!viewerId) {
-      return;
-    }
-
-    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
-
-    if (pathname === "/notifications") {
-      setNotificationBadgeCount(0);
-
-      if (markerStorageKey) {
-        if (unreadNotificationsMarker) {
-          window.localStorage.setItem(markerStorageKey, unreadNotificationsMarker);
-        } else {
-          window.localStorage.removeItem(markerStorageKey);
-        }
-      }
-    }
-  }, [pathname, unreadNotificationsMarker, viewerId]);
-
-  useEffect(() => {
-    if (!viewerId) {
-      setNotificationBadgeCount(0);
-      previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
-      return;
-    }
-
-    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
-    const clearedMarker = markerStorageKey
-      ? window.localStorage.getItem(markerStorageKey)
-      : null;
-
-    if (pathname === "/notifications") {
-      setNotificationBadgeCount(0);
-      return;
-    }
-
-    if (!unreadNotificationsMarker || unreadNotificationsCount <= 0) {
-      if (markerStorageKey) {
-        window.localStorage.removeItem(markerStorageKey);
-      }
-      setNotificationBadgeCount(0);
-      previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
-      return;
-    }
-
-    if (clearedMarker && clearedMarker === unreadNotificationsMarker) {
-      setNotificationBadgeCount(0);
-      previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
-      return;
-    }
-
-    if (
-      previousUnreadNotificationsMarker.current &&
-      previousUnreadNotificationsMarker.current !== unreadNotificationsMarker
-    ) {
-      if (markerStorageKey) {
-        window.localStorage.removeItem(markerStorageKey);
-      }
-    }
-
-    setNotificationBadgeCount(unreadNotificationsCount);
-    previousUnreadNotificationsMarker.current = unreadNotificationsMarker;
-  }, [pathname, unreadNotificationsCount, unreadNotificationsMarker, viewerId]);
 
   return (
     <header className="site-header">

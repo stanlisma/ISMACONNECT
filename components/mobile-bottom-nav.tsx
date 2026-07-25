@@ -3,8 +3,8 @@
 import { Bell, CircleUserRound, MessageCircle, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 import { useLiveMessageState } from "@/components/messages/live-message-provider";
+import { useClearedActivityBadgeCount } from "@/lib/hooks/use-cleared-activity-badge";
 
 interface MobileBottomNavProps {
   viewer: boolean;
@@ -12,12 +12,6 @@ interface MobileBottomNavProps {
   unreadMessagesCount: number;
   unreadActivityCount: number;
   unreadActivityMarker: string | null;
-}
-
-const CLEARED_NOTIFICATIONS_MARKER_KEY = "ismaconnect-cleared-notifications-marker";
-
-function getClearedNotificationsMarkerKey(viewerId?: string | null) {
-  return viewerId ? `${CLEARED_NOTIFICATIONS_MARKER_KEY}:${viewerId}` : null;
 }
 
 function formatBadgeCount(count: number) {
@@ -33,10 +27,7 @@ export function MobileBottomNav({
 }: MobileBottomNavProps) {
   const pathname = usePathname();
   const { unreadMessagesCount: liveUnreadMessagesCount } = useLiveMessageState();
-  const [activityBadgeCount, setActivityBadgeCount] = useState(
-    pathname === "/notifications" ? 0 : unreadActivityCount
-  );
-  const previousUnreadActivityMarker = useRef<string | null>(unreadActivityMarker);
+  const activityBadgeCount = useClearedActivityBadgeCount(viewerId, unreadActivityCount, unreadActivityMarker);
 
   const isSearchSurface =
     pathname === "/" ||
@@ -60,71 +51,6 @@ export function MobileBottomNav({
     pathname === "/account" ||
     pathname === "/saved" ||
     pathname.startsWith("/settings");
-
-  useEffect(() => {
-    if (!viewerId) {
-      return;
-    }
-
-    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
-
-    if (pathname === "/notifications") {
-      setActivityBadgeCount(0);
-
-      if (markerStorageKey) {
-        if (unreadActivityMarker) {
-          window.localStorage.setItem(markerStorageKey, unreadActivityMarker);
-        } else {
-          window.localStorage.removeItem(markerStorageKey);
-        }
-      }
-    }
-  }, [pathname, unreadActivityMarker, viewerId]);
-
-  useEffect(() => {
-    if (!viewerId) {
-      setActivityBadgeCount(0);
-      previousUnreadActivityMarker.current = unreadActivityMarker;
-      return;
-    }
-
-    const markerStorageKey = getClearedNotificationsMarkerKey(viewerId);
-    const clearedMarker = markerStorageKey
-      ? window.localStorage.getItem(markerStorageKey)
-      : null;
-
-    if (pathname === "/notifications") {
-      setActivityBadgeCount(0);
-      return;
-    }
-
-    if (!unreadActivityMarker || unreadActivityCount <= 0) {
-      if (markerStorageKey) {
-        window.localStorage.removeItem(markerStorageKey);
-      }
-      setActivityBadgeCount(0);
-      previousUnreadActivityMarker.current = unreadActivityMarker;
-      return;
-    }
-
-    if (clearedMarker && clearedMarker === unreadActivityMarker) {
-      setActivityBadgeCount(0);
-      previousUnreadActivityMarker.current = unreadActivityMarker;
-      return;
-    }
-
-    if (
-      previousUnreadActivityMarker.current &&
-      previousUnreadActivityMarker.current !== unreadActivityMarker
-    ) {
-      if (markerStorageKey) {
-        window.localStorage.removeItem(markerStorageKey);
-      }
-    }
-
-    setActivityBadgeCount(unreadActivityCount);
-    previousUnreadActivityMarker.current = unreadActivityMarker;
-  }, [pathname, unreadActivityCount, unreadActivityMarker, viewerId]);
 
   if (pathname.startsWith("/auth/")) {
     return null;

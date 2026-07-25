@@ -12,10 +12,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { AccountActivityBadge } from "@/components/account/account-activity-badge";
+import { AccountUnreadStat } from "@/components/account/account-unread-stat";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { requireViewer } from "@/lib/auth";
+import { getUnreadActivitySummary } from "@/lib/notifications";
 import { countSavedSearchAlerts, getSavedSearchesWithStats } from "@/lib/saved-searches";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSellerTrustSummary } from "@/lib/trust";
@@ -39,7 +42,7 @@ export default async function AccountPage() {
     listingsCountResult,
     favouritesCountResult,
     conversationsResult,
-    notificationsResult,
+    activitySummary,
     profileSettingsResult,
     savedSearches,
     trustSummary
@@ -57,11 +60,7 @@ export default async function AccountPage() {
         .from("conversations")
         .select("buyer_id, seller_id, buyer_unread_count, seller_unread_count")
         .or(`buyer_id.eq.${viewer.user.id},seller_id.eq.${viewer.user.id}`),
-      supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", viewer.user.id)
-        .eq("is_read", false),
+      getUnreadActivitySummary(viewer.user.id),
       supabase
         .from("profiles")
         .select("email_notifications")
@@ -93,13 +92,10 @@ export default async function AccountPage() {
 
     return total;
   }, 0);
-  const unreadNotificationsCount = notificationsResult.count ?? 0;
-
   const fullName = viewer.profile.full_name || "ISMACONNECT Member";
   const email = viewer.user.email || "No email available";
   const initials = getInitials(fullName, viewer.user.email);
   const emailNotificationsEnabled = profileSettingsResult.data?.email_notifications !== false;
-  const unreadTotal = unreadMessagesCount + unreadNotificationsCount + searchAlertsCount;
   return (
     <section className="section account-page">
       <div className="container account-page-container">
@@ -141,10 +137,12 @@ export default async function AccountPage() {
                 <strong>{favouritesCount}</strong>
               </div>
 
-              <div className="account-stat-card">
-                <span className="account-stat-label">Unread</span>
-                <strong>{unreadTotal}</strong>
-              </div>
+              <AccountUnreadStat
+                viewerId={viewer.user.id}
+                unreadMessagesCount={unreadMessagesCount}
+                unreadActivityCount={activitySummary.count}
+                unreadActivityMarker={activitySummary.marker}
+              />
             </div>
           </div>
 
@@ -236,9 +234,11 @@ export default async function AccountPage() {
                   <span className="account-menu-description">Review account and listing updates.</span>
                 </span>
                 <span className="account-menu-meta">
-                  {unreadNotificationsCount > 0 ? (
-                    <span className="account-menu-badge">{unreadNotificationsCount}</span>
-                  ) : null}
+                  <AccountActivityBadge
+                    viewerId={viewer.user.id}
+                    unreadActivityCount={activitySummary.count}
+                    unreadActivityMarker={activitySummary.marker}
+                  />
                   <ChevronRight aria-hidden="true" size={18} strokeWidth={2.3} />
                 </span>
               </Link>
