@@ -9,7 +9,7 @@ function formatStaticDateLabel(dateString: string) {
   return new Intl.DateTimeFormat("en-CA", {
     month: "short",
     day: "numeric",
-    timeZone: "UTC"
+    timeZone: "America/Edmonton"
   }).format(new Date(dateString));
 }
 

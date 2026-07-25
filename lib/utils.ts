@@ -81,7 +81,8 @@ export function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-CA", {
     month: "short",
     day: "numeric",
-    year: "numeric"
+    year: "numeric",
+    timeZone: "America/Edmonton"
   }).format(new Date(value));
 }
 

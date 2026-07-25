@@ -83,7 +83,8 @@ function formatNotificationTimestamp(value: string | null | undefined) {
     month: "short",
     day: "numeric",
     hour: "numeric",
-    minute: "2-digit"
+    minute: "2-digit",
+    timeZone: "America/Edmonton"
   }).format(date);
 }
 
