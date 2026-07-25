@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { requireViewer } from "@/lib/auth";
-import { isWebPushConfigured } from "@/lib/env";
+import { isSupabaseServiceRoleConfigured, isWebPushConfigured } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
+
+async function getScopedSupabaseClient() {
+  return isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
+}
 
 function extractKeys(subscription: any) {
   return {
@@ -13,7 +20,7 @@ function extractKeys(subscription: any) {
 
 export async function GET() {
   const viewer = await requireViewer();
-  const supabase = await createServerSupabaseClient();
+  const supabase = await getScopedSupabaseClient();
 
   const { data } = await supabase
     .from("push_subscriptions")
@@ -28,7 +35,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const viewer = await requireViewer();
-  const supabase = await createServerSupabaseClient();
+  const supabase = await getScopedSupabaseClient();
   const body = await request.json();
   const subscription = body?.subscription;
   const { p256dh, auth } = extractKeys(subscription);
@@ -62,7 +69,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const viewer = await requireViewer();
-  const supabase = await createServerSupabaseClient();
+  const supabase = await getScopedSupabaseClient();
   const body = await request.json();
   const endpoint = body?.endpoint;
 
