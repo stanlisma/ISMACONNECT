@@ -42,7 +42,7 @@ export function StorefrontDirectoryCard({
           </div>
         </div>
 
-        <TrustBadges summary={trustSummary} compact />
+        <TrustBadges summary={trustSummary} compact showVerifiedBadge={false} />
       </div>
 
       <div className="storefront-directory-meta">

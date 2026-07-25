@@ -121,7 +121,7 @@ export default async function AccountPage() {
                 <p className="section-copy account-email">{email}</p>
 
                 <div className="account-trust-summary">
-                  <TrustBadges summary={trustSummary} />
+                  <TrustBadges summary={trustSummary} showVerifiedBadge={false} />
                 </div>
               </div>
             </div>
