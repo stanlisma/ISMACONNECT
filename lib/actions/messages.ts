@@ -99,13 +99,17 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     .eq("id", conversation.id)
     .single();
 
-  await supabase
+  const { error: conversationUpdateError } = await supabase
     .from("conversations")
     .update({
       [unreadField]: ((currentConversation as any)?.[unreadField] ?? 0) + 1,
       last_message_at: new Date().toISOString()
     })
     .eq("id", conversation.id);
+
+  if (conversationUpdateError) {
+    console.error("Failed to update conversation after first message:", conversationUpdateError);
+  }
 
   try {
     await createNotificationAndPush({

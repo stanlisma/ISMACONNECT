@@ -152,12 +152,16 @@ export async function updateNotificationSettingsAction(formData: FormData) {
   const emailNotifications =
     formData.get("email_notifications") === "on";
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .update({
       email_notifications: emailNotifications
     })
     .eq("id", viewer.user.id);
+
+  if (error) {
+    console.error("Failed to update email notification setting:", error);
+  }
 
   redirect("/settings?success=Settings updated");
 }
@@ -265,10 +269,14 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     ? await geocodeMarketplaceAddress(parsed.address)
     : null;
 
-  await supabase
+  const { error: isBusinessError } = await supabase
     .from("profiles")
     .update({ is_business: true })
     .eq("id", viewer.user.id);
+
+  if (isBusinessError) {
+    console.error("Failed to mark profile as business (create storefront):", isBusinessError);
+  }
 
   const { data: insertedStorefront, error } = await supabase
     .from("business_storefronts")
@@ -485,10 +493,14 @@ export async function deleteAdditionalStorefrontAction(storefrontId: string, for
     .eq("owner_id", viewer.user.id);
 
   if ((remainingStorefrontCount ?? 0) === 0) {
-    await supabase
+    const { error: isBusinessError } = await supabase
       .from("profiles")
       .update({ is_business: false })
       .eq("id", viewer.user.id);
+
+    if (isBusinessError) {
+      console.error("Failed to unmark profile as business (delete storefront):", isBusinessError);
+    }
   }
 
   revalidatePath("/settings");

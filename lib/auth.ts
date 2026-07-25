@@ -34,7 +34,7 @@ async function ensureProfileRow(user: {
     const serviceRole = createServiceRoleSupabaseClient();
     const metadata = user.user_metadata ?? {};
 
-    await serviceRole.from("profiles").upsert(
+    const { error } = await serviceRole.from("profiles").upsert(
       {
         id: user.id,
         email: user.email ?? null,
@@ -57,6 +57,10 @@ async function ensureProfileRow(user: {
         ignoreDuplicates: false
       }
     );
+
+    if (error) {
+      console.error("Failed to ensure viewer profile row:", error);
+    }
   } catch (error) {
     console.error("Failed to ensure viewer profile row:", error);
   }

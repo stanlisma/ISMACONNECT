@@ -17,15 +17,23 @@ export async function toggleSavedListingAction(listingId: string, pathToRevalida
     .maybeSingle();
 
   if (existing) {
-    await supabase
+    const { error } = await supabase
       .from("saved_listings")
       .delete()
       .eq("id", existing.id);
+
+    if (error) {
+      console.error("Failed to remove saved listing:", error);
+    }
   } else {
-    await supabase.from("saved_listings").insert({
+    const { error } = await supabase.from("saved_listings").insert({
       user_id: viewer.user.id,
       listing_id: listingId
     });
+
+    if (error) {
+      console.error("Failed to create saved listing:", error);
+    }
   }
 
   if (pathToRevalidate) {

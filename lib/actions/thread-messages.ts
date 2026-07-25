@@ -72,7 +72,7 @@ export async function sendThreadMessageAction(formData: FormData) {
   const unreadField = isBuyer ? "seller_unread_count" : "buyer_unread_count";
   const typingField = isBuyer ? "buyer_typing" : "seller_typing";
 
-  await supabase
+  const { error: conversationUpdateError } = await supabase
     .from("conversations")
     .update({
       [unreadField]: ((conversation as any)[unreadField] ?? 0) + 1,
@@ -80,6 +80,10 @@ export async function sendThreadMessageAction(formData: FormData) {
       last_message_at: new Date().toISOString()
     })
     .eq("id", conversation.id);
+
+  if (conversationUpdateError) {
+    console.error("Failed to update conversation after reply:", conversationUpdateError);
+  }
 
   try {
     await createNotificationAndPush({

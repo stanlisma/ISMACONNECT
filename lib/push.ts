@@ -55,13 +55,17 @@ export async function createNotificationAndPush(params: {
 }) {
   const supabase = createServiceRoleSupabaseClient();
 
-  await supabase.from("notifications").insert({
+  const { error } = await supabase.from("notifications").insert({
     user_id: params.userId,
     type: params.type,
     title: params.title,
     body: params.body,
     link: params.link ?? null
   });
+
+  if (error) {
+    console.error("Failed to create notification:", error);
+  }
 
   await sendPushToUser(params.userId, {
     title: params.title,

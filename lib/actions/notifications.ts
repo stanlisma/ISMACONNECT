@@ -17,11 +17,15 @@ export async function markNotificationReadAction(notificationId: string, link?: 
   const viewer = await requireViewer();
   const supabase = await createServerSupabaseClient();
 
-  await supabase
+  const { error } = await supabase
     .from("notifications")
     .update({ is_read: true })
     .eq("id", notificationId)
     .eq("user_id", viewer.user.id);
+
+  if (error) {
+    console.error("Failed to mark notification read:", error);
+  }
 
   redirect(getSafeAppPath(link, "/notifications"));
 }

@@ -82,13 +82,17 @@ export async function toggleSavedSearchAction(formData: FormData) {
     .maybeSingle();
 
   if (existing) {
-    await supabase
+    const { error } = await supabase
       .from("saved_searches")
       .delete()
       .eq("id", existing.id)
       .eq("user_id", viewer.user.id);
+
+    if (error) {
+      console.error("Failed to remove saved search:", error);
+    }
   } else {
-    await supabase.from("saved_searches").insert({
+    const { error } = await supabase.from("saved_searches").insert({
       user_id: viewer.user.id,
       path: filters.path,
       search_query: filters.search,
@@ -101,6 +105,10 @@ export async function toggleSavedSearchAction(formData: FormData) {
       signature,
       last_checked_at: new Date().toISOString()
     });
+
+    if (error) {
+      console.error("Failed to create saved search:", error);
+    }
   }
 
   getRevalidationPaths(filters.path).forEach((path) => {

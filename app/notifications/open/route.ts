@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   const supabase = await createServerSupabaseClient();
 
   if (markAll) {
-    await Promise.all([
+    const [notificationsResult, savedSearchesResult] = await Promise.all([
       supabase
         .from("notifications")
         .update({ is_read: true })
@@ -38,23 +38,39 @@ export async function GET(request: Request) {
         .update({ last_checked_at: viewedAt })
         .eq("user_id", viewer.user.id)
     ]);
+
+    if (notificationsResult.error) {
+      console.error("Failed to mark all notifications read:", notificationsResult.error);
+    }
+
+    if (savedSearchesResult.error) {
+      console.error("Failed to update saved-search last_checked_at (mark all):", savedSearchesResult.error);
+    }
   } else {
-    await Promise.all([
+    const [notificationResult, savedSearchResult] = await Promise.all([
       notificationId
         ? supabase
             .from("notifications")
             .update({ is_read: true })
             .eq("id", notificationId)
             .eq("user_id", viewer.user.id)
-        : Promise.resolve(),
+        : Promise.resolve(null),
       savedSearchId
         ? supabase
             .from("saved_searches")
             .update({ last_checked_at: viewedAt })
             .eq("id", savedSearchId)
             .eq("user_id", viewer.user.id)
-        : Promise.resolve()
+        : Promise.resolve(null)
     ]);
+
+    if (notificationResult?.error) {
+      console.error("Failed to mark notification read:", notificationResult.error);
+    }
+
+    if (savedSearchResult?.error) {
+      console.error("Failed to update saved-search last_checked_at:", savedSearchResult.error);
+    }
   }
 
   return NextResponse.redirect(new URL(next, request.url));

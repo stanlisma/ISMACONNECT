@@ -191,13 +191,17 @@ export async function markBoostOrderStatus(
 ) {
   const serviceSupabase = createServiceRoleSupabaseClient();
 
-  await serviceSupabase
+  const { error } = await serviceSupabase
     .from("listing_boost_orders")
     .update({
       status,
       stripe_payment_intent_id: stripePaymentIntentId ?? null
     })
     .eq("id", orderId);
+
+  if (error) {
+    console.error("Failed to update boost order status:", error);
+  }
 }
 
 export async function getBoostOrderById(orderId: string) {

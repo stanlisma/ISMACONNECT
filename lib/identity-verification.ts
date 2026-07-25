@@ -261,7 +261,7 @@ export async function reconcileIdentityVerificationProfile(userId: string) {
 
     if (hasChanges && isSupabaseServiceRoleConfigured()) {
       const serviceSupabase = createServiceRoleSupabaseClient();
-      await serviceSupabase
+      const { error: updateError } = await serviceSupabase
         .from("profiles")
         .update({
           verification_status: nextProfile.verification_status,
@@ -273,6 +273,10 @@ export async function reconcileIdentityVerificationProfile(userId: string) {
           stripe_identity_last_error_reason: nextProfile.stripe_identity_last_error_reason
         })
         .eq("id", userId);
+
+      if (updateError) {
+        console.error("Failed to reconcile identity verification profile:", updateError);
+      }
     }
 
     return nextProfile;

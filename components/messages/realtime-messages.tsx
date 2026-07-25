@@ -138,7 +138,14 @@ export function RealtimeMessages({
       const seenAt = new Date().toISOString();
 
       if (unseenIncomingMessageIds.length) {
-        await supabase.from("messages").update({ seen_at: seenAt }).in("id", unseenIncomingMessageIds);
+        const { error: seenError } = await supabase
+          .from("messages")
+          .update({ seen_at: seenAt })
+          .in("id", unseenIncomingMessageIds);
+
+        if (seenError) {
+          console.error("Failed to mark messages seen:", seenError);
+        }
 
         setMessages((current) =>
           current.map((message) =>
@@ -149,10 +156,14 @@ export function RealtimeMessages({
         );
       }
 
-      await supabase
+      const { error: unreadError } = await supabase
         .from("conversations")
         .update({ [unreadField]: 0 })
         .eq("id", conversationId);
+
+      if (unreadError) {
+        console.error("Failed to clear conversation unread count:", unreadError);
+      }
     }
 
     void syncOpenedConversation();
@@ -164,8 +175,23 @@ export function RealtimeMessages({
     async function markIncomingMessageSeen(messageId: string) {
       const seenAt = new Date().toISOString();
 
-      await supabase.from("messages").update({ seen_at: seenAt }).eq("id", messageId);
-      await supabase.from("conversations").update({ [unreadField]: 0 }).eq("id", conversationId);
+      const { error: seenError } = await supabase
+        .from("messages")
+        .update({ seen_at: seenAt })
+        .eq("id", messageId);
+
+      if (seenError) {
+        console.error("Failed to mark message seen:", seenError);
+      }
+
+      const { error: unreadError } = await supabase
+        .from("conversations")
+        .update({ [unreadField]: 0 })
+        .eq("id", conversationId);
+
+      if (unreadError) {
+        console.error("Failed to clear conversation unread count:", unreadError);
+      }
 
       setMessages((current) =>
         current.map((message) =>
