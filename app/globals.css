@@ -1952,6 +1952,42 @@ code {
   text-overflow: ellipsis;
 }
 
+.password-input-wrap {
+  position: relative;
+  display: flex;
+}
+
+.password-input-wrap .input {
+  padding-right: 2.75rem;
+}
+
+.password-input-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.4rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.password-input-toggle:hover {
+  color: var(--text);
+  background: rgba(17, 24, 39, 0.06);
+}
+
+.password-input-toggle:focus-visible {
+  outline: 2px solid rgba(21, 73, 183, 0.35);
+  outline-offset: 2px;
+}
+
 .input:disabled {
   color: var(--text-soft);
   opacity: 1;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { FlashMessage } from "@/components/ui/flash-message";
+import { PasswordInput } from "@/components/ui/password-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FieldHelp } from "@/components/ui/field-help";
 import { trackMarketplaceEvent } from "@/lib/analytics";
@@ -104,28 +105,24 @@ export function AuthForm({
 
           <label className={`field${isSignUp ? "" : " field-full"}`}>
             <span className="field-label">Password</span>
-            <input
+            <PasswordInput
               autoComplete={isSignUp ? "new-password" : "current-password"}
-              className="input"
               minLength={8}
               name="password"
               placeholder="At least 8 characters"
               required
-              type="password"
             />
           </label>
 
           {isSignUp ? (
             <label className="field">
               <span className="field-label">Confirm password</span>
-              <input
+              <PasswordInput
                 autoComplete="new-password"
-                className="input"
                 minLength={8}
                 name="confirmPassword"
                 placeholder="Re-enter your password"
                 required
-                type="password"
               />
             </label>
           ) : null}

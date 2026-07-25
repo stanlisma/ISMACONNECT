@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { FlashMessage } from "@/components/ui/flash-message";
+import { PasswordInput } from "@/components/ui/password-input";
 import { resetPasswordAction } from "@/lib/actions/auth";
 import { getSingleParam } from "@/lib/utils";
 
@@ -32,9 +33,7 @@ export default async function ResetPasswordPage({
           <form action={resetPasswordAction} className="stack-md" style={{ marginTop: "1.5rem" }}>
             <label className="field">
               <span className="field-label">New password</span>
-              <input
-                className="input"
-                type="password"
+              <PasswordInput
                 name="password"
                 required
                 minLength={8}
@@ -44,9 +43,7 @@ export default async function ResetPasswordPage({
 
             <label className="field">
               <span className="field-label">Confirm new password</span>
-              <input
-                className="input"
-                type="password"
+              <PasswordInput
                 name="confirmPassword"
                 required
                 minLength={8}
