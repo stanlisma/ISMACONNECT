@@ -144,6 +144,10 @@ export async function requireViewer() {
     redirect("/auth/sign-in");
   }
 
+  if (viewer.profile.deactivated_at) {
+    redirect("/account/reactivate");
+  }
+
   return viewer;
 }
 

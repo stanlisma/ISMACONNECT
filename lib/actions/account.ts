@@ -3,7 +3,7 @@
 import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 
-import { requireViewer } from "@/lib/auth";
+import { getViewer, requireViewer } from "@/lib/auth";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
@@ -116,4 +116,106 @@ export async function deleteAccountAction(formData: FormData) {
   await mutableSupabase.auth.signOut();
 
   redirect("/account-deleted");
+}
+
+export async function deactivateAccountAction() {
+  const viewer = await requireViewer();
+  const userId = viewer.user.id;
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage(
+      "/settings",
+      "error",
+      "Account deactivation is temporarily unavailable. Please contact support."
+    );
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ deactivated_at: new Date().toISOString() })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("Failed to deactivate profile:", profileError);
+  }
+
+  const { error: listingsError } = await supabase
+    .from("listings")
+    .update({ status: "paused" })
+    .eq("owner_id", userId)
+    .eq("status", "active");
+
+  if (listingsError) {
+    console.error("Failed to pause listings on deactivation:", listingsError);
+  }
+
+  const { error: storefrontsError } = await supabase
+    .from("business_storefronts")
+    .update({ is_active: false })
+    .eq("owner_id", userId);
+
+  if (storefrontsError) {
+    console.error("Failed to hide storefronts on deactivation:", storefrontsError);
+  }
+
+  const mutableSupabase = await createMutableServerSupabaseClient();
+  await mutableSupabase.auth.signOut();
+
+  redirectWithMessage(
+    "/auth/sign-in",
+    "success",
+    "Your account is deactivated. Sign back in anytime to reactivate it."
+  );
+}
+
+export async function reactivateAccountAction() {
+  const viewer = await getViewer();
+
+  if (!viewer) {
+    redirect("/auth/sign-in");
+  }
+
+  const userId = viewer.user.id;
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage(
+      "/account/reactivate",
+      "error",
+      "Reactivation is temporarily unavailable. Please contact support."
+    );
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ deactivated_at: null })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("Failed to reactivate profile:", profileError);
+  }
+
+  const { error: listingsError } = await supabase
+    .from("listings")
+    .update({ status: "active" })
+    .eq("owner_id", userId)
+    .eq("status", "paused");
+
+  if (listingsError) {
+    console.error("Failed to restore listings on reactivation:", listingsError);
+  }
+
+  const { error: storefrontsError } = await supabase
+    .from("business_storefronts")
+    .update({ is_active: true })
+    .eq("owner_id", userId);
+
+  if (storefrontsError) {
+    console.error("Failed to restore storefronts on reactivation:", storefrontsError);
+  }
+
+  redirectWithMessage("/account", "success", "Welcome back! Your account is active again.");
 }

@@ -4,6 +4,7 @@ import { AdditionalStorefrontsManager } from "@/components/settings/additional-s
 import { DeleteAccountForm } from "@/components/settings/delete-account-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { TrustBadges } from "@/components/trust/trust-badges";
@@ -17,6 +18,7 @@ import {
   reconcileIdentityVerificationProfile,
   reconcileLatestIdentityVerificationPayment
 } from "@/lib/identity-verification";
+import { deactivateAccountAction } from "@/lib/actions/account";
 import {
   createAdditionalStorefrontAction,
   deleteAdditionalStorefrontAction,
@@ -134,7 +136,7 @@ export default async function SettingsPage({
               Verification
             </a>
             <a className="account-menu-pill" href="#danger">
-              Delete Account
+              Account
             </a>
           </div>
         </div>
@@ -340,6 +342,31 @@ export default async function SettingsPage({
         </div>
 
         <div className="surface settings-section-card" id="danger">
+          <div className="settings-title-row">
+            <h2>Deactivate Account</h2>
+            <FieldHelp
+              label="Deactivate Account"
+              text="Temporarily hides your listings and storefronts and signs you out everywhere. Nothing is deleted — sign back in anytime to reactivate and pick up exactly where you left off."
+            />
+          </div>
+
+          <p className="browser-notification-note">
+            Your profile, listings, and storefronts stay hidden from other users until you reactivate. This is
+            fully reversible.
+          </p>
+
+          <form action={deactivateAccountAction} className="settings-block-stack">
+            <ConfirmSubmitButton
+              className="button-secondary"
+              confirmMessage="Deactivate your account? Your listings and storefronts will be hidden until you sign back in and reactivate."
+              pendingLabel="Deactivating..."
+            >
+              Deactivate my account
+            </ConfirmSubmitButton>
+          </form>
+        </div>
+
+        <div className="surface settings-section-card" id="delete">
           <div className="settings-title-row">
             <h2>Delete Account</h2>
             <FieldHelp

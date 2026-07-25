@@ -170,6 +170,8 @@ export interface Profile {
   stripe_identity_session_status?: string | null;
   stripe_identity_last_error_code?: string | null;
   stripe_identity_last_error_reason?: string | null;
+  deleted_at?: string | null;
+  deactivated_at?: string | null;
   created_at: string;
   updated_at: string;
 }

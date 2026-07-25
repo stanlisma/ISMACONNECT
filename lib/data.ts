@@ -606,6 +606,7 @@ export async function getPublicSellerStorefront(
       .select("*")
       .eq("id", storefrontId)
       .eq("owner_id", sellerId)
+      .eq("is_active", true)
       .maybeSingle();
 
     if (storefrontResponse.error) {
@@ -746,6 +747,7 @@ export async function getPublicSellerStorefrontLinks(sellerId: string) {
     .from("business_storefronts")
     .select("id, name, logo_url")
     .eq("owner_id", sellerId)
+    .eq("is_active", true)
     .order("updated_at", { ascending: false });
 
   if (storefrontResponse.error) {
@@ -849,6 +851,7 @@ export async function getPublicBusinessStorefrontDirectory(filters?: {
   const storefrontResponse = await supabase
     .from("business_storefronts")
     .select("*")
+    .eq("is_active", true)
     .order("updated_at", { ascending: false })
     .limit(filters?.limit ? Math.max(filters.limit * 2, filters.limit) : 80);
 
