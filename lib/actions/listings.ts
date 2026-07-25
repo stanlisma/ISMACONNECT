@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
+import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
 import { notifySavedSearchMatchesForListing } from "@/lib/saved-searches";
 import { isAdditionalStorefrontSchemaError } from "@/lib/business-storefronts";
 import { normalizeSubcategory } from "@/lib/subcategories";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
 import type { ListingIntent } from "@/types/database";
@@ -489,7 +491,11 @@ export async function pauseListingAction(listingId: string) {
     redirectWithMessage("/dashboard", "error", "Only active listings can be paused.");
   }
 
-  const supabase = await createServerSupabaseClient();
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage("/dashboard", "error", "Pausing listings is temporarily unavailable. Please contact support.");
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
   const { error } = await supabase
     .from("listings")
     .update({ status: "paused" })
@@ -521,7 +527,11 @@ export async function resumeListingAction(listingId: string) {
     redirectWithMessage("/dashboard", "error", "Only paused listings can be resumed.");
   }
 
-  const supabase = await createServerSupabaseClient();
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage("/dashboard", "error", "Resuming listings is temporarily unavailable. Please contact support.");
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
   const { error } = await supabase
     .from("listings")
     .update({ status: "active" })
