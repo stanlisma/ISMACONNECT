@@ -10425,6 +10425,10 @@ code {
   margin-top: -0.05rem;
 }
 
+.detail-mobile-seller-highlights {
+  display: none;
+}
+
 .detail-seller-facts {
   display: flex;
   flex-wrap: wrap;
@@ -11631,6 +11635,11 @@ code {
     border: 1px solid rgba(216, 227, 250, 0.95);
     border-radius: 16px;
     background: #f8fbff;
+  }
+
+  .detail-mobile-seller-highlights {
+    display: block;
+    margin-top: 0.6rem;
   }
 
   .detail-seller-card {

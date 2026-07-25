@@ -265,10 +265,12 @@ export default async function ListingPage({
                     Profile
                   </Link>
                 </div>
-                <SellerTrustHighlights
-                  signals={sellerSignals}
-                  compact
-                />
+                <div className="detail-mobile-seller-highlights">
+                  <SellerTrustHighlights
+                    signals={sellerSignals}
+                    compact
+                  />
+                </div>
               </div>
             </div>
 
