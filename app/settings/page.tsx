@@ -1,6 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 
 import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
+import { DeleteAccountForm } from "@/components/settings/delete-account-form";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -131,6 +132,9 @@ export default async function SettingsPage({
             </a>
             <a className="account-menu-pill" href="#verification">
               Verification
+            </a>
+            <a className="account-menu-pill" href="#danger">
+              Delete Account
             </a>
           </div>
         </div>
@@ -333,6 +337,24 @@ export default async function SettingsPage({
               ) : null}
             </>
           )}
+        </div>
+
+        <div className="surface settings-section-card" id="danger">
+          <div className="settings-title-row">
+            <h2>Delete Account</h2>
+            <FieldHelp
+              label="Delete Account"
+              text="Permanently deletes your profile info and removes your listings and storefronts. Some records, like payment history and messages with other users, are retained where legally required. This cannot be undone."
+            />
+          </div>
+
+          <p className="browser-notification-note">
+            This removes your name, phone, address, and business details, unpublishes your listings and
+            storefronts, and signs you out everywhere. Conversations, reviews, and payment records are kept where
+            we have a legal or fraud-prevention reason to retain them.
+          </p>
+
+          <DeleteAccountForm />
         </div>
       </div>
     </section>
