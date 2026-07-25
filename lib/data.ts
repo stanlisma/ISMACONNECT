@@ -508,7 +508,9 @@ export async function getRelatedListings(listing: Listing) {
 }
 
 export async function getUserListings(userId: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
   await expireListingPromotions(supabase);
 
   let response = await supabase
