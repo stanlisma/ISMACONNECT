@@ -32,7 +32,12 @@ export async function signInAction(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/auth/sign-in", "error", error.message);
+    const message =
+      error.code === "user_banned"
+        ? "This account has been deleted and can no longer be used to sign in."
+        : error.message;
+
+    redirectWithMessage("/auth/sign-in", "error", message);
   }
 
   if (signInData.user) {
