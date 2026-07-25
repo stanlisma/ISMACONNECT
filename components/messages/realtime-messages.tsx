@@ -26,9 +26,10 @@ type Props = {
 };
 
 function formatTime(value: string) {
-  return new Date(value).toLocaleTimeString([], {
+  return new Date(value).toLocaleTimeString("en-CA", {
     hour: "numeric",
-    minute: "2-digit"
+    minute: "2-digit",
+    hour12: true
   });
 }
 
@@ -72,6 +73,7 @@ export function RealtimeMessages({
   const [buyerTyping, setBuyerTyping] = useState(initialBuyerTyping);
   const [sellerTyping, setSellerTyping] = useState(initialSellerTyping);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const feedRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const hasMountedRef = useRef(false);
@@ -80,6 +82,10 @@ export function RealtimeMessages({
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
   const otherTyping = viewerId === buyerId ? sellerTyping : buyerTyping;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const latestMessage = messages[messages.length - 1];
@@ -290,7 +296,9 @@ export function RealtimeMessages({
                   {showMeta ? (
                     <small className="messages-bubble-meta">
                       {mine ? "You" : otherUserName} | {formatTime(message.created_at)}
-                      {mine && message.id === lastMine?.id ? ` | ${message.seen_at ? "Seen" : "Delivered"}` : ""}
+                      {mounted && mine && message.id === lastMine?.id
+                        ? ` | ${message.seen_at ? "Seen" : "Delivered"}`
+                        : ""}
                     </small>
                   ) : null}
                 </div>
