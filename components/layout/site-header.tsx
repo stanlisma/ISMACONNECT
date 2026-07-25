@@ -170,7 +170,7 @@ export function SiteHeader({
 
                 <Link
                   href="/notifications"
-                  className="icon-link header-utility-link"
+                  className="icon-link header-utility-link header-notifications-link"
                   aria-label="Notifications"
                 >
                   <Bell aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
@@ -187,7 +187,7 @@ export function SiteHeader({
                   <User aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
                 </Link>
 
-                <Link href="/dashboard/listings/new" className="post-btn post-btn-market">
+                <Link href="/dashboard/listings/new" className="post-btn post-btn-market header-post-link">
                   <Plus aria-hidden="true" className="post-btn-icon" strokeWidth={2.6} />
                   <span>Post</span>
                 </Link>
