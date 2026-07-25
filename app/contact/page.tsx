@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/legal/legal-page";
 import { SITE_NAME, SITE_SUPPORT_EMAIL } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: `Contact Support | ${SITE_NAME}`,
+  title: "Contact Support",
   description: `Contact ${SITE_NAME} support for account, listing, safety, and launch questions.`
 };
 

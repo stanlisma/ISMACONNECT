@@ -54,7 +54,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${storefront.display_name} on ISMACONNECT`,
+    title: storefront.display_name,
     description:
       storefront.is_business && storefront.business_description
         ? storefront.business_description

@@ -9,6 +9,7 @@ import { PwaShell } from "@/components/pwa/pwa-shell";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getViewer } from "@/lib/auth";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
+import { getBaseUrl } from "@/lib/env";
 import { getUnreadActivitySummary } from "@/lib/notifications";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -84,13 +85,29 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 }
 
 export const metadata: Metadata = {
-  title: SITE_NAME,
+  metadataBase: new URL(getBaseUrl()),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`
+  },
   description: SITE_DESCRIPTION,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/favicon.ico",
     shortcut: "/icons/favicon.ico",
     apple: "/icons/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    locale: "en_CA"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION
   }
 };
 

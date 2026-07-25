@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/legal/legal-page";
 import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: `Safety Tips | ${SITE_NAME}`,
+  title: "Safety Tips",
   description: `Learn how to stay safer when buying, selling, hiring, or arranging local rides through ${SITE_NAME}.`
 };
 
