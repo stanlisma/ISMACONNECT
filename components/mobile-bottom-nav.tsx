@@ -61,10 +61,6 @@ export function MobileBottomNav({
     pathname === "/saved" ||
     pathname.startsWith("/settings");
 
-  if (pathname.startsWith("/auth/")) {
-    return null;
-  }
-
   useEffect(() => {
     if (!viewerId) {
       return;
@@ -129,6 +125,10 @@ export function MobileBottomNav({
     setActivityBadgeCount(unreadActivityCount);
     previousUnreadActivityMarker.current = unreadActivityMarker;
   }, [pathname, unreadActivityCount, unreadActivityMarker, viewerId]);
+
+  if (pathname.startsWith("/auth/")) {
+    return null;
+  }
 
   return (
     <nav className="mobile-nav">
