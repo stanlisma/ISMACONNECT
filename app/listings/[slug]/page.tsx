@@ -375,7 +375,7 @@ export default async function ListingPage({
                 </Link>
               </div>
 
-              <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} />
+              <TrustBadges summary={sellerTrustSummary} showReviewBadge={false} showVerifiedBadge={false} />
               <SellerTrustHighlights
                 signals={sellerSignals}
                 compact

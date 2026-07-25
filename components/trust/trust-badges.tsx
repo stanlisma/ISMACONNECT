@@ -11,19 +11,21 @@ interface TrustBadgesProps {
   compact?: boolean;
   showTopRatedBadge?: boolean;
   showReviewBadge?: boolean;
+  showVerifiedBadge?: boolean;
 }
 
 export function TrustBadges({
   summary,
   compact = false,
   showTopRatedBadge = true,
-  showReviewBadge = true
+  showReviewBadge = true,
+  showVerifiedBadge = true
 }: TrustBadgesProps) {
   if (!summary) {
     return null;
   }
 
-  const showVerified = summary.verification_status === "verified";
+  const showVerified = showVerifiedBadge && summary.verification_status === "verified";
   const showTopRated = showTopRatedBadge && hasPublicTopRatedSeller(summary);
   const reviewBadgeLabel = showReviewBadge ? getSellerReviewBadgeLabel(summary, compact) : null;
 

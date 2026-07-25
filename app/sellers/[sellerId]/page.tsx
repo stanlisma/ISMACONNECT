@@ -193,7 +193,7 @@ export default async function SellerStorefrontPage({
                 ) : null}
 
                 <SellerRatingInline summary={trustSummary} />
-                <TrustBadges summary={trustSummary} showReviewBadge={false} />
+                <TrustBadges summary={trustSummary} showReviewBadge={false} showVerifiedBadge={false} />
                 <SellerTrustHighlights signals={sellerSignals} />
               </div>
             </div>
