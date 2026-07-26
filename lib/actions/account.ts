@@ -1,14 +1,17 @@
 "use server";
 
 import { randomUUID } from "crypto";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getViewer, requireViewer } from "@/lib/auth";
+import { getViewer, requireAdminViewer, requireViewer } from "@/lib/auth";
 import { isEmailConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
 import {
   sendAccountDeactivatedEmail,
   sendAccountDeletedEmail,
-  sendAccountReactivatedEmail
+  sendAccountReactivatedEmail,
+  sendAccountRestoredEmail,
+  sendAccountSuspendedEmail
 } from "@/lib/email";
 import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
@@ -259,4 +262,156 @@ export async function reactivateAccountAction() {
   }
 
   redirectWithMessage("/account", "success", "Welcome back! Your account is active again.");
+}
+
+export async function adminSuspendUserAction(userId: string, formData: FormData) {
+  const viewer = await requireAdminViewer();
+
+  if (userId === viewer.user.id) {
+    redirectWithMessage("/admin/users", "error", "You cannot suspend your own admin account.");
+  }
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage(
+      "/admin/users",
+      "error",
+      "Suspending accounts is temporarily unavailable. Please contact support."
+    );
+  }
+
+  const reason = String(formData.get("reason") ?? "").trim() || null;
+  const supabase = createServiceRoleSupabaseClient();
+
+  const { data: targetProfile } = await supabase
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!targetProfile) {
+    redirectWithMessage("/admin/users", "error", "That user could not be found.");
+  }
+
+  const { error: banError } = await supabase.auth.admin.updateUserById(userId, {
+    ban_duration: "876000h"
+  });
+
+  if (banError) {
+    redirectWithMessage("/admin/users", "error", banError.message);
+  }
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ suspended_at: new Date().toISOString(), suspended_reason: reason })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("Failed to mark profile suspended:", profileError);
+  }
+
+  const { error: listingsError } = await supabase
+    .from("listings")
+    .update({ status: "deactivated" })
+    .eq("owner_id", userId)
+    .eq("status", "active");
+
+  if (listingsError) {
+    console.error("Failed to hide listings on suspension:", listingsError);
+  }
+
+  const { error: storefrontsError } = await supabase
+    .from("business_storefronts")
+    .update({ is_active: false })
+    .eq("owner_id", userId);
+
+  if (storefrontsError) {
+    console.error("Failed to hide storefronts on suspension:", storefrontsError);
+  }
+
+  if (targetProfile.email) {
+    await sendAccountStatusEmailSafely(
+      () =>
+        sendAccountSuspendedEmail({
+          to: targetProfile.email!,
+          recipientName: targetProfile.full_name,
+          reason
+        }),
+      "account suspended"
+    );
+  }
+
+  revalidatePath("/admin/users");
+
+  redirectWithMessage("/admin/users", "success", "User account suspended.");
+}
+
+export async function adminRestoreUserAction(userId: string) {
+  await requireAdminViewer();
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage(
+      "/admin/users",
+      "error",
+      "Restoring accounts is temporarily unavailable. Please contact support."
+    );
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+
+  const { data: targetProfile } = await supabase
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!targetProfile) {
+    redirectWithMessage("/admin/users", "error", "That user could not be found.");
+  }
+
+  const { error: banError } = await supabase.auth.admin.updateUserById(userId, {
+    ban_duration: "none"
+  });
+
+  if (banError) {
+    redirectWithMessage("/admin/users", "error", banError.message);
+  }
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ suspended_at: null, suspended_reason: null })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("Failed to clear profile suspension:", profileError);
+  }
+
+  const { error: listingsError } = await supabase
+    .from("listings")
+    .update({ status: "active" })
+    .eq("owner_id", userId)
+    .eq("status", "deactivated");
+
+  if (listingsError) {
+    console.error("Failed to restore listings on unsuspend:", listingsError);
+  }
+
+  const { error: storefrontsError } = await supabase
+    .from("business_storefronts")
+    .update({ is_active: true })
+    .eq("owner_id", userId);
+
+  if (storefrontsError) {
+    console.error("Failed to restore storefronts on unsuspend:", storefrontsError);
+  }
+
+  if (targetProfile.email) {
+    await sendAccountStatusEmailSafely(
+      () => sendAccountRestoredEmail({ to: targetProfile.email!, recipientName: targetProfile.full_name }),
+      "account restored"
+    );
+  }
+
+  revalidatePath("/admin/users");
+
+  redirectWithMessage("/admin/users", "success", "User account restored.");
 }

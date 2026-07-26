@@ -172,6 +172,8 @@ export interface Profile {
   stripe_identity_last_error_reason?: string | null;
   deleted_at?: string | null;
   deactivated_at?: string | null;
+  suspended_at?: string | null;
+  suspended_reason?: string | null;
   created_at: string;
   updated_at: string;
 }

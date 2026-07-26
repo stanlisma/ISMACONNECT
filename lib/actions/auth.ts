@@ -2,8 +2,9 @@
 
 import { redirect } from "next/navigation";
 
-import { getBaseUrl, isSupabaseConfigured } from "@/lib/env";
+import { getBaseUrl, isSupabaseConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { signInSchema, signUpSchema } from "@/lib/validation/auth";
 import { firstMessage } from "@/lib/utils";
 
@@ -32,12 +33,27 @@ export async function signInAction(formData: FormData) {
   });
 
   if (error) {
-    const message =
-      error.code === "user_banned"
-        ? "This account has been deleted and can no longer be used to sign in."
-        : error.message;
+    if (error.code === "user_banned") {
+      const bannedProfile = isSupabaseServiceRoleConfigured()
+        ? (
+            await createServiceRoleSupabaseClient()
+              .from("profiles")
+              .select("suspended_at")
+              .eq("email", parsed.data!.email)
+              .maybeSingle()
+          ).data
+        : null;
 
-    redirectWithMessage("/auth/sign-in", "error", message);
+      redirectWithMessage(
+        "/auth/sign-in",
+        "error",
+        bannedProfile?.suspended_at
+          ? "This account has been suspended. Contact admin@ismaconnect.ca if you believe this is a mistake."
+          : "This account has been deleted and can no longer be used to sign in."
+      );
+    }
+
+    redirectWithMessage("/auth/sign-in", "error", error.message);
   }
 
   if (signInData.user) {

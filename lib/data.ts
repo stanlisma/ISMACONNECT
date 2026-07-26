@@ -600,6 +600,26 @@ export async function getAllListingsForAdmin(search?: string) {
   }));
 }
 
+export async function getAllUsersForAdmin(search?: string) {
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
+
+  let query = supabase
+    .from("profiles")
+    .select("id, email, full_name, role, deactivated_at, suspended_at, suspended_reason, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (search?.trim()) {
+    const term = search.trim();
+    query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
+  }
+
+  const { data } = await query;
+  return data || [];
+}
+
 export async function getSavedListingIds(userId: string) {
   const supabase = await createServerSupabaseClient();
 

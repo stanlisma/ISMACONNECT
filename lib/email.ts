@@ -168,3 +168,60 @@ a legal or fraud-prevention reason to keep them.
 If you did not make this change, please contact us right away at admin@ismaconnect.ca.`
   });
 }
+
+export async function sendAccountSuspendedEmail(args: {
+  to: string;
+  recipientName?: string | null;
+  reason?: string | null;
+}) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = "Your ISMACONNECT account has been suspended";
+  const reasonLine = args.reason?.trim() ? `Reason: ${args.reason.trim()}` : "";
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">Your account has been suspended</h2>
+      <p>Hello ${greeting},</p>
+      <p>
+        An ISMACONNECT admin has suspended your account. You cannot sign in, and your listings and storefronts
+        are hidden from other users, until an admin restores access.
+      </p>
+      ${reasonLine ? `<p>${reasonLine}</p>` : ""}
+      <p>If you believe this is a mistake, please contact us at admin@ismaconnect.ca.</p>
+    `),
+    text: `Your account has been suspended
+
+Hello ${greeting},
+
+An ISMACONNECT admin has suspended your account. You cannot sign in, and your listings and storefronts are
+hidden from other users, until an admin restores access.
+${reasonLine ? `\n${reasonLine}\n` : ""}
+If you believe this is a mistake, please contact us at admin@ismaconnect.ca.`
+  });
+}
+
+export async function sendAccountRestoredEmail(args: { to: string; recipientName?: string | null }) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = "Your ISMACONNECT account access has been restored";
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">Your account access has been restored</h2>
+      <p>Hello ${greeting},</p>
+      <p>An ISMACONNECT admin has restored your account. You can sign in again, and your listings and storefronts are visible to other users again.</p>
+      <p>If you did not expect this, please contact us at admin@ismaconnect.ca.</p>
+    `),
+    text: `Your account access has been restored
+
+Hello ${greeting},
+
+An ISMACONNECT admin has restored your account. You can sign in again, and your listings and storefronts are
+visible to other users again.
+
+If you did not expect this, please contact us at admin@ismaconnect.ca.`
+  });
+}
