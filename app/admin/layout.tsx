@@ -19,6 +19,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link className="button button-secondary" href="/admin/moderation">
               Flagged listings
             </Link>
+            <Link className="button button-secondary" href="/admin/listings">
+              All listings
+            </Link>
             <Link className="button button-ghost" href="/dashboard">
               My Listings
             </Link>

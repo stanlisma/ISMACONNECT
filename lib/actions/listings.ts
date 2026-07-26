@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
+import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
@@ -14,7 +15,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
-import type { ListingIntent } from "@/types/database";
+import type { ListingIntent, ListingStatus } from "@/types/database";
 
 function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
@@ -612,7 +613,11 @@ export async function reviewFlaggedListingAction(
     redirectWithMessage("/admin/moderation", "error", "That listing could not be found.");
   }
 
-  const supabase = await createServerSupabaseClient();
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage("/admin/moderation", "error", "Reviewing listings is temporarily unavailable. Please contact support.");
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
   const nextStatus = decision === "restore" ? "active" : "removed";
 
   const updates =
@@ -638,5 +643,55 @@ export async function reviewFlaggedListingAction(
     "/admin/moderation",
     "success",
     decision === "restore" ? "Listing restored to active." : "Listing removed from public view."
+  );
+}
+
+const ADMIN_SETTABLE_STATUSES = ["active", "paused", "flagged", "removed"] as const;
+
+export async function adminSetListingStatusAction(listingId: string, formData: FormData) {
+  await requireAdminViewer();
+
+  const status = String(formData.get("status") ?? "");
+
+  if (!ADMIN_SETTABLE_STATUSES.includes(status as (typeof ADMIN_SETTABLE_STATUSES)[number])) {
+    redirectWithMessage("/admin/listings", "error", "That is not a valid listing status.");
+  }
+
+  const existing = await loadListingForMutation(listingId);
+
+  if (!existing) {
+    redirectWithMessage("/admin/listings", "error", "That listing could not be found.");
+  }
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage("/admin/listings", "error", "Changing listing status is temporarily unavailable. Please contact support.");
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+
+  const updates =
+    status === "removed"
+      ? { status, is_featured: false, featured_until: null }
+      : { status };
+
+  const { error } = await supabase.from("listings").update(updates).eq("id", listingId);
+
+  if (error) {
+    redirectWithMessage("/admin/listings", "error", error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/browse");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/listings");
+  revalidatePath("/admin/moderation");
+  revalidatePath(`/categories/${existing.category}`);
+  revalidatePath(`/listings/${existing.slug}`);
+  revalidatePath(`/sellers/${existing.owner_id}`);
+
+  redirectWithMessage(
+    "/admin/listings",
+    "success",
+    `Listing status updated to "${LISTING_STATUS_LABELS[status as ListingStatus] ?? status}".`
   );
 }

@@ -562,6 +562,44 @@ export async function getFlaggedListings() {
   return (data || []) as FlaggedListing[];
 }
 
+export async function getAllListingsForAdmin(search?: string) {
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
+
+  let query = supabase
+    .from("listings")
+    .select("id, title, slug, category, status, price, location, owner_id, updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(100);
+
+  if (search?.trim()) {
+    query = query.ilike("title", `%${search.trim()}%`);
+  }
+
+  const { data } = await query;
+  const listings = data || [];
+
+  const ownerIds = Array.from(new Set(listings.map((listing) => listing.owner_id).filter(Boolean)));
+  const ownerMap = new Map<string, { full_name: string | null; email: string | null }>();
+
+  if (ownerIds.length > 0) {
+    const { data: owners } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", ownerIds);
+
+    (owners || []).forEach((owner) => {
+      ownerMap.set(owner.id, { full_name: owner.full_name, email: owner.email });
+    });
+  }
+
+  return listings.map((listing) => ({
+    ...listing,
+    owner: ownerMap.get(listing.owner_id) ?? null
+  }));
+}
+
 export async function getSavedListingIds(userId: string) {
   const supabase = await createServerSupabaseClient();
 
