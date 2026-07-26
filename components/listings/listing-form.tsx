@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   DEFAULT_MARKETPLACE_CATEGORY,
   getDefaultPriceType,
@@ -1259,14 +1260,11 @@ export function ListingForm({
                   label="Phone number"
                   helpText="Optional. Add a number if you want calls or texts as part of the reply flow."
                 />
-                <input
-                  className="input"
+                <PhoneInput
                   name="contactPhone"
-                  type="tel"
-                  inputMode="tel"
                   value={contactPhone}
                   onChange={(event) => setContactPhone(event.target.value)}
-                  placeholder="(780) 555-0123"
+                  placeholder="1 (780) 555-0123"
                   autoComplete="tel"
                 />
               </label>

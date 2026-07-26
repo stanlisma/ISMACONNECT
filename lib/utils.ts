@@ -16,6 +16,34 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+export function formatPhoneNumber(rawValue: string) {
+  let digits = rawValue.replace(/\D/g, "");
+
+  if (digits.startsWith("1")) {
+    digits = digits.slice(1);
+  }
+
+  digits = digits.slice(0, 10);
+
+  if (digits.length === 0) {
+    return "";
+  }
+
+  const area = digits.slice(0, 3);
+  const prefix = digits.slice(3, 6);
+  const line = digits.slice(6, 10);
+
+  if (digits.length < 4) {
+    return `1 (${area}`;
+  }
+
+  if (digits.length < 7) {
+    return `1 (${area}) ${prefix}`;
+  }
+
+  return `1 (${area}) ${prefix}-${line}`;
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

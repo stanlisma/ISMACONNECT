@@ -7,6 +7,7 @@ import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import {
   EMPTY_BUSINESS_PROFILE,
@@ -170,12 +171,10 @@ export default async function SettingsPage({
                 label="Phone"
                 helpText="Optional. Used for your own reference and any messages where you choose to share it."
               />
-              <input
-                className="input"
-                type="tel"
+              <PhoneInput
                 name="phone"
                 defaultValue={viewer.profile.phone ?? ""}
-                placeholder="(780) 555-0123"
+                placeholder="1 (780) 555-0123"
               />
             </label>
 

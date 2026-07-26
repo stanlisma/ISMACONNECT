@@ -6,6 +6,7 @@ import { StorefrontLogoField } from "@/components/settings/storefront-logo-field
 import { StorefrontImageGallery } from "@/components/storefronts/storefront-image-gallery";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { ScrollToHash } from "@/components/ui/scroll-to-hash";
 import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
@@ -173,12 +174,10 @@ function StorefrontForm({
               label="Phone"
               helpText="Optional storefront phone. Add it when this storefront should have its own public call or text number."
             />
-            <input
-              className="input"
-              type="tel"
+            <PhoneInput
               name="phone"
               defaultValue={defaults?.phone ?? ""}
-              placeholder="(780) 555-0123"
+              placeholder="1 (780) 555-0123"
             />
           </label>
         </div>
