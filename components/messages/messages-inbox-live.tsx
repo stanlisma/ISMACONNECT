@@ -73,13 +73,25 @@ type Props = {
 const LIVE_REFRESH_DEBOUNCE_MS = 180;
 const LIVE_REFRESH_INTERVAL_MS = 30000;
 
+const EDMONTON_TIME_ZONE = "America/Edmonton";
+
+function getEdmontonDateKey(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: EDMONTON_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
+}
+
 function formatInboxTimestamp(value: string | null, fallback: string) {
   const date = new Date(value ?? fallback);
   const now = new Date();
-  const sameDay = date.toDateString() === now.toDateString();
+  const sameDay = getEdmontonDateKey(date) === getEdmontonDateKey(now);
 
   if (sameDay) {
     return new Intl.DateTimeFormat("en-CA", {
+      timeZone: EDMONTON_TIME_ZONE,
       hour: "numeric",
       minute: "2-digit"
     }).format(date);
@@ -89,10 +101,11 @@ function formatInboxTimestamp(value: string | null, fallback: string) {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays < 7) {
-    return new Intl.DateTimeFormat("en-CA", { weekday: "short" }).format(date);
+    return new Intl.DateTimeFormat("en-CA", { timeZone: EDMONTON_TIME_ZONE, weekday: "short" }).format(date);
   }
 
   return new Intl.DateTimeFormat("en-CA", {
+    timeZone: EDMONTON_TIME_ZONE,
     month: "short",
     day: "numeric"
   }).format(date);

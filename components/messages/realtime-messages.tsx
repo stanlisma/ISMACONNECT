@@ -25,8 +25,20 @@ type Props = {
   otherUserName: string;
 };
 
+const EDMONTON_TIME_ZONE = "America/Edmonton";
+
+function getEdmontonDateKey(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: EDMONTON_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
+}
+
 function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("en-CA", {
+    timeZone: EDMONTON_TIME_ZONE,
     hour: "numeric",
     minute: "2-digit",
     hour12: true
@@ -35,6 +47,7 @@ function formatTime(value: string) {
 
 function formatDayLabel(value: string) {
   return new Intl.DateTimeFormat("en-CA", {
+    timeZone: EDMONTON_TIME_ZONE,
     weekday: "short",
     month: "short",
     day: "numeric"
@@ -51,8 +64,8 @@ function isSameMessageGroup(
 
   const sameSender = previousMessage.sender_id === currentMessage.sender_id;
   const sameDay =
-    new Date(previousMessage.created_at).toDateString() ===
-    new Date(currentMessage.created_at).toDateString();
+    getEdmontonDateKey(new Date(previousMessage.created_at)) ===
+    getEdmontonDateKey(new Date(currentMessage.created_at));
   const diffMs =
     new Date(currentMessage.created_at).getTime() - new Date(previousMessage.created_at).getTime();
 
@@ -280,8 +293,8 @@ export function RealtimeMessages({
           const nextMessage = messages[index + 1];
           const showDayDivider =
             !previousMessage ||
-            new Date(previousMessage.created_at).toDateString() !==
-              new Date(message.created_at).toDateString();
+            getEdmontonDateKey(new Date(previousMessage.created_at)) !==
+              getEdmontonDateKey(new Date(message.created_at));
           const continuesPreviousGroup = isSameMessageGroup(previousMessage, message);
           const continuesNextGroup = isSameMessageGroup(message, nextMessage);
           const showMeta = !continuesNextGroup;
