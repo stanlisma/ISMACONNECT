@@ -33,7 +33,8 @@ import {
   getSingleParam,
   resolveCategory,
   resolveListingIntent,
-  resolveRequestWindow
+  resolveRequestWindow,
+  toSafeJsonLd
 } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -605,7 +606,7 @@ export default async function CategoryPage({
         )}
 
         <script
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionStructuredData) }}
+          dangerouslySetInnerHTML={{ __html: toSafeJsonLd(collectionStructuredData) }}
           suppressHydrationWarning
           type="application/ld+json"
         />

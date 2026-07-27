@@ -42,7 +42,8 @@ import {
   excerpt,
   formatDate,
   formatListingPrice,
-  getSingleParam
+  getSingleParam,
+  toSafeJsonLd
 } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -462,7 +463,7 @@ export default async function ListingPage({
         ) : null}
 
         <script
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: toSafeJsonLd(structuredData) }}
           suppressHydrationWarning
           type="application/ld+json"
         />

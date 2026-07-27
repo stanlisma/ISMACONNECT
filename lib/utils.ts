@@ -16,6 +16,13 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+export function toSafeJsonLd(data: unknown) {
+  // Escapes "<" so user-controlled fields (e.g. a listing title containing
+  // "</script>") can't break out of the surrounding <script> tag and inject
+  // markup or run arbitrary JS.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 export function formatPhoneNumber(rawValue: string) {
   let digits = rawValue.replace(/\D/g, "");
 
