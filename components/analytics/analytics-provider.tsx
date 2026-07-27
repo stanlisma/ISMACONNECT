@@ -12,6 +12,7 @@ import {
 
 type AnalyticsProviderProps = {
   userId?: string | null;
+  nonce?: string;
 };
 
 type ReportableErrorPayload = Omit<Parameters<typeof reportClientError>[0], "source">;
@@ -40,7 +41,7 @@ function getErrorDetails(error: unknown) {
   };
 }
 
-export function AnalyticsProvider({ userId }: AnalyticsProviderProps) {
+export function AnalyticsProvider({ userId, nonce }: AnalyticsProviderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const measurementId = getClientAnalyticsMeasurementId();
@@ -121,8 +122,9 @@ export function AnalyticsProvider({ userId }: AnalyticsProviderProps) {
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
         onReady={() => setAnalyticsReady(true)}
         strategy="afterInteractive"
+        nonce={nonce}
       />
-      <Script id="ga-init" strategy="afterInteractive">
+      <Script id="ga-init" strategy="afterInteractive" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -17,6 +18,7 @@ import "./globals.css";
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const viewer = await getViewer();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   let unreadMessagesCount = 0;
   let unreadNotificationsCount = 0;
@@ -53,7 +55,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <AnalyticsProvider userId={viewer?.user.id ?? null} />
+        <AnalyticsProvider userId={viewer?.user.id ?? null} nonce={nonce} />
         <PwaShell />
         <LiveMessageProvider
           viewerId={viewer?.user.id ?? null}
