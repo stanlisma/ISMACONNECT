@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireViewer } from "@/lib/auth";
+import { ALLOWED_IMAGE_UPLOAD_TYPES } from "@/lib/constants";
 
 export async function POST(request: Request) {
   await requireViewer();
@@ -16,8 +17,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
   }
 
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json({ error: "Only image files are allowed." }, { status: 400 });
+  if (!ALLOWED_IMAGE_UPLOAD_TYPES.has(file.type)) {
+    return NextResponse.json(
+      { error: "Only JPG, PNG, WEBP, or GIF images are allowed." },
+      { status: 400 }
+    );
   }
 
   const maxSizeBytes = 5 * 1024 * 1024;

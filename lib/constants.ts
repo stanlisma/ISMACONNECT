@@ -13,6 +13,15 @@ export const SITE_DESCRIPTION =
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
 export const DEFAULT_MARKETPLACE_CATEGORY: ListingCategory = "services";
 export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";
+
+// SVG is deliberately excluded: it can carry an embedded <script> that
+// runs when the "image" is opened directly, unlike raster formats.
+export const ALLOWED_IMAGE_UPLOAD_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif"
+]);
 export const HERO_CATEGORY_VALUES: ListingCategory[] = ["ride-share", "services", "rentals", "jobs"];
 export const SUPPORT_CATEGORY_VALUES: ListingCategory[] = [DEFAULT_MARKETPLACE_CATEGORY];
 
