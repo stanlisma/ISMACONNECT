@@ -63,8 +63,29 @@ export function trackPageView(route: string) {
   });
 }
 
+// Third-party in-app browsers (notably Facebook/Instagram's Android
+// WebView) inject their own tracking scripts that throw errors we can't
+// fix and that carry no useful information - most commonly a bare
+// "Script error." with no stack (a cross-origin script the browser won't
+// give details on) or a postMessage failure from their own native bridge
+// tearing down mid-navigation. These aren't bugs in this app.
+function isIgnorableClientError(payload: ClientErrorPayload) {
+  const message = payload.message?.toLowerCase() ?? "";
+  const filename = String(payload.metadata?.filename ?? "").toLowerCase();
+
+  if (message === "script error." && !payload.stack) {
+    return true;
+  }
+
+  if (filename.startsWith("iabjs://") || message.includes("java object is gone")) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function reportClientError(payload: ClientErrorPayload) {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || isIgnorableClientError(payload)) {
     return;
   }
 
