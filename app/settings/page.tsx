@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from "next/cache";
 
 import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
 import { DeleteAccountForm } from "@/components/settings/delete-account-form";
+import { MfaEnrollment } from "@/components/settings/mfa-enrollment";
 import { BrowserNotificationSettings } from "@/components/pwa/browser-notification-settings";
 import { InstallAppCard } from "@/components/pwa/install-app-card";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
@@ -339,6 +340,20 @@ export default async function SettingsPage({
             </>
           )}
         </div>
+
+        {viewer.profile.role === "admin" ? (
+          <div className="surface settings-section-card" id="security">
+            <div className="settings-title-row">
+              <h2>Two-Factor Authentication</h2>
+              <FieldHelp
+                label="Two-Factor Authentication"
+                text="Adds a second step at sign-in using a code from an authenticator app, so a leaked password alone isn't enough to get into the admin account."
+              />
+            </div>
+
+            <MfaEnrollment />
+          </div>
+        ) : null}
 
         <div className="surface settings-section-card" id="danger">
           <div className="settings-title-row">

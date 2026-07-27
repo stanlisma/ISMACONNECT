@@ -162,5 +162,12 @@ export async function requireAdminViewer() {
     notFound();
   }
 
+  const supabase = await createServerSupabaseClient();
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel) {
+    redirect("/auth/mfa-challenge");
+  }
+
   return viewer;
 }
