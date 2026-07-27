@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 import { getEmailEnv } from "@/lib/env";
+import { SITE_SUPPORT_EMAIL } from "@/lib/constants";
 
 export async function sendNewMessageEmail(args: {
   to: string;
@@ -224,4 +225,28 @@ visible to other users again.
 
 If you did not expect this, please contact us at admin@ismaconnect.ca.`
   });
+}
+
+export async function sendNewAccountAdminEmail(args: { email: string; fullName?: string | null }) {
+  const { resendApiKey, emailFrom } = getEmailEnv();
+  const resend = new Resend(resendApiKey);
+
+  const name = args.fullName?.trim() || "(no name given)";
+  const subject = `New ISMACONNECT account: ${args.email}`;
+
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: [SITE_SUPPORT_EMAIL],
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">New account created</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${args.email}</p>
+    `),
+    text: `New account created\n\nName: ${name}\nEmail: ${args.email}`
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }

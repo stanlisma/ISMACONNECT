@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 
-import { getBaseUrl, isSupabaseConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
+import { getBaseUrl, isEmailConfigured, isSupabaseConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
+import { sendNewAccountAdminEmail } from "@/lib/email";
 import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { signInSchema, signUpSchema } from "@/lib/validation/auth";
@@ -112,6 +113,14 @@ export async function signUpAction(formData: FormData) {
 
   if (error) {
     redirectWithMessage("/auth/sign-up", "error", error.message);
+  }
+
+  if (isEmailConfigured()) {
+    try {
+      await sendNewAccountAdminEmail({ email: parsed.data!.email, fullName: fullName });
+    } catch (emailError) {
+      console.error("Failed to send new account admin notification:", emailError);
+    }
   }
 
   redirect("/auth/post-sign-up");
