@@ -9,7 +9,7 @@ import type {
 export const SITE_NAME = "ISMACONNECT";
 export const SITE_TAGLINE = "Fort McMurray rides, rentals, services, jobs, and worker logistics.";
 export const SITE_DESCRIPTION =
-  "Fort McMurray's local marketplace for rides, rentals, jobs, and services — built to replace scattered group chats and Facebook posts.";
+  "Fort McMurray's local marketplace for rides, rentals, jobs, and services — built to replace scattered group chats and community posts.";
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
 export const DEFAULT_MARKETPLACE_CATEGORY: ListingCategory = "services";
 export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";
