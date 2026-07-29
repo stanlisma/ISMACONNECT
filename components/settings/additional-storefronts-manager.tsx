@@ -22,9 +22,11 @@ type AdditionalStorefrontsManagerProps = {
   deleteAction: (storefrontId: string, formData: FormData) => void | Promise<void>;
   suggestedDefaults?: AdditionalBusinessStorefront;
   returnPath?: string;
+  sectionTitle?: string;
+  createLabel?: string;
 };
 
-function buildCreateStorefrontHref(returnPath: string) {
+export function buildCreateStorefrontHref(returnPath: string) {
   const [pathname, existingQuery] = returnPath.split("?");
   const searchParams = new URLSearchParams(existingQuery ?? "");
   searchParams.set("create", "1");
@@ -43,6 +45,15 @@ function buildStorefrontsOverviewHref(returnPath: string) {
 
 function getStorefrontEmptyCopy(returnPath: string) {
   const isDashboard = returnPath.startsWith("/dashboard/storefronts");
+  const isAdmin = returnPath.startsWith("/admin/storefronts");
+
+  if (isAdmin) {
+    return {
+      title: "No unclaimed businesses yet",
+      description: "Add a business you onboarded in person - name, phone, and category is enough to start.",
+      actionLabel: "Add unclaimed business"
+    };
+  }
 
   return {
     title: isDashboard ? "You do not have a storefront yet" : "No storefront yet",
@@ -448,7 +459,9 @@ export function AdditionalStorefrontsManager({
   updateAction,
   deleteAction,
   suggestedDefaults,
-  returnPath = "/settings"
+  returnPath = "/settings",
+  sectionTitle = "Storefronts",
+  createLabel = "Create storefront"
 }: AdditionalStorefrontsManagerProps) {
   if (!schemaReady) {
     return (
@@ -456,9 +469,9 @@ export function AdditionalStorefrontsManager({
         <div className="storefront-manager-card-head">
           <div>
             <div className="business-profile-title-row">
-              <h2>Storefronts</h2>
+              <h2>{sectionTitle}</h2>
               <FieldHelp
-                label="Storefronts"
+                label={sectionTitle}
                 text="Run the additional storefront migration in Supabase to manage more than one public storefront from one account."
               />
             </div>
@@ -482,9 +495,9 @@ export function AdditionalStorefrontsManager({
       <div className="storefront-manager-toolbar">
         <div>
           <div className="business-profile-title-row">
-            <h2>Storefronts</h2>
+            <h2>{sectionTitle}</h2>
             <FieldHelp
-              label="Storefronts"
+              label={sectionTitle}
               text="Every signed-in account can create separate storefronts for different locations, brands, or service lines."
             />
           </div>
@@ -503,8 +516,8 @@ export function AdditionalStorefrontsManager({
 
       {storefronts.length > 0 && showCreateForm ? (
         <StorefrontForm
-          title="Create storefront"
-          submitLabel="Create storefront"
+          title={createLabel}
+          submitLabel={createLabel}
           action={createAction}
           isNew
           defaults={suggestedDefaults}
@@ -560,8 +573,8 @@ export function AdditionalStorefrontsManager({
       {!storefronts.length ? (
         showCreateForm ? (
           <StorefrontForm
-            title="Create storefront"
-            submitLabel="Create storefront"
+            title={createLabel}
+            submitLabel={createLabel}
             action={createAction}
             isNew
             defaults={suggestedDefaults}

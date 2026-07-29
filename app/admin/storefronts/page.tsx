@@ -1,6 +1,10 @@
 import { unstable_noStore as noStore } from "next/cache";
+import Link from "next/link";
 
-import { AdditionalStorefrontsManager } from "@/components/settings/additional-storefronts-manager";
+import {
+  AdditionalStorefrontsManager,
+  buildCreateStorefrontHref
+} from "@/components/settings/additional-storefronts-manager";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { requireAdminViewer } from "@/lib/auth";
 import {
@@ -10,6 +14,8 @@ import {
 } from "@/lib/actions/settings";
 import { getOwnedAdditionalStorefronts } from "@/lib/data";
 import { getSingleParam } from "@/lib/utils";
+
+const RETURN_PATH = "/admin/storefronts";
 
 export default async function AdminStorefrontsPage({
   searchParams
@@ -24,6 +30,11 @@ export default async function AdminStorefrontsPage({
   const focusStorefrontId = getSingleParam(resolvedSearchParams?.storefront);
   const storefrontsResult = await getOwnedAdditionalStorefronts(viewer.user.id);
 
+  // Only businesses seeded via this page - never the admin's own real
+  // storefront(s), which happen to share the same owner_id as a technical
+  // placeholder but are fully claimed and managed elsewhere (Settings).
+  const unclaimedStorefronts = storefrontsResult.storefronts.filter((storefront) => !storefront.claimed);
+
   return (
     <>
       <FlashMessage message={getSingleParam(resolvedSearchParams?.success)} tone="success" />
@@ -35,19 +46,28 @@ export default async function AdminStorefrontsPage({
         <p className="section-copy">
           Create a storefront for a business that hasn't signed up yet - name, phone, and category is enough to
           start. It goes live immediately as an "Unclaimed" listing with a call button, and you can add more detail
-          (photos, hours, description) any time. The business claims it later once they sign up.
+          (photos, hours, description) any time. The business claims it later once they sign up. This never touches
+          your own storefronts - those stay in Settings.
         </p>
+
+        <div className="action-row" style={{ marginTop: "1rem" }}>
+          <Link className="button" href={buildCreateStorefrontHref(RETURN_PATH)}>
+            + Add unclaimed business
+          </Link>
+        </div>
       </div>
 
       <AdditionalStorefrontsManager
-        storefronts={storefrontsResult.storefronts}
+        storefronts={unclaimedStorefronts}
         schemaReady={storefrontsResult.schemaReady}
         focusStorefrontId={focusStorefrontId}
-        showCreateForm={showCreateForm || storefrontsResult.storefronts.length === 0}
+        showCreateForm={showCreateForm}
         createAction={adminCreateUnclaimedStorefrontAction}
         updateAction={updateAdditionalStorefrontAction}
         deleteAction={deleteAdditionalStorefrontAction}
-        returnPath="/admin/storefronts"
+        returnPath={RETURN_PATH}
+        sectionTitle="Unclaimed businesses"
+        createLabel="Add unclaimed business"
       />
     </>
   );
