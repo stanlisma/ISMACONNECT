@@ -4,14 +4,16 @@ import { getViewer } from "@/lib/auth";
 
 import { ListingCard } from "@/components/listings/listing-card";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
+import { BusinessMarquee } from "@/components/storefronts/business-marquee";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
-import { getHomepageData, getSavedListingIds } from "@/lib/data";
+import { getBusinessMarqueeItems, getHomepageData, getSavedListingIds } from "@/lib/data";
 import { HOMEPAGE_FRESH_DAYS, isFreshListing } from "@/lib/listing-freshness";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 
 export default async function HomePage() {
   const viewer = await getViewer();
   const { latestListings, isConfigured } = await getHomepageData();
+  const marqueeBusinesses = await getBusinessMarqueeItems();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const freshListings = latestListings.filter((listing) =>
     isFreshListing(listing.created_at, HOMEPAGE_FRESH_DAYS)
@@ -76,6 +78,9 @@ export default async function HomePage() {
 
         <MobileInstallBanner context="home" />
       </section>
+
+      <BusinessMarquee businesses={marqueeBusinesses} />
+
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
           {!isConfigured ? (

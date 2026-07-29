@@ -7,13 +7,19 @@ import { LazyLocalMapExplorer } from "@/components/listings/lazy-local-map-explo
 import { ListingCard } from "@/components/listings/listing-card";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { SaveSearchToggle } from "@/components/saved-searches/save-search-toggle";
+import { BusinessMarquee } from "@/components/storefronts/business-marquee";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchRecoveryPanel } from "@/components/ui/search-recovery-panel";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP } from "@/lib/constants";
-import { getBusinessMapProfileMap, getPublicListings, getSavedListingIds } from "@/lib/data";
+import {
+  getBusinessMapProfileMap,
+  getBusinessMarqueeItems,
+  getPublicListings,
+  getSavedListingIds
+} from "@/lib/data";
 import {
   getStructuredFilterDefinitions,
   getStructuredFilterMatchHints
@@ -153,6 +159,7 @@ export default async function BrowsePage({
   const mapListings = mapResults.listings;
 
   const viewer = await getViewer();
+  const marqueeBusinesses = await getBusinessMarqueeItems();
   const businessMapProfiles = isMapEligibleCategory
     ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.storefront_id ?? ""))
     : new Map();
@@ -432,6 +439,8 @@ export default async function BrowsePage({
         </div>
 
         <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
+
+        <BusinessMarquee businesses={marqueeBusinesses} />
 
         <div className="browse-desktop-heading">
           <div className="marketplace-page-utility-row">

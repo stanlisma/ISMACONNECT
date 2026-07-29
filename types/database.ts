@@ -389,6 +389,15 @@ export interface AdditionalBusinessStorefront {
   updated_at: string;
 }
 
+export interface BusinessMarqueeItem {
+  id: string;
+  owner_id: string;
+  slug: string;
+  name: string;
+  logo_url: string | null;
+  claimed: boolean;
+}
+
 export interface BusinessMapProfile {
   storefront_id: string;
   owner_id: string;

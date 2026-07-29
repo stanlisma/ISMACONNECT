@@ -23,6 +23,7 @@ import {
 import type {
   AdditionalBusinessStorefront,
   BusinessMapProfile,
+  BusinessMarqueeItem,
   FlaggedListing,
   Listing,
   ListingCategory,
@@ -104,6 +105,38 @@ export async function getOwnedAdditionalStorefronts(ownerId: string) {
       normalizeAdditionalStorefrontRow(row)
     )
   };
+}
+
+export async function getBusinessMarqueeItems(limit = 24) {
+  if (!isSupabaseConfigured()) {
+    return [] as BusinessMarqueeItem[];
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const response = await supabase
+    .from("business_storefronts")
+    .select("id, owner_id, slug, name, logo_url, claimed")
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  if (response.error) {
+    if (isAdditionalStorefrontSchemaError(response.error)) {
+      return [] as BusinessMarqueeItem[];
+    }
+
+    logDataError("Business marquee query failed", response.error);
+    return [] as BusinessMarqueeItem[];
+  }
+
+  return ((response.data as Array<Record<string, unknown>> | null) ?? []).map((row) => ({
+    id: String(row.id ?? ""),
+    owner_id: String(row.owner_id ?? ""),
+    slug: typeof row.slug === "string" ? row.slug : "",
+    name: typeof row.name === "string" ? row.name : "",
+    logo_url: typeof row.logo_url === "string" && row.logo_url.trim() ? row.logo_url : null,
+    claimed: row.claimed === false ? false : true
+  })) as BusinessMarqueeItem[];
 }
 
 export async function getBusinessMapProfileMap(storefrontIds: string[]) {
