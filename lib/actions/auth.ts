@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { getBaseUrl, isEmailConfigured, isSupabaseConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { sendNewAccountAdminEmail } from "@/lib/email";
+import { getRequestCountry, isCanadianCountryCode } from "@/lib/geo";
 import { createMutableServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { signInSchema, signUpSchema } from "@/lib/validation/auth";
@@ -81,6 +82,16 @@ export async function signInAction(formData: FormData) {
 export async function signUpAction(formData: FormData) {
   if (!isSupabaseConfigured()) {
     redirectWithMessage("/auth/sign-up", "error", "Add your Supabase keys before creating an account.");
+  }
+
+  const country = await getRequestCountry();
+
+  if (!isCanadianCountryCode(country)) {
+    redirectWithMessage(
+      "/auth/sign-up",
+      "error",
+      "New ISMACONNECT accounts are currently limited to Canada. Contact admin@ismaconnect.ca if you believe this is a mistake."
+    );
   }
 
   const parsed = signUpSchema.safeParse({
