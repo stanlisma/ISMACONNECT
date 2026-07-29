@@ -1,23 +1,25 @@
 "use client";
 
-import { Bell, MessageCircle, Plus, Search, User } from "lucide-react";
+import { Bell, MessageCircle, Plus, Search, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useLiveMessageState } from "@/components/messages/live-message-provider";
 import { CATEGORIES } from "@/lib/constants";
 import { useClearedActivityBadgeCount } from "@/lib/hooks/use-cleared-activity-badge";
 import { getSubcategories } from "@/lib/subcategories";
+import type { Viewer } from "@/types/database";
 import "./site-header.css";
 
-type Viewer = {
-  user: {
-    id: string;
-    email?: string;
-  };
-} | null;
+const ADMIN_MENU_LINKS = [
+  { href: "/admin/moderation", label: "Flagged listings" },
+  { href: "/admin/listings", label: "All listings" },
+  { href: "/admin/users", label: "All users" },
+  { href: "/admin/storefronts", label: "Add business" }
+];
 
 interface SiteHeaderProps {
-  viewer: Viewer;
+  viewer: Viewer | null;
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
   unreadNotificationsMarker: string | null;
@@ -40,6 +42,7 @@ export function SiteHeader({
   const pathname = usePathname();
   const { unreadMessagesCount: liveUnreadMessagesCount } = useLiveMessageState();
   const viewerId = viewer?.user.id ?? null;
+  const isAdmin = viewer?.profile.role === "admin";
   const notificationBadgeCount = useClearedActivityBadgeCount(
     viewerId,
     unreadNotificationsCount,
@@ -49,6 +52,28 @@ export function SiteHeader({
     ...category,
     subcategories: getSubcategories(category.value)
   }));
+
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setAdminMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!adminMenuOpen) {
+      return;
+    }
+
+    function handleClickOutside(event: MouseEvent) {
+      if (adminMenuRef.current && !adminMenuRef.current.contains(event.target as Node)) {
+        setAdminMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [adminMenuOpen]);
 
   return (
     <header className="site-header">
@@ -108,6 +133,30 @@ export function SiteHeader({
                     <span className="header-action-badge">{formatBadgeCount(notificationBadgeCount)}</span>
                   ) : null}
                 </Link>
+
+                {isAdmin ? (
+                  <div className="header-admin-menu" ref={adminMenuRef}>
+                    <button
+                      type="button"
+                      className="icon-link header-utility-link header-admin-link"
+                      aria-label="Admin menu"
+                      aria-expanded={adminMenuOpen}
+                      onClick={() => setAdminMenuOpen((current) => !current)}
+                    >
+                      <Shield aria-hidden="true" className="header-action-icon" strokeWidth={2.2} />
+                    </button>
+
+                    {adminMenuOpen ? (
+                      <div className="header-admin-menu-panel">
+                        {ADMIN_MENU_LINKS.map((link) => (
+                          <Link key={link.href} href={link.href}>
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <Link
                   href="/account"

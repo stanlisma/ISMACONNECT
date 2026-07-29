@@ -138,6 +138,50 @@ header.site-header {
   display: inline-flex;
 }
 
+.header-admin-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.header-admin-link {
+  cursor: pointer;
+  border-color: #c9d9f7;
+  background: linear-gradient(180deg, #eef4ff, #e3edff);
+  color: #0f5bd8;
+}
+
+.header-admin-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.14);
+  z-index: 9999;
+}
+
+.header-admin-menu-panel a {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.header-admin-menu-panel a:hover {
+  background: #eff6ff;
+  color: #1e6bff;
+}
+
 .header-action-badge {
   position: absolute;
   top: -5px;
