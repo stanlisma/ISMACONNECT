@@ -360,7 +360,7 @@ export async function adminRestoreUserAction(userId: string) {
 
   const { data: targetProfile } = await supabase
     .from("profiles")
-    .select("email, full_name")
+    .select("email, full_name, deactivated_at")
     .eq("id", userId)
     .maybeSingle();
 
@@ -385,23 +385,30 @@ export async function adminRestoreUserAction(userId: string) {
     console.error("Failed to clear profile suspension:", profileError);
   }
 
-  const { error: listingsError } = await supabase
-    .from("listings")
-    .update({ status: "active" })
-    .eq("owner_id", userId)
-    .eq("status", "deactivated");
+  // If the user had also self-deactivated their account, their listings/storefronts
+  // were hidden by that (separate) action - leave them hidden until the user signs
+  // back in and reactivates, instead of republishing content they chose to take down.
+  const stillSelfDeactivated = Boolean(targetProfile.deactivated_at);
 
-  if (listingsError) {
-    console.error("Failed to restore listings on unsuspend:", listingsError);
-  }
+  if (!stillSelfDeactivated) {
+    const { error: listingsError } = await supabase
+      .from("listings")
+      .update({ status: "active" })
+      .eq("owner_id", userId)
+      .eq("status", "deactivated");
 
-  const { error: storefrontsError } = await supabase
-    .from("business_storefronts")
-    .update({ is_active: true })
-    .eq("owner_id", userId);
+    if (listingsError) {
+      console.error("Failed to restore listings on unsuspend:", listingsError);
+    }
 
-  if (storefrontsError) {
-    console.error("Failed to restore storefronts on unsuspend:", storefrontsError);
+    const { error: storefrontsError } = await supabase
+      .from("business_storefronts")
+      .update({ is_active: true })
+      .eq("owner_id", userId);
+
+    if (storefrontsError) {
+      console.error("Failed to restore storefronts on unsuspend:", storefrontsError);
+    }
   }
 
   if (targetProfile.email) {
@@ -413,5 +420,11 @@ export async function adminRestoreUserAction(userId: string) {
 
   revalidatePath("/admin/users");
 
-  redirectWithMessage("/admin/users", "success", "User account restored.");
+  redirectWithMessage(
+    "/admin/users",
+    "success",
+    stillSelfDeactivated
+      ? "User account restored. Their listings stay hidden because they also deactivated their own account - they'll reappear once the user signs back in and reactivates."
+      : "User account restored."
+  );
 }

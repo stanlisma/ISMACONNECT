@@ -81,11 +81,17 @@ function isIgnorableClientError(payload: ClientErrorPayload) {
     return true;
   }
 
-  // React's Server Components streaming client throws this when the page's
-  // data stream is interrupted - almost always because the visitor
-  // navigated away, closed the tab, or lost connection mid-load, not
-  // because anything server-side broke.
-  if (message === "connection closed.") {
+  // React's Server Components streaming client throws this via a window
+  // "error"/"unhandledrejection" event when the page's data stream is
+  // interrupted - almost always because the visitor navigated away, closed
+  // the tab, or lost connection mid-load, not because anything server-side
+  // broke. Scoped to those two sources only (not the app-error-boundary /
+  // app-global-error sources) so an unrelated render-time bug that happens
+  // to throw the same message string still surfaces in error tracking.
+  if (
+    message === "connection closed." &&
+    (payload.source === "window-error" || payload.source === "unhandledrejection")
+  ) {
     return true;
   }
 

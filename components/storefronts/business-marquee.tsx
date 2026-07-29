@@ -18,7 +18,6 @@ export function BusinessMarquee({ businesses }: { businesses: BusinessMarqueeIte
 
   const innerRepeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / businesses.length));
   const half = Array.from({ length: innerRepeat }, () => businesses).flat();
-  const track = [...half, ...half];
 
   return (
     <section className="business-marquee" style={{ margin: "1.5rem 0" }}>
@@ -47,29 +46,48 @@ export function BusinessMarquee({ businesses }: { businesses: BusinessMarqueeIte
 
       <div className="business-marquee-viewport">
         <div className={`business-marquee-track${paused ? " is-paused" : ""}`}>
-          {track.map((business, index) => (
-            <Link
-              key={`${business.id}-${index}`}
-              href={buildStorefrontHref(business.owner_id, business.id)}
-              className="business-marquee-card"
-            >
-              <span className="business-marquee-avatar" aria-hidden="true">
-                {business.logo_url ? (
-                  <img src={business.logo_url} alt="" />
-                ) : (
-                  business.name.trim().charAt(0).toUpperCase() || "B"
-                )}
-              </span>
-              <span className="business-marquee-copy">
-                <span className="business-marquee-name">{business.name}</span>
-                <span className="business-marquee-caption">
-                  {business.claimed ? "Local business" : "Founding Member"}
-                </span>
-              </span>
-            </Link>
+          {half.map((business, index) => (
+            <BusinessMarqueeCard key={`${business.id}-${index}`} business={business} />
           ))}
+          {/* Duplicate copy purely for the seamless CSS scroll loop - hidden from
+              keyboard/screen-reader users so it doesn't double every tab stop. */}
+          <div className="business-marquee-track-duplicate" aria-hidden="true">
+            {half.map((business, index) => (
+              <BusinessMarqueeCard key={`${business.id}-dup-${index}`} business={business} tabIndex={-1} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function BusinessMarqueeCard({
+  business,
+  tabIndex
+}: {
+  business: BusinessMarqueeItem;
+  tabIndex?: number;
+}) {
+  return (
+    <Link
+      href={buildStorefrontHref(business.owner_id, business.id)}
+      className="business-marquee-card"
+      tabIndex={tabIndex}
+    >
+      <span className="business-marquee-avatar" aria-hidden="true">
+        {business.logo_url ? (
+          <img src={business.logo_url} alt="" />
+        ) : (
+          business.name.trim().charAt(0).toUpperCase() || "B"
+        )}
+      </span>
+      <span className="business-marquee-copy">
+        <span className="business-marquee-name">{business.name}</span>
+        <span className="business-marquee-caption">
+          {business.claimed ? "Local business" : "Founding Member"}
+        </span>
+      </span>
+    </Link>
   );
 }

@@ -3,6 +3,18 @@ import { Resend } from "resend";
 import { getEmailEnv } from "@/lib/env";
 import { SITE_SUPPORT_EMAIL } from "@/lib/constants";
 
+// Names, message text, and other user-supplied strings get interpolated
+// directly into these HTML email bodies - escape them so a crafted name or
+// message can't inject markup/links into someone else's inbox.
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendNewMessageEmail(args: {
   to: string;
   recipientName?: string | null;
@@ -15,16 +27,19 @@ export async function sendNewMessageEmail(args: {
   const resend = new Resend(resendApiKey);
 
   const greeting = args.recipientName?.trim() || "there";
+  const senderName = escapeHtml(args.senderName);
+  const listingTitle = escapeHtml(args.listingTitle);
+  const messagePreview = escapeHtml(args.messagePreview);
 
   const subject = `New message about "${args.listingTitle}"`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; color: #15365b; line-height: 1.6;">
       <h2 style="margin-bottom: 8px;">You have a new message on ISMACONNECT</h2>
-      <p>Hello ${greeting},</p>
-      <p><strong>${args.senderName}</strong> sent you a message about <strong>${args.listingTitle}</strong>.</p>
+      <p>Hello ${escapeHtml(greeting)},</p>
+      <p><strong>${senderName}</strong> sent you a message about <strong>${listingTitle}</strong>.</p>
       <div style="padding: 12px 14px; background: #f3f8ff; border: 1px solid #d5e4fb; border-radius: 10px; margin: 16px 0;">
-        ${args.messagePreview}
+        ${messagePreview}
       </div>
       <p>
         <a href="${args.conversationUrl}" style="display:inline-block;padding:10px 16px;background:#006fd6;color:#fff;text-decoration:none;border-radius:999px;font-weight:700;">
@@ -100,7 +115,7 @@ export async function sendAccountDeactivatedEmail(args: { to: string; recipientN
     subject,
     html: wrapEmailShell(`
       <h2 style="margin-bottom: 8px;">Your account has been deactivated</h2>
-      <p>Hello ${greeting},</p>
+      <p>Hello ${escapeHtml(greeting)},</p>
       <p>
         Your ISMACONNECT account, listings, and storefronts are now hidden from other users. Nothing was
         deleted — sign back in anytime to reactivate and pick up exactly where you left off.
@@ -127,7 +142,7 @@ export async function sendAccountReactivatedEmail(args: { to: string; recipientN
     subject,
     html: wrapEmailShell(`
       <h2 style="margin-bottom: 8px;">Welcome back!</h2>
-      <p>Hello ${greeting},</p>
+      <p>Hello ${escapeHtml(greeting)},</p>
       <p>Your ISMACONNECT account, listings, and storefronts are active and visible to other users again.</p>
       <p>If you did not make this change, please contact us right away at admin@ismaconnect.ca.</p>
     `),
@@ -150,7 +165,7 @@ export async function sendAccountDeletedEmail(args: { to: string; recipientName?
     subject,
     html: wrapEmailShell(`
       <h2 style="margin-bottom: 8px;">Your account has been deleted</h2>
-      <p>Hello ${greeting},</p>
+      <p>Hello ${escapeHtml(greeting)},</p>
       <p>
         Your ISMACONNECT profile, listings, and storefronts have been removed, and you can no longer sign in
         to this account. Some records, such as payment history and conversations with other users, are
@@ -184,12 +199,12 @@ export async function sendAccountSuspendedEmail(args: {
     subject,
     html: wrapEmailShell(`
       <h2 style="margin-bottom: 8px;">Your account has been suspended</h2>
-      <p>Hello ${greeting},</p>
+      <p>Hello ${escapeHtml(greeting)},</p>
       <p>
         An ISMACONNECT admin has suspended your account. You cannot sign in, and your listings and storefronts
         are hidden from other users, until an admin restores access.
       </p>
-      ${reasonLine ? `<p>${reasonLine}</p>` : ""}
+      ${reasonLine ? `<p>${escapeHtml(reasonLine)}</p>` : ""}
       <p>If you believe this is a mistake, please contact us at admin@ismaconnect.ca.</p>
     `),
     text: `Your account has been suspended
@@ -212,7 +227,7 @@ export async function sendAccountRestoredEmail(args: { to: string; recipientName
     subject,
     html: wrapEmailShell(`
       <h2 style="margin-bottom: 8px;">Your account access has been restored</h2>
-      <p>Hello ${greeting},</p>
+      <p>Hello ${escapeHtml(greeting)},</p>
       <p>An ISMACONNECT admin has restored your account. You can sign in again, and your listings and storefronts are visible to other users again.</p>
       <p>If you did not expect this, please contact us at admin@ismaconnect.ca.</p>
     `),
@@ -240,8 +255,8 @@ export async function sendNewAccountAdminEmail(args: { email: string; fullName?:
     subject,
     html: wrapEmailShell(`
       <h2 style="margin-bottom: 8px;">New account created</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${args.email}</p>
+      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(args.email)}</p>
     `),
     text: `New account created\n\nName: ${name}\nEmail: ${args.email}`
   });

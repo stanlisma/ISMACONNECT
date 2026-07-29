@@ -51,6 +51,11 @@ export default async function DashboardStorefrontsPage({
   }
 
   const additionalStorefrontsResult = await getOwnedAdditionalStorefronts(viewer.user.id);
+  // Unclaimed placeholder businesses (created via /admin/storefronts) share the admin's
+  // owner_id as a technical stand-in - keep them out of the admin's own storefront manager.
+  const ownedStorefronts = additionalStorefrontsResult.storefronts.filter(
+    (storefront) => storefront.claimed
+  );
 
   return (
     <div className="stack-md">
@@ -65,7 +70,7 @@ export default async function DashboardStorefrontsPage({
       />
 
       <AdditionalStorefrontsManager
-        storefronts={additionalStorefrontsResult.storefronts}
+        storefronts={ownedStorefronts}
         schemaReady={additionalStorefrontsResult.schemaReady}
         focusStorefrontId={focusStorefrontId}
         showCreateForm={showCreateForm}
@@ -74,7 +79,7 @@ export default async function DashboardStorefrontsPage({
         deleteAction={deleteAdditionalStorefrontAction}
         returnPath="/dashboard/storefronts"
         suggestedDefaults={
-          additionalStorefrontsResult.storefronts.length === 0 &&
+          ownedStorefronts.length === 0 &&
           (businessProfile.business_name ||
             businessProfile.business_description ||
             businessProfile.business_website ||

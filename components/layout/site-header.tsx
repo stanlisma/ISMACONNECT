@@ -55,6 +55,7 @@ export function SiteHeader({
 
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const adminMenuRef = useRef<HTMLDivElement | null>(null);
+  const adminMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setAdminMenuOpen(false);
@@ -71,8 +72,19 @@ export function SiteHeader({
       }
     }
 
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAdminMenuOpen(false);
+        adminMenuTriggerRef.current?.focus();
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [adminMenuOpen]);
 
   return (
@@ -137,6 +149,7 @@ export function SiteHeader({
                 {isAdmin ? (
                   <div className="header-admin-menu" ref={adminMenuRef}>
                     <button
+                      ref={adminMenuTriggerRef}
                       type="button"
                       className="icon-link header-utility-link header-admin-link"
                       aria-label="Admin menu"

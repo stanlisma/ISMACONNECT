@@ -74,7 +74,7 @@ export default async function BusinessesPage({
               <StorefrontDirectoryCard
                 key={storefront.storefront_id}
                 storefront={storefront}
-                trustSummary={trustMap.get(storefront.owner_id)}
+                trustSummary={storefront.claimed ? trustMap.get(storefront.owner_id) : undefined}
               />
             ))}
           </div>

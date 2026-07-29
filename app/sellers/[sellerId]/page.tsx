@@ -84,17 +84,20 @@ export default async function SellerStorefrontPage({
   const categoryFilter = resolveCategory(getSingleParam(resolvedSearchParams?.category));
   const viewer = await getViewer();
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
-  const storefrontLinks = await getPublicSellerStorefrontLinks(sellerId);
-  const publicReviews = await getPublicSellerReviews(sellerId, 6);
-  const trustSummary = await getSellerTrustSummary(sellerId);
-  const sellerSignals = await getPublicSellerSignals(sellerId);
+
+  // An unclaimed storefront's owner_id is the creating admin's own account, used only as a
+  // technical stand-in - none of the admin's personal trust/review/profile data belongs to it.
+  const storefrontLinks = storefront.claimed ? await getPublicSellerStorefrontLinks(sellerId) : [];
+  const publicReviews = storefront.claimed ? await getPublicSellerReviews(sellerId, 6) : [];
+  const trustSummary = storefront.claimed ? await getSellerTrustSummary(sellerId) : null;
+  const sellerSignals = storefront.claimed ? await getPublicSellerSignals(sellerId) : null;
   const trustMap = await getSellerTrustSummaryMap(storefront.listings.map((listing) => listing.owner_id));
   const existingReview =
-    viewer && reviewListingId && viewer.user.id !== sellerId
+    storefront.claimed && viewer && reviewListingId && viewer.user.id !== sellerId
       ? await getViewerSellerReview(reviewListingId, viewer.user.id)
       : null;
   const canRateSellerFromListing =
-    viewer && reviewListingId && viewer.user.id !== sellerId
+    storefront.claimed && viewer && reviewListingId && viewer.user.id !== sellerId
       ? await canViewerRateSeller(reviewListingId, viewer.user.id, sellerId)
       : false;
   const filteredListings = categoryFilter
@@ -157,7 +160,7 @@ export default async function SellerStorefrontPage({
                 <p className="section-copy">{storefrontDescription}</p>
 
                 <div className="seller-storefront-meta">
-                  <span>Member since {memberSinceLabel}</span>
+                  {storefront.claimed ? <span>Member since {memberSinceLabel}</span> : null}
                   {storefront.is_business ? <span>Business account</span> : null}
                   {!isStorefrontView && businessHoursStatus ? (
                     <span className={`seller-storefront-status-pill ${businessHoursStatus.isOpen ? "is-open" : ""}`}>

@@ -839,6 +839,12 @@ code {
   animation: business-marquee-scroll 45s linear infinite;
 }
 
+.business-marquee-track-duplicate {
+  display: flex;
+  align-items: stretch;
+  gap: 0.9rem;
+}
+
 .business-marquee-track.is-paused {
   animation-play-state: paused;
 }
