@@ -411,6 +411,15 @@ export default async function BrowsePage({
                 </Link>
               ) : null}
             </div>
+          </div>
+        </div>
+
+        <div className="browse-marquee-mobile">
+          <BusinessMarquee businesses={marqueeBusinesses} />
+        </div>
+
+        <div className="browse-mobile-overview surface">
+          <div className="browse-mobile-overview-copy">
             <h1>{browseTitle}</h1>
           </div>
 
@@ -449,10 +458,15 @@ export default async function BrowsePage({
               </Link>
             ) : null}
           </div>
-          <SectionHeading title={browseTitle} />
         </div>
 
-        <BusinessMarquee businesses={marqueeBusinesses} />
+        <div className="browse-marquee-desktop">
+          <BusinessMarquee businesses={marqueeBusinesses} />
+        </div>
+
+        <div className="browse-desktop-heading">
+          <SectionHeading title={browseTitle} />
+        </div>
 
         {isMapEligibleCategory ? (
           <BrowseViewToggle

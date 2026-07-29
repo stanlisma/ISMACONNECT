@@ -10104,7 +10104,8 @@ code {
 
 .home-mobile-hero,
 .browse-mobile-overview,
-.category-mobile-overview {
+.category-mobile-overview,
+.browse-marquee-mobile {
   display: none;
 }
 
@@ -10838,8 +10839,13 @@ code {
   }
 
   .home-hero-section:not(.home-unified-hero),
-  .browse-desktop-heading {
+  .browse-desktop-heading,
+  .browse-marquee-desktop {
     display: none !important;
+  }
+
+  .browse-marquee-mobile {
+    display: block;
   }
 
   .home-unified-hero {
