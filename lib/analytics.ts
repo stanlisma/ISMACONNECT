@@ -81,6 +81,14 @@ function isIgnorableClientError(payload: ClientErrorPayload) {
     return true;
   }
 
+  // React's Server Components streaming client throws this when the page's
+  // data stream is interrupted - almost always because the visitor
+  // navigated away, closed the tab, or lost connection mid-load, not
+  // because anything server-side broke.
+  if (message === "connection closed.") {
+    return true;
+  }
+
   return false;
 }
 
