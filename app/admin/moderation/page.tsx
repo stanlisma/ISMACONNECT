@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AppErrorLogActions } from "@/components/admin/app-error-log-actions";
 import { ModerationActions } from "@/components/admin/moderation-actions";
 import { UserReportActions } from "@/components/admin/user-report-actions";
 import { VerificationRequestActions } from "@/components/admin/verification-request-actions";
@@ -64,6 +65,8 @@ export default async function ModerationPage({
               </div>
 
               {errorLog.stack ? <p>{excerpt(errorLog.stack, 220)}</p> : null}
+
+              <AppErrorLogActions logId={errorLog.id} />
             </div>
           ))}
         </div>
@@ -186,7 +189,7 @@ export default async function ModerationPage({
         </details>
       ) : null}
 
-      {flaggedListings.length === 0 ? (
+      {flaggedListings.length === 0 && recentAppErrorLogs.length === 0 ? (
         <EmptyState
           actionHref="/dashboard"
           actionLabel="Back to My Listings"
