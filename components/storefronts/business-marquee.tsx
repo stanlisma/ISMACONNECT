@@ -8,6 +8,10 @@ import { buildStorefrontHref } from "@/lib/business-storefronts";
 import type { BusinessMarqueeItem } from "@/types/database";
 
 const MIN_TILES_PER_HALF = 8;
+// Original design was tuned at 45s for the 8-tile floor - keep that same
+// px/s scroll speed regardless of how many tiles actually end up in a half,
+// instead of a fixed duration that speeds up or slows down with tile count.
+const SECONDS_PER_TILE = 45 / MIN_TILES_PER_HALF;
 
 export function BusinessMarquee({ businesses }: { businesses: BusinessMarqueeItem[] }) {
   const [paused, setPaused] = useState(false);
@@ -18,6 +22,7 @@ export function BusinessMarquee({ businesses }: { businesses: BusinessMarqueeIte
 
   const innerRepeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / businesses.length));
   const half = Array.from({ length: innerRepeat }, () => businesses).flat();
+  const scrollDuration = `${(half.length * SECONDS_PER_TILE).toFixed(1)}s`;
 
   return (
     <section className="business-marquee" style={{ margin: "1.5rem 0" }}>
@@ -45,7 +50,10 @@ export function BusinessMarquee({ businesses }: { businesses: BusinessMarqueeIte
       </div>
 
       <div className="business-marquee-viewport">
-        <div className={`business-marquee-track${paused ? " is-paused" : ""}`}>
+        <div
+          className={`business-marquee-track${paused ? " is-paused" : ""}`}
+          style={{ ["--marquee-duration" as string]: scrollDuration }}
+        >
           {half.map((business, index) => (
             <BusinessMarqueeCard key={`${business.id}-${index}`} business={business} />
           ))}

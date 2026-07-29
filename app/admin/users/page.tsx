@@ -1,9 +1,11 @@
+import Link from "next/link";
+
 import { AdminUserStatusForm } from "@/components/admin/admin-user-status-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { requireAdminViewer } from "@/lib/auth";
 import { getAllUsersForAdmin } from "@/lib/data";
-import { formatDate, getSingleParam } from "@/lib/utils";
+import { buildPathWithQuery, formatDate, getPositiveIntParam, getSingleParam } from "@/lib/utils";
 
 export default async function AdminUsersPage({
   searchParams
@@ -13,7 +15,10 @@ export default async function AdminUsersPage({
   const viewer = await requireAdminViewer();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const search = getSingleParam(resolvedSearchParams?.q);
-  const users = await getAllUsersForAdmin(search);
+  const page = getPositiveIntParam(resolvedSearchParams?.page, 1);
+  const { users, totalCount, pageSize } = await getAllUsersForAdmin(search, page);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page * pageSize < totalCount;
 
   return (
     <>
@@ -73,6 +78,32 @@ export default async function AdminUsersPage({
           ))}
         </div>
       )}
+
+      {hasPreviousPage || hasNextPage ? (
+        <div className="action-row" style={{ marginTop: "1.25rem", justifyContent: "space-between" }}>
+          <div>
+            {hasPreviousPage ? (
+              <Link
+                className="button button-secondary"
+                href={buildPathWithQuery("/admin/users", { q: search, page: page - 1 > 1 ? page - 1 : undefined })}
+              >
+                Previous page
+              </Link>
+            ) : null}
+          </div>
+
+          <div>
+            {hasNextPage ? (
+              <Link
+                className="button"
+                href={buildPathWithQuery("/admin/users", { q: search, page: page + 1 })}
+              >
+                Next page
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

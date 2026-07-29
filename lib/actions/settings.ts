@@ -109,6 +109,25 @@ async function loadOwnedStorefront(ownerId: string, storefrontId: string) {
   return data;
 }
 
+function isAdminStorefrontReturnPath(returnPath: string) {
+  return returnPath === ADMIN_STOREFRONTS_PATH || returnPath.startsWith(`${ADMIN_STOREFRONTS_PATH}?`);
+}
+
+// updateAdditionalStorefrontAction/deleteAdditionalStorefrontAction are shared between
+// /dashboard/storefronts (real storefronts) and /admin/storefronts (unclaimed placeholders,
+// which use the admin's own owner_id as a technical stand-in). The UI on each route already
+// only lists the storefronts it's meant to manage, but this is a server-side backstop so a
+// bug in that filtering (or a hand-crafted request) can never let the admin route mutate a
+// real storefront, or the dashboard route mutate an unclaimed placeholder.
+function assertStorefrontMatchesRoute(
+  storefront: { claimed?: boolean | null },
+  returnPath: string
+) {
+  const isAdminRoute = isAdminStorefrontReturnPath(returnPath);
+  const isUnclaimed = storefront.claimed === false;
+  return isAdminRoute === isUnclaimed;
+}
+
 async function createSettingsMutationClient() {
   return isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
@@ -426,7 +445,7 @@ export async function updateAdditionalStorefrontAction(storefrontId: string, for
   const existingStorefront = await loadOwnedStorefront(viewer.user.id, storefrontId);
   const returnPath = resolveSettingsReturnPath(formData);
 
-  if (!existingStorefront) {
+  if (!existingStorefront || !assertStorefrontMatchesRoute(existingStorefront, returnPath)) {
     redirect(buildReturnPathWithMessage(returnPath, "error", "That storefront could not be found."));
   }
 
@@ -528,7 +547,7 @@ export async function deleteAdditionalStorefrontAction(storefrontId: string, for
   const existingStorefront = await loadOwnedStorefront(viewer.user.id, storefrontId);
   const returnPath = resolveSettingsReturnPath(formData, "/dashboard/storefronts");
 
-  if (!existingStorefront) {
+  if (!existingStorefront || !assertStorefrontMatchesRoute(existingStorefront, returnPath)) {
     redirect(buildReturnPathWithMessage(returnPath, "error", "That storefront could not be found."));
   }
 

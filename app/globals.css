@@ -836,7 +836,10 @@ code {
   align-items: stretch;
   gap: 0.9rem;
   width: max-content;
-  animation: business-marquee-scroll 45s linear infinite;
+  animation-name: business-marquee-scroll;
+  animation-duration: var(--marquee-duration, 45s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 .business-marquee-track-duplicate {
@@ -10108,15 +10111,10 @@ code {
   }
 }
 
-.home-mobile-hero,
 .browse-mobile-overview,
 .category-mobile-overview,
 .browse-marquee-mobile {
   display: none;
-}
-
-.home-mobile-hero {
-  gap: 0.75rem;
 }
 
 .home-unified-hero {
@@ -10199,7 +10197,6 @@ code {
   cursor: pointer;
 }
 
-.home-mobile-hero-copy,
 .browse-mobile-overview-copy,
 .detail-quick-actions-copy {
   display: grid;
@@ -10234,7 +10231,6 @@ code {
   margin-bottom: 0.35rem;
 }
 
-.home-mobile-hero-copy h1,
 .browse-mobile-overview-copy h1,
 .detail-quick-actions-copy h2,
 .home-section-head h2 {
@@ -10243,7 +10239,6 @@ code {
   letter-spacing: -0.03em;
 }
 
-.home-mobile-hero-copy p,
 .browse-mobile-overview-copy p,
 .detail-quick-actions-copy p,
 .browse-results-count {
@@ -10837,13 +10832,6 @@ code {
     border-radius: 22px;
   }
 
-  .home-mobile-hero {
-    display: grid;
-    margin: 0 0.75rem 0.8rem;
-    padding: 1rem;
-    border-radius: 22px;
-  }
-
   .home-hero-section:not(.home-unified-hero),
   .browse-desktop-heading,
   .browse-marquee-desktop {
@@ -10854,6 +10842,14 @@ code {
     display: block;
   }
 
+  .business-marquee-viewport {
+    /* .homepage-main and .container both drop to 0 horizontal padding at this
+       breakpoint, so the -1.4rem bleed used to align with their desktop padding
+       would push cards past the true screen edge instead of touching it. */
+    margin: 0;
+    padding: 0.3rem 0 0.6rem;
+  }
+
   .home-unified-hero {
     display: grid !important;
     margin: 0 0.75rem 0.8rem;
@@ -10862,13 +10858,11 @@ code {
     gap: 0.9rem;
   }
 
-  .home-mobile-hero-copy h1,
   .browse-mobile-overview-copy h1 {
     font-size: 1.55rem;
     line-height: 1.06;
   }
 
-  .home-mobile-hero-copy p,
   .browse-mobile-overview-copy p {
     font-size: 0.88rem;
     line-height: 1.35;

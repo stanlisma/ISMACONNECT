@@ -1,10 +1,19 @@
+import Link from "next/link";
+
 import { AdminListingStatusForm } from "@/components/admin/admin-listing-status-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
 import { requireAdminViewer } from "@/lib/auth";
 import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { getAllListingsForAdmin } from "@/lib/data";
-import { formatCurrency, formatDate, getCategoryLabel, getSingleParam } from "@/lib/utils";
+import {
+  buildPathWithQuery,
+  formatCurrency,
+  formatDate,
+  getCategoryLabel,
+  getPositiveIntParam,
+  getSingleParam
+} from "@/lib/utils";
 
 export default async function AdminListingsPage({
   searchParams
@@ -14,7 +23,10 @@ export default async function AdminListingsPage({
   await requireAdminViewer();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const search = getSingleParam(resolvedSearchParams?.q);
-  const listings = await getAllListingsForAdmin(search);
+  const page = getPositiveIntParam(resolvedSearchParams?.page, 1);
+  const { listings, totalCount, pageSize } = await getAllListingsForAdmin(search, page);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page * pageSize < totalCount;
 
   return (
     <>
@@ -72,6 +84,32 @@ export default async function AdminListingsPage({
           ))}
         </div>
       )}
+
+      {hasPreviousPage || hasNextPage ? (
+        <div className="action-row" style={{ marginTop: "1.25rem", justifyContent: "space-between" }}>
+          <div>
+            {hasPreviousPage ? (
+              <Link
+                className="button button-secondary"
+                href={buildPathWithQuery("/admin/listings", { q: search, page: page - 1 > 1 ? page - 1 : undefined })}
+              >
+                Previous page
+              </Link>
+            ) : null}
+          </div>
+
+          <div>
+            {hasNextPage ? (
+              <Link
+                className="button"
+                href={buildPathWithQuery("/admin/listings", { q: search, page: page + 1 })}
+              >
+                Next page
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

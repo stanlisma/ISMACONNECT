@@ -595,22 +595,26 @@ export async function getFlaggedListings() {
   return (data || []) as FlaggedListing[];
 }
 
-export async function getAllListingsForAdmin(search?: string) {
+export const ADMIN_LIST_PAGE_SIZE = 50;
+
+export async function getAllListingsForAdmin(search?: string, page = 1) {
   const supabase = isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
     : await createServerSupabaseClient();
 
+  const offset = (Math.max(1, page) - 1) * ADMIN_LIST_PAGE_SIZE;
+
   let query = supabase
     .from("listings")
-    .select("id, title, slug, category, status, price, location, owner_id, updated_at")
+    .select("id, title, slug, category, status, price, location, owner_id, updated_at", { count: "exact" })
     .order("updated_at", { ascending: false })
-    .limit(100);
+    .range(offset, offset + ADMIN_LIST_PAGE_SIZE - 1);
 
   if (search?.trim()) {
     query = query.ilike("title", `%${search.trim()}%`);
   }
 
-  const { data } = await query;
+  const { data, count } = await query;
   const listings = data || [];
 
   const ownerIds = Array.from(new Set(listings.map((listing) => listing.owner_id).filter(Boolean)));
@@ -627,30 +631,43 @@ export async function getAllListingsForAdmin(search?: string) {
     });
   }
 
-  return listings.map((listing) => ({
-    ...listing,
-    owner: ownerMap.get(listing.owner_id) ?? null
-  }));
+  return {
+    listings: listings.map((listing) => ({
+      ...listing,
+      owner: ownerMap.get(listing.owner_id) ?? null
+    })),
+    totalCount: count ?? listings.length,
+    pageSize: ADMIN_LIST_PAGE_SIZE
+  };
 }
 
-export async function getAllUsersForAdmin(search?: string) {
+export async function getAllUsersForAdmin(search?: string, page = 1) {
   const supabase = isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
     : await createServerSupabaseClient();
 
+  const offset = (Math.max(1, page) - 1) * ADMIN_LIST_PAGE_SIZE;
+
   let query = supabase
     .from("profiles")
-    .select("id, email, full_name, role, deactivated_at, suspended_at, suspended_reason, created_at")
+    .select("id, email, full_name, role, deactivated_at, suspended_at, suspended_reason, created_at", {
+      count: "exact"
+    })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(offset, offset + ADMIN_LIST_PAGE_SIZE - 1);
 
   if (search?.trim()) {
     const term = search.trim();
     query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
   }
 
-  const { data } = await query;
-  return data || [];
+  const { data, count } = await query;
+
+  return {
+    users: data || [],
+    totalCount: count ?? (data || []).length,
+    pageSize: ADMIN_LIST_PAGE_SIZE
+  };
 }
 
 export async function getSavedListingIds(userId: string) {
