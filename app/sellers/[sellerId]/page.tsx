@@ -152,6 +152,7 @@ export default async function SellerStorefrontPage({
                 <h1 className="section-title verified-name-inline">
                   <span>{storefront.display_name}</span>
                   <VerifiedNameBadge summary={trustSummary} />
+                  {!storefront.claimed ? <span className="badge badge-soft">Unclaimed · Founding Member</span> : null}
                 </h1>
                 <p className="section-copy">{storefrontDescription}</p>
 
@@ -239,6 +240,24 @@ export default async function SellerStorefrontPage({
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  ) : null}
+
+                  {!storefront.claimed ? (
+                    <div className="seller-storefront-detail-card">
+                      <h3>Is this your business?</h3>
+                      <p className="section-copy">
+                        ISMACONNECT added this listing as a Founding Member. Claim it to manage your info, reply to
+                        messages, and add photos.
+                      </p>
+                      <a
+                        className="button button-secondary"
+                        href={`mailto:admin@ismaconnect.ca?subject=${encodeURIComponent(
+                          `Claim business: ${storefront.display_name}`
+                        )}`}
+                      >
+                        Claim this business
+                      </a>
                     </div>
                   ) : null}
                 </div>

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireViewer } from "@/lib/auth";
+import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import {
   buildStorefrontSlug,
   isAdditionalStorefrontSchemaError,
@@ -29,6 +29,10 @@ function resolveSettingsReturnPath(formData: FormData, fallbackPath = "/settings
   }
 
   if (rawPath === "/dashboard/storefronts" || rawPath.startsWith("/dashboard/storefronts?")) {
+    return rawPath;
+  }
+
+  if (rawPath === "/admin/storefronts" || rawPath.startsWith("/admin/storefronts?")) {
     return rawPath;
   }
 
@@ -335,6 +339,83 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
       returnPath,
       "success",
       "Storefront created",
+      insertedStorefront.id
+    )
+  );
+}
+
+const ADMIN_STOREFRONTS_PATH = "/admin/storefronts";
+
+export async function adminCreateUnclaimedStorefrontAction(formData: FormData) {
+  const viewer = await requireAdminViewer();
+  const supabase = await createSettingsMutationClient();
+  const parsed = parseAdditionalStorefrontFormData(formData);
+
+  if (!parsed.name) {
+    redirect(buildReturnPathWithMessage(ADMIN_STOREFRONTS_PATH, "error", "Business name is required."));
+  }
+
+  const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name);
+  const geocodedAddress = parsed.address ? await geocodeMarketplaceAddress(parsed.address) : null;
+
+  const { data: insertedStorefront, error } = await supabase
+    .from("business_storefronts")
+    .insert({
+      owner_id: viewer.user.id,
+      slug,
+      name: parsed.name,
+      description: parsed.description,
+      logo_url: parsed.logoUrl,
+      image_urls: parsed.imageUrls,
+      website: parsed.website,
+      phone: parsed.phone,
+      address: parsed.address,
+      show_exact_location: parsed.address ? parsed.showExactLocation : false,
+      geocoded_lat: geocodedAddress?.lat ?? null,
+      geocoded_lng: geocodedAddress?.lng ?? null,
+      geocoded_area: geocodedAddress?.area ?? null,
+      geocoded_formatted_address: geocodedAddress?.formattedAddress ?? null,
+      geocoded_at: geocodedAddress ? new Date().toISOString() : null,
+      service_areas: parsed.serviceAreas,
+      services: parsed.services,
+      hours: parsed.hours,
+      claimed: false
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    if (isAdditionalStorefrontSchemaError(error)) {
+      redirect(
+        buildReturnPathWithMessage(
+          ADMIN_STOREFRONTS_PATH,
+          "error",
+          "Run the claimed-column migration in Supabase before creating unclaimed business listings."
+        )
+      );
+    }
+
+    redirect(buildReturnPathWithMessage(ADMIN_STOREFRONTS_PATH, "error", error.message));
+  }
+
+  if (!insertedStorefront?.id) {
+    redirect(
+      buildReturnPathWithMessage(
+        ADMIN_STOREFRONTS_PATH,
+        "error",
+        "Business listing creation did not persist. Please try again."
+      )
+    );
+  }
+
+  revalidatePath(ADMIN_STOREFRONTS_PATH);
+  revalidatePath("/businesses");
+  revalidatePath(`/sellers/${viewer.user.id}`);
+  redirect(
+    buildReturnPathWithMessageAndFocus(
+      ADMIN_STOREFRONTS_PATH,
+      "success",
+      "Unclaimed business listing created",
       insertedStorefront.id
     )
   );

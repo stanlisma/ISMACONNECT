@@ -779,6 +779,7 @@ export async function getPublicSellerStorefront(
     storefront_id: additionalStorefront?.id ?? null,
     display_name: displayName,
     is_business: Boolean(additionalStorefront),
+    claimed: additionalStorefront ? additionalStorefront.claimed : true,
     business_description: additionalStorefront?.description ?? null,
     business_logo_url: additionalStorefront?.logo_url ?? null,
     business_image_urls: additionalStorefront?.image_urls ?? [],
@@ -1007,6 +1008,7 @@ export async function getPublicBusinessStorefrontDirectory(filters?: {
       return {
         storefront_id: storefront.id,
         owner_id: storefront.owner_id,
+        claimed: storefront.claimed,
         slug: storefront.slug,
         name: storefront.name,
         description: storefront.description,

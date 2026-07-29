@@ -95,6 +95,7 @@ export default async function DashboardStorefrontsPage({
                 hours: businessProfile.business_hours,
                 id: "",
                 owner_id: viewer.user.id,
+                claimed: true,
                 slug: "",
                 geocoded_lat: null,
                 geocoded_lng: null,

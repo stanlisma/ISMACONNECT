@@ -537,7 +537,10 @@ export function AdditionalStorefrontsManager({
                   )}
                 </div>
                 <div className="storefront-manager-panel-copy">
-                  <strong>{storefront.name}</strong>
+                  <strong>
+                    {storefront.name}
+                    {!storefront.claimed ? <span className="badge badge-soft">Unclaimed</span> : null}
+                  </strong>
                   <span>{summaryLabel}</span>
                 </div>
               </div>

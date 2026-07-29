@@ -309,6 +309,7 @@ export interface PublicSellerStorefront {
   storefront_id: string | null;
   display_name: string;
   is_business: boolean;
+  claimed: boolean;
   business_description: string | null;
   business_logo_url: string | null;
   business_image_urls: string[];
@@ -345,6 +346,7 @@ export interface PublicSellerReviewItem {
 export interface PublicBusinessStorefrontDirectoryItem {
   storefront_id: string;
   owner_id: string;
+  claimed: boolean;
   slug: string;
   name: string;
   description: string | null;
@@ -365,6 +367,7 @@ export interface PublicBusinessStorefrontDirectoryItem {
 export interface AdditionalBusinessStorefront {
   id: string;
   owner_id: string;
+  claimed: boolean;
   slug: string;
   name: string;
   description: string | null;
