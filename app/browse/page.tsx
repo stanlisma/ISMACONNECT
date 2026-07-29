@@ -440,8 +440,6 @@ export default async function BrowsePage({
 
         <MobileInstallBanner context={category === "ride-share" ? "ride-share" : "browse"} />
 
-        <BusinessMarquee businesses={marqueeBusinesses} />
-
         <div className="browse-desktop-heading">
           <div className="marketplace-page-utility-row">
             <span className="eyebrow">Fort McMurray</span>
@@ -453,6 +451,8 @@ export default async function BrowsePage({
           </div>
           <SectionHeading title={browseTitle} />
         </div>
+
+        <BusinessMarquee businesses={marqueeBusinesses} />
 
         {isMapEligibleCategory ? (
           <BrowseViewToggle
