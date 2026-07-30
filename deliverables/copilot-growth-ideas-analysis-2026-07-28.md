@@ -18,21 +18,20 @@ ISMACONNECT and not worth acting on yet. Skipped below.
 
 ## Track A — Product features (I build these)
 
-### A1. Unclaimed business listings + "Claim this business" flow — **highest leverage**
-This is the single most useful concrete idea in the doc, because it removes the actual
+### A1. Unclaimed business listings + "Claim this business" flow — **highest leverage** — ✅ shipped 2026-07-30
+This was the single most useful concrete idea in the doc, because it removes the actual
 blocker stopping you from doing outreach today: right now, adding a business means
 either they create an account themselves (friction, most won't) or you register it under
 your own account (messy — reviews/messages land on you, ownership transfer later is
 awkward).
 
-Proposed shape, building on the admin tooling already in place ([app/admin/listings](app/admin/listings/page.tsx:1)):
-- Admin can create a listing/storefront with no `owner_id` bound to a real user yet — flagged `claimed: false`.
-- Listing shows an "Unclaimed listing" badge + a "Are you the owner? Claim this business" button.
-- Clicking it prompts sign-up/sign-in, then submits a claim request.
-- Admin approves the claim in `/admin/listings` (or a new claims queue) → listing transfers to that user's account.
+Built, verified live, and pushed:
+- Admin can create a storefront with no real owner yet via [/admin/storefronts](app/admin/storefronts/page.tsx:1) — flagged `claimed: false`, shown publicly with an "Unclaimed · Founding Member" badge.
+- The business's public page shows a "Claim this business" card ([components/storefronts/claim-storefront-card.tsx](components/storefronts/claim-storefront-card.tsx:1)) — signed-out visitors are prompted to sign in/create an account; signed-in visitors can submit a claim with an optional verification note.
+- Admins review claims in a new queue at [/admin/claims](app/admin/claims/page.tsx:1) — approving transfers the storefront (and any listings posted under it) to the claimant's account and marks their profile as a business; rejecting supports an optional reason. Both outcomes email the claimant.
 - This is exactly the same shape as Google Business Profile / Yelp claim flows the doc references.
 
-This unlocks Track C (personal outreach) — you'd be able to onboard a business in 2 minutes without asking them to do anything account-related.
+This unlocks Track C (personal outreach) — you can now onboard a business in 2 minutes without asking them to do anything account-related, and hand a legitimate claim link to the real owner whenever they're ready.
 
 ### A2. Founding Member Program
 - A `founding_member` flag (on profile or storefront) that renders a badge on listings.
