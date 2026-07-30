@@ -398,6 +398,35 @@ export interface BusinessMarqueeItem {
   claimed: boolean;
 }
 
+export type StorefrontClaimStatus = "pending" | "approved" | "rejected";
+
+export interface StorefrontClaim {
+  id: string;
+  storefront_id: string;
+  claimant_id: string;
+  message: string | null;
+  status: StorefrontClaimStatus;
+  rejection_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StorefrontClaimForAdmin extends StorefrontClaim {
+  storefront: {
+    id: string;
+    name: string;
+    slug: string;
+    owner_id: string;
+  } | null;
+  claimant: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
+  } | null;
+}
+
 export interface BusinessMapProfile {
   storefront_id: string;
   owner_id: string;

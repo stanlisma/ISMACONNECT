@@ -15,7 +15,8 @@ const ADMIN_MENU_LINKS = [
   { href: "/admin/moderation", label: "Flagged listings" },
   { href: "/admin/listings", label: "All listings" },
   { href: "/admin/users", label: "All users" },
-  { href: "/admin/storefronts", label: "Add business" }
+  { href: "/admin/storefronts", label: "Add business" },
+  { href: "/admin/claims", label: "Business claims" }
 ];
 
 interface SiteHeaderProps {

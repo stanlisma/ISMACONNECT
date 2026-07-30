@@ -31,7 +31,9 @@ import type {
   PublicBusinessStorefrontDirectoryItem,
   PublicSellerReviewItem,
   PublicSellerStorefrontLink,
-  PublicSellerStorefront
+  PublicSellerStorefront,
+  StorefrontClaim,
+  StorefrontClaimForAdmin
 } from "@/types/database";
 
 interface ListingFilters {
@@ -105,6 +107,81 @@ export async function getOwnedAdditionalStorefronts(ownerId: string) {
       normalizeAdditionalStorefrontRow(row)
     )
   };
+}
+
+const STOREFRONT_CLAIM_SELECT = `
+  id,
+  storefront_id,
+  claimant_id,
+  message,
+  status,
+  rejection_reason,
+  reviewed_by,
+  reviewed_at,
+  created_at,
+  updated_at,
+  storefront:business_storefronts!business_storefront_claims_storefront_id_fkey(id, name, slug, owner_id),
+  claimant:profiles!business_storefront_claims_claimant_id_fkey(id, full_name, email)
+`;
+
+function mapStorefrontClaimForAdminRow(row: any): StorefrontClaimForAdmin {
+  return {
+    id: row.id,
+    storefront_id: row.storefront_id,
+    claimant_id: row.claimant_id,
+    message: row.message,
+    status: row.status,
+    rejection_reason: row.rejection_reason,
+    reviewed_by: row.reviewed_by,
+    reviewed_at: row.reviewed_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    storefront: Array.isArray(row.storefront) ? row.storefront[0] ?? null : row.storefront ?? null,
+    claimant: Array.isArray(row.claimant) ? row.claimant[0] ?? null : row.claimant ?? null
+  };
+}
+
+export async function getPendingStorefrontClaims() {
+  // Admin-only read across other users' claim + profile rows - use the
+  // service-role client like every other cross-user admin fetch in this
+  // file (getAllUsersForAdmin, getAllListingsForAdmin), since the RLS-scoped
+  // client's public.is_admin() check does not reliably clear other users'
+  // `profiles` rows for embedded relations.
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("business_storefront_claims")
+    .select(STOREFRONT_CLAIM_SELECT)
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    logDataError("Pending storefront claims query failed", error);
+    return [] as StorefrontClaimForAdmin[];
+  }
+
+  return ((data as any[] | null) ?? []).map(mapStorefrontClaimForAdminRow);
+}
+
+export async function getViewerStorefrontClaim(storefrontId: string, viewerId: string) {
+  if (!storefrontId || !viewerId) {
+    return null;
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  const { data } = await supabase
+    .from("business_storefront_claims")
+    .select("id, storefront_id, claimant_id, message, status, rejection_reason, reviewed_by, reviewed_at, created_at, updated_at")
+    .eq("storefront_id", storefrontId)
+    .eq("claimant_id", viewerId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (data as StorefrontClaim | null) ?? null;
 }
 
 export async function getBusinessMarqueeItems(limit = 24) {

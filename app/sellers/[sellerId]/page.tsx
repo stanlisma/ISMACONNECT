@@ -5,6 +5,7 @@ import { Building2, Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 
 import { getBusinessHoursRows, getBusinessHoursStatus } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
+import { ClaimStorefrontCard } from "@/components/storefronts/claim-storefront-card";
 import { ListingCard } from "@/components/listings/listing-card";
 import { SellerTrustHighlights } from "@/components/trust/seller-trust-highlights";
 import { SellerRatingInline } from "@/components/trust/seller-rating-inline";
@@ -20,7 +21,8 @@ import {
   getPublicSellerReviews,
   getPublicSellerStorefront,
   getPublicSellerStorefrontLinks,
-  getSavedListingIds
+  getSavedListingIds,
+  getViewerStorefrontClaim
 } from "@/lib/data";
 import {
   canViewerRateSeller,
@@ -100,6 +102,10 @@ export default async function SellerStorefrontPage({
     storefront.claimed && viewer && reviewListingId && viewer.user.id !== sellerId
       ? await canViewerRateSeller(reviewListingId, viewer.user.id, sellerId)
       : false;
+  const existingClaim =
+    !storefront.claimed && viewer && storefront.storefront_id
+      ? await getViewerStorefrontClaim(storefront.storefront_id, viewer.user.id)
+      : null;
   const filteredListings = categoryFilter
     ? storefront.listings.filter((listing) => listing.category === categoryFilter)
     : storefront.listings;
@@ -246,22 +252,12 @@ export default async function SellerStorefrontPage({
                     </div>
                   ) : null}
 
-                  {!storefront.claimed ? (
-                    <div className="seller-storefront-detail-card">
-                      <h3>Is this your business?</h3>
-                      <p className="section-copy">
-                        ISMACONNECT added this listing as a Founding Member. Claim it to manage your info, reply to
-                        messages, and add photos.
-                      </p>
-                      <a
-                        className="button button-secondary"
-                        href={`mailto:admin@ismaconnect.ca?subject=${encodeURIComponent(
-                          `Claim business: ${storefront.display_name}`
-                        )}`}
-                      >
-                        Claim this business
-                      </a>
-                    </div>
+                  {!storefront.claimed && storefront.storefront_id ? (
+                    <ClaimStorefrontCard
+                      storefrontId={storefront.storefront_id}
+                      isSignedIn={Boolean(viewer)}
+                      existingClaim={existingClaim}
+                    />
                   ) : null}
                 </div>
               ) : null}

@@ -265,3 +265,104 @@ export async function sendNewAccountAdminEmail(args: { email: string; fullName?:
     throw new Error(error.message);
   }
 }
+
+export async function sendStorefrontClaimAdminEmail(args: {
+  businessName: string;
+  claimantName?: string | null;
+  claimantEmail: string;
+  message?: string | null;
+}) {
+  const { resendApiKey, emailFrom } = getEmailEnv();
+  const resend = new Resend(resendApiKey);
+
+  const claimantName = args.claimantName?.trim() || "(no name given)";
+  const subject = `New business claim: ${args.businessName}`;
+
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: [SITE_SUPPORT_EMAIL],
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">New business claim request</h2>
+      <p><strong>Business:</strong> ${escapeHtml(args.businessName)}</p>
+      <p><strong>Claimant:</strong> ${escapeHtml(claimantName)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(args.claimantEmail)}</p>
+      ${args.message?.trim() ? `<p><strong>Message:</strong> ${escapeHtml(args.message.trim())}</p>` : ""}
+      <p>Review it in the admin claims queue.</p>
+    `),
+    text: `New business claim request
+
+Business: ${args.businessName}
+Claimant: ${claimantName}
+Email: ${args.claimantEmail}
+${args.message?.trim() ? `Message: ${args.message.trim()}\n` : ""}
+Review it in the admin claims queue.`
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function sendStorefrontClaimApprovedEmail(args: {
+  to: string;
+  recipientName?: string | null;
+  businessName: string;
+}) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = `Your claim on ${args.businessName} was approved`;
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">You now own ${escapeHtml(args.businessName)} on ISMACONNECT</h2>
+      <p>Hello ${escapeHtml(greeting)},</p>
+      <p>
+        An ISMACONNECT admin approved your claim on <strong>${escapeHtml(args.businessName)}</strong>.
+        You can now manage its info, reply to messages, and post listings under it from your dashboard.
+      </p>
+      <p>If you did not request this, please contact us right away at admin@ismaconnect.ca.</p>
+    `),
+    text: `You now own ${args.businessName} on ISMACONNECT
+
+Hello ${greeting},
+
+An ISMACONNECT admin approved your claim on ${args.businessName}. You can now manage its info, reply to
+messages, and post listings under it from your dashboard.
+
+If you did not request this, please contact us right away at admin@ismaconnect.ca.`
+  });
+}
+
+export async function sendStorefrontClaimRejectedEmail(args: {
+  to: string;
+  recipientName?: string | null;
+  businessName: string;
+  reason?: string | null;
+}) {
+  const greeting = args.recipientName?.trim() || "there";
+  const subject = `Your claim on ${args.businessName} was not approved`;
+  const reasonLine = args.reason?.trim() ? `Reason: ${args.reason.trim()}` : "";
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">Your business claim was not approved</h2>
+      <p>Hello ${escapeHtml(greeting)},</p>
+      <p>
+        An ISMACONNECT admin was not able to approve your claim on <strong>${escapeHtml(args.businessName)}</strong>.
+      </p>
+      ${reasonLine ? `<p>${escapeHtml(reasonLine)}</p>` : ""}
+      <p>If you believe this is a mistake, please contact us at admin@ismaconnect.ca.</p>
+    `),
+    text: `Your business claim was not approved
+
+Hello ${greeting},
+
+An ISMACONNECT admin was not able to approve your claim on ${args.businessName}.
+${reasonLine ? `\n${reasonLine}\n` : ""}
+If you believe this is a mistake, please contact us at admin@ismaconnect.ca.`
+  });
+}
