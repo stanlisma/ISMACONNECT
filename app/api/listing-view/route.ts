@@ -1,9 +1,34 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const VISITOR_COOKIE = "ismaconnect_visitor_id";
+
+// A visitor with no cookie previously got a fresh random UUID every request,
+// which sails past the (listing_id, visitor_key) unique constraint below -
+// clearing cookies (or just not sending one) let anyone inflate a listing's
+// view count with unlimited "new" visits. Deriving the dedup key from the
+// request IP instead when no cookie is present means repeated cookie-less
+// requests from the same origin collide on the same key and get deduped,
+// same as a real returning visitor would. This is only ever used as an
+// opaque dedup key, never stored or exposed as a raw IP.
+async function getFallbackVisitorKey() {
+  const headerList = await headers();
+  const forwardedFor = headerList.get("x-forwarded-for");
+  const ip = forwardedFor?.split(",")[0]?.trim() || headerList.get("x-real-ip");
+
+  if (!ip) {
+    // No IP available (e.g. local dev off Vercel) - fall back to an
+    // unlinkable random id, same as before.
+    return crypto.randomUUID();
+  }
+
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`listing-view-ip:${ip}`));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 export async function POST(request: Request) {
   const { listingId } = await request.json();
@@ -18,9 +43,9 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true });
 
   if (!visitorId) {
-    visitorId = crypto.randomUUID();
+    visitorId = await getFallbackVisitorKey();
 
-    response.cookies.set(VISITOR_COOKIE, visitorId, {
+    response.cookies.set(VISITOR_COOKIE, crypto.randomUUID(), {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
