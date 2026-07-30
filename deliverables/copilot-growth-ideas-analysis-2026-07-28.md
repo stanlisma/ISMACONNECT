@@ -38,10 +38,10 @@ This unlocks Track C (personal outreach) — you can now onboard a business in 2
 - Homepage banner: "Founding Business Member Program — X of 100 spots claimed" with a real, live count pulled from the DB (not a hardcoded fake number — see note below).
 - Time-boxed or capacity-boxed ("first 100 businesses") to create real scarcity.
 
-### A3. Homepage copy/CTA tightening
-- Stronger headline (a couple of options in the source doc).
-- A prominent "Post Your Listing Free" CTA — the doc is right that there's no obvious high-visibility CTA on the homepage right now.
-- Social proof stats block under the search bar (real listing/business counts, live from the DB).
+### A3. Homepage copy/CTA tightening — partially shipped 2026-07-30
+- ~~Stronger headline (a couple of options in the source doc).~~ Skipped — current headline is already solid and consistent with the brand voice established in the footer/meta copy work; no source-doc alternative on hand to compare against.
+- ✅ A prominent "Post a listing — it's free" CTA — the doc was right that there was no obvious high-visibility CTA on the homepage (signed-in visitors got *no* CTA at all). Now shown alongside "Browse listings" for both signed-in and signed-out visitors, routing to the post form or sign-up as appropriate.
+- ⏸ Social proof stats block under the search bar — held off. Real counts right now are 6 active listings / 2 active storefronts, too low to display without undermining trust more than helping. Revisit once volume is up, or once the Founding Member program (A2) exists to frame early growth honestly.
 
 **One flag on this:** the doc suggests stats like "500+ Local Listings, 2,000+ Fort McMurray Users" with a parenthetical "(even if you start smaller)." I'd push back on that specific bit — showing fabricated numbers is a trust risk if anyone checks (and locals will notice a "2,000 users" site with 9 real listings). Better: show real counts and let the Founding Member banner do the "still growing" framing honestly, or hold off on the stats block until the numbers are actually good.
 
