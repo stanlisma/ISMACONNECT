@@ -31,6 +31,10 @@ export async function sendThreadMessageAction(formData: FormData) {
     redirectWithMessage(`/messages/${conversationId}`, "error", "Message cannot be empty.");
   }
 
+  if (body.length > 5000) {
+    redirectWithMessage(`/messages/${conversationId}`, "error", "Message must be 5000 characters or less.");
+  }
+
   const { data: conversation, error: conversationError } = await supabase
     .from("conversations")
     .select("id, buyer_id, seller_id, listing_id, buyer_unread_count, seller_unread_count")

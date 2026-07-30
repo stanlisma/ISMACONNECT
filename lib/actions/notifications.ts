@@ -4,14 +4,7 @@ import { redirect } from "next/navigation";
 
 import { requireViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-
-function getSafeAppPath(path: string | null | undefined, fallback = "/notifications") {
-  if (!path || !path.startsWith("/") || path.startsWith("//")) {
-    return fallback;
-  }
-
-  return path;
-}
+import { getSafeInternalPath } from "@/lib/utils";
 
 export async function markNotificationReadAction(notificationId: string, link?: string) {
   const viewer = await requireViewer();
@@ -27,5 +20,5 @@ export async function markNotificationReadAction(notificationId: string, link?: 
     console.error("Failed to mark notification read:", error);
   }
 
-  redirect(getSafeAppPath(link, "/notifications"));
+  redirect(getSafeInternalPath(link, "/notifications"));
 }

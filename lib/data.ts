@@ -657,8 +657,14 @@ export async function getAllUsersForAdmin(search?: string, page = 1) {
     .range(offset, offset + ADMIN_LIST_PAGE_SIZE - 1);
 
   if (search?.trim()) {
-    const term = search.trim();
-    query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
+    // "," and "(" / ")" are syntactically meaningful in a PostgREST .or()
+    // filter string (they separate/group conditions) - strip them so a
+    // crafted search term can't inject an unintended extra clause.
+    const term = search.trim().replace(/[,()]/g, "").slice(0, 100);
+
+    if (term) {
+      query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
+    }
   }
 
   const { data, count } = await query;

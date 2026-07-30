@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getViewer } from "@/lib/auth";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 
@@ -13,13 +14,16 @@ const clientErrorSchema = z.object({
   stack: z.string().trim().max(20000).nullable().optional(),
   pathname: z.string().trim().max(2048).nullable().optional(),
   userAgent: z.string().trim().max(1024).nullable().optional(),
-  userId: z.string().uuid().nullable().optional(),
   metadata: z.record(z.string(), metadataValueSchema).optional().default({})
 });
 
 export async function POST(request: Request) {
   try {
     const payload = clientErrorSchema.parse(await request.json());
+    // Derive from the session rather than trusting a client-supplied userId -
+    // this endpoint accepts anonymous calls, so a client field here would let
+    // anyone attribute fabricated error entries to an arbitrary real user.
+    const viewer = await getViewer();
 
     if (!isSupabaseServiceRoleConfigured()) {
       console.error("Client error captured without service role logging:", payload);
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
 
     const supabase = createServiceRoleSupabaseClient();
     const { error } = await supabase.from("app_error_logs").insert({
-      user_id: payload.userId ?? null,
+      user_id: viewer?.user.id ?? null,
       source: payload.source,
       message: payload.message,
       name: payload.name ?? null,

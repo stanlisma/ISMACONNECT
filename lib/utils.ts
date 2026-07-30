@@ -16,6 +16,25 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+// Guards against open redirects (e.g. a "next"/"returnTo" query or form value
+// pointing off-site). Blacklisting characters like "//" is incomplete - the
+// WHATWG URL parser normalizes "\" to "/" for special schemes, so "/\evil.com"
+// resolves to a different origin even though it "starts with /". Instead we
+// resolve the candidate against a fixed placeholder origin and check the
+// result didn't escape it, which catches that bypass and any similar one.
+export function getSafeInternalPath(path: string | null | undefined, fallback: string) {
+  if (!path || !path.startsWith("/")) {
+    return fallback;
+  }
+
+  try {
+    const resolved = new URL(path, "http://internal.invalid");
+    return resolved.origin === "http://internal.invalid" ? path : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function toSafeJsonLd(data: unknown) {
   // Escapes "<" so user-controlled fields (e.g. a listing title containing
   // "</script>") can't break out of the surrounding <script> tag and inject

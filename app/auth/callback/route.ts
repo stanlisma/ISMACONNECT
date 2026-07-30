@@ -3,14 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getSupabaseCookieOptions, getSupabaseEnv } from "@/lib/env";
-
-function getSafeNextPath(next: string | null, fallback: string) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return fallback;
-  }
-
-  return next;
-}
+import { getSafeInternalPath } from "@/lib/utils";
 
 export async function GET(request: Request) {
   const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
@@ -32,7 +25,7 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = getSafeNextPath(
+  const next = getSafeInternalPath(
     url.searchParams.get("next"),
     `/auth/sign-in?success=${encodeURIComponent("Email confirmed successfully. You can now sign in.")}`
   );

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireViewer } from "@/lib/auth";
 import { ALLOWED_IMAGE_UPLOAD_TYPES } from "@/lib/constants";
+import { sniffImageMimeType } from "@/lib/file-signatures";
 
 export async function POST(request: Request) {
   await requireViewer();
@@ -29,17 +30,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image must be 5MB or smaller." }, { status: 400 });
   }
 
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = new Uint8Array(arrayBuffer);
+
+  // The declared Content-Type above is client-supplied and easily spoofed -
+  // verify the actual file bytes match a known image signature before
+  // trusting it as an image.
+  const sniffedType = sniffImageMimeType(buffer);
+  if (!sniffedType || !ALLOWED_IMAGE_UPLOAD_TYPES.has(sniffedType)) {
+    return NextResponse.json(
+      { error: "This file doesn't look like a valid JPG, PNG, WEBP, or GIF image." },
+      { status: 400 }
+    );
+  }
+
   const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const safeExt = fileExt.replace(/[^a-z0-9]/g, "") || "jpg";
   const filePath = `${uploadFolder}/${Date.now()}-${crypto.randomUUID()}.${safeExt}`;
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = new Uint8Array(arrayBuffer);
-
   const { error: uploadError } = await supabase.storage
     .from("listing-images")
     .upload(filePath, buffer, {
-      contentType: file.type,
+      contentType: sniffedType,
       upsert: false
     });
 

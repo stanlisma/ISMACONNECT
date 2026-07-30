@@ -2,14 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getViewer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-
-function getSafeNextPath(next: string | null) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/notifications";
-  }
-
-  return next;
-}
+import { getSafeInternalPath } from "@/lib/utils";
 
 export async function GET(request: Request) {
   const viewer = await getViewer();
@@ -22,7 +15,7 @@ export async function GET(request: Request) {
   const notificationId = url.searchParams.get("notification");
   const savedSearchId = url.searchParams.get("savedSearch");
   const markAll = url.searchParams.get("all") === "1";
-  const next = getSafeNextPath(url.searchParams.get("next"));
+  const next = getSafeInternalPath(url.searchParams.get("next"), "/notifications");
   const viewedAt = new Date().toISOString();
   const supabase = await createServerSupabaseClient();
 

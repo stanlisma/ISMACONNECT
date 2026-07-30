@@ -22,6 +22,10 @@ export async function sendListingMessageAction(listingId: string, formData: Form
     redirectWithMessage(`/listings/${listingId}`, "error", "Message cannot be empty.");
   }
 
+  if (body.length > 5000) {
+    redirectWithMessage(`/listings/${listingId}`, "error", "Message must be 5000 characters or less.");
+  }
+
   const supabase = await createServerSupabaseClient();
 
   const { data: listing, error: listingError } = await supabase

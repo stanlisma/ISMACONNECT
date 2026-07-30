@@ -89,20 +89,20 @@ export function buildStorefrontSlug(name: string) {
 }
 
 export function parseAdditionalStorefrontFormData(formData: FormData) {
-  const name = String(formData.get("name") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim() || null;
-  const logoUrl = String(formData.get("logo_url") ?? "").trim() || null;
+  const name = String(formData.get("name") ?? "").trim().slice(0, 120);
+  const description = String(formData.get("description") ?? "").trim().slice(0, 3000) || null;
+  const logoUrl = String(formData.get("logo_url") ?? "").trim().slice(0, 2000) || null;
   const imageUrls = Array.from(
     new Set(
       formData
         .getAll("image_urls")
-        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .map((value) => (typeof value === "string" ? value.trim().slice(0, 2000) : ""))
         .filter(Boolean)
     )
   ).slice(0, MAX_STOREFRONT_IMAGE_COUNT);
-  const website = normalizeBusinessWebsite(String(formData.get("website") ?? ""));
-  const phone = String(formData.get("phone") ?? "").trim() || null;
-  const address = normalizeBusinessAddress(String(formData.get("address") ?? ""));
+  const website = normalizeBusinessWebsite(String(formData.get("website") ?? "").trim().slice(0, 300));
+  const phone = String(formData.get("phone") ?? "").trim().slice(0, 40) || null;
+  const address = normalizeBusinessAddress(String(formData.get("address") ?? "").trim().slice(0, 300));
   const showExactLocation = formData.get("show_exact_location") === "on";
   const serviceAreas = parseServiceAreasInput(String(formData.get("service_areas") ?? ""));
   const services = parseBusinessServicesInput(String(formData.get("services") ?? ""));

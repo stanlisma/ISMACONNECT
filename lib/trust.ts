@@ -120,6 +120,21 @@ export async function canViewerRateSeller(listingId: string, viewerId: string, s
 
   const supabase = await createServerSupabaseClient();
 
+  // A database trigger (enforce_seller_review_owner) also rewrites
+  // seller_reviews.seller_id to the listing's real owner on insert, so a
+  // mismatched sellerId can't actually persist - but that's the last line
+  // of defense, not the only one. Check it here too so this function's
+  // return value is trustworthy on its own.
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("owner_id")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (!listing || listing.owner_id !== sellerId) {
+    return false;
+  }
+
   const { data } = await supabase
     .from("conversations")
     .select("id")

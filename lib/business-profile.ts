@@ -89,7 +89,7 @@ export function normalizeServiceAreas(value: unknown): string[] {
   }
 
   return value
-    .map((entry) => String(entry ?? "").trim())
+    .map((entry) => String(entry ?? "").trim().slice(0, 60))
     .filter(Boolean)
     .slice(0, 8);
 }
@@ -97,7 +97,7 @@ export function normalizeServiceAreas(value: unknown): string[] {
 export function parseServiceAreasInput(value: string) {
   return value
     .split(",")
-    .map((entry) => entry.trim())
+    .map((entry) => entry.trim().slice(0, 60))
     .filter(Boolean)
     .slice(0, 8);
 }
@@ -108,7 +108,7 @@ export function normalizeBusinessServices(value: unknown): string[] {
   }
 
   return value
-    .map((entry) => String(entry ?? "").trim())
+    .map((entry) => String(entry ?? "").trim().slice(0, 60))
     .filter(Boolean)
     .slice(0, 12);
 }
@@ -116,7 +116,7 @@ export function normalizeBusinessServices(value: unknown): string[] {
 export function parseBusinessServicesInput(value: string) {
   return value
     .split(",")
-    .map((entry) => entry.trim())
+    .map((entry) => entry.trim().slice(0, 60))
     .filter(Boolean)
     .slice(0, 12);
 }
