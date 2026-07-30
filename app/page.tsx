@@ -68,13 +68,14 @@ export default async function HomePage() {
           ))}
         </div>
 
-        {!viewer ? (
-          <div className="action-row home-hero-actions">
-            <Link href="/browse" className="button button-secondary">
-              Browse listings
-            </Link>
-          </div>
-        ) : null}
+        <div className="action-row home-hero-actions">
+          <Link href={viewer ? "/dashboard/listings/new" : "/auth/sign-up"} className="button">
+            Post a listing — it&apos;s free
+          </Link>
+          <Link href="/browse" className="button button-secondary">
+            Browse listings
+          </Link>
+        </div>
 
         <MobileInstallBanner context="home" />
       </section>
