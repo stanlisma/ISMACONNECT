@@ -33,10 +33,10 @@ Built, verified live, and pushed:
 
 This unlocks Track C (personal outreach) — you can now onboard a business in 2 minutes without asking them to do anything account-related, and hand a legitimate claim link to the real owner whenever they're ready.
 
-### A2. Founding Member Program
-- A `founding_member` flag (on profile or storefront) that renders a badge on listings.
-- Homepage banner: "Founding Business Member Program — X of 100 spots claimed" with a real, live count pulled from the DB (not a hardcoded fake number — see note below).
-- Time-boxed or capacity-boxed ("first 100 businesses") to create real scarcity.
+### A2. Founding Member Program — ✅ shipped 2026-07-30
+- ✅ A `founding_member` flag on `business_storefronts`, independent of `claimed` — it's decided once at creation time and persists through claiming, fixing a real bug in the earlier A1 build where the badge was tied to `claimed = false` and disappeared the moment a business was claimed (exactly backwards from the intended incentive).
+- ✅ Homepage banner: "Founding Business Member Program — X of 100 spots claimed" with a real, live count pulled from the DB — currently 2 of 100 (both existing storefronts backfilled).
+- ✅ Capacity-boxed at 100 (checked on every storefront creation, admin-seeded or self-serve) to create real scarcity, not time-boxed.
 
 ### A3. Homepage copy/CTA tightening — partially shipped 2026-07-30
 - ~~Stronger headline (a couple of options in the source doc).~~ Skipped — current headline is already solid and consistent with the brand voice established in the footer/meta copy work; no source-doc alternative on hand to compare against.
