@@ -79,9 +79,6 @@ export default async function HomePage() {
           <Link href={viewer ? "/dashboard/listings/new" : "/auth/sign-up"} className="button">
             Post a listing — it&apos;s free
           </Link>
-          <Link href="/browse" className="button button-secondary">
-            Browse listings
-          </Link>
         </div>
 
         <MobileInstallBanner context="home" />
