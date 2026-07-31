@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
+import { Analytics } from "@vercel/analytics/next";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -56,6 +57,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en">
       <body>
         <AnalyticsProvider userId={viewer?.user.id ?? null} nonce={nonce} />
+        <Analytics />
         <PwaShell />
         <LiveMessageProvider
           viewerId={viewer?.user.id ?? null}
