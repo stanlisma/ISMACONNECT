@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FoundingMemberBanner } from "@/components/home/founding-member-banner";
 import { StorefrontDirectoryCard } from "@/components/storefronts/storefront-directory-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getViewer } from "@/lib/auth";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
-import { getPublicBusinessStorefrontDirectory } from "@/lib/data";
+import { getFoundingMemberStats, getPublicBusinessStorefrontDirectory } from "@/lib/data";
 import { getSellerTrustSummaryMap } from "@/lib/trust";
 import { buildPathWithQuery, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export default async function BusinessesPage({
     limit: 48
   });
   const trustMap = await getSellerTrustSummaryMap(storefronts.map((item) => item.owner_id));
+  const foundingMemberStats = await getFoundingMemberStats();
   const availableCategories = HERO_CATEGORY_VALUES;
 
   return (
@@ -60,6 +62,8 @@ export default async function BusinessesPage({
             ))}
           </div>
         </div>
+
+        <FoundingMemberBanner count={foundingMemberStats.count} cap={foundingMemberStats.cap} />
 
         {!isConfigured ? (
           <SetupNotice />
