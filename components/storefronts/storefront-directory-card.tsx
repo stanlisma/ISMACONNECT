@@ -33,6 +33,7 @@ export function StorefrontDirectoryCard({
             <h3 className="verified-name-inline">
               <span>{storefront.name}</span>
               <VerifiedNameBadge summary={trustSummary} compact />
+              {storefront.founding_member ? <span className="badge badge-soft">Founding Member</span> : null}
               {!storefront.claimed ? <span className="badge badge-soft">Unclaimed</span> : null}
             </h3>
             <p>

@@ -279,6 +279,7 @@ export default async function SettingsPage({
                     id: "",
                     owner_id: viewer.user.id,
                     claimed: true,
+                    founding_member: false,
                     slug: "",
                     geocoded_lat: null,
                     geocoded_lng: null,

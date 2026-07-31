@@ -161,7 +161,8 @@ export default async function SellerStorefrontPage({
                 <h1 className="section-title verified-name-inline">
                   <span>{storefront.display_name}</span>
                   <VerifiedNameBadge summary={trustSummary} />
-                  {!storefront.claimed ? <span className="badge badge-soft">Unclaimed · Founding Member</span> : null}
+                  {storefront.founding_member ? <span className="badge badge-soft">Founding Member</span> : null}
+                  {!storefront.claimed ? <span className="badge badge-soft">Unclaimed</span> : null}
                 </h1>
                 <p className="section-copy">{storefrontDescription}</p>
 

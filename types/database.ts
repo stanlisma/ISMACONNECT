@@ -310,6 +310,7 @@ export interface PublicSellerStorefront {
   display_name: string;
   is_business: boolean;
   claimed: boolean;
+  founding_member: boolean;
   business_description: string | null;
   business_logo_url: string | null;
   business_image_urls: string[];
@@ -347,6 +348,7 @@ export interface PublicBusinessStorefrontDirectoryItem {
   storefront_id: string;
   owner_id: string;
   claimed: boolean;
+  founding_member: boolean;
   slug: string;
   name: string;
   description: string | null;
@@ -368,6 +370,7 @@ export interface AdditionalBusinessStorefront {
   id: string;
   owner_id: string;
   claimed: boolean;
+  founding_member: boolean;
   slug: string;
   name: string;
   description: string | null;
@@ -396,6 +399,7 @@ export interface BusinessMarqueeItem {
   name: string;
   logo_url: string | null;
   claimed: boolean;
+  founding_member: boolean;
 }
 
 export type StorefrontClaimStatus = "pending" | "approved" | "rejected";

@@ -32,7 +32,8 @@ export function isAdditionalStorefrontSchemaError(error: {
     message.includes("services") ||
     message.includes("hours") ||
     message.includes("image_urls") ||
-    message.includes("claimed")
+    message.includes("claimed") ||
+    message.includes("founding_member")
   );
 }
 
@@ -55,6 +56,7 @@ export function normalizeAdditionalStorefrontRow(row: any): AdditionalBusinessSt
     id: String(row?.id ?? ""),
     owner_id: String(row?.owner_id ?? ""),
     claimed: row?.claimed === false ? false : true,
+    founding_member: Boolean(row?.founding_member),
     slug: typeof row?.slug === "string" ? row.slug : "",
     name: typeof row?.name === "string" ? row.name.trim() : "",
     description: typeof row?.description === "string" && row.description.trim() ? row.description.trim() : null,

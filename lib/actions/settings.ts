@@ -10,6 +10,7 @@ import {
   parseAdditionalStorefrontFormData
 } from "@/lib/business-storefronts";
 import { isBusinessProfileSchemaError } from "@/lib/business-profile";
+import { FOUNDING_MEMBER_CAP } from "@/lib/constants";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -132,6 +133,27 @@ async function createSettingsMutationClient() {
   return isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()
     : await createServerSupabaseClient();
+}
+
+// Capacity-boxed, not time-boxed: the first FOUNDING_MEMBER_CAP storefronts
+// (admin-seeded or self-created, active or not yet claimed) keep the badge
+// permanently once granted - it's decided at creation time, not tied to
+// `claimed`, so claiming a business never strips the designation.
+async function isFoundingMemberSlotAvailable(supabase: Awaited<ReturnType<typeof createSettingsMutationClient>>) {
+  const { count, error } = await supabase
+    .from("business_storefronts")
+    .select("id", { count: "exact", head: true })
+    .eq("founding_member", true);
+
+  if (error) {
+    if (!isAdditionalStorefrontSchemaError(error)) {
+      console.error("Failed to check founding member capacity:", error);
+    }
+
+    return false;
+  }
+
+  return (count ?? 0) < FOUNDING_MEMBER_CAP;
 }
 
 export async function updatePersonalProfileAction(formData: FormData) {
@@ -291,6 +313,7 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
   const geocodedAddress = parsed.address
     ? await geocodeMarketplaceAddress(parsed.address)
     : null;
+  const foundingMember = await isFoundingMemberSlotAvailable(supabase);
 
   const { error: isBusinessError } = await supabase
     .from("profiles")
@@ -321,7 +344,8 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
       geocoded_at: geocodedAddress ? new Date().toISOString() : null,
       service_areas: parsed.serviceAreas,
       services: parsed.services,
-      hours: parsed.hours
+      hours: parsed.hours,
+      founding_member: foundingMember
     })
     .select("id")
     .maybeSingle();
@@ -350,6 +374,7 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
     );
   }
 
+  revalidatePath("/");
   revalidatePath("/settings");
   revalidatePath("/dashboard/storefronts");
   revalidatePath(`/sellers/${viewer.user.id}`);
@@ -376,6 +401,7 @@ export async function adminCreateUnclaimedStorefrontAction(formData: FormData) {
 
   const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name);
   const geocodedAddress = parsed.address ? await geocodeMarketplaceAddress(parsed.address) : null;
+  const foundingMember = await isFoundingMemberSlotAvailable(supabase);
 
   const { data: insertedStorefront, error } = await supabase
     .from("business_storefronts")
@@ -398,7 +424,8 @@ export async function adminCreateUnclaimedStorefrontAction(formData: FormData) {
       service_areas: parsed.serviceAreas,
       services: parsed.services,
       hours: parsed.hours,
-      claimed: false
+      claimed: false,
+      founding_member: foundingMember
     })
     .select("id")
     .maybeSingle();
@@ -427,6 +454,7 @@ export async function adminCreateUnclaimedStorefrontAction(formData: FormData) {
     );
   }
 
+  revalidatePath("/");
   revalidatePath(ADMIN_STOREFRONTS_PATH);
   revalidatePath("/businesses");
   revalidatePath(`/sellers/${viewer.user.id}`);

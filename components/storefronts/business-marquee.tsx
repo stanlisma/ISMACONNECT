@@ -93,7 +93,7 @@ function BusinessMarqueeCard({
       <span className="business-marquee-copy">
         <span className="business-marquee-name">{business.name}</span>
         <span className="business-marquee-caption">
-          {business.claimed ? "Local business" : "Founding Member"}
+          {business.founding_member ? "Founding Member" : "Local business"}
         </span>
       </span>
     </Link>

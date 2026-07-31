@@ -13,6 +13,7 @@ export const SITE_DESCRIPTION =
 export const DEFAULT_LOCATION = "Fort McMurray, AB";
 export const DEFAULT_MARKETPLACE_CATEGORY: ListingCategory = "services";
 export const SITE_SUPPORT_EMAIL = "admin@ismaconnect.ca";
+export const FOUNDING_MEMBER_CAP = 100;
 
 // SVG is deliberately excluded: it can carry an embedded <script> that
 // runs when the "image" is opened directly, unlike raster formats.

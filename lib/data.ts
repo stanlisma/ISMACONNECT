@@ -3,6 +3,7 @@ import {
   isAdditionalStorefrontSchemaError,
   normalizeAdditionalStorefrontRow
 } from "@/lib/business-storefronts";
+import { FOUNDING_MEMBER_CAP } from "@/lib/constants";
 import {
   EMPTY_BUSINESS_PROFILE,
   isBusinessProfileSchemaError,
@@ -192,7 +193,7 @@ export async function getBusinessMarqueeItems(limit = 24) {
   const supabase = await createServerSupabaseClient();
   const response = await supabase
     .from("business_storefronts")
-    .select("id, owner_id, slug, name, logo_url, claimed")
+    .select("id, owner_id, slug, name, logo_url, claimed, founding_member")
     .eq("is_active", true)
     .order("updated_at", { ascending: false })
     .limit(limit);
@@ -212,8 +213,32 @@ export async function getBusinessMarqueeItems(limit = 24) {
     slug: typeof row.slug === "string" ? row.slug : "",
     name: typeof row.name === "string" ? row.name : "",
     logo_url: typeof row.logo_url === "string" && row.logo_url.trim() ? row.logo_url : null,
-    claimed: row.claimed === false ? false : true
+    claimed: row.claimed === false ? false : true,
+    founding_member: Boolean(row.founding_member)
   })) as BusinessMarqueeItem[];
+}
+
+export async function getFoundingMemberStats() {
+  if (!isSupabaseConfigured()) {
+    return { count: 0, cap: FOUNDING_MEMBER_CAP };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const response = await supabase
+    .from("business_storefronts")
+    .select("id", { count: "exact", head: true })
+    .eq("founding_member", true)
+    .eq("is_active", true);
+
+  if (response.error) {
+    if (!isAdditionalStorefrontSchemaError(response.error)) {
+      logDataError("Founding member stats query failed", response.error);
+    }
+
+    return { count: 0, cap: FOUNDING_MEMBER_CAP };
+  }
+
+  return { count: response.count ?? 0, cap: FOUNDING_MEMBER_CAP };
 }
 
 export async function getBusinessMapProfileMap(storefrontIds: string[]) {
@@ -913,6 +938,7 @@ export async function getPublicSellerStorefront(
     display_name: displayName,
     is_business: Boolean(additionalStorefront),
     claimed: additionalStorefront ? additionalStorefront.claimed : true,
+    founding_member: additionalStorefront ? additionalStorefront.founding_member : false,
     business_description: additionalStorefront?.description ?? null,
     business_logo_url: additionalStorefront?.logo_url ?? null,
     business_image_urls: additionalStorefront?.image_urls ?? [],
@@ -1142,6 +1168,7 @@ export async function getPublicBusinessStorefrontDirectory(filters?: {
         storefront_id: storefront.id,
         owner_id: storefront.owner_id,
         claimed: storefront.claimed,
+        founding_member: storefront.founding_member,
         slug: storefront.slug,
         name: storefront.name,
         description: storefront.description,
