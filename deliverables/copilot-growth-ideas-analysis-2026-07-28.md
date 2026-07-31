@@ -58,7 +58,13 @@ This unlocks Track C (personal outreach) — you can now onboard a business in 2
 
 ---
 
-## Track C — Manual business development (you do this; I can hand you ready-to-use tools)
+## Track C — Manual business development (you do this; I can hand you ready-to-use tools) — 🚀 started 2026-07-30
+
+Ready-to-use scripts, intake checklist, and the real (post-A1/A2) onboarding workflow are
+written up in [business-outreach-playbook-2026-07-30.md](business-outreach-playbook-2026-07-30.md).
+A4 (referral program) is intentionally deferred until outreach produces a real user base to
+make referrals meaningful.
+
 
 This is the majority of the document, and it's genuinely good, concrete advice — but it's operational work for you, not something I can execute (I can't walk into a barbershop). Summarized:
 
