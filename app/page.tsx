@@ -43,7 +43,7 @@ export default async function HomePage() {
         </div>
 
         <h1 style={titleStyle}>
-          Fort McMurray rides, rentals, services, and local work in one place.
+          Find rides, rentals, jobs, and local services in Fort McMurray — all in one place.
         </h1>
 
         <p style={subtitleStyle}>
