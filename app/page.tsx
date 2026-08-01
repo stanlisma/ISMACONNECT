@@ -46,9 +46,9 @@ export default async function HomePage() {
           Find rides, rentals, jobs, and local services in Fort McMurray — all in one place.
         </h1>
 
-        <p className="home-hero-note">
+        <span className="home-hero-note">
           We&apos;re brand new and growing — together, let&apos;s build the go-to marketplace for everything Fort McMurray.
-        </p>
+        </span>
 
         <p style={subtitleStyle}>
           Search the local worker marketplace without digging through scattered posts and group chats.
