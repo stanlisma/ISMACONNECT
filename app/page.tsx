@@ -50,6 +50,10 @@ export default async function HomePage() {
           Search the local worker marketplace without digging through scattered posts and group chats.
         </p>
 
+        <p className="home-hero-note">
+          We&apos;re brand new and growing — help us build the go-to marketplace for everything Fort McMurray.
+        </p>
+
         <form action="/browse" className="home-hero-search">
           <label className="home-hero-search-field">
             <Search aria-hidden="true" className="home-hero-search-icon" strokeWidth={2.2} />
