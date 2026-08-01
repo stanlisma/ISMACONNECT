@@ -10335,6 +10335,23 @@ code {
   color: var(--primary-dark);
   font-size: 0.85rem;
   font-weight: 600;
+  animation: home-hero-note-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes home-hero-note-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-note {
+    animation: none;
+  }
 }
 
 .home-hero-search {
