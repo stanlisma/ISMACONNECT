@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { extractListingSlug, isListingSlugGone } from "@/lib/gone-listing";
+import { extractSellerId, isSellerPageGone } from "@/lib/gone-seller";
 import { buildContentSecurityPolicy } from "@/lib/security-headers";
 import { updateSession } from "@/lib/supabase/middleware";
 
@@ -21,6 +22,18 @@ export async function proxy(request: NextRequest) {
     const goneResponse = NextResponse.rewrite(goneUrl, { status: 404 });
     goneResponse.headers.set("Content-Security-Policy", contentSecurityPolicy);
     return goneResponse;
+  }
+
+  const sellerId = extractSellerId(request.nextUrl.pathname);
+
+  if (sellerId) {
+    const storefrontId = request.nextUrl.searchParams.get("storefront");
+
+    if (await isSellerPageGone(sellerId, storefrontId)) {
+      const goneResponse = NextResponse.rewrite(new URL("/seller-unavailable", request.url), { status: 404 });
+      goneResponse.headers.set("Content-Security-Policy", contentSecurityPolicy);
+      return goneResponse;
+    }
   }
 
   const response = await updateSession(request);
