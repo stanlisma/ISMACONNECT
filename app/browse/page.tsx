@@ -415,7 +415,7 @@ export default async function BrowsePage({
         </div>
 
         <div className="browse-marquee-mobile">
-          <BusinessMarquee businesses={marqueeBusinesses} />
+          <BusinessMarquee businesses={marqueeBusinesses} isSignedIn={Boolean(viewer)} />
         </div>
 
         <div className="browse-mobile-overview surface">
@@ -461,7 +461,7 @@ export default async function BrowsePage({
         </div>
 
         <div className="browse-marquee-desktop">
-          <BusinessMarquee businesses={marqueeBusinesses} />
+          <BusinessMarquee businesses={marqueeBusinesses} isSignedIn={Boolean(viewer)} />
         </div>
 
         <div className="browse-desktop-heading">

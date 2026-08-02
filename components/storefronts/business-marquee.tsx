@@ -12,12 +12,52 @@ const MIN_TILES_PER_HALF = 8;
 // px/s scroll speed regardless of how many tiles actually end up in a half,
 // instead of a fixed duration that speeds up or slows down with tile count.
 const SECONDS_PER_TILE = 45 / MIN_TILES_PER_HALF;
+// Below this many real businesses, repeating tiles to fill the scroll track
+// reads as padding rather than variety - show a static grid instead.
+const STATIC_GRID_THRESHOLD = 4;
 
-export function BusinessMarquee({ businesses }: { businesses: BusinessMarqueeItem[] }) {
+export function BusinessMarquee({
+  businesses,
+  isSignedIn
+}: {
+  businesses: BusinessMarqueeItem[];
+  isSignedIn: boolean;
+}) {
   const [paused, setPaused] = useState(false);
 
   if (!businesses.length) {
     return null;
+  }
+
+  if (businesses.length < STATIC_GRID_THRESHOLD) {
+    return (
+      <section className="business-marquee" style={{ margin: "1.5rem 0" }}>
+        <div className="home-category-group-head business-marquee-head">
+          <h3>Local businesses on ISMACONNECT</h3>
+          <Link href="/businesses" className="home-secondary-link">
+            See all
+          </Link>
+        </div>
+
+        <div className="business-marquee-grid">
+          {businesses.map((business) => (
+            <BusinessMarqueeCard key={business.id} business={business} />
+          ))}
+          <Link
+            href={isSignedIn ? "/dashboard/storefronts" : "/auth/sign-up"}
+            className="business-marquee-card business-marquee-card--cta"
+          >
+            <span className="business-marquee-avatar business-marquee-avatar--cta" aria-hidden="true">
+              +
+            </span>
+            <span className="business-marquee-copy">
+              <span className="business-marquee-name">List your business</span>
+              <span className="business-marquee-caption">It&apos;s free</span>
+            </span>
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   const innerRepeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / businesses.length));

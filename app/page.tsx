@@ -81,7 +81,7 @@ export default async function HomePage() {
         <MobileInstallBanner context="home" />
       </section>
 
-      <BusinessMarquee businesses={marqueeBusinesses} />
+      <BusinessMarquee businesses={marqueeBusinesses} isSignedIn={Boolean(viewer)} />
 
       <section className="section home-listings-section listing-feed-section">
         <div className="container listing-feed-container">
