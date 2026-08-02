@@ -608,6 +608,53 @@ export async function getPublicListingBySlug(slug: string) {
   return (data as Listing | null) || null;
 }
 
+export interface RemovedListingContext {
+  category: ListingCategory | null;
+  ownerId: string | null;
+  hasActiveListings: boolean;
+}
+
+// Public read access to non-active listings is blocked by RLS, so this
+// deliberately reaches for the service-role client (read-only, non-sensitive
+// columns) to give the "listing is gone" page enough context to point
+// visitors at the right category and the seller's other active listings.
+export async function getRemovedListingContext(slug: string): Promise<RemovedListingContext | null> {
+  if (!isSupabaseConfigured() || !isSupabaseServiceRoleConfigured()) {
+    return null;
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+
+  const { data } = await supabase
+    .from("listings")
+    .select("category, owner_id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!data) {
+    return null;
+  }
+
+  const ownerId = (data as { owner_id: string | null }).owner_id;
+  let hasActiveListings = false;
+
+  if (ownerId) {
+    const { count } = await supabase
+      .from("listings")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_id", ownerId)
+      .eq("status", "active");
+
+    hasActiveListings = Boolean(count && count > 0);
+  }
+
+  return {
+    category: (data as { category: ListingCategory | null }).category,
+    ownerId,
+    hasActiveListings
+  };
+}
+
 export async function getRelatedListings(listing: Listing) {
   if (!isSupabaseConfigured()) {
     return [];
