@@ -8,7 +8,7 @@ import { getSingleParam } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to browse Fort McMurray listings and manage your ISMACONNECT account."
+  description: "Sign in to post listings, message local members, and manage your ISMACONNECT account."
 };
 
 export default async function SignInPage({
@@ -28,7 +28,7 @@ export default async function SignInPage({
       <div className="container">
         <AuthForm
           action={signInAction}
-          description="Sign in to browse local listings, publish your own posts, and manage your account."
+          description="Sign in to post listings, message local members, and manage your account."
           message={getSingleParam(resolvedSearchParams?.error) ?? getSingleParam(resolvedSearchParams?.success)}
           messageTone={getSingleParam(resolvedSearchParams?.error) ? "error" : "success"}
           mode="sign-in"
