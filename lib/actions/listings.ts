@@ -1,13 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { LISTING_STATUS_LABELS } from "@/lib/constants";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { geocodeMarketplaceAddress } from "@/lib/geocoding";
+import {
+  computeExpiresAt,
+  DAILY_LISTING_POST_LIMIT,
+  DUPLICATE_TITLE_SIMILARITY_THRESHOLD,
+  titleSimilarity
+} from "@/lib/listing-lifecycle";
 import { parseStructuredListingData } from "@/lib/listing-structured-fields";
+import { redirectWithMessage } from "@/lib/redirects";
 import { notifySavedSearchMatchesForListing } from "@/lib/saved-searches";
 import { isAdditionalStorefrontSchemaError } from "@/lib/business-storefronts";
 import { normalizeSubcategory } from "@/lib/subcategories";
@@ -16,10 +22,6 @@ import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
 import type { ListingIntent, ListingStatus } from "@/types/database";
-
-function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
-  redirect(`${path}?${key}=${encodeURIComponent(message)}`);
-}
 
 function isSubcategoryConstraintError(error: {
   code?: string | null;
@@ -95,6 +97,20 @@ function getListingGeocodingSchemaMessage() {
   return "Your database geocoding fields are out of date. Run the latest ISMACONNECT geocoding migration in Supabase, then try posting again.";
 }
 
+function isListingExpirySchemaError(error: {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""} ${error?.hint ?? ""}`.toLowerCase();
+  return message.includes("expires_at");
+}
+
+function getListingExpirySchemaMessage() {
+  return "Your database listing-expiry fields are out of date. Run the latest ISMACONNECT listing-expiry migration in Supabase, then try posting again.";
+}
+
 function getListingMutationErrorMessage(error: {
   code?: string | null;
   message?: string | null;
@@ -123,6 +139,10 @@ function getListingMutationErrorMessage(error: {
 
   if (isListingGeocodingSchemaError(error)) {
     return getListingGeocodingSchemaMessage();
+  }
+
+  if (isListingExpirySchemaError(error)) {
+    return getListingExpirySchemaMessage();
   }
 
   return error.message ?? "Could not save the listing.";
@@ -179,7 +199,7 @@ async function loadListingForMutation(listingId: string) {
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, owner_id, slug, category, status, location, geocoded_lat, geocoded_lng, geocoded_area, geocoded_formatted_address, geocoded_at"
+      "id, owner_id, slug, category, listing_intent, status, location, geocoded_lat, geocoded_lng, geocoded_area, geocoded_formatted_address, geocoded_at"
     )
     .eq("id", listingId)
     .single();
@@ -280,6 +300,41 @@ export async function createListingAction(formData: FormData) {
   }
 
   const supabase = await createServerSupabaseClient();
+
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count: recentPostCount } = await supabase
+    .from("listings")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", viewer.user.id)
+    .gte("created_at", oneDayAgo);
+
+  if ((recentPostCount ?? 0) >= DAILY_LISTING_POST_LIMIT) {
+    redirectWithMessage(
+      returnPath,
+      "error",
+      `You've reached the limit of ${DAILY_LISTING_POST_LIMIT} new listings per day. Try again tomorrow, or edit one of your existing listings instead.`
+    );
+  }
+
+  const { data: sameCategoryListings } = await supabase
+    .from("listings")
+    .select("title")
+    .eq("owner_id", viewer.user.id)
+    .eq("category", dataInput.category)
+    .in("status", ["active", "paused", "flagged"]);
+
+  const hasSimilarListing = (sameCategoryListings ?? []).some(
+    (existing) => titleSimilarity(existing.title, dataInput.title) >= DUPLICATE_TITLE_SIMILARITY_THRESHOLD
+  );
+
+  if (hasSimilarListing) {
+    redirectWithMessage(
+      returnPath,
+      "error",
+      "You already have a similar listing in this category. Edit your existing listing instead of creating a new one."
+    );
+  }
+
   const slug = await generateUniqueSlug(dataInput.title);
   const geocodedLocation = await geocodeMarketplaceAddress(dataInput.location, {
     category: dataInput.category
@@ -311,7 +366,8 @@ export async function createListingAction(formData: FormData) {
       contact_phone: dataInput.contactPhone,
       image_url: imageUrls[0] || dataInput.imageUrl,
       image_urls: imageUrls,
-      structured_data: structuredDataResult.data
+      structured_data: structuredDataResult.data,
+      expires_at: computeExpiresAt(dataInput.category, dataInput.listingIntent)
     })
     .select(
       "id, owner_id, slug, title, description, category, subcategory, price, location, listing_intent, request_window, structured_data, status, created_at"
@@ -535,9 +591,25 @@ export async function resumeListingAction(listingId: string) {
   }
 
   const supabase = createServiceRoleSupabaseClient();
+
+  const { data: expiryRow } = await supabase
+    .from("listings")
+    .select("expires_at")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  const isExpired =
+    Boolean(expiryRow?.expires_at) && new Date(expiryRow!.expires_at as string).getTime() <= Date.now();
+
+  const updates: { status: "active"; expires_at?: string } = { status: "active" };
+
+  if (isExpired) {
+    updates.expires_at = computeExpiresAt(existing.category, existing.listing_intent);
+  }
+
   const { error } = await supabase
     .from("listings")
-    .update({ status: "active" })
+    .update(updates)
     .eq("id", listingId);
 
   if (error) {
@@ -551,7 +623,11 @@ export async function resumeListingAction(listingId: string) {
   revalidatePath(`/listings/${existing.slug}`);
   revalidatePath(`/sellers/${existing.owner_id}`);
 
-  redirectWithMessage("/dashboard", "success", "Listing resumed and visible again.");
+  redirectWithMessage(
+    "/dashboard",
+    "success",
+    isExpired ? "Listing renewed and visible again." : "Listing resumed and visible again."
+  );
 }
 
 export async function flagListingAction(listingId: string, formData: FormData) {

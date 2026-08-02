@@ -261,6 +261,13 @@ export default async function DashboardPage({
 
                   <p className="dashboard-listing-meta">
                     {listing.location} | Posted {formatDate(listing.created_at)}
+                    {listing.expires_at ? (
+                      new Date(listing.expires_at).getTime() <= Date.now() ? (
+                        <> · <span className="dashboard-listing-expiry is-expired">Expired {formatDate(listing.expires_at)}</span></>
+                      ) : (
+                        <> · <span className="dashboard-listing-expiry">Expires {formatDate(listing.expires_at)}</span></>
+                      )
+                    ) : null}
                   </p>
 
                   {promotionChips.length ? (

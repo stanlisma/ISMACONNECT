@@ -220,6 +220,7 @@ export interface Listing {
   created_at: string;
   updated_at: string;
   subcategory: string | null;
+  expires_at: string | null;
 }
 
 export interface ListingFlag {

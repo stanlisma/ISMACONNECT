@@ -1,4 +1,5 @@
 import { expireListingPromotions } from "@/lib/boosts";
+import { expireListings } from "@/lib/listing-lifecycle";
 import {
   isAdditionalStorefrontSchemaError,
   normalizeAdditionalStorefrontRow
@@ -299,6 +300,7 @@ export async function getHomepageData() {
 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   const [featuredResponse, latestResponse] = await Promise.all([
     supabase
@@ -400,6 +402,7 @@ export async function getPublicListings(filters: {
 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   const buildBaseQuery = (searchMode: ListingKeywordSearchMode = "fts") => {
     let query = supabase
@@ -589,6 +592,7 @@ export async function getPublicListingBySlug(slug: string) {
 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   const { data } = await supabase
     .from("listings")
@@ -611,6 +615,7 @@ export async function getRelatedListings(listing: Listing) {
 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   let response = await supabase
     .from("listings")
@@ -647,6 +652,7 @@ export async function getUserListings(userId: string) {
     ? createServiceRoleSupabaseClient()
     : await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   let response = await supabase
     .from("listings")
@@ -675,6 +681,7 @@ export async function getUserListings(userId: string) {
 export async function getEditableListing(listingId: string) {
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   const { data } = await supabase
     .from("listings")
@@ -792,6 +799,7 @@ export async function getSavedListingIds(userId: string) {
 export async function getSavedListings(userId: string) {
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   const { data } = await supabase
     .from("saved_listings")
@@ -815,6 +823,7 @@ export async function getPublicSellerStorefront(
 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   let additionalStorefront: AdditionalBusinessStorefront | null = null;
 
@@ -1067,6 +1076,7 @@ export async function getPublicBusinessStorefrontDirectory(filters?: {
 
   const supabase = await createServerSupabaseClient();
   await expireListingPromotions(supabase);
+  await expireListings(supabase);
 
   const storefrontResponse = await supabase
     .from("business_storefronts")

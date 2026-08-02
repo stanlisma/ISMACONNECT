@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
@@ -11,18 +10,11 @@ import {
   sendStorefrontClaimRejectedEmail
 } from "@/lib/email";
 import { isEmailConfigured, isSupabaseServiceRoleConfigured } from "@/lib/env";
+import { redirectWithMessage } from "@/lib/redirects";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 
 const ADMIN_CLAIMS_PATH = "/admin/claims";
-
-function redirectWithMessage(path: string, key: "error" | "success", message: string): never {
-  const [pathname, existingQuery] = path.split("?");
-  const searchParams = new URLSearchParams(existingQuery ?? "");
-  searchParams.set(key, message);
-  const queryString = searchParams.toString();
-  redirect(queryString ? `${pathname}?${queryString}` : pathname);
-}
 
 async function createClaimsMutationClient() {
   return isSupabaseServiceRoleConfigured()

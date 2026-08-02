@@ -2917,6 +2917,11 @@ code {
   line-height: 1.5;
 }
 
+.dashboard-listing-expiry.is-expired {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .dashboard-listing-actions {
   gap: 0.45rem;
 }
