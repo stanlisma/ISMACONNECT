@@ -133,7 +133,12 @@ export function PwaShell() {
     let cancelled = false;
     let timeoutId: number | null = null;
     let idleCallbackId: number | null = null;
-    const shouldAutoApplyUpdate = true;
+    // Auto-applying forces window.location.reload() the instant a deploy's
+    // new service worker takes control, with no regard for what the page is
+    // doing at that moment - it has reloaded users mid-hydration and mid
+    // chunk-fetch in production (React error #418, ChunkLoadError). Let the
+    // "Update now" banner below ask instead of reloading out from under them.
+    const shouldAutoApplyUpdate = false;
     const registerServiceWorker = () => {
       if (cancelled) {
         return;
