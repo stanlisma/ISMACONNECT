@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { extractConversationId, isConversationGone } from "@/lib/gone-conversation";
 import { extractListingSlug, isListingSlugGone } from "@/lib/gone-listing";
 import { extractSellerId, isSellerPageGone } from "@/lib/gone-seller";
 import { buildContentSecurityPolicy } from "@/lib/security-headers";
@@ -36,7 +37,16 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const response = await updateSession(request);
+  const { response, user, supabase } = await updateSession(request);
+
+  const conversationId = extractConversationId(request.nextUrl.pathname);
+
+  if (conversationId && user && supabase && (await isConversationGone(supabase, conversationId))) {
+    const goneResponse = NextResponse.rewrite(new URL("/conversation-unavailable", request.url), { status: 404 });
+    goneResponse.headers.set("Content-Security-Policy", contentSecurityPolicy);
+    return goneResponse;
+  }
+
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
 
   return response;

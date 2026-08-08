@@ -27,7 +27,7 @@ function dedupeCookiesByName<T extends { name: string }>(cookieList: T[]) {
 
 export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.next({ request });
+    return { response: NextResponse.next({ request }), user: null, supabase: null };
   }
 
   const cookieOptions = getSupabaseCookieOptions(request.nextUrl.hostname);
@@ -62,7 +62,9 @@ export async function updateSession(request: NextRequest) {
     }
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
 
-  return response;
+  return { response, user, supabase };
 }
