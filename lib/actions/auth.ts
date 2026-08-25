@@ -14,6 +14,23 @@ function redirectWithMessage(path: string, key: "error" | "success", message: st
   redirect(`${path}?${key}=${encodeURIComponent(message)}`);
 }
 
+// Supabase Auth sends its own confirmation email through SMTP settings
+// configured in the dashboard, entirely separate from this app's Resend
+// key - when that SMTP config breaks, every signUp() call fails this way
+// and no account gets created. The raw error message is meaningless to a
+// user, so surface something actionable instead of "Error sending
+// confirmation email".
+function getSignUpErrorMessage(error: { message: string; code?: string; status?: number }) {
+  const isEmailDeliveryFailure =
+    error.code === "unexpected_failure" || /confirmation email/i.test(error.message);
+
+  if (isEmailDeliveryFailure) {
+    return "We couldn't send your confirmation email due to a temporary issue on our end. Please try again in a few minutes, or contact admin@ismaconnect.ca if it keeps happening.";
+  }
+
+  return error.message;
+}
+
 export async function signInAction(formData: FormData) {
   if (!isSupabaseConfigured()) {
     redirectWithMessage("/auth/sign-in", "error", "Add your Supabase keys before signing in.");
@@ -123,7 +140,7 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/auth/sign-up", "error", error.message);
+    redirectWithMessage("/auth/sign-up", "error", getSignUpErrorMessage(error));
   }
 
   if (isEmailConfigured()) {
