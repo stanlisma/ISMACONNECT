@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { FlashMessage } from "@/components/ui/flash-message";
 import { PasswordInput } from "@/components/ui/password-input";
 import { resetPasswordAction } from "@/lib/actions/auth";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSingleParam } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -16,6 +18,17 @@ export default async function ResetPasswordPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+
+  // The recovery link only establishes an AAL1 session, but Supabase
+  // rejects updateUser({ password }) for MFA-enrolled accounts unless the
+  // session has been elevated to AAL2 - send them through the same
+  // challenge sign-in already uses, then land back here to finish.
+  const supabase = await createServerSupabaseClient();
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel) {
+    redirect("/auth/mfa-challenge?next=/auth/reset-password");
+  }
 
   return (
     <section className="section">
