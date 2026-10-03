@@ -69,9 +69,23 @@ export function trackPageView(route: string) {
 // "Script error." with no stack (a cross-origin script the browser won't
 // give details on) or a postMessage failure from their own native bridge
 // tearing down mid-navigation. These aren't bugs in this app.
+// Search/SEO crawlers (Googlebot, Dataprovider, ...) run the page's JS in a
+// rendering pass that can lag the HTML fetch, so they routinely report
+// hydration mismatches (React #418) against a different deploy's bundle that
+// no real visitor ever sees.
+const CRAWLER_USER_AGENT_PATTERN = /bot|crawler|spider|dataprovider|headlesschrome|lighthouse/i;
+
+function isCrawlerUserAgent(userAgent: string | null | undefined) {
+  return Boolean(userAgent && CRAWLER_USER_AGENT_PATTERN.test(userAgent));
+}
+
 function isIgnorableClientError(payload: ClientErrorPayload) {
   const message = payload.message?.toLowerCase() ?? "";
   const filename = String(payload.metadata?.filename ?? "").toLowerCase();
+
+  if (isCrawlerUserAgent(payload.userAgent ?? window.navigator.userAgent)) {
+    return true;
+  }
 
   if (message === "script error." && !payload.stack) {
     return true;
