@@ -316,16 +316,27 @@ export async function createListingAction(formData: FormData) {
     );
   }
 
+  // "removed" is only set by moderators (owners hard-delete their own listings), so
+  // include it here to stop a removed listing being re-posted under the same title.
   const { data: sameCategoryListings } = await supabase
     .from("listings")
-    .select("title")
+    .select("title, status")
     .eq("owner_id", viewer.user.id)
     .eq("category", dataInput.category)
-    .in("status", ["active", "paused", "flagged"]);
+    .in("status", ["active", "paused", "flagged", "removed"]);
 
-  const hasSimilarListing = (sameCategoryListings ?? []).some(
+  const similarListings = (sameCategoryListings ?? []).filter(
     (existing) => titleSimilarity(existing.title, dataInput.title) >= DUPLICATE_TITLE_SIMILARITY_THRESHOLD
   );
+  const hasSimilarListing = similarListings.some((existing) => existing.status !== "removed");
+
+  if (!hasSimilarListing && similarListings.length > 0) {
+    redirectWithMessage(
+      returnPath,
+      "error",
+      "A listing like this was previously removed by our moderators, so it can't be posted again. Please contact support if you think that was a mistake."
+    );
+  }
 
   if (hasSimilarListing) {
     redirectWithMessage(
