@@ -27,7 +27,7 @@ import {
 import { getCategoryLocalContent, resolveCommunityMapArea } from "@/lib/local-marketplace";
 import { getSubcategories, normalizeSubcategory } from "@/lib/subcategories";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
-import { getSellerTrustSummaryMap } from "@/lib/trust";
+import { getListingTrustSummaryMap } from "@/lib/trust";
 import {
   buildPathWithQuery,
   getPositiveIntParam,
@@ -165,7 +165,7 @@ export default async function BrowsePage({
     : new Map();
 
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
-  const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
+  const trustMap = await getListingTrustSummaryMap(listings);
   const savedSearch = viewer
     ? await getSavedSearchByFilters(viewer.user.id, {
         path: "/browse",
@@ -616,7 +616,7 @@ export default async function BrowsePage({
                   canSave
                   pathToRevalidate="/browse"
                   matchHints={category ? getStructuredFilterMatchHints(category, listing.structured_data, structuredFilters) : []}
-                  trustSummary={trustMap.get(listing.owner_id)}
+                  trustSummary={trustMap.get(listing.id)}
                 />
               ))}
             </div>

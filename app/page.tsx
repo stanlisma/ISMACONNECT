@@ -8,7 +8,7 @@ import { BusinessMarquee } from "@/components/storefronts/business-marquee";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
 import { getBusinessMarqueeItems, getHomepageData, getSavedListingIds } from "@/lib/data";
 import { HOMEPAGE_FRESH_DAYS, isFreshListing } from "@/lib/listing-freshness";
-import { getSellerTrustSummaryMap } from "@/lib/trust";
+import { getListingTrustSummaryMap } from "@/lib/trust";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -20,7 +20,7 @@ export default async function HomePage() {
   );
   const hasFreshListings = freshListings.length > 0;
   const visibleListings = (hasFreshListings ? freshListings : latestListings).slice(0, 8);
-  const trustMap = await getSellerTrustSummaryMap(visibleListings.map((listing) => listing.owner_id));
+  const trustMap = await getListingTrustSummaryMap(visibleListings);
   const priorityCategories = HERO_CATEGORY_VALUES.map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
@@ -106,7 +106,7 @@ export default async function HomePage() {
                         isSaved={savedIds.has(listing.id)}
                         canSave
                         pathToRevalidate="/"
-                        trustSummary={trustMap.get(listing.owner_id)}
+                        trustSummary={trustMap.get(listing.id)}
                       />
                     ))}
                   </div>

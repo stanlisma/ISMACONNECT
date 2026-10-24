@@ -26,7 +26,7 @@ import {
   resolveCommunityMapArea
 } from "@/lib/local-marketplace";
 import { buildSavedSearchHref, getSavedSearchByFilters } from "@/lib/saved-searches";
-import { getSellerTrustSummaryMap } from "@/lib/trust";
+import { getListingTrustSummaryMap } from "@/lib/trust";
 import {
   buildPathWithQuery,
   getPositiveIntParam,
@@ -218,7 +218,7 @@ export default async function CategoryPage({
   const businessMapProfiles = isMapEligibleCategory
     ? await getBusinessMapProfileMap(mapListings.map((listing) => listing.storefront_id ?? ""))
     : new Map();
-  const trustMap = await getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id));
+  const trustMap = await getListingTrustSummaryMap(listings);
   const mobileQuickLinks =
     category === "ride-share"
       ? [
@@ -578,7 +578,7 @@ export default async function CategoryPage({
                   canSave
                   pathToRevalidate={categoryInfo.href}
                   matchHints={getStructuredFilterMatchHints(category, listing.structured_data, structuredFilters)}
-                  trustSummary={trustMap.get(listing.owner_id)}
+                  trustSummary={trustMap.get(listing.id)}
                 />
               ))}
             </div>

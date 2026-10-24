@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP } from "@/lib/constants";
 import { getSavedListings } from "@/lib/data";
-import { getSellerTrustSummaryMap } from "@/lib/trust";
+import { getListingTrustSummaryMap } from "@/lib/trust";
 import { buildPathWithQuery, getSingleParam, resolveCategory } from "@/lib/utils";
 
 export default async function SavedPage({
@@ -44,7 +44,7 @@ export default async function SavedPage({
   const filteredListings = categoryFilter
     ? listings.filter((listing) => listing.category === categoryFilter)
     : listings;
-  const trustMap = await getSellerTrustSummaryMap(filteredListings.map((listing) => listing.owner_id));
+  const trustMap = await getListingTrustSummaryMap(filteredListings);
   const categoryCounts = Array.from(
     listings.reduce((accumulator, listing) => {
       accumulator.set(listing.category, (accumulator.get(listing.category) ?? 0) + 1);
@@ -90,7 +90,7 @@ export default async function SavedPage({
                 isSaved
                 canSave
                 pathToRevalidate="/saved"
-                trustSummary={trustMap.get(listing.owner_id)}
+                trustSummary={trustMap.get(listing.id)}
               />
             ))}
           </div>

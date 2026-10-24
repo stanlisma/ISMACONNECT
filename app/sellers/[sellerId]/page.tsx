@@ -28,7 +28,7 @@ import {
   canViewerRateSeller,
   getPublicSellerSignals,
   getSellerTrustSummary,
-  getSellerTrustSummaryMap,
+  getListingTrustSummaryMap,
   getViewerSellerReview
 } from "@/lib/trust";
 import { buildPathWithQuery, formatDate, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
@@ -93,7 +93,7 @@ export default async function SellerStorefrontPage({
   const publicReviews = storefront.claimed ? await getPublicSellerReviews(sellerId, 6) : [];
   const trustSummary = storefront.claimed ? await getSellerTrustSummary(sellerId) : null;
   const sellerSignals = storefront.claimed ? await getPublicSellerSignals(sellerId) : null;
-  const trustMap = await getSellerTrustSummaryMap(storefront.listings.map((listing) => listing.owner_id));
+  const trustMap = await getListingTrustSummaryMap(storefront.listings);
   const existingReview =
     storefront.claimed && viewer && reviewListingId && viewer.user.id !== sellerId
       ? await getViewerSellerReview(reviewListingId, viewer.user.id)
@@ -433,7 +433,7 @@ export default async function SellerStorefrontPage({
                     isSaved={savedIds.has(listing.id)}
                     canSave
                     pathToRevalidate={`/sellers/${sellerId}`}
-                    trustSummary={trustMap.get(listing.owner_id)}
+                    trustSummary={trustMap.get(listing.id)}
                   />
                 ))}
               </div>

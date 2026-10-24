@@ -59,6 +59,49 @@ export async function getSellerTrustSummaryMap(sellerIds: string[]) {
   );
 }
 
+// An unclaimed storefront's owner_id is the admin who seeded it, so the
+// owner's trust data (email confirmed, ID verified, member since) describes
+// the admin, not the business. Listings under one must not borrow it.
+export async function getUnclaimedStorefrontIds(storefrontIds: Array<string | null | undefined>) {
+  const uniqueIds = Array.from(new Set(storefrontIds.filter((id): id is string => Boolean(id))));
+
+  if (!isSupabaseConfigured() || uniqueIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const supabase = createPublicSupabaseClient();
+  const { data } = await supabase
+    .from("business_storefronts")
+    .select("id")
+    .in("id", uniqueIds)
+    .eq("claimed", false);
+
+  return new Set<string>(((data ?? []) as Array<{ id: string }>).map((row) => row.id));
+}
+
+// Trust summaries keyed by listing id (not owner id), omitting listings that
+// belong to an unclaimed storefront.
+export async function getListingTrustSummaryMap(
+  listings: Array<{ id: string; owner_id: string; storefront_id?: string | null }>
+) {
+  const [ownerMap, unclaimedIds] = await Promise.all([
+    getSellerTrustSummaryMap(listings.map((listing) => listing.owner_id)),
+    getUnclaimedStorefrontIds(listings.map((listing) => listing.storefront_id))
+  ]);
+
+  const listingMap = new Map<string, SellerTrustSummary>();
+
+  for (const listing of listings) {
+    const summary = ownerMap.get(listing.owner_id);
+
+    if (summary && !(listing.storefront_id && unclaimedIds.has(listing.storefront_id))) {
+      listingMap.set(listing.id, summary);
+    }
+  }
+
+  return listingMap;
+}
+
 export async function getSellerTrustSummary(sellerId: string) {
   const trustMap = await getSellerTrustSummaryMap([sellerId]);
   return trustMap.get(sellerId) ?? null;

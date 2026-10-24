@@ -35,7 +35,8 @@ import {
 import {
   getPublicSellerSignals,
   getSellerTrustSummary,
-  getSellerTrustSummaryMap
+  getListingTrustSummaryMap,
+  getUnclaimedStorefrontIds
 } from "@/lib/trust";
 import {
   buildPathWithQuery,
@@ -91,9 +92,12 @@ export default async function ListingPage({
   const savedIds = viewer ? await getSavedListingIds(viewer.user.id) : new Set();
   const isSaved = viewer ? savedIds.has(listing.id) : false;
   const relatedListings = await getRelatedListings(listing);
-  const relatedTrustMap = await getSellerTrustSummaryMap(relatedListings.map((item) => item.owner_id));
-  const sellerTrustSummary = await getSellerTrustSummary(listing.owner_id);
-  const sellerSignals = await getPublicSellerSignals(listing.owner_id);
+  const relatedTrustMap = await getListingTrustSummaryMap(relatedListings);
+  // An unclaimed storefront's owner is the admin who seeded it - their trust
+  // signals (email confirmed, ID verified, member since) aren't the business's.
+  const listingIsUnclaimed = (await getUnclaimedStorefrontIds([listing.storefront_id])).size > 0;
+  const sellerTrustSummary = listingIsUnclaimed ? null : await getSellerTrustSummary(listing.owner_id);
+  const sellerSignals = listingIsUnclaimed ? null : await getPublicSellerSignals(listing.owner_id);
   const category = CATEGORY_MAP[listing.category as keyof typeof CATEGORY_MAP];
 
   const existingConversation =
@@ -384,14 +388,16 @@ export default async function ListingPage({
                 compact
               />
 
-              <div className="meta-list" style={{ marginTop: "1rem" }}>
-                <span>
-                  Member since:{" "}
-                  {sellerTrustSummary?.member_since
-                    ? formatDate(sellerTrustSummary.member_since)
-                    : "Recently joined"}
-                </span>
-              </div>
+              {listingIsUnclaimed ? null : (
+                <div className="meta-list" style={{ marginTop: "1rem" }}>
+                  <span>
+                    Member since:{" "}
+                    {sellerTrustSummary?.member_since
+                      ? formatDate(sellerTrustSummary.member_since)
+                      : "Recently joined"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {viewer && viewer.user.id !== listing.owner_id ? (
@@ -447,7 +453,7 @@ export default async function ListingPage({
                     listing.structured_data,
                     relatedListing.structured_data
                   )}
-                  trustSummary={relatedTrustMap.get(relatedListing.owner_id)}
+                  trustSummary={relatedTrustMap.get(relatedListing.id)}
                 />
               ))}
             </div>
