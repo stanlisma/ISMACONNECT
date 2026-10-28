@@ -371,11 +371,14 @@ const STRUCTURED_FIELD_DEFINITIONS: Partial<Record<ListingCategory, StructuredFi
   ]
 };
 
+// Empty optional fields are saved as null, so stored data must parse back
+// through the same schema - accept null/undefined, not just strings.
 function toOptionalEnum(values: [string, ...string[]]) {
   return z
     .string()
     .trim()
-    .transform((value) => (value.length > 0 ? value : null))
+    .nullish()
+    .transform((value) => (value && value.length > 0 ? value : null))
     .refine((value) => value === null || values.includes(value), {
       message: "Choose a valid option."
     });
@@ -401,7 +404,8 @@ function toOptionalDateString() {
   return z
     .string()
     .trim()
-    .transform((value) => (value.length > 0 ? value : null))
+    .nullish()
+    .transform((value) => (value && value.length > 0 ? value : null))
     .refine((value) => value === null || /^\d{4}-\d{2}-\d{2}$/.test(value), {
       message: "Choose a valid date."
     });
@@ -690,7 +694,13 @@ export function getStructuredDetailItems(
 
   switch (category) {
     case "jobs": {
-      const data = getStructuredSchema(category).parse(structuredData) as JobListingStructuredData;
+      const parsed = getStructuredSchema(category).safeParse(structuredData);
+
+      if (!parsed.success) {
+        return [] as string[];
+      }
+
+      const data = parsed.data as JobListingStructuredData;
       const details = [
         optionLabel(JOB_SHIFT_OPTIONS, data.shiftPattern)
           ? `Shift pattern: ${optionLabel(JOB_SHIFT_OPTIONS, data.shiftPattern)}`
@@ -709,7 +719,13 @@ export function getStructuredDetailItems(
       return details.filter(Boolean) as string[];
     }
     case "rentals": {
-      const data = getStructuredSchema(category).parse(structuredData) as RentalListingStructuredData;
+      const parsed = getStructuredSchema(category).safeParse(structuredData);
+
+      if (!parsed.success) {
+        return [] as string[];
+      }
+
+      const data = parsed.data as RentalListingStructuredData;
       const details = [
         optionLabel(RENTAL_AREA_OPTIONS, data.rentalArea)
           ? `Area: ${optionLabel(RENTAL_AREA_OPTIONS, data.rentalArea)}`
@@ -743,7 +759,13 @@ export function getStructuredDetailItems(
       return details.filter(Boolean) as string[];
     }
     case "ride-share": {
-      const data = getStructuredSchema(category).parse(structuredData) as RideShareListingStructuredData;
+      const parsed = getStructuredSchema(category).safeParse(structuredData);
+
+      if (!parsed.success) {
+        return [] as string[];
+      }
+
+      const data = parsed.data as RideShareListingStructuredData;
       const details = [
         optionLabel(RIDE_SHARE_TRIP_TYPE_OPTIONS, data.tripType)
           ? `Trip type: ${optionLabel(RIDE_SHARE_TRIP_TYPE_OPTIONS, data.tripType)}`
