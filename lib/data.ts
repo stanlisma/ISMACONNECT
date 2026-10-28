@@ -797,6 +797,123 @@ export async function getAllListingsForAdmin(search?: string, page = 1) {
   };
 }
 
+export interface AdminBusinessRow {
+  id: string;
+  name: string;
+  phone: string | null;
+  slug: string;
+  claimed: boolean;
+  is_active: boolean;
+  founding_member: boolean;
+  created_at: string;
+  owner_id: string;
+  owner: { full_name: string | null; email: string | null; suspended_at: string | null } | null;
+  activeListingCount: number;
+  // Other profiles sharing this one's name (any owner) - the same business
+  // registered more than once.
+  sameNameCount: number;
+  // Other profiles under the same owner account.
+  sameOwnerCount: number;
+}
+
+function normalizeBusinessName(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+// Every business profile (claimed, unclaimed, suspended) for the admin
+// "All businesses" page. Service-role so inactive rows are visible; rows
+// that share a normalized name sort together so duplicates sit side by side.
+export async function getAllBusinessesForAdmin(search?: string) {
+  const supabase = isSupabaseServiceRoleConfigured()
+    ? createServiceRoleSupabaseClient()
+    : await createServerSupabaseClient();
+
+  const { data: storefronts, error } = await supabase
+    .from("business_storefronts")
+    .select("id, name, phone, slug, claimed, is_active, founding_member, created_at, owner_id")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+
+  if (error) {
+    logDataError("Admin businesses query failed", error);
+    return { businesses: [] as AdminBusinessRow[], totalCount: 0, error: error.message };
+  }
+
+  const rows = storefronts ?? [];
+  const ownerIds = Array.from(new Set(rows.map((row) => row.owner_id).filter(Boolean)));
+  const ownerMap = new Map<string, AdminBusinessRow["owner"]>();
+
+  if (ownerIds.length > 0) {
+    const { data: owners } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, suspended_at")
+      .in("id", ownerIds);
+
+    (owners ?? []).forEach((owner) => {
+      ownerMap.set(owner.id, {
+        full_name: owner.full_name,
+        email: owner.email,
+        suspended_at: owner.suspended_at
+      });
+    });
+  }
+
+  const listingCounts = new Map<string, number>();
+  const { data: listingRows } = await supabase
+    .from("listings")
+    .select("storefront_id")
+    .eq("status", "active")
+    .not("storefront_id", "is", null);
+
+  (listingRows ?? []).forEach((row: { storefront_id: string | null }) => {
+    if (row.storefront_id) {
+      listingCounts.set(row.storefront_id, (listingCounts.get(row.storefront_id) ?? 0) + 1);
+    }
+  });
+
+  const nameCounts = new Map<string, number>();
+  const ownerCounts = new Map<string, number>();
+
+  rows.forEach((row) => {
+    const key = normalizeBusinessName(row.name);
+    nameCounts.set(key, (nameCounts.get(key) ?? 0) + 1);
+    ownerCounts.set(row.owner_id, (ownerCounts.get(row.owner_id) ?? 0) + 1);
+  });
+
+  let businesses: AdminBusinessRow[] = rows.map((row) => ({
+    ...row,
+    founding_member: Boolean(row.founding_member),
+    owner: ownerMap.get(row.owner_id) ?? null,
+    activeListingCount: listingCounts.get(row.id) ?? 0,
+    sameNameCount: (nameCounts.get(normalizeBusinessName(row.name)) ?? 1) - 1,
+    sameOwnerCount: (ownerCounts.get(row.owner_id) ?? 1) - 1
+  }));
+
+  const term = search?.trim().toLowerCase();
+
+  if (term) {
+    businesses = businesses.filter((business) =>
+      [business.name, business.phone, business.owner?.full_name, business.owner?.email]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term))
+    );
+  }
+
+  // Keep same-name profiles adjacent (newest group first), newest first within.
+  const groupOrder = new Map<string, number>();
+  businesses.forEach((business) => {
+    const key = normalizeBusinessName(business.name);
+    if (!groupOrder.has(key)) groupOrder.set(key, groupOrder.size);
+  });
+  businesses.sort(
+    (a, b) =>
+      (groupOrder.get(normalizeBusinessName(a.name)) ?? 0) -
+      (groupOrder.get(normalizeBusinessName(b.name)) ?? 0)
+  );
+
+  return { businesses, totalCount: rows.length, error: null as string | null };
+}
+
 export async function getAllUsersForAdmin(search?: string, page = 1) {
   const supabase = isSupabaseServiceRoleConfigured()
     ? createServiceRoleSupabaseClient()

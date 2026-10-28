@@ -25,6 +25,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link className="button button-secondary" href="/admin/users">
               All users
             </Link>
+            <Link className="button button-secondary" href="/admin/businesses">
+              All businesses
+            </Link>
             <Link className="button button-secondary" href="/admin/storefronts">
               Add business
             </Link>
