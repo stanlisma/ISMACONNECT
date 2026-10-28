@@ -95,6 +95,12 @@ function isIgnorableClientError(payload: ClientErrorPayload) {
     return true;
   }
 
+  // Facebook's iOS in-app browser injects a script into the page that reads
+  // window._META.IABInnerFrame before its own bridge exists.
+  if (message.includes("_meta.iabinnerframe")) {
+    return true;
+  }
+
   // React's Server Components streaming client throws this via a window
   // "error"/"unhandledrejection" event when the page's data stream is
   // interrupted - almost always because the visitor navigated away, closed
