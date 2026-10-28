@@ -109,6 +109,7 @@ export default async function AdminBusinessesPage({
                 name={business.name}
                 isActive={business.is_active}
                 activeListingCount={business.activeListingCount}
+                duplicateCount={business.sameOwnerSameNameCount}
                 returnPath={returnPath}
               />
             </div>

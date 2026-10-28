@@ -1,6 +1,10 @@
 "use client";
 
-import { adminDeleteBusinessAction, adminSetBusinessActiveAction } from "@/lib/actions/admin-businesses";
+import {
+  adminDeleteBusinessAction,
+  adminKeepOneBusinessAction,
+  adminSetBusinessActiveAction
+} from "@/lib/actions/admin-businesses";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { SubmitButton } from "@/components/ui/submit-button";
 
@@ -9,6 +13,7 @@ interface AdminBusinessActionsProps {
   name: string;
   isActive: boolean;
   activeListingCount: number;
+  duplicateCount: number;
   returnPath: string;
 }
 
@@ -17,6 +22,7 @@ export function AdminBusinessActions({
   name,
   isActive,
   activeListingCount,
+  duplicateCount,
   returnPath
 }: AdminBusinessActionsProps) {
   const listingNote =
@@ -26,6 +32,19 @@ export function AdminBusinessActions({
 
   return (
     <div className="action-row">
+      {duplicateCount > 0 ? (
+        <form action={adminKeepOneBusinessAction.bind(null, storefrontId)}>
+          <input type="hidden" name="returnPath" value={returnPath} />
+          <ConfirmSubmitButton
+            className="button-secondary"
+            confirmMessage={`Keep "${name}" and permanently delete the other ${duplicateCount} profile${duplicateCount === 1 ? "" : "s"} with the same name on this account? Any listings on the deleted copies move onto this one. This cannot be undone.`}
+            pendingLabel="Cleaning up..."
+          >
+            Keep this one, delete {duplicateCount} duplicate{duplicateCount === 1 ? "" : "s"}
+          </ConfirmSubmitButton>
+        </form>
+      ) : null}
+
       {isActive ? (
         <form action={adminSetBusinessActiveAction.bind(null, storefrontId, false)}>
           <input type="hidden" name="returnPath" value={returnPath} />

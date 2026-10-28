@@ -2,7 +2,8 @@ import { expireListingPromotions } from "@/lib/boosts";
 import { expireListings } from "@/lib/listing-lifecycle";
 import {
   isAdditionalStorefrontSchemaError,
-  normalizeAdditionalStorefrontRow
+  normalizeAdditionalStorefrontRow,
+  normalizeBusinessName
 } from "@/lib/business-storefronts";
 import { FOUNDING_MEMBER_CAP } from "@/lib/constants";
 import {
@@ -814,10 +815,9 @@ export interface AdminBusinessRow {
   sameNameCount: number;
   // Other profiles under the same owner account.
   sameOwnerCount: number;
-}
-
-function normalizeBusinessName(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  // Other profiles on this same account with this same name - the repeat
+  // submits "keep one" can safely collapse.
+  sameOwnerSameNameCount: number;
 }
 
 // Every business profile (claimed, unclaimed, suspended) for the admin
@@ -873,11 +873,14 @@ export async function getAllBusinessesForAdmin(search?: string) {
 
   const nameCounts = new Map<string, number>();
   const ownerCounts = new Map<string, number>();
+  const ownerNameCounts = new Map<string, number>();
 
   rows.forEach((row) => {
     const key = normalizeBusinessName(row.name);
     nameCounts.set(key, (nameCounts.get(key) ?? 0) + 1);
     ownerCounts.set(row.owner_id, (ownerCounts.get(row.owner_id) ?? 0) + 1);
+    const ownerNameKey = `${row.owner_id}:${key}`;
+    ownerNameCounts.set(ownerNameKey, (ownerNameCounts.get(ownerNameKey) ?? 0) + 1);
   });
 
   let businesses: AdminBusinessRow[] = rows.map((row) => ({
@@ -886,7 +889,9 @@ export async function getAllBusinessesForAdmin(search?: string) {
     owner: ownerMap.get(row.owner_id) ?? null,
     activeListingCount: listingCounts.get(row.id) ?? 0,
     sameNameCount: (nameCounts.get(normalizeBusinessName(row.name)) ?? 1) - 1,
-    sameOwnerCount: (ownerCounts.get(row.owner_id) ?? 1) - 1
+    sameOwnerCount: (ownerCounts.get(row.owner_id) ?? 1) - 1,
+    sameOwnerSameNameCount:
+      (ownerNameCounts.get(`${row.owner_id}:${normalizeBusinessName(row.name)}`) ?? 1) - 1
   }));
 
   const term = search?.trim().toLowerCase();

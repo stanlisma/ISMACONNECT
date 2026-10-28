@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminViewer } from "@/lib/auth";
+import { normalizeBusinessName } from "@/lib/business-storefronts";
 import { isSupabaseServiceRoleConfigured } from "@/lib/env";
 import { redirectWithMessage } from "@/lib/redirects";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
@@ -106,4 +107,72 @@ export async function adminDeleteBusinessAction(storefrontId: string, formData: 
 
   revalidateBusinessSurfaces(business.owner_id);
   redirectWithMessage(returnPath, "success", `"${business.name}" deleted.`);
+}
+
+// Collapses accidental repeats: keeps one profile and deletes every other
+// profile on the same account with the same name. Listings attached to the
+// deleted copies are moved onto the kept profile (same owner, so the
+// ownership trigger allows it) instead of being left unlinked.
+export async function adminKeepOneBusinessAction(keepStorefrontId: string, formData: FormData) {
+  await requireAdminViewer();
+  const returnPath = resolveReturnPath(formData);
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage(returnPath, "error", "Business moderation is temporarily unavailable.");
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+  const { data: keep } = await supabase
+    .from("business_storefronts")
+    .select("id, name, owner_id")
+    .eq("id", keepStorefrontId)
+    .maybeSingle();
+
+  if (!keep) {
+    redirectWithMessage(returnPath, "error", "That business could not be found.");
+  }
+
+  const { data: ownerStorefronts, error: loadError } = await supabase
+    .from("business_storefronts")
+    .select("id, name")
+    .eq("owner_id", keep.owner_id);
+
+  if (loadError) {
+    redirectWithMessage(returnPath, "error", loadError.message);
+  }
+
+  const target = normalizeBusinessName(keep.name);
+  const duplicateIds = (ownerStorefronts ?? [])
+    .filter((storefront) => storefront.id !== keep.id && normalizeBusinessName(storefront.name) === target)
+    .map((storefront) => storefront.id);
+
+  if (duplicateIds.length === 0) {
+    redirectWithMessage(returnPath, "error", `"${keep.name}" has no duplicates on this account.`);
+  }
+
+  const { error: moveError } = await supabase
+    .from("listings")
+    .update({ storefront_id: keep.id })
+    .in("storefront_id", duplicateIds);
+
+  if (moveError) {
+    redirectWithMessage(returnPath, "error", moveError.message);
+  }
+
+  const { data: deleted, error: deleteError } = await supabase
+    .from("business_storefronts")
+    .delete()
+    .in("id", duplicateIds)
+    .select("id");
+
+  if (deleteError) {
+    redirectWithMessage(returnPath, "error", deleteError.message);
+  }
+
+  revalidateBusinessSurfaces(keep.owner_id);
+  redirectWithMessage(
+    returnPath,
+    "success",
+    `Kept "${keep.name}" and deleted ${deleted?.length ?? 0} duplicate${deleted?.length === 1 ? "" : "s"}.`
+  );
 }

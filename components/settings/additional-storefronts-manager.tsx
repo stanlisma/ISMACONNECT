@@ -7,6 +7,7 @@ import { StorefrontImageGallery } from "@/components/storefronts/storefront-imag
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { ScrollToHash } from "@/components/ui/scroll-to-hash";
 import { BUSINESS_DAY_ORDER, getBusinessHoursRows, hasConfiguredBusinessHours } from "@/lib/business-profile";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
@@ -319,9 +320,7 @@ function StorefrontForm({
         </label>
 
         <div className="business-profile-actions storefront-manager-actions">
-          <button className="button" type="submit">
-            {submitLabel}
-          </button>
+          <SubmitButton>{submitLabel}</SubmitButton>
         </div>
       </form>
     </div>

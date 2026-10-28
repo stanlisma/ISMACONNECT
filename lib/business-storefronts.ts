@@ -86,6 +86,13 @@ export function buildStorefrontHref(sellerId: string, storefrontId?: string | nu
   return storefrontId ? `/sellers/${sellerId}?storefront=${storefrontId}` : `/sellers/${sellerId}`;
 }
 
+// Case/punctuation/spacing-insensitive form of a business name, used to spot
+// the same business registered more than once ("Siam Thai Kitchen" and
+// "siam thai  kitchen!" match).
+export function normalizeBusinessName(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 export function buildStorefrontSlug(name: string) {
   return slugify(name) || "storefront";
 }

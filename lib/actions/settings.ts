@@ -7,6 +7,7 @@ import { requireAdminViewer, requireViewer } from "@/lib/auth";
 import {
   buildStorefrontSlug,
   isAdditionalStorefrontSchemaError,
+  normalizeBusinessName,
   parseAdditionalStorefrontFormData
 } from "@/lib/business-storefronts";
 import { isBusinessProfileSchemaError } from "@/lib/business-profile";
@@ -299,6 +300,22 @@ export async function updateBusinessProfileAction(formData: FormData) {
   redirect(buildReturnPathWithMessage(returnPath, "success", "Business profile updated"));
 }
 
+// The slug generator appends -2, -3... on a name clash, so without this check
+// a repeated submit (double-click, retry on a slow connection) silently created
+// another identical profile each time. Compares ignoring case/punctuation.
+async function findExistingStorefrontWithName(
+  supabase: Awaited<ReturnType<typeof createSettingsMutationClient>>,
+  ownerId: string,
+  name: string
+) {
+  const { data } = await supabase.from("business_storefronts").select("id, name").eq("owner_id", ownerId);
+  const target = normalizeBusinessName(name);
+
+  return ((data ?? []) as Array<{ id: string; name: string }>).find(
+    (storefront) => normalizeBusinessName(storefront.name) === target
+  );
+}
+
 export async function createAdditionalStorefrontAction(formData: FormData) {
   const viewer = await requireViewer();
   const supabase = await createSettingsMutationClient();
@@ -307,6 +324,19 @@ export async function createAdditionalStorefrontAction(formData: FormData) {
 
   if (!parsed.name) {
     redirect(buildReturnPathWithMessage(returnPath, "error", "Storefront name is required."));
+  }
+
+  const duplicateStorefront = await findExistingStorefrontWithName(supabase, viewer.user.id, parsed.name);
+
+  if (duplicateStorefront) {
+    redirect(
+      buildReturnPathWithMessageAndFocus(
+        returnPath,
+        "error",
+        `You already have a storefront called "${duplicateStorefront.name}". Edit that one instead of creating another.`,
+        duplicateStorefront.id
+      )
+    );
   }
 
   const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name);
@@ -397,6 +427,19 @@ export async function adminCreateUnclaimedStorefrontAction(formData: FormData) {
 
   if (!parsed.name) {
     redirect(buildReturnPathWithMessage(ADMIN_STOREFRONTS_PATH, "error", "Business name is required."));
+  }
+
+  const duplicateStorefront = await findExistingStorefrontWithName(supabase, viewer.user.id, parsed.name);
+
+  if (duplicateStorefront) {
+    redirect(
+      buildReturnPathWithMessageAndFocus(
+        ADMIN_STOREFRONTS_PATH,
+        "error",
+        `"${duplicateStorefront.name}" has already been added. Edit that one instead of creating another.`,
+        duplicateStorefront.id
+      )
+    );
   }
 
   const slug = await generateUniqueStorefrontSlug(viewer.user.id, parsed.name);
