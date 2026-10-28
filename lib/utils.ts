@@ -221,7 +221,12 @@ export function buildPathWithQuery(
   path: string,
   params: Record<string, string | number | boolean | null | undefined>
 ) {
-  const searchParams = new URLSearchParams();
+  // The path may already carry a query (e.g. /sellers/x?storefront=y) - merge
+  // into it rather than appending a second "?", which would fold the new
+  // params into the previous value and break it.
+  const [pathWithQuery, hash] = path.split("#");
+  const [pathname, existingQuery] = pathWithQuery.split("?");
+  const searchParams = new URLSearchParams(existingQuery ?? "");
 
   Object.entries(params).forEach(([key, value]) => {
     if (value === null || value === undefined || value === "") {
@@ -232,6 +237,7 @@ export function buildPathWithQuery(
   });
 
   const query = searchParams.toString();
+  const result = query ? `${pathname}?${query}` : pathname;
 
-  return query ? `${path}?${query}` : path;
+  return hash ? `${result}#${hash}` : result;
 }

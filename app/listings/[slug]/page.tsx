@@ -125,14 +125,15 @@ export default async function ListingPage({
   const isOwner = viewer?.user.id === listing.owner_id;
   const canUseMobileActions = !isOwner;
   const storefrontHref = buildStorefrontHref(listing.owner_id, listing.storefront_id);
-  const sellerProfileHref = buildPathWithQuery(`/sellers/${listing.owner_id}`, {
+  // Both the seller-name link and "See profile" go to the listing's business
+  // profile (storefrontHref already carries ?storefront=... when the listing
+  // belongs to one) - linking to the bare owner page would show the owner's
+  // combined page instead, which for admin-seeded businesses mixes several.
+  const sellerProfileHref = buildPathWithQuery(storefrontHref, {
     fromListing: listing.id,
     listingSlug: listing.slug
   });
-  const selectedStorefrontHref = buildPathWithQuery(storefrontHref, {
-    fromListing: listing.id,
-    listingSlug: listing.slug
-  });
+  const selectedStorefrontHref = sellerProfileHref;
   const sellerDisplayName = listing.contact_name.trim() || "Seller";
   const mobilePrimaryHref = viewer
     ? existingConversation
