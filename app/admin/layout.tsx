@@ -34,6 +34,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link className="button button-secondary" href="/admin/claims">
               Business claims
             </Link>
+            <Link className="button button-secondary" href="/admin/traffic">
+              Traffic
+            </Link>
             <Link className="button button-ghost" href="/dashboard">
               My Listings
             </Link>

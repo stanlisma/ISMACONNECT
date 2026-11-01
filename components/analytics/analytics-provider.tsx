@@ -63,6 +63,49 @@ export function AnalyticsProvider({ userId, nonce }: AnalyticsProviderProps) {
     lastTrackedRouteRef.current = route;
   }, [analyticsReady, measurementId, route]);
 
+  // First-party, anonymous daily visit count for the admin Traffic page. Runs
+  // independently of Google Analytics (which isn't configured in production)
+  // and sends at most once per page per day per browser session.
+  useEffect(() => {
+    if (typeof window === "undefined" || !pathname || pathname.startsWith("/admin")) {
+      return;
+    }
+
+    try {
+      const sentKey = `ismaconnect-visit:${new Date().toDateString()}:${pathname}`;
+
+      if (window.sessionStorage.getItem(sentKey)) {
+        return;
+      }
+
+      window.sessionStorage.setItem(sentKey, "1");
+    } catch {
+      // Storage blocked - the server still dedupes per visitor, page and day.
+    }
+
+    let source: string | null = null;
+
+    try {
+      const referrerHost = document.referrer ? new URL(document.referrer).host.toLowerCase() : "";
+
+      if (referrerHost && referrerHost !== window.location.host.toLowerCase()) {
+        source = referrerHost.replace(/^www\./, "");
+      } else if (new URLSearchParams(window.location.search).has("fbclid")) {
+        // Facebook's in-app browser usually strips the referrer but keeps fbclid.
+        source = "facebook.com";
+      }
+    } catch {
+      source = null;
+    }
+
+    void fetch("/api/track-visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: pathname, source }),
+      keepalive: true
+    }).catch(() => undefined);
+  }, [pathname]);
+
   useEffect(() => {
     const capture = (source: string, payload: ReportableErrorPayload) => {
       const signature = `${source}:${payload.message}:${payload.pathname ?? route}`;

@@ -53,6 +53,11 @@ export default function PrivacyPage() {
             can control cookies through your browser settings, though disabling essential cookies may prevent you
             from signing in.
           </p>
+          <p>
+            We also keep our own simple visit counts: a random identifier stored in a cookie on your device, the
+            pages opened, and the website you arrived from. These counts do not include your IP address or any
+            personal details, and we use them only to see how many people visit and which pages help them most.
+          </p>
         </section>
 
         <section className="legal-section">
