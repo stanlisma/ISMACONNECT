@@ -1,4 +1,10 @@
 export function buildContentSecurityPolicy(nonce: string) {
+  // React's development build uses eval() to reconstruct stack traces, which
+  // the strict script-src below blocks and reports as a console error on every
+  // page. It's only ever requested in `next dev` (React never uses eval in
+  // production), so it's allowed there and nowhere else.
+  const devOnlyScriptSources = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+
   const directives = [
     `default-src 'self'`,
     // 'strict-dynamic' lets scripts loaded by an already-trusted (nonced)
@@ -6,7 +12,7 @@ export function buildContentSecurityPolicy(nonce: string) {
     // having to enumerate every Google Analytics subdomain by hand. The
     // explicit hosts below are a fallback for browsers that ignore
     // strict-dynamic.
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com https://maps.googleapis.com`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${devOnlyScriptSources} https://www.googletagmanager.com https://maps.googleapis.com`,
     // Inline style="" attributes are used throughout this codebase, and
     // there is no nonce mechanism for style attributes (only <style>
     // elements), so 'unsafe-inline' is required here. CSS injection is a
