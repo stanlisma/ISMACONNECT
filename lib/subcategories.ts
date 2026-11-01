@@ -46,6 +46,8 @@ export const SUBCATEGORY_MAP: Record<SubcategoryCategory, SubcategoryItem[]> = {
     { value: "business-services", label: "Business Services" },
     { value: "childcare-family-care", label: "Childcare & Family Care" },
     { value: "senior-care", label: "Senior Care" },
+    { value: "restaurants", label: "Restaurants" },
+    { value: "bus-shuttle", label: "Bus & Shuttle" },
     { value: "other-services", label: "Other Services" }
   ],
   "buy-sell": [

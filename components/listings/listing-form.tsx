@@ -271,6 +271,14 @@ const TITLE_PLACEHOLDER_MAP: Record<
       offer: "Companion care available for seniors in Fort McMurray",
       need: "Need senior care support for weekday mornings"
     },
+    restaurants: {
+      offer: "Family-owned Thai restaurant with dine-in and takeout",
+      need: "Looking for a caterer for a 30-person work event"
+    },
+    "bus-shuttle": {
+      offer: "Scheduled bus shuttle between Fort McMurray and Edmonton",
+      need: "Need a group shuttle to the airport this Friday"
+    },
     "other-services": {
       offer: "Local service help available across Fort McMurray",
       need: "Need reliable local help in Fort McMurray"
