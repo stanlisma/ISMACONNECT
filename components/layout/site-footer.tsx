@@ -1,12 +1,14 @@
 import Link from "next/link";
 
 import { CATEGORIES, SITE_DESCRIPTION, SITE_NAME, SITE_SUPPORT_EMAIL } from "@/lib/constants";
+import type { ListingCategory } from "@/types/database";
 
 interface SiteFooterProps {
+  hiddenCategories?: ListingCategory[];
   viewer?: boolean;
 }
 
-export function SiteFooter({ viewer = false }: SiteFooterProps) {
+export function SiteFooter({ hiddenCategories = [], viewer = false }: SiteFooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -29,7 +31,7 @@ export function SiteFooter({ viewer = false }: SiteFooterProps) {
         <div>
           <h4>Categories</h4>
           <div className="footer-links">
-            {CATEGORIES.map((category) => (
+            {CATEGORIES.filter((category) => !hiddenCategories.includes(category.value)).map((category) => (
               <Link href={category.href} key={category.value}>
                 {category.label}
               </Link>

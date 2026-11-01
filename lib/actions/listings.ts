@@ -641,6 +641,39 @@ export async function resumeListingAction(listingId: string) {
   );
 }
 
+// Renews a still-active listing ahead of its expiry (the reminder's call to
+// action) - resuming only covers listings that have already been paused.
+export async function renewListingAction(listingId: string) {
+  const viewer = await requireViewer();
+  const existing = await loadListingForMutation(listingId);
+
+  if (!existing || (existing.owner_id !== viewer.user.id && viewer.profile.role !== "admin")) {
+    redirectWithMessage("/dashboard", "error", "You do not have access to renew this listing.");
+  }
+
+  if (existing.status !== "active") {
+    redirectWithMessage("/dashboard", "error", "Only active listings can be renewed. Resume a paused listing instead.");
+  }
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    redirectWithMessage("/dashboard", "error", "Renewing listings is temporarily unavailable. Please contact support.");
+  }
+
+  const supabase = createServiceRoleSupabaseClient();
+  const { error } = await supabase
+    .from("listings")
+    .update({ expires_at: computeExpiresAt(existing.category, existing.listing_intent) })
+    .eq("id", listingId);
+
+  if (error) {
+    redirectWithMessage("/dashboard", "error", error.message);
+  }
+
+  revalidatePath("/dashboard");
+
+  redirectWithMessage("/dashboard", "success", "Listing renewed. It will stay live for another full period.");
+}
+
 export async function flagListingAction(listingId: string, formData: FormData) {
   const viewer = await requireViewer();
   const existing = await loadListingForMutation(listingId);

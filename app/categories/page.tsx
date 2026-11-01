@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/ui/section-heading";
+import { getHiddenCategoryValues } from "@/lib/category-visibility";
 import { CATEGORIES } from "@/lib/constants";
 import { getCategoryLocalContent } from "@/lib/local-marketplace";
 
@@ -11,8 +12,11 @@ export const metadata: Metadata = {
     "Explore rentals, ride share, jobs, services, and buy & sell categories built for Fort McMurray shoppers, workers, and local businesses."
 };
 
-export default function CategoriesPage() {
-  const quickStarts = CATEGORIES.map((category) => {
+export default async function CategoriesPage() {
+  const hiddenCategories = await getHiddenCategoryValues();
+  const visibleCategories = CATEGORIES.filter((category) => !hiddenCategories.includes(category.value));
+
+  const quickStarts = visibleCategories.map((category) => {
     const localContent = getCategoryLocalContent(category.value);
 
     return {
@@ -50,7 +54,7 @@ export default function CategoriesPage() {
         </div>
 
         <div className="category-hub-grid">
-          {CATEGORIES.map((category) => {
+          {visibleCategories.map((category) => {
             const localContent = getCategoryLocalContent(category.value);
 
             return (

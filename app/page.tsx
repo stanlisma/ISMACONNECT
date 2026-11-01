@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { getViewer } from "@/lib/auth";
 
 import { ListingCard } from "@/components/listings/listing-card";
+import { getHiddenCategoryValues } from "@/lib/category-visibility";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { BusinessMarquee } from "@/components/storefronts/business-marquee";
 import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
@@ -21,7 +22,8 @@ export default async function HomePage() {
   const hasFreshListings = freshListings.length > 0;
   const visibleListings = (hasFreshListings ? freshListings : latestListings).slice(0, 8);
   const trustMap = await getListingTrustSummaryMap(visibleListings);
-  const priorityCategories = HERO_CATEGORY_VALUES.map(
+  const hiddenCategories = await getHiddenCategoryValues();
+  const priorityCategories = HERO_CATEGORY_VALUES.filter((value) => !hiddenCategories.includes(value)).map(
     (value) => CATEGORIES.find((category) => category.value === value)!
   );
   const heroCategories = [

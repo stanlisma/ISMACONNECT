@@ -8,7 +8,7 @@ import { useLiveMessageState } from "@/components/messages/live-message-provider
 import { CATEGORIES } from "@/lib/constants";
 import { useClearedActivityBadgeCount } from "@/lib/hooks/use-cleared-activity-badge";
 import { getSubcategories } from "@/lib/subcategories";
-import type { Viewer } from "@/types/database";
+import type { ListingCategory, Viewer } from "@/types/database";
 import "./site-header.css";
 
 const ADMIN_MENU_LINKS = [
@@ -20,6 +20,7 @@ const ADMIN_MENU_LINKS = [
 ];
 
 interface SiteHeaderProps {
+  hiddenCategories?: ListingCategory[];
   viewer: Viewer | null;
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
@@ -35,6 +36,7 @@ function formatBadgeCount(count: number) {
 }
 
 export function SiteHeader({
+  hiddenCategories = [],
   viewer,
   unreadMessagesCount,
   unreadNotificationsCount,
@@ -49,7 +51,8 @@ export function SiteHeader({
     unreadNotificationsCount,
     unreadNotificationsMarker
   );
-  const headerCategoryLinks = CATEGORIES.filter((category) => category.value !== "buy-sell").map((category) => ({
+  const visibleCategories = CATEGORIES.filter((category) => !hiddenCategories.includes(category.value));
+  const headerCategoryLinks = visibleCategories.filter((category) => category.value !== "buy-sell").map((category) => ({
     ...category,
     subcategories: getSubcategories(category.value)
   }));
@@ -107,7 +110,7 @@ export function SiteHeader({
 
             <select name="category" defaultValue="" className="header-search-select" aria-label="Choose a category">
               <option value="">All categories</option>
-              {CATEGORIES.map((category) => (
+              {visibleCategories.map((category) => (
                 <option key={category.value} value={category.value}>
                   {category.label}
                 </option>

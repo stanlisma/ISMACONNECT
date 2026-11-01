@@ -4,6 +4,7 @@ import {
   ChevronRight,
   MessageCircle,
   CheckCheck,
+  Clock3,
   Rocket,
   Search,
   ShieldAlert,
@@ -138,6 +139,12 @@ function getNotificationPresentation(type: string | null | undefined) {
         label: "Moderation",
         className: "notification-card-verification",
         icon: <ShieldAlert aria-hidden="true" size={18} strokeWidth={2.2} />
+      };
+    case "listing-expiring":
+      return {
+        label: "Listing expiring",
+        className: "notification-card-boost",
+        icon: <Clock3 aria-hidden="true" size={18} strokeWidth={2.2} />
       };
     default:
       return {

@@ -366,3 +366,50 @@ ${reasonLine ? `\n${reasonLine}\n` : ""}
 If you believe this is a mistake, please contact us at admin@ismaconnect.ca.`
   });
 }
+
+export async function sendListingExpiringEmail(args: {
+  to: string;
+  recipientName?: string | null;
+  dashboardUrl: string;
+  listings: Array<{ title: string; expiresOn: string }>;
+}) {
+  const greeting = args.recipientName?.trim() || "there";
+  const count = args.listings.length;
+  const subject =
+    count === 1
+      ? `Your listing "${args.listings[0].title}" expires soon`
+      : `${count} of your ISMACONNECT listings expire soon`;
+
+  const htmlItems = args.listings
+    .map((listing) => `<li><strong>${escapeHtml(listing.title)}</strong> - expires ${escapeHtml(listing.expiresOn)}</li>`)
+    .join("");
+  const textItems = args.listings.map((listing) => `- ${listing.title} - expires ${listing.expiresOn}`).join("\n");
+
+  await sendAccountStatusEmail({
+    to: args.to,
+    subject,
+    html: wrapEmailShell(`
+      <h2 style="margin-bottom: 8px;">${count === 1 ? "A listing is about to expire" : "Some listings are about to expire"}</h2>
+      <p>Hello ${escapeHtml(greeting)},</p>
+      <p>To keep the marketplace fresh, listings are hidden from public view when they expire. Renew ${count === 1 ? "it" : "them"} to keep ${count === 1 ? "it" : "them"} live:</p>
+      <ul>${htmlItems}</ul>
+      <p>
+        <a href="${args.dashboardUrl}" style="display:inline-block;padding:10px 16px;background:#006fd6;color:#fff;text-decoration:none;border-radius:999px;font-weight:700;">
+          Renew in My Listings
+        </a>
+      </p>
+      <p style="color:#57769c;">If you do nothing, ${count === 1 ? "the listing is" : "they are"} paused and can be resumed from My Listings at any time. You can turn these emails off in Settings.</p>
+    `),
+    text: `${count === 1 ? "A listing is about to expire" : "Some listings are about to expire"}
+
+Hello ${greeting},
+
+To keep the marketplace fresh, listings are hidden from public view when they expire. Renew ${count === 1 ? "it" : "them"} to keep ${count === 1 ? "it" : "them"} live:
+
+${textItems}
+
+Renew in My Listings: ${args.dashboardUrl}
+
+If you do nothing, ${count === 1 ? "the listing is" : "they are"} paused and can be resumed from My Listings at any time.`
+  });
+}

@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
 
+import { getHiddenCategoryValues } from "@/lib/category-visibility";
 import { CATEGORIES } from "@/lib/constants";
 import { getBaseUrl, isSupabaseConfigured } from "@/lib/env";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
+  const hiddenCategories = await getHiddenCategoryValues();
   const routes: MetadataRoute.Sitemap = [
     "",
     "/browse",
@@ -16,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/terms",
     "/safety",
     "/contact",
-    ...CATEGORIES.map((category) => category.href)
+    ...CATEGORIES.filter((category) => !hiddenCategories.includes(category.value)).map((category) => category.href)
   ].map((path) => ({
     url: `${baseUrl}${path}`,
     changeFrequency: "daily",

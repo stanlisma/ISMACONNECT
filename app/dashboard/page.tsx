@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DashboardListingControls } from "@/components/dashboard/dashboard-listing-controls";
 import { DeleteListingForm } from "@/components/listings/delete-listing-form";
+import { ListingRenewForm } from "@/components/listings/listing-renew-form";
 import { ListingStatusToggleForm } from "@/components/listings/listing-status-toggle-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashMessage } from "@/components/ui/flash-message";
@@ -302,6 +303,11 @@ export default async function DashboardPage({
                       <Link className="button button-secondary" href={`/dashboard/listings/${listing.id}/boost`}>
                         Promote
                       </Link>
+                    ) : null}
+                    {listing.status === "active" &&
+                    listing.expires_at &&
+                    new Date(listing.expires_at).getTime() - Date.now() <= 14 * 24 * 60 * 60 * 1000 ? (
+                      <ListingRenewForm listingId={listing.id} />
                     ) : null}
                     {listing.status === "active" || listing.status === "paused" ? (
                       <ListingStatusToggleForm listingId={listing.id} status={listing.status} />

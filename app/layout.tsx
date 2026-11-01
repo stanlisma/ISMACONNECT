@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { getHiddenCategoryValues } from "@/lib/category-visibility";
 import { LiveMessageProvider } from "@/components/messages/live-message-provider";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PwaShell } from "@/components/pwa/pwa-shell";
@@ -53,6 +54,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     unreadNotificationsMarker = activitySummary.marker;
   }
 
+  const hiddenCategories = await getHiddenCategoryValues();
+
   return (
     <html lang="en">
       <body>
@@ -72,6 +75,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           />
           <div className="site-shell">
             <SiteHeader
+              hiddenCategories={hiddenCategories}
               viewer={viewer}
               unreadMessagesCount={unreadMessagesCount}
               unreadNotificationsCount={unreadNotificationsCount}
@@ -80,7 +84,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
             <main>{children}</main>
 
-            <SiteFooter viewer={Boolean(viewer)} />
+            <SiteFooter hiddenCategories={hiddenCategories} viewer={Boolean(viewer)} />
           </div>
         </LiveMessageProvider>
       </body>
