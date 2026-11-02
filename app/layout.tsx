@@ -92,13 +92,22 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   );
 }
 
+// The homepage has no title of its own, so this default is what search results
+// show for it; every other page gets "<page title> | ISMACONNECT".
+const HOME_TITLE = `${SITE_NAME} | Fort McMurray Local Marketplace & Services`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
   title: {
-    default: SITE_NAME,
+    default: HOME_TITLE,
     template: `%s | ${SITE_NAME}`
   },
   description: SITE_DESCRIPTION,
+  // "./" resolves against each page's own path (query string dropped), so
+  // /browse?category=jobs and tracking-tagged links all point at one URL.
+  alternates: {
+    canonical: "./"
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/favicon.ico",
@@ -108,13 +117,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     locale: "en_CA"
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_NAME,
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION
   }
 };

@@ -55,8 +55,15 @@ export async function generateMetadata({
     };
   }
 
+  // One owner can run several business profiles, each its own page, so the
+  // storefront parameter is part of the page's identity (unlike fromListing etc).
   return {
     title: storefront.display_name,
+    alternates: {
+      canonical: storefrontId
+        ? `/sellers/${sellerId}?storefront=${encodeURIComponent(storefrontId)}`
+        : `/sellers/${sellerId}`
+    },
     description:
       storefront.is_business && storefront.business_description
         ? storefront.business_description
