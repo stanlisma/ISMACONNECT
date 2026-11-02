@@ -21,7 +21,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/service-role";
 import { flagListingSchema, listingSchema } from "@/lib/validation/listing";
 import { firstMessage, slugify } from "@/lib/utils";
-import type { ListingIntent, ListingStatus } from "@/types/database";
+import type { ListingCategory, ListingIntent, ListingStatus } from "@/types/database";
 
 function isSubcategoryConstraintError(error: {
   code?: string | null;
@@ -205,6 +205,26 @@ async function loadListingForMutation(listingId: string) {
     .single();
 
   return data;
+}
+
+// A listing that is made live again after its expiry date has passed would be
+// paused straight back by the lazy expiry check, so it needs a fresh expiry.
+// Returns the new expires_at, or undefined when the current one still holds.
+async function getRenewedExpiryIfLapsed(
+  supabase: ReturnType<typeof createServiceRoleSupabaseClient>,
+  listingId: string,
+  listing: { category: ListingCategory; listing_intent: ListingIntent }
+) {
+  const { data: expiryRow } = await supabase
+    .from("listings")
+    .select("expires_at")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  const isLapsed =
+    Boolean(expiryRow?.expires_at) && new Date(expiryRow!.expires_at as string).getTime() <= Date.now();
+
+  return isLapsed ? computeExpiresAt(listing.category, listing.listing_intent) : undefined;
 }
 
 async function resolveOwnedStorefrontId(ownerId: string, storefrontId: FormDataEntryValue | null) {
@@ -602,20 +622,13 @@ export async function resumeListingAction(listingId: string) {
   }
 
   const supabase = createServiceRoleSupabaseClient();
-
-  const { data: expiryRow } = await supabase
-    .from("listings")
-    .select("expires_at")
-    .eq("id", listingId)
-    .maybeSingle();
-
-  const isExpired =
-    Boolean(expiryRow?.expires_at) && new Date(expiryRow!.expires_at as string).getTime() <= Date.now();
+  const renewedExpiry = await getRenewedExpiryIfLapsed(supabase, listingId, existing);
+  const isExpired = Boolean(renewedExpiry);
 
   const updates: { status: "active"; expires_at?: string } = { status: "active" };
 
-  if (isExpired) {
-    updates.expires_at = computeExpiresAt(existing.category, existing.listing_intent);
+  if (renewedExpiry) {
+    updates.expires_at = renewedExpiry;
   }
 
   const { error } = await supabase
@@ -740,9 +753,12 @@ export async function reviewFlaggedListingAction(
   const supabase = createServiceRoleSupabaseClient();
   const nextStatus = decision === "restore" ? "active" : "removed";
 
+  const renewedExpiry =
+    decision === "restore" ? await getRenewedExpiryIfLapsed(supabase, listingId, existing) : undefined;
+
   const updates =
     decision === "restore"
-      ? { status: nextStatus }
+      ? { status: nextStatus, ...(renewedExpiry ? { expires_at: renewedExpiry } : {}) }
       : { status: nextStatus, is_featured: false, featured_until: null };
 
   const { error } = await supabase.from("listings").update(updates).eq("id", listingId);
@@ -789,10 +805,13 @@ export async function adminSetListingStatusAction(listingId: string, formData: F
 
   const supabase = createServiceRoleSupabaseClient();
 
+  const renewedExpiry =
+    status === "active" ? await getRenewedExpiryIfLapsed(supabase, listingId, existing) : undefined;
+
   const updates =
     status === "removed"
       ? { status, is_featured: false, featured_until: null }
-      : { status };
+      : { status, ...(renewedExpiry ? { expires_at: renewedExpiry } : {}) };
 
   const { error } = await supabase.from("listings").update(updates).eq("id", listingId);
 
