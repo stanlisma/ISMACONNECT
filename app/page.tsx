@@ -6,10 +6,12 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { getHiddenCategoryValues } from "@/lib/category-visibility";
 import { MobileInstallBanner } from "@/components/pwa/mobile-install-banner";
 import { BusinessMarquee } from "@/components/storefronts/business-marquee";
-import { CATEGORIES, HERO_CATEGORY_VALUES } from "@/lib/constants";
+import { CATEGORIES, HERO_CATEGORY_VALUES, SITE_DESCRIPTION, SITE_NAME, SITE_SUPPORT_EMAIL } from "@/lib/constants";
 import { getBusinessMarqueeItems, getHomepageData, getSavedListingIds } from "@/lib/data";
 import { HOMEPAGE_FRESH_DAYS, isFreshListing } from "@/lib/listing-freshness";
 import { getListingTrustSummaryMap } from "@/lib/trust";
+import { getBaseUrl } from "@/lib/env";
+import { toSafeJsonLd } from "@/lib/utils";
 
 export default async function HomePage() {
   const viewer = await getViewer();
@@ -37,8 +39,42 @@ export default async function HomePage() {
     }))
     .filter((group) => group.listings.length > 0);
 
+  const baseUrl = getBaseUrl();
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": `${baseUrl}/#organization`,
+      name: SITE_NAME,
+      url: baseUrl,
+      logo: `${baseUrl}/icons/icon-512.png`,
+      email: SITE_SUPPORT_EMAIL,
+      areaServed: { "@type": "City", name: "Fort McMurray" }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": `${baseUrl}/#website`,
+      name: SITE_NAME,
+      url: baseUrl,
+      description: SITE_DESCRIPTION,
+      inLanguage: "en-CA",
+      publisher: { "@id": `${baseUrl}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: `${baseUrl}/browse?q={search_term_string}` },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ];
+
   return (
     <main className="homepage-main" style={pageStyle}>
+      <script
+        dangerouslySetInnerHTML={{ __html: toSafeJsonLd(structuredData) }}
+        suppressHydrationWarning
+        type="application/ld+json"
+      />
       <section className="home-hero-section home-unified-hero surface" style={heroCardStyle}>
         <div className="marketplace-page-utility-row home-hero-utility-row">
           <span className="eyebrow">Fort McMurray</span>

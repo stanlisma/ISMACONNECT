@@ -29,7 +29,7 @@ export const SUPPORT_CATEGORY_VALUES: ListingCategory[] = [DEFAULT_MARKETPLACE_C
 // Categories whose menu/footer/homepage links are hidden while they have no
 // active listing, so visitors aren't sent to an empty page. They reappear on
 // their own once someone posts. The category page itself stays reachable.
-export const HIDE_WHEN_EMPTY_CATEGORIES: ListingCategory[] = ["ride-share"];
+export const HIDE_WHEN_EMPTY_CATEGORIES: ListingCategory[] = ["ride-share", "rentals", "jobs"];
 
 export const CATEGORIES: Array<{
   value: ListingCategory;
