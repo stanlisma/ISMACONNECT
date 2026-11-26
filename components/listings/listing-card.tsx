@@ -13,7 +13,7 @@ import { getStructuredCardHighlights } from "@/lib/listing-structured-fields";
 import { getPublicListingImages } from "@/lib/listing-media";
 import { getPublicListingLocationLabel } from "@/lib/local-marketplace";
 import { getSubcategoryLabel } from "@/lib/subcategories";
-import { excerpt, formatListingPrice, getCategoryLabel } from "@/lib/utils";
+import { excerpt, formatListingPrice, getCategoryLabel, stripMarkdown } from "@/lib/utils";
 import type { Listing, SellerTrustSummary } from "@/types/database";
 
 interface ListingCardProps {
@@ -306,7 +306,7 @@ export function ListingCard({
           </div>
         </div>
 
-        <p className="listing-description">{excerpt(listing.description)}</p>
+        <p className="listing-description">{excerpt(stripMarkdown(listing.description))}</p>
 
         {structuredHighlights.length ? (
           <div className="listing-card-signals listing-card-structured-signals">

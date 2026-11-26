@@ -14,6 +14,7 @@ import { StorefrontImageGallery } from "@/components/storefronts/storefront-imag
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FormattedText } from "@/components/ui/formatted-text";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { CATEGORY_MAP } from "@/lib/constants";
@@ -31,7 +32,15 @@ import {
   getListingTrustSummaryMap,
   getViewerSellerReview
 } from "@/lib/trust";
-import { buildPathWithQuery, formatDate, getCategoryLabel, getSingleParam, resolveCategory } from "@/lib/utils";
+import {
+  buildPathWithQuery,
+  excerpt,
+  formatDate,
+  getCategoryLabel,
+  getSingleParam,
+  resolveCategory,
+  stripMarkdown
+} from "@/lib/utils";
 
 export async function generateMetadata({
   params,
@@ -66,7 +75,7 @@ export async function generateMetadata({
     },
     description:
       storefront.is_business && storefront.business_description
-        ? storefront.business_description
+        ? excerpt(stripMarkdown(storefront.business_description), 155)
         : `Browse active local marketplace listings from ${storefront.display_name} on ISMACONNECT.`
   };
 }
@@ -171,7 +180,7 @@ export default async function SellerStorefrontPage({
                   {storefront.founding_member ? <span className="badge badge-soft">Founding Member</span> : null}
                   {!storefront.claimed ? <span className="badge badge-soft">Unclaimed</span> : null}
                 </h1>
-                <p className="section-copy">{storefrontDescription}</p>
+                <FormattedText text={storefrontDescription} className="section-copy" />
 
                 <div className="seller-storefront-meta">
                   {storefront.claimed ? <span>Member since {memberSinceLabel}</span> : null}

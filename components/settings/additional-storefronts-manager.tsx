@@ -211,7 +211,7 @@ function StorefrontForm({
         <label className="field">
           <FieldLabelWithHelp
             label="Description"
-            helpText="Explain what this storefront offers and who it serves."
+            helpText="Explain what this storefront offers and who it serves. Supports **bold**, _italic_, and line breaks for readability."
           />
           <textarea
             className="textarea business-profile-textarea"

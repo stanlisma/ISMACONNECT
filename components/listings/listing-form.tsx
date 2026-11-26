@@ -363,9 +363,12 @@ function getTitlePlaceholder(category: string, listingIntent: ListingIntent, sub
 }
 
 function getDescriptionHint(listingIntent: ListingIntent) {
-  return listingIntent === "need"
-    ? "Explain what you need, when you need it, and any details responders should know."
-    : "A little detail helps buyers trust the listing quickly.";
+  const base =
+    listingIntent === "need"
+      ? "Explain what you need, when you need it, and any details responders should know."
+      : "A little detail helps buyers trust the listing quickly.";
+
+  return `${base} Supports **bold**, _italic_, and line breaks for readability.`;
 }
 
 function getContactHint(listingIntent: ListingIntent) {

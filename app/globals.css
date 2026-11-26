@@ -2595,6 +2595,36 @@ code {
   margin: 0;
 }
 
+.detail-copy p,
+.section-copy p {
+  margin: 0 0 1em;
+}
+
+.detail-copy p:last-child,
+.section-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.detail-copy ul,
+.detail-copy ol,
+.section-copy ul,
+.section-copy ol {
+  margin: 0 0 1em 1.25em;
+  padding: 0;
+}
+
+.detail-copy ul:last-child,
+.detail-copy ol:last-child,
+.section-copy ul:last-child,
+.section-copy ol:last-child {
+  margin-bottom: 0;
+}
+
+.detail-copy li,
+.section-copy li {
+  margin: 0 0 0.35em;
+}
+
 .meta-list {
   display: grid;
   gap: 0.65rem;

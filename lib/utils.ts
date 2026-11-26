@@ -148,6 +148,17 @@ export function excerpt(value: string, length = 140) {
   return `${value.slice(0, length).trimEnd()}...`;
 }
 
+export function stripMarkdown(value: string) {
+  return value
+    .replace(/(\*\*|__)(.*?)\1/g, "$2")
+    .replace(/(\*|_)(.*?)\1/g, "$2")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^[-*+]\s+/gm, "")
+    .replace(/^\d+\.\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function resolveCategory(value?: string | null): ListingCategory | undefined {
   if (!value) {
     return undefined;

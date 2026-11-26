@@ -13,6 +13,7 @@ import { SellerTrustHighlights } from "@/components/trust/seller-trust-highlight
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { FlashMessage } from "@/components/ui/flash-message";
+import { FormattedText } from "@/components/ui/formatted-text";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getViewer } from "@/lib/auth";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
@@ -44,6 +45,7 @@ import {
   formatDate,
   formatListingPrice,
   getSingleParam,
+  stripMarkdown,
   toSafeJsonLd
 } from "@/lib/utils";
 
@@ -67,7 +69,7 @@ export async function generateMetadata({
 
   return {
     title: listing.title,
-    description: excerpt(listing.description, 155)
+    description: excerpt(stripMarkdown(listing.description), 155)
   };
 }
 
@@ -257,7 +259,7 @@ export default async function ListingPage({
               </div>
 
               <div className="detail-description-block">
-                <p className="detail-copy">{listing.description}</p>
+                <FormattedText text={listing.description} className="detail-copy" />
 
                 <div className="detail-mobile-seller-strip">
                   <div className="detail-mobile-seller-copy">

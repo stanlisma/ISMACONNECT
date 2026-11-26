@@ -4,7 +4,7 @@ import { ExternalLink, MapPin, Phone } from "lucide-react";
 import { TrustBadges } from "@/components/trust/trust-badges";
 import { VerifiedNameBadge } from "@/components/trust/verified-name-badge";
 import { buildStorefrontHref } from "@/lib/business-storefronts";
-import { excerpt } from "@/lib/utils";
+import { excerpt, stripMarkdown } from "@/lib/utils";
 import type { PublicBusinessStorefrontDirectoryItem, SellerTrustSummary } from "@/types/database";
 
 export function StorefrontDirectoryCard({
@@ -38,7 +38,7 @@ export function StorefrontDirectoryCard({
             </h3>
             <p>
               {storefront.description
-                ? excerpt(storefront.description, 110)
+                ? excerpt(stripMarkdown(storefront.description), 110)
                 : "Local business storefront on ISMACONNECT."}
             </p>
           </div>
