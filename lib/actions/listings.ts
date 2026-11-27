@@ -338,12 +338,20 @@ export async function createListingAction(formData: FormData) {
 
   // "removed" is only set by moderators (owners hard-delete their own listings), so
   // include it here to stop a removed listing being re-posted under the same title.
-  const { data: sameCategoryListings } = await supabase
+  // Scoped to the same storefront (or the owner's personal profile when none is
+  // selected) so a business managing several storefronts isn't blocked from
+  // posting a listing under one storefront just because a similarly titled
+  // listing already exists under a different storefront or their own profile.
+  const sameCategoryListingsQuery = supabase
     .from("listings")
     .select("title, status")
     .eq("owner_id", viewer.user.id)
     .eq("category", dataInput.category)
     .in("status", ["active", "paused", "flagged", "removed"]);
+
+  const { data: sameCategoryListings } = storefrontId
+    ? await sameCategoryListingsQuery.eq("storefront_id", storefrontId)
+    : await sameCategoryListingsQuery.is("storefront_id", null);
 
   const similarListings = (sameCategoryListings ?? []).filter(
     (existing) => titleSimilarity(existing.title, dataInput.title) >= DUPLICATE_TITLE_SIMILARITY_THRESHOLD
