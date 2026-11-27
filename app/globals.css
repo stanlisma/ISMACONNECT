@@ -2226,6 +2226,28 @@ code {
   color: var(--text-soft);
 }
 
+.description-toolbar {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.description-toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.description-toolbar-button:hover {
+  border-color: var(--line-strong);
+}
+
 .listing-structured-panel {
   display: grid;
   gap: 1rem;
@@ -2593,9 +2615,27 @@ code {
 
 .detail-copy {
   margin: 0;
-  white-space: pre-line;
   min-width: 0;
   overflow-wrap: break-word;
+}
+
+.detail-copy p,
+.detail-copy ul,
+.detail-copy ol {
+  margin: 0 0 0.85em;
+}
+
+.detail-copy ul,
+.detail-copy ol {
+  padding-left: 1.3em;
+}
+
+.detail-copy li + li {
+  margin-top: 0.3em;
+}
+
+.detail-copy > :last-child {
+  margin-bottom: 0;
 }
 
 .meta-list {
