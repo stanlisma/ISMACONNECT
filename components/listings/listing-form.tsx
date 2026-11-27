@@ -821,6 +821,52 @@ export function ListingForm({
     });
   }
 
+  // Pressing Enter inside a "- " bullet line continues the list onto the next
+  // line, same as GitHub/Notion; pressing it on an empty bullet line exits the
+  // list instead of adding another empty bullet.
+  function handleDescriptionKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    const textarea = event.currentTarget;
+    const { selectionStart, selectionEnd, value } = textarea;
+    if (selectionStart !== selectionEnd) {
+      return;
+    }
+
+    const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+    const nextNewline = value.indexOf("\n", selectionStart);
+    const lineEnd = nextNewline === -1 ? value.length : nextNewline;
+    const line = value.slice(lineStart, lineEnd);
+
+    if (!line.startsWith("- ")) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (line.trim() === "-") {
+      const nextValue = value.slice(0, lineStart) + value.slice(lineEnd);
+      setDescription(nextValue);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.setSelectionRange(lineStart, lineStart);
+      });
+      return;
+    }
+
+    const insertion = "\n- ";
+    const nextValue = value.slice(0, selectionStart) + insertion + value.slice(selectionEnd);
+    const nextCursor = selectionStart + insertion.length;
+
+    setDescription(nextValue);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(nextCursor, nextCursor);
+    });
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     const formData = new FormData(event.currentTarget);
     const submittedCategory = String(formData.get("category") ?? category);
@@ -1186,6 +1232,7 @@ export function ListingForm({
             name="description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
+            onKeyDown={handleDescriptionKeyDown}
             rows={6}
             required
           />
