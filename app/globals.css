@@ -2594,6 +2594,8 @@ code {
 .detail-copy {
   margin: 0;
   white-space: pre-line;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .meta-list {
