@@ -2248,6 +2248,40 @@ code {
   border-color: var(--line-strong);
 }
 
+.description-toolbar-button.is-active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-color: transparent;
+  color: #fff;
+}
+
+.description-rich-editor-content {
+  border: 1px solid var(--line-strong);
+  border-radius: 1rem;
+  background: #fcfeff;
+}
+
+.description-rich-editor-content .tiptap {
+  min-height: 170px;
+  padding: 0.85rem 1rem;
+  color: var(--text);
+  outline: none;
+}
+
+.description-rich-editor-content .tiptap p,
+.description-rich-editor-content .tiptap ul,
+.description-rich-editor-content .tiptap ol {
+  margin: 0 0 0.85em;
+}
+
+.description-rich-editor-content .tiptap ul,
+.description-rich-editor-content .tiptap ol {
+  padding-left: 1.3em;
+}
+
+.description-rich-editor-content .tiptap > :last-child {
+  margin-bottom: 0;
+}
+
 .listing-structured-panel {
   display: grid;
   gap: 1rem;
@@ -10181,11 +10215,6 @@ code {
   max-width: 280px;
 }
 
-.listing-description-input {
-  min-height: 170px;
-  resize: vertical;
-}
-
 .listing-form-desktop-actions {
   display: flex;
 }
@@ -11511,7 +11540,7 @@ code {
     display: none;
   }
 
-  .listing-description-input {
+  .description-rich-editor-content .tiptap {
     min-height: 128px;
   }
 

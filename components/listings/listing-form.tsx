@@ -3,10 +3,7 @@
 import {
   ArrowLeft,
   ArrowRight,
-  Bold,
   ImagePlus,
-  Italic,
-  List,
   LoaderCircle,
   Sparkles,
   Star,
@@ -16,6 +13,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { trackMarketplaceEvent } from "@/lib/analytics";
+import { DescriptionRichEditor } from "@/components/listings/description-rich-editor";
 import { FieldHelp, FieldLabelWithHelp } from "@/components/ui/field-help";
 import { PhoneInput } from "@/components/ui/phone-input";
 import {
@@ -499,7 +497,6 @@ export function ListingForm({
   );
   const [storefrontId, setStorefrontId] = useState(defaults?.storefrontId ?? "");
   const [description, setDescription] = useState(defaults?.description ?? "");
-  const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
   const [priceType, setPriceType] = useState<ListingPriceType>(
     defaults?.priceType ?? getDefaultPriceType(defaults?.category as any)
   );
@@ -744,81 +741,6 @@ export function ListingForm({
     setImageUrls((current) =>
       moveItem(current, index, direction === "left" ? index - 1 : index + 1)
     );
-  }
-
-  // Wraps (or, if already wrapped, unwraps) the textarea's selected text with a
-  // markdown marker, e.g. "**" for bold or "*" for italic.
-  function applyDescriptionInlineFormat(marker: string) {
-    const textarea = descriptionInputRef.current;
-    if (!textarea) {
-      return;
-    }
-
-    const { selectionStart, selectionEnd, value } = textarea;
-    const selected = value.slice(selectionStart, selectionEnd);
-    const alreadyWrapped =
-      selected.length > 0 &&
-      value.slice(selectionStart - marker.length, selectionStart) === marker &&
-      value.slice(selectionEnd, selectionEnd + marker.length) === marker;
-
-    let nextValue: string;
-    let nextSelectionStart: number;
-    let nextSelectionEnd: number;
-
-    if (alreadyWrapped) {
-      nextValue =
-        value.slice(0, selectionStart - marker.length) +
-        selected +
-        value.slice(selectionEnd + marker.length);
-      nextSelectionStart = selectionStart - marker.length;
-      nextSelectionEnd = nextSelectionStart + selected.length;
-    } else {
-      const placeholder = selected || "text";
-      nextValue = value.slice(0, selectionStart) + marker + placeholder + marker + value.slice(selectionEnd);
-      nextSelectionStart = selectionStart + marker.length;
-      nextSelectionEnd = nextSelectionStart + placeholder.length;
-    }
-
-    setDescription(nextValue);
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(nextSelectionStart, nextSelectionEnd);
-    });
-  }
-
-  // Prefixes (or, if every selected line already has one, removes) a "- " bullet
-  // marker on each line the selection touches.
-  function applyDescriptionBulletList() {
-    const textarea = descriptionInputRef.current;
-    if (!textarea) {
-      return;
-    }
-
-    const { selectionStart, selectionEnd, value } = textarea;
-    const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-    const nextNewline = value.indexOf("\n", selectionEnd);
-    const lineEnd = nextNewline === -1 ? value.length : nextNewline;
-
-    const block = value.slice(lineStart, lineEnd);
-    const lines = block.split("\n");
-    const bulletedLines = lines.filter((line) => line.trim() !== "");
-    const allBulleted = bulletedLines.length > 0 && bulletedLines.every((line) => line.startsWith("- "));
-
-    const nextLines = lines.map((line) => {
-      if (line.trim() === "") {
-        return line;
-      }
-      return allBulleted ? line.slice(2) : `- ${line}`;
-    });
-
-    const nextBlock = nextLines.join("\n");
-    const nextValue = value.slice(0, lineStart) + nextBlock + value.slice(lineEnd);
-
-    setDescription(nextValue);
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(lineStart, lineStart + nextBlock.length);
-    });
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -1150,45 +1072,7 @@ export function ListingForm({
         </div>
 
         <label className="field field-full">
-          <div className="description-toolbar">
-            <button
-              type="button"
-              className="description-toolbar-button"
-              aria-label="Bold"
-              title="Bold"
-              onClick={() => applyDescriptionInlineFormat("**")}
-            >
-              <Bold size={16} />
-            </button>
-            <button
-              type="button"
-              className="description-toolbar-button"
-              aria-label="Italic"
-              title="Italic"
-              onClick={() => applyDescriptionInlineFormat("*")}
-            >
-              <Italic size={16} />
-            </button>
-            <button
-              type="button"
-              className="description-toolbar-button"
-              aria-label="Bullet list"
-              title="Bullet list"
-              onClick={applyDescriptionBulletList}
-            >
-              <List size={16} />
-            </button>
-          </div>
-
-          <textarea
-            ref={descriptionInputRef}
-            className="input listing-description-input"
-            name="description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={6}
-            required
-          />
+          <DescriptionRichEditor name="description" value={description} onChange={setDescription} />
 
           <div className="listing-description-hint">
             <span>Minimum 10 characters</span>
